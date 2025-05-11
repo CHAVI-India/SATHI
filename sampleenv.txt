@@ -1,0 +1,16 @@
+DJANGO_SECRET_KEY=django-insecure-secret-key
+DJANGO_DEBUG=True
+DJANGO_ALLOWED_HOSTS=http://127.0.0.1,http://localhost
+DJANGO_CSRF_TRUSTED_ORIGINS=127.0.0.1,localhost
+
+#Database settings
+DJANGO_DATABASE_ENGINE=django.db.backends.postgresql_psycopg2
+DJANGO_DATABASE_NAME=chaviprom
+DJANGO_DATABASE_USER=postgres
+DJANGO_DATABASE_PASSWORD=
+DJANGO_DATABASE_HOST=localhost
+DJANGO_DATABASE_PORT=5432
+
+#Django Secured Field Key
+#Generate a new key with the command python manage.py generate_key and add to a comma seperated list to enable key rotation.
+DJANGO_SECURED_FIELDS_KEY=
