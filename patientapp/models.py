@@ -51,7 +51,7 @@ class Patient(models.Model):
         verbose_name_plural = 'Patients'
 
     def __str__(self):
-        return self.name
+        return self.patient_id
 
 
 class Diagnosis(models.Model):
@@ -70,7 +70,7 @@ class Diagnosis(models.Model):
         verbose_name_plural = 'Diagnoses'
 
     def __str__(self):
-        return self.diagnosis
+        return self.patient.patient_id
 
 
 class TreatmentIntentChoices(models.TextChoices):
@@ -112,6 +112,3 @@ class Treatment(models.Model):
         ordering = ['-created_date']
         verbose_name = 'Treatment'
         verbose_name_plural = 'Treatments'
-
-    def __str__(self):
-        return self.treatment_type
