@@ -2,7 +2,8 @@ from django.db import models
 from django.utils import timezone
 import uuid
 from django.core.exceptions import ValidationError
-
+from django.core.validators import MinValueValidator, MaxValueValidator
+from patientapp.models import Patient,Diagnosis,Treatment
 # Create your models here.
 
 class ConstructScale(models.Model):
@@ -159,3 +160,39 @@ class Item(models.Model):
                 raise ValidationError({'range_response': 'Range Scale should not be selected for Text or Number response types'})
 
 
+class Questionnaire(models.Model):
+    '''
+    Questionnaire model. This is used to store the questionnaire.
+    '''
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255, null=True, blank=True, help_text = "The name of the questionnaire")
+    description = models.TextField(null=True, blank=True, help_text = "The description of the questionnaire")
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_date']
+        verbose_name = 'Questionnaire'
+        verbose_name_plural = 'Questionnaires'
+
+class QuestionnaireItemResponse(models.Model):
+    '''
+    Questionnaire Item Response model. This is used to store the items for the questionnaire. There is a many to many relationship between Questionnaire and Item.
+    '''
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, help_text = "The patient to whom the questionnaire belongs")
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    item_response_text = models.CharField(max_length=255, null=True, blank=True, help_text = "The response value for the item")
+    item_response_number = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The response value for the item")
+    item_response_likert_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The response value for the item")
+    item_response_range_min_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The minimum value for the item response")
+    item_response_range_max_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The maximum value for the item response")
+    response_date_time = models.DateTimeField(auto_now_add=True, help_text = "The date and time of the response")
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_date']
+        verbose_name = 'Questionnaire Item Response'
+        verbose_name_plural = 'Questionnaire Item Responses'
