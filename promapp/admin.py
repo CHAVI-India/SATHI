@@ -1,15 +1,27 @@
 from django.contrib import admin
 from .models import *
+from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
 # Register your models here.
 
 
-class LikertScaleResponseOptionInline(admin.StackedInline):
+class LikertScaleResponseOptionInline(TranslationStackedInline):
     model = LikertScaleResponseOption
+    fieldsets = (
+        (None, {
+            'fields': ( 'option_order', 'option_value', ('option_text','option_media'))
+        }),
+    )
     extra = 1
 
-class RangeScaleResponseOptionInline(admin.StackedInline):
+class RangeScaleResponseOptionInline(TranslationStackedInline):
     model = RangeScaleResponseOption
+    fieldsets = (
+        (None, {
+            'fields': ( 'min_value', 'min_value_text', 'max_value', 'max_value_text', 'increment')
+        }),
+    )
     extra = 1
+    group_fieldsets = True
 
 
 class QuestionnaireItemResponseInline(admin.StackedInline):
@@ -24,6 +36,7 @@ class LikertScaleAdmin(admin.ModelAdmin):
     list_filter = ('likert_scale_name',)
     ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')
+    group_fieldsets = True
 
 @admin.register(RangeScale)
 class RangeScaleAdmin(admin.ModelAdmin):
@@ -59,10 +72,12 @@ class ConstructScaleAdmin(admin.ModelAdmin):
     ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')
 
+
 @admin.register(Item)
-class ItemAdmin(admin.ModelAdmin):
-    list_display = ('name', 'construct_scale', 'response_type', 'likert_response', 'range_response')
-    search_fields = ('name', 'construct_scale', 'response_type', 'likert_response', 'range_response')
-    list_filter = ('name', 'construct_scale', 'response_type', 'likert_response', 'range_response')
+class ItemAdmin(TranslationAdmin):
+    list_display = ('construct_scale', 'name', 'response_type')
+    search_fields = ('construct_scale', 'name', 'response_type')
+    list_filter = ('response_type',)
     ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')
+    group_fieldsets = True

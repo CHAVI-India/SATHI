@@ -42,6 +42,7 @@ CSRF_TRUSTED_ORIGINS = os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS','*').split(',')
 # Application definition
 
 INSTALLED_APPS = [
+    'modeltranslation', # Add before admin see : https://github.com/deschler/django-modeltranslation/issues/408
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,7 +52,6 @@ INSTALLED_APPS = [
     'secured_fields',
     'crispy_forms',
     'crispy_tailwind',
-    'modeltranslation',
     'promapp',
     'patientapp',
 ]
