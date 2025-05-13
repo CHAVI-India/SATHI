@@ -11,7 +11,8 @@
           <div class="ml-10 flex items-baseline space-x-4">
             <a href="/" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Home" %}</a>
             <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Admin" %}</a>
-            <a href="#" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Create Questionnaire" %}</a>
+            <a href="{% url 'questionnaire_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Questionnaires" %}</a>
+            <a href="{% url 'questionnaire_create' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Create Questionnaire" %}</a>
           </div>
         </div>
       </div>
@@ -66,7 +67,8 @@
     <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
       <a href="/" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Home" %}</a>
       <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Admin" %}</a>
-      <a href="#" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Create Questionnaire" %}</a>
+      <a href="{% url 'questionnaire_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Questionnaires" %}</a>
+      <a href="{% url 'questionnaire_create' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Create Questionnaire" %}</a>
       
       <!-- Language Selector (Mobile) -->
       <div class="py-2">

@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Questionnaires" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-blue-700">{% trans "Questionnaires" %}</h1>
+        <a href="{% url 'questionnaire_create' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          {% trans "Create New Questionnaire" %}
+        </a>
+      </div>
+      
+      {% if messages %}
+        <div class="mb-6">
+          {% for message in messages %}
+            <div class="{% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 mb-3 rounded border" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      {% if questionnaires %}
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% trans "Name" %}
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% trans "Description" %}
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% trans "Items" %}
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% trans "Created" %}
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% trans "Actions" %}
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for questionnaire in questionnaires %}
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">{{ questionnaire.name }}</div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-gray-500 truncate max-w-xs">{{ questionnaire.description|default:"-" }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {% with item_count=questionnaire.questionnaireitemresponse_set.values('item').distinct.count %}
+                      <div class="text-sm text-gray-900">{{ item_count }} {% trans "items" %}</div>
+                    {% endwith %}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-500">{{ questionnaire.created_date|date:"SHORT_DATE_FORMAT" }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div class="flex space-x-2">
+                      <a href="{% url 'questionnaire_detail' questionnaire.id %}" class="text-blue-600 hover:text-blue-900">
+                        {% trans "View" %}
+                      </a>
+                      <a href="{% url 'questionnaire_update' questionnaire.id %}" class="text-indigo-600 hover:text-indigo-900">
+                        {% trans "Edit" %}
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-8">
+          <p class="text-gray-600">{% trans "No questionnaires found." %}</p>
+          <p class="mt-2">
+            <a href="{% url 'questionnaire_create' %}" class="text-blue-600 hover:underline">
+              {% trans "Create your first questionnaire" %}
+            </a>
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %} 

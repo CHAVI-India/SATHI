@@ -1,0 +1,41 @@
+{% load i18n %}
+
+{% if response_type == 'Likert' %}
+  <div class="mt-2">
+    <label for="id_likert_response" class="block text-sm font-medium text-gray-700">{% trans "Likert Scale" %}</label>
+    <select name="likert_response" id="id_likert_response" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+      <option value="">---------</option>
+      {% for scale in likert_scales %}
+        <option value="{{ scale.id }}">{{ scale.likert_scale_name }}</option>
+      {% endfor %}
+    </select>
+    <div class="mt-2">
+      <a href="#" class="text-sm text-blue-600 hover:underline" 
+         hx-get="{% url 'create_likert_scale' %}" 
+         hx-target="#modal-content" 
+         hx-trigger="click" 
+         onclick="document.getElementById('modal').classList.remove('hidden');">
+        {% trans "Create new Likert scale" %}
+      </a>
+    </div>
+  </div>
+{% elif response_type == 'Range' %}
+  <div class="mt-2">
+    <label for="id_range_response" class="block text-sm font-medium text-gray-700">{% trans "Range Scale" %}</label>
+    <select name="range_response" id="id_range_response" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+      <option value="">---------</option>
+      {% for scale in range_scales %}
+        <option value="{{ scale.id }}">{{ scale.range_scale_name }}</option>
+      {% endfor %}
+    </select>
+    <div class="mt-2">
+      <a href="#" class="text-sm text-blue-600 hover:underline" 
+         hx-get="{% url 'create_range_scale' %}" 
+         hx-target="#modal-content" 
+         hx-trigger="click" 
+         onclick="document.getElementById('modal').classList.remove('hidden');">
+        {% trans "Create new Range scale" %}
+      </a>
+    </div>
+  </div>
+{% endif %} 
