@@ -13,23 +13,6 @@
 <body class="bg-gray-50 min-h-screen">
     <header class="bg-blue-600 text-white shadow-md">
         {% include 'navbar.html' %}
-        <div class="container mx-auto px-4 py-2">
-            <div class="flex justify-end">
-                <form action="{% url 'set_language' %}" method="post" class="inline">
-                    {% csrf_token %}
-                    <input name="next" type="hidden" value="{{ redirect_to }}">
-                    <select name="language" onchange="this.form.submit()" class="bg-blue-700 text-white px-2 py-1 rounded">
-                        {% get_current_language as CURRENT_LANGUAGE %}
-                        {% get_available_languages as LANGUAGES %}
-                        {% for lang_code, lang_name in LANGUAGES %}
-                            <option value="{{ lang_code }}" {% if lang_code == CURRENT_LANGUAGE %}selected{% endif %}>
-                                {{ lang_name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </form>
-            </div>
-        </div>
     </header>
 
     <main class="container mx-auto py-6 px-4">
