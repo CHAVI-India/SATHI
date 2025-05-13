@@ -50,3 +50,19 @@ class QuestionnaireItemResponseAdmin(admin.ModelAdmin):
     ordering = ('-response_date_time',)
     readonly_fields = ('created_date', 'modified_date')
 
+
+@admin.register(ConstructScale)
+class ConstructScaleAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+    list_filter = ('name',)
+    ordering = ('-created_date',)
+    readonly_fields = ('created_date', 'modified_date')
+
+@admin.register(Item)
+class ItemAdmin(admin.ModelAdmin):
+    list_display = ('name', 'construct_scale', 'response_type', 'likert_response', 'range_response')
+    search_fields = ('name', 'construct_scale', 'response_type', 'likert_response', 'range_response')
+    list_filter = ('name', 'construct_scale', 'response_type', 'likert_response', 'range_response')
+    ordering = ('-created_date',)
+    readonly_fields = ('created_date', 'modified_date')

@@ -18,6 +18,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 import os
 from dotenv import load_dotenv
+from django.utils.translation import gettext_lazy as _
+
 env_path = os.path.join(BASE_DIR, '.env')
 load_dotenv(env_path)
 
@@ -47,6 +49,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'secured_fields',
+    'crispy_forms',
+    'crispy_tailwind',
+    'modeltranslation',
     'promapp',
     'patientapp',
 ]
@@ -54,11 +59,13 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
 ]
 
 ROOT_URLCONF = 'chaviprom.urls'
@@ -66,7 +73,7 @@ ROOT_URLCONF = 'chaviprom.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -118,14 +125,22 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = os.getenv('DJANGO_LANGUAGE_CODE','en-gb')
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = os.getenv('DJANGO_TIME_ZONE','UTC')
 
 USE_I18N = True
 
 USE_TZ = True
 
+# Parse LANGUAGES from environment variable
+# Format in .env should be: en:English,de:German,fr:French
+language_settings = os.getenv('DJANGO_LANGUAGES', 'en:English')
+LANGUAGES = [
+    (code.strip(), _(name.strip()))
+    for lang in language_settings.split(',')
+    for code, name in [lang.split(':', 1)]
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -140,3 +155,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Settings for Django secured fields
 
 SECURED_FIELDS_KEY = os.getenv('DJANGO_SECURED_FIELDS_KEY','adsfj239048q2389qdjfasdmfa;ldsjkf;askdjf;ad21232312^&%&%%*^%*').split(',')
+
+# Crispy Forms Settings
+CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
+CRISPY_TEMPLATE_PACK = "tailwind"

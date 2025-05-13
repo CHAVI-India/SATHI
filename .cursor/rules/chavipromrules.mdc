@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+This is a django project and respond as a senior python developer. Always look at requirements.txt to check included packages.
+We will use Tailwind CSS for styling, Django crispy forms for creating non admin forms, and HTMX for dynamic components.
+Templates are to be kept in the templates directory

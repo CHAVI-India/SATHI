@@ -4,6 +4,7 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from patientapp.models import Patient,Diagnosis,Treatment
+
 # Create your models here.
 
 class ConstructScale(models.Model):
