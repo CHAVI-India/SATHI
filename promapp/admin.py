@@ -66,9 +66,10 @@ class QuestionnaireItemResponseAdmin(admin.ModelAdmin):
 
 @admin.register(ConstructScale)
 class ConstructScaleAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
-    list_filter = ('name',)
+    list_display = ('name','instrument_name','instrument_version')
+    exclude = ('created_date', 'modified_date')
+    search_fields = ('name','instrument_name','instrument_version')
+    list_filter = ('instrument_name','instrument_version')
     ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')
 

@@ -13,6 +13,8 @@ class ConstructScale(models.Model):
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255,null=True, blank=True)
+    instrument_name = models.CharField(max_length=255,null=True, blank=True,help_text = "The name of the instrument that the construct scale belongs to")
+    instrument_version = models.CharField(max_length=255,null=True, blank=True,help_text = "The version of the instrument that the construct scale belongs to")
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
@@ -138,10 +140,11 @@ class Item(models.Model):
         verbose_name = 'Item'
         verbose_name_plural = 'Items'
 
-    def __str__(self):
-        return self.name
 
     def clean(self):
+        if self.likert_response and self.range_response:
+            raise ValidationError('Only one of Likert Scale or Range Scale can be selected, not both.')
+                
         if self.response_type == ResponseTypeChoices.LIKERT:
             if not self.likert_response:
                 raise ValidationError({'likert_response': 'Likert Scale must be selected when response type is Likert'})
