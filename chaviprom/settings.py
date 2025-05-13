@@ -159,3 +159,7 @@ SECURED_FIELDS_KEY = os.getenv('DJANGO_SECURED_FIELDS_KEY','adsfj239048q2389qdjf
 # Crispy Forms Settings
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
+
+# Authentication settings
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
