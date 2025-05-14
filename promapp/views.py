@@ -193,7 +193,7 @@ def add_item_form(request):
 def create_likert_scale(request):
     if request.method == 'POST':
         form = LikertScaleForm(request.POST)
-        formset = LikertScaleResponseOptionFormSet(request.POST)
+        formset = LikertScaleResponseOptionFormSet(request.POST, request.FILES)
         
         if form.is_valid() and formset.is_valid():
             with transaction.atomic():

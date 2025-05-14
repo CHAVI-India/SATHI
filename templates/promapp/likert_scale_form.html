@@ -25,7 +25,7 @@
         </div>
       {% endif %}
       
-      <form method="post" class="space-y-6">
+      <form method="post" class="space-y-6" enctype="multipart/form-data">
         {% csrf_token %}
         
         <div class="bg-gray-50 p-4 rounded-md">
@@ -50,35 +50,47 @@
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Option Order" %}</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Option Value" %}</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">{% trans "Option Order" %}</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">{% trans "Option Value" %}</th>
                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Option Text" %}</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Delete" %}</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Option Media" %}</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">{% trans "Delete" %}</th>
               </tr>
             </thead>
             <tbody id="likert-options" class="bg-white divide-y divide-gray-200">
               {% for form in formset %}
                 <tr class="option-row">
-                  <td class="px-4 py-2">
+                  <td class="px-4 py-2 w-24">
                     {{ form.id }}
-                    <input type="text" name="{{ form.option_text.html_name }}" id="{{ form.option_text.id_for_label }}" value="{{ form.option_text.value|default:'' }}" class="w-full px-3 py-2 border rounded">
-                    {% if form.option_text.errors %}
-                      <div class="text-red-500 text-xs mt-1">{{ form.option_text.errors }}</div>
-                    {% endif %}
-                  </td>
-                  <td class="px-4 py-2">
                     <input type="number" name="{{ form.option_order.html_name }}" id="{{ form.option_order.id_for_label }}" value="{{ form.option_order.value|default:'' }}" class="w-full px-3 py-2 border rounded">
                     {% if form.option_order.errors %}
                       <div class="text-red-500 text-xs mt-1">{{ form.option_order.errors }}</div>
                     {% endif %}
                   </td>
-                  <td class="px-4 py-2">
+                  <td class="px-4 py-2 w-24">
                     <input type="number" name="{{ form.option_value.html_name }}" id="{{ form.option_value.id_for_label }}" value="{{ form.option_value.value|default:'' }}" class="w-full px-3 py-2 border rounded">
                     {% if form.option_value.errors %}
                       <div class="text-red-500 text-xs mt-1">{{ form.option_value.errors }}</div>
                     {% endif %}
                   </td>
                   <td class="px-4 py-2">
+                    <input type="text" name="{{ form.option_text.html_name }}" id="{{ form.option_text.id_for_label }}" value="{{ form.option_text.value|default:'' }}" class="w-full px-3 py-2 border rounded">
+                    {% if form.option_text.errors %}
+                      <div class="text-red-500 text-xs mt-1">{{ form.option_text.errors }}</div>
+                    {% endif %}
+                  </td>
+                  <td class="px-4 py-2">
+                    <input type="file" name="{{ form.option_media.html_name }}" id="{{ form.option_media.id_for_label }}" class="w-full px-3 py-2 border rounded">
+                    {% if form.option_media.errors %}
+                      <div class="text-red-500 text-xs mt-1">{{ form.option_media.errors }}</div>
+                    {% endif %}
+                    {% if form.instance.option_media %}
+                      <div class="text-xs text-gray-600 mt-1">
+                        {% trans "Current file:" %} {{ form.instance.option_media.name }}
+                      </div>
+                    {% endif %}
+                  </td>
+                  <td class="px-4 py-2 w-16">
                     {% if form.instance.pk %}
                       <div class="flex items-center">
                         {{ form.DELETE }}
