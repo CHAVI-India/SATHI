@@ -235,3 +235,17 @@ def create_range_scale(request):
     return render(request, 'promapp/range_scale_form.html', {
         'form': form
     })
+
+def create_construct_scale(request):
+    if request.method == 'POST':
+        form = ConstructScaleForm(request.POST)
+        if form.is_valid():
+            construct_scale = form.save()
+            messages.success(request, "Construct scale created successfully.")
+            return redirect('item_create')
+    else:
+        form = ConstructScaleForm()
+    
+    return render(request, 'promapp/construct_scale_form.html', {
+        'form': form
+    })

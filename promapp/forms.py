@@ -82,6 +82,16 @@ class ConstructScaleForm(forms.ModelForm):
     class Meta:
         model = ConstructScale
         fields = ['name', 'instrument_name', 'instrument_version']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Field('name', css_class='w-full px-3 py-2 border rounded'),
+            Field('instrument_name', css_class='w-full px-3 py-2 border rounded'),
+            Field('instrument_version', css_class='w-full px-3 py-2 border rounded'),
+        )
 
 
 class LikertScaleForm(forms.ModelForm):
