@@ -17,4 +17,8 @@ urlpatterns = [
     path('create-likert-scale/', views.create_likert_scale, name='create_likert_scale'),
     path('create-range-scale/', views.create_range_scale, name='create_range_scale'),
     path('create-construct-scale/', views.create_construct_scale, name='create_construct_scale'),
+    
+    # HTMX URLs
+    path('add-likert-option/', views.add_likert_option, name='add_likert_option'),
+    path('remove-likert-option/', views.remove_likert_option, name='remove_likert_option'),
 ] 

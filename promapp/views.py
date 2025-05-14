@@ -193,13 +193,20 @@ def add_item_form(request):
 def create_likert_scale(request):
     if request.method == 'POST':
         form = LikertScaleForm(request.POST)
-        formset = LikertScaleResponseOptionFormSet(request.POST, request.FILES)
+        formset = LikertScaleResponseOptionFormSet(request.POST)
+        
         if form.is_valid() and formset.is_valid():
-            likert_scale = form.save()
-            formset.instance = likert_scale
-            formset.save()
-            messages.success(request, "Likert scale created successfully.")
-            return redirect('item_create')
+            with transaction.atomic():
+                likert_scale = form.save()
+                formset.instance = likert_scale
+                formset.save()
+                messages.success(request, "Likert scale created successfully.")
+                return redirect('item_create')
+        else:
+            if not form.is_valid():
+                messages.error(request, "Please check the scale details for errors.")
+            if not formset.is_valid():
+                messages.error(request, "Please check the response options for errors.")
     else:
         form = LikertScaleForm()
         formset = LikertScaleResponseOptionFormSet()
@@ -249,3 +256,19 @@ def create_construct_scale(request):
     return render(request, 'promapp/construct_scale_form.html', {
         'form': form
     })
+
+def add_likert_option(request):
+    """Add a new empty row to the Likert scale formset."""
+    # Get the next form index
+    form_index = int(request.GET.get('form_index', 0))
+    
+    # Render a new empty form row
+    context = {
+        'form_index': form_index,
+    }
+    return render(request, 'promapp/likert_option_row.html', context)
+
+def remove_likert_option(request):
+    """Remove a row from the Likert scale formset."""
+    # Return an empty response to remove the row
+    return HttpResponse('')

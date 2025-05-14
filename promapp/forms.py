@@ -156,8 +156,8 @@ class RangeScaleForm(forms.ModelForm):
 LikertScaleResponseOptionFormSet = inlineformset_factory(
     LikertScale, 
     LikertScaleResponseOption, 
-    fields=('option_text', 'option_order', 'option_value'),
-    extra=3,
+    fields=('option_order', 'option_value', 'option_text'),
+    extra=1,
     can_delete=True
 )
 
