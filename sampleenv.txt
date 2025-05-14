@@ -24,4 +24,4 @@ DJANGO_LANGUAGES=en:English,bn:Bangla,hi:Hindi
 # Parler Language settings. This should mimic the Django languages setting above.
 PARLER_DEFAULT_LANGUAGE=en-gb
 PARLER_LANGUAGES=en-gb,bn,hi
-PPARLER_HIDE_UNTRANSLATED=False
+PARLER_HIDE_UNTRANSLATED=False

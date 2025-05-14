@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-{% load custom_filters %}
 
 {% block title %}{% trans "Edit Questionnaire" %}{% endblock %}
 
@@ -85,7 +84,7 @@
                                  value="{{ item.question_number|default:'' }}">
                         </div>
                         <label for="item_{{ item.id }}" class="cursor-pointer flex-1">
-                          <div class="font-medium">{{ item.name }}</div>
+                          <div class="font-medium">{{ item.name|default:"Untitled Item" }}</div>
                           <div class="text-sm text-gray-600">
                             {% trans "Response type" %}: {{ item.get_response_type_display }}
                             {% if item.response_type == 'Likert' and item.likert_response %}

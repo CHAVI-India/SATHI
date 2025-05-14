@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{{ questionnaire.name }}{% endblock %}
+{% block title %}{{ questionnaire.name|default:"Questionnaire Details" }}{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-blue-700">{{ questionnaire.name }}</h1>
+        <h1 class="text-2xl font-bold text-blue-700">{{ questionnaire.name|default:"Questionnaire Details" }}</h1>
         <div class="flex space-x-2">
           <a href="{% url 'questionnaire_update' questionnaire.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
             {% trans "Edit" %}
@@ -47,7 +47,7 @@
           {% if questionnaire.description %}
             <div class="mt-4">
               <p class="text-sm text-gray-500">{% trans "Description" %}</p>
-              <p class="whitespace-pre-line">{{ questionnaire.description }}</p>
+              <p class="whitespace-pre-line">{{ questionnaire.description|default:"" }}</p>
             </div>
           {% endif %}
         </div>
@@ -74,7 +74,7 @@
                 <div class="pl-4 space-y-4">
                   {% for item in scale_group.list %}
                     <div class="p-3 bg-white border border-gray-200 rounded-md">
-                      <div class="font-medium">{{ item.name }}</div>
+                      <div class="font-medium">{{ item.name|default:"Untitled Item" }}</div>
                       <div class="text-sm text-gray-600 mt-1">
                         {% trans "Response type" %}: {{ item.get_response_type_display }}
                         {% if item.response_type == 'Likert' and item.likert_response %}

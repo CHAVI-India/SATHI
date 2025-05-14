@@ -10,8 +10,10 @@ from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeSc
 from .forms import (
     QuestionnaireForm, ItemForm, QuestionnaireItemForm, 
     LikertScaleForm, RangeScaleForm, LikertScaleResponseOptionFormSet,
-    ItemSelectionForm, ConstructScaleForm
+    RangeScaleResponseOptionFormSet, ItemSelectionForm, ConstructScaleForm,
+    LikertScaleResponseOptionForm, RangeScaleResponseOptionForm
 )
+from django.utils.translation import get_language
 
 # Create your views here.
 
@@ -33,7 +35,8 @@ class QuestionnaireDetailView(LoginRequiredMixin, PermissionRequiredMixin, Detai
         context = super().get_context_data(**kwargs)
         # Get all items associated with this questionnaire
         questionnaire = self.get_object()
-        items = Item.objects.filter(
+        current_language = get_language()
+        items = Item.objects.language(current_language).filter(
             id__in=QuestionnaireItem.objects.filter(
                 questionnaire=questionnaire
             ).values_list('item', flat=True).distinct()
@@ -52,7 +55,9 @@ class QuestionnaireCreateView(LoginRequiredMixin, PermissionRequiredMixin, Creat
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['item_selection_form'] = ItemSelectionForm()
-        context['available_items'] = Item.objects.all().order_by('construct_scale__name', 'name')
+        # Use translations__name instead of name for ordering
+        current_language = get_language()
+        context['available_items'] = Item.objects.language(current_language).all().order_by('construct_scale__name', 'translations__name')
         context['construct_scales'] = ConstructScale.objects.all()
         return context
 
@@ -77,7 +82,9 @@ class QuestionnaireCreateView(LoginRequiredMixin, PermissionRequiredMixin, Creat
                     question_number=question_number if question_number else None
                 )
             
-            messages.success(self.request, f"Questionnaire '{questionnaire.name}' created successfully with {len(selected_items)} items.")
+            # Use getattr with default value instead of safe_translation_getter
+            questionnaire_name = getattr(questionnaire, 'name', 'New Questionnaire')
+            messages.success(self.request, f"Questionnaire '{questionnaire_name}' created successfully with {len(selected_items)} items.")
         else:
             messages.warning(self.request, "Questionnaire created, but there was an issue with item selection.")
             
@@ -101,8 +108,9 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
         # Create a mapping of item IDs to question numbers
         item_to_question_number = {str(qi.item.id): qi.question_number for qi in questionnaire_items}
         
-        # Get all available items
-        available_items = Item.objects.all().order_by('construct_scale__name', 'name')
+        # Get all available items with proper translation handling
+        current_language = get_language()
+        available_items = Item.objects.language(current_language).all().order_by('construct_scale__name', 'translations__name')
         
         # Get currently selected items
         current_items = Item.objects.filter(
@@ -144,7 +152,9 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
                     question_number=question_number if question_number else None
                 )
             
-            messages.success(self.request, f"Questionnaire '{questionnaire.name}' updated successfully with {len(selected_items)} items.")
+            # Use getattr with default value instead of safe_translation_getter
+            questionnaire_name = getattr(questionnaire, 'name', 'Questionnaire')
+            messages.success(self.request, f"Questionnaire '{questionnaire_name}' updated successfully with {len(selected_items)} items.")
         else:
             messages.warning(self.request, "Questionnaire updated, but there was an issue with item selection.")
             
@@ -155,8 +165,11 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = Item
     template_name = 'promapp/item_list.html'
     context_object_name = 'items'
-    ordering = ['construct_scale__name', 'name']
     permission_required = 'promapp.view_item'
+    
+    def get_queryset(self):
+        current_language = get_language()
+        return Item.objects.language(current_language).all().order_by('construct_scale__name', 'translations__name')
 
 
 class ItemCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -219,28 +232,32 @@ def create_likert_scale(request):
 def create_range_scale(request):
     if request.method == 'POST':
         form = RangeScaleForm(request.POST)
-        if form.is_valid():
+        formset = RangeScaleResponseOptionFormSet(request.POST)
+        
+        if form.is_valid() and formset.is_valid():
             with transaction.atomic():
                 # Create the RangeScale
-                range_scale = form.save()
+                range_scale = form.save(commit=False)
+                range_scale.save()
                 
-                # Create the RangeScaleResponseOption
-                RangeScaleResponseOption.objects.create(
-                    range_scale=range_scale,
-                    min_value=form.cleaned_data['min_value'],
-                    min_value_text=form.cleaned_data['min_value_text'],
-                    max_value=form.cleaned_data['max_value'],
-                    max_value_text=form.cleaned_data['max_value_text'],
-                    increment=form.cleaned_data['increment'] or 1  # Default to 1 if not provided
-                )
+                # Save the formset with the range_scale instance
+                formset.instance = range_scale
+                formset.save()
                 
             messages.success(request, "Range scale created successfully.")
             return redirect('item_create')
+        else:
+            if not form.is_valid():
+                messages.error(request, "Please check the scale details for errors.")
+            if not formset.is_valid():
+                messages.error(request, "Please check the response options for errors.")
     else:
         form = RangeScaleForm()
+        formset = RangeScaleResponseOptionFormSet()
     
     return render(request, 'promapp/range_scale_form.html', {
-        'form': form
+        'form': form,
+        'formset': formset
     })
 
 def create_construct_scale(request):

@@ -50,7 +50,7 @@
               {% for questionnaire in questionnaires %}
                 <tr>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">{{ questionnaire.name }}</div>
+                    <div class="text-sm font-medium text-gray-900">{{ questionnaire.name|default:"Untitled Questionnaire" }}</div>
                   </td>
                   <td class="px-6 py-4">
                     <div class="text-sm text-gray-500 truncate max-w-xs">{{ questionnaire.description|default:"-" }}</div>
