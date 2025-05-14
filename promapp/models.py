@@ -134,14 +134,14 @@ class Item(TranslatableModel):
     Translatable field is name.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    construct_scale = models.ForeignKey(ConstructScale, on_delete=models.CASCADE, help_text = "Each item can belong to a construct scale which is designed to measure a construct or domain related to the Patient Reported Outcome.")
+    construct_scale = models.ForeignKey(ConstructScale, on_delete=models.CASCADE, db_index=True, help_text = "Each item can belong to a construct scale which is designed to measure a construct or domain related to the Patient Reported Outcome.")
     translations = TranslatedFields(
-        name = models.CharField(max_length=255,null=True, blank=True, help_text = "The name of the item which will be displayed to the patient")
+        name = models.CharField(max_length=255,null=True, blank=True, help_text = "The name of the item which will be displayed to the patient", db_index=True)
     )
-    response_type = models.CharField(max_length=255, choices=ResponseTypeChoices.choices, help_text = "The type of response for the item")
+    response_type = models.CharField(max_length=255, choices=ResponseTypeChoices.choices, db_index=True, help_text = "The type of response for the item")
     likert_response = models.ForeignKey(LikertScale, on_delete=models.CASCADE, null=True, blank=True)
     range_response = models.ForeignKey(RangeScale, on_delete=models.CASCADE, null=True, blank=True)
-    created_date = models.DateTimeField(auto_now_add=True)
+    created_date = models.DateTimeField(auto_now_add=True, db_index=True)
     modified_date = models.DateTimeField(auto_now=True)
 
     class Meta:

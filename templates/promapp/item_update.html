@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Edit Item" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Additional styles for the form */
+  .hidden {
+    display: none;
+  }
+  
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+  }
+  
+  .modal-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    width: 100%;
+    max-width: 32rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-blue-700">{% trans "Edit Item" %}</h1>
+        <a href="{% url 'item_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          {% trans "Back to Items" %}
+        </a>
+      </div>
+      
+      {% if messages %}
+        <div class="mb-6">
+          {% for message in messages %}
+            <div class="{% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 mb-3 rounded border" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="bg-gray-50 p-4 rounded-md">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Item Details" %}</h2>
+          
+          <div class="space-y-4">
+            <div>
+              <label for="id_construct_scale" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Construct Scale" %}</label>
+              <select name="construct_scale" id="id_construct_scale" class="w-full px-3 py-2 border rounded">
+                <option value="">---------</option>
+                {% for scale in form.construct_scale.field.queryset %}
+                  <option value="{{ scale.id }}" {% if form.construct_scale.value == scale.id|stringformat:"s" %}selected{% endif %}>
+                    {{ scale.name }}{% if scale.instrument_name %} ({{ scale.instrument_name }}{% if scale.instrument_version %} v{{ scale.instrument_version }}{% endif %}){% endif %}
+                  </option>
+                {% endfor %}
+              </select>
+              {% if form.construct_scale.errors %}
+                <div class="text-red-500 text-sm mt-1">{{ form.construct_scale.errors }}</div>
+              {% endif %}
+              <div class="mt-2">
+                <a href="{% url 'create_construct_scale' %}" class="text-sm text-blue-600 hover:underline">
+                  {% trans "Create new Construct Scale" %}
+                </a>
+              </div>
+            </div>
+            
+            <div>
+              <label for="id_name" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Item Name" %}</label>
+              <input type="text" name="name" id="id_name" value="{{ form.name.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Enter item name' %}">
+              {% if form.name.errors %}
+                <div class="text-red-500 text-sm mt-1">{{ form.name.errors }}</div>
+              {% endif %}
+            </div>
+            
+            <div>
+              <label for="id_response_type" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Response Type" %}</label>
+              <select name="response_type" id="id_response_type" class="w-full px-3 py-2 border rounded" hx-get="/promapp/get-response-fields/" hx-target="#response-fields" hx-trigger="change">
+                <option value="">---------</option>
+                {% for value, display in form.response_type.field.choices %}
+                  <option value="{{ value }}" {% if form.response_type.value == value %}selected{% endif %}>{{ display }}</option>
+                {% endfor %}
+              </select>
+              {% if form.response_type.errors %}
+                <div class="text-red-500 text-sm mt-1">{{ form.response_type.errors }}</div>
+              {% endif %}
+            </div>
+            
+            <div id="response-fields" class="mt-4">
+              {% if form.instance.response_type == 'Likert' %}
+                <div class="mt-2">
+                  <label for="id_likert_response" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Likert Scale" %}</label>
+                  <select name="likert_response" id="id_likert_response" class="w-full px-3 py-2 border rounded">
+                    <option value="">---------</option>
+                    {% for scale in likert_scales %}
+                      <option value="{{ scale.id }}" {% if form.likert_response.value == scale.id|stringformat:"s" %}selected{% endif %}>{{ scale.likert_scale_name }}</option>
+                    {% endfor %}
+                  </select>
+                  <div class="mt-2">
+                    <a href="{% url 'create_likert_scale' %}" class="text-sm text-blue-600 hover:underline">
+                      {% trans "Create new Likert scale" %}
+                    </a>
+                  </div>
+                </div>
+              {% elif form.instance.response_type == 'Range' %}
+                <div class="mt-2">
+                  <label for="id_range_response" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Range Scale" %}</label>
+                  <select name="range_response" id="id_range_response" class="w-full px-3 py-2 border rounded">
+                    <option value="">---------</option>
+                    {% for scale in range_scales %}
+                      <option value="{{ scale.id }}" {% if form.range_response.value == scale.id|stringformat:"s" %}selected{% endif %}>{{ scale.range_scale_name }}</option>
+                    {% endfor %}
+                  </select>
+                  <div class="mt-2">
+                    <a href="{% url 'create_range_scale' %}" class="text-sm text-blue-600 hover:underline">
+                      {% trans "Create new Range scale" %}
+                    </a>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+          <a href="{% url 'item_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            {% trans "Cancel" %}
+          </a>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            {% trans "Update Item" %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const responseTypeSelect = document.getElementById('id_response_type');
+    
+    responseTypeSelect.addEventListener('change', function() {
+      const responseType = this.value;
+      
+      // Fetch the appropriate response fields based on the selected type
+      fetch(`/promapp/get-response-fields/?response_type=${responseType}`)
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('response-fields').innerHTML = html;
+        });
+    });
+    
+    // Trigger the change event on page load if a response type is selected
+    if (responseTypeSelect.value) {
+      responseTypeSelect.dispatchEvent(new Event('change'));
+    }
+  });
+</script>
+{% endblock %} 

@@ -53,11 +53,11 @@
                     <div class="text-sm font-medium text-gray-900">{{ questionnaire.name|default:"Untitled Questionnaire" }}</div>
                   </td>
                   <td class="px-6 py-4">
-                    <div class="text-sm text-gray-500 truncate max-w-xs">{{ questionnaire.description|default:"-" }}</div>
+                    <div class="text-sm text-gray-500 max-w-xs max-h-24 overflow-y-auto">{{ questionnaire.description|default:"-" }}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900">
-                      {{ questionnaire.QuestionnaireItem_set.count }} {% trans "items" %}
+                      {{ questionnaire.questionnaireitem_set.count }} {% trans "items" %}
                     </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">

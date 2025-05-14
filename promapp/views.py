@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
 from django.contrib import messages
 from django.db import transaction
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, RangeScaleResponseOption
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, RangeScaleResponseOption, ResponseTypeChoices
 from .forms import (
     QuestionnaireForm, ItemForm, QuestionnaireItemForm, 
     LikertScaleForm, RangeScaleForm, LikertScaleResponseOptionFormSet,
@@ -58,7 +58,7 @@ class QuestionnaireCreateView(LoginRequiredMixin, PermissionRequiredMixin, Creat
         # Use translations__name instead of name for ordering
         current_language = get_language()
         context['available_items'] = Item.objects.language(current_language).all().order_by('construct_scale__name', 'translations__name')
-        context['construct_scales'] = ConstructScale.objects.all()
+        context['construct_scales'] = ConstructScale.objects.all().order_by('name')
         return context
 
     @transaction.atomic
@@ -124,7 +124,7 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
         # Initialize the form with current items
         context['item_selection_form'] = ItemSelectionForm(initial={'items': current_items})
         context['available_items'] = available_items
-        context['construct_scales'] = ConstructScale.objects.all()
+        context['construct_scales'] = ConstructScale.objects.all().order_by('name')
         return context
 
     @transaction.atomic
@@ -166,10 +166,58 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     template_name = 'promapp/item_list.html'
     context_object_name = 'items'
     permission_required = 'promapp.view_item'
+    paginate_by = 25  # Show 25 items per page
     
     def get_queryset(self):
         current_language = get_language()
-        return Item.objects.language(current_language).all().order_by('construct_scale__name', 'translations__name')
+        queryset = Item.objects.language(current_language)
+        
+        # Apply filters based on query parameters
+        construct_scale = self.request.GET.get('construct_scale')
+        response_type = self.request.GET.get('response_type')
+        search = self.request.GET.get('search')
+        
+        if construct_scale and construct_scale != 'all':
+            queryset = queryset.filter(construct_scale_id=construct_scale)
+        
+        if response_type and response_type != 'all':
+            queryset = queryset.filter(response_type=response_type)
+            
+        if search:
+            queryset = queryset.filter(translations__name__icontains=search)
+            
+        return queryset.order_by('construct_scale__name', 'translations__name')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get all construct scales for the filter dropdown
+        context['all_construct_scales'] = ConstructScale.objects.all().order_by('name')
+        # Get all response types for the filter dropdown
+        context['response_types'] = [
+            {'value': choice[0], 'display': choice[1]} 
+            for choice in ResponseTypeChoices.choices
+        ]
+        # Keep the selected filters in the context
+        context['selected_construct_scale'] = self.request.GET.get('construct_scale', 'all')
+        context['selected_response_type'] = self.request.GET.get('response_type', 'all')
+        context['search_query'] = self.request.GET.get('search', '')
+        
+        # Flag to determine if we're responding to an HTMX request
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        return context
+    
+    def get(self, request, *args, **kwargs):
+        # Check if this is an HTMX request
+        if request.META.get('HTTP_HX_REQUEST'):
+            # If it is an HTMX request, only return the table part
+            self.object_list = self.get_queryset()
+            context = self.get_context_data()
+            html = render_to_string('promapp/partials/item_list_table.html', context)
+            return HttpResponse(html)
+        
+        # Otherwise, return the full page as usual
+        return super().get(request, *args, **kwargs)
 
 
 class ItemCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -178,6 +226,20 @@ class ItemCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     template_name = 'promapp/item_create.html'
     success_url = reverse_lazy('item_list')
     permission_required = 'promapp.add_item'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['likert_scales'] = LikertScale.objects.all()
+        context['range_scales'] = RangeScale.objects.all()
+        return context
+
+
+class ItemUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Item
+    form_class = ItemForm
+    template_name = 'promapp/item_update.html'
+    success_url = reverse_lazy('item_list')
+    permission_required = 'promapp.change_item'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

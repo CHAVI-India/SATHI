@@ -11,6 +11,7 @@ urlpatterns = [
     # Item URLs
     path('items/', views.ItemListView.as_view(), name='item_list'),
     path('items/create/', views.ItemCreateView.as_view(), name='item_create'),
+    path('items/<uuid:pk>/update/', views.ItemUpdateView.as_view(), name='item_update'),
     
     # AJAX URLs for dynamic forms
     path('get-response-fields/', views.get_response_fields, name='get_response_fields'),
