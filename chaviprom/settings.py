@@ -42,7 +42,8 @@ CSRF_TRUSTED_ORIGINS = os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS','*').split(',')
 # Application definition
 
 INSTALLED_APPS = [
-    'modeltranslation', # Add before admin see : https://github.com/deschler/django-modeltranslation/issues/408
+    'parler', # Using Parler for multilingual support
+    #'modeltranslation', # Add before admin see : https://github.com/deschler/django-modeltranslation/issues/408
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -141,6 +142,22 @@ LANGUAGES = [
     for lang in language_settings.split(',')
     for code, name in [lang.split(':', 1)]
 ]
+
+
+# Parler Settings
+PARLER_DEFAULT_LANGUAGE = os.getenv('PARLER_DEFAULT_LANGUAGE', 'en')
+
+# Parse Parler languages from environment variable
+# Format in .env should be: en,en-us,it,nl
+parler_languages = os.getenv('PARLER_LANGUAGES', 'en').split(',')
+PARLER_LANGUAGES = {
+    None: tuple({'code': code.strip()} for code in parler_languages),
+    'default': {
+        'fallbacks': [PARLER_DEFAULT_LANGUAGE],
+        'hide_untranslated': os.getenv('PARLER_HIDE_UNTRANSLATED', 'False') == 'True',
+    }
+}
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/

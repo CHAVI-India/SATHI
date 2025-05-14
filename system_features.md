@@ -8,3 +8,7 @@
 8. Integrates with voice based chatbots
 9. Use computerised adaptive testing as well as standard questionnaire
 
+
+
+Notes:
+Use parler instead of django-modeltranslation module as when the migrations are created in the development environment they have all the translations in the git repository making it difficult to change languages at the local level. In case of parler, the translations are saved in a seperate table which makes it easy to migrate as seperate languages can be translated by simply adding the codes to the settings. 

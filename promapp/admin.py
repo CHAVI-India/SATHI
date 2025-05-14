@@ -1,19 +1,23 @@
 from django.contrib import admin
 from .models import *
-from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
+from parler.admin import TranslatableAdmin, TranslatableStackedInline
+#from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
 # Register your models here.
 
 
-class LikertScaleResponseOptionInline(TranslationStackedInline):
+class LikertScaleResponseOptionInline(TranslatableStackedInline):
     model = LikertScaleResponseOption
     fieldsets = (
         (None, {
-            'fields': ( 'option_order', 'option_value', ('option_text','option_media'))
+            'fields': ( 'option_order', 'option_value')
+        }),
+        ('Translations', {
+            'fields': ('option_text', 'option_media')
         }),
     )
     extra = 1
 
-class RangeScaleResponseOptionInline(TranslationStackedInline):
+class RangeScaleResponseOptionInline(TranslatableStackedInline):
     model = RangeScaleResponseOption
     fieldsets = (
         (None, {
@@ -21,7 +25,7 @@ class RangeScaleResponseOptionInline(TranslationStackedInline):
         }),
     )
     extra = 1
-    group_fieldsets = True
+
 
 
 class QuestionnaireItemInline(admin.StackedInline):
@@ -51,7 +55,6 @@ class RangeScaleAdmin(admin.ModelAdmin):
 class QuestionnaireAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-    list_filter = ('name',)
     ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')
 
@@ -75,10 +78,9 @@ class ConstructScaleAdmin(admin.ModelAdmin):
 
 
 @admin.register(Item)
-class ItemAdmin(TranslationAdmin):
+class ItemAdmin(TranslatableAdmin):
     list_display = ('construct_scale', 'name', 'response_type')
     search_fields = ('construct_scale', 'name', 'response_type')
     list_filter = ('response_type',)
     ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')
-    group_fieldsets = True

@@ -1,13 +1,15 @@
 asgiref==3.8.1
 cffi==1.17.1
+crispy-tailwind==1.0.3
 cryptography==44.0.3
 Django==5.2.1
 django-crispy-forms==2.4
-crispy-tailwind==1.0.3
 django-htmx==1.23.0
+django-parler==2.3
 django-secured-fields==0.4.4
 dotenv==0.9.9
 psycopg2-binary==2.9.10
 pycparser==2.22
 python-dotenv==1.1.0
 sqlparse==0.5.3
+typing_extensions==4.13.2

@@ -15,6 +15,13 @@ DJANGO_DATABASE_PORT=5432
 #Generate a new key with the command python manage.py generate_key and add to a comma seperated list to enable key rotation.
 DJANGO_SECURED_FIELDS_KEY=
 
-#Language & Time Zone
+#Language & Time Zone. Add more languages in the format langugage key:language name to the DJANGO_LANGUAGES section to allow support for more languages
 DJANGO_LANGUAGE_CODE=en-gb
 DJANGO_TIME_ZONE=Asia/Kolkata
+DJANGO_LANGUAGES=en:English,bn:Bangla,hi:Hindi
+
+
+# Parler Language settings. This should mimic the Django languages setting above.
+PARLER_DEFAULT_LANGUAGE=en-gb
+PARLER_LANGUAGES=en-gb,bn,hi
+PPARLER_HIDE_UNTRANSLATED=False

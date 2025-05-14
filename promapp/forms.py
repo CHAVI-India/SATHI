@@ -1,12 +1,13 @@
 from django import forms
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, LikertScaleResponseOption, ConstructScale
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, LikertScaleResponseOption, ConstructScale, RangeScaleResponseOption
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Div, HTML, Submit, Button
 from django.forms import inlineformset_factory
 from django.utils.translation import gettext_lazy as _
+from parler.forms import TranslatableModelForm
 
 
-class QuestionnaireForm(forms.ModelForm):
+class QuestionnaireForm(TranslatableModelForm):
     class Meta:
         model = Questionnaire
         fields = ['name', 'description']
@@ -41,7 +42,7 @@ class ItemSelectionForm(forms.Form):
         )
 
 
-class ItemForm(forms.ModelForm):
+class ItemForm(TranslatableModelForm):
     class Meta:
         model = Item
         fields = ['construct_scale', 'name', 'response_type', 'likert_response', 'range_response']
@@ -153,9 +154,41 @@ class RangeScaleForm(forms.ModelForm):
         return cleaned_data
 
 
+class RangeScaleResponseOptionForm(TranslatableModelForm):
+    class Meta:
+        model = RangeScaleResponseOption
+        fields = ['min_value', 'min_value_text', 'max_value', 'max_value_text', 'increment']
+        widgets = {
+            'min_value': forms.NumberInput(attrs={'step': '0.01'}),
+            'max_value': forms.NumberInput(attrs={'step': '0.01'}),
+            'increment': forms.NumberInput(attrs={'step': '0.01'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        min_value = cleaned_data.get('min_value')
+        max_value = cleaned_data.get('max_value')
+        increment = cleaned_data.get('increment')
+        
+        if min_value is not None and max_value is not None:
+            if min_value > max_value:
+                raise forms.ValidationError("Minimum value cannot be greater than maximum value")
+                
+        if increment is not None and increment <= 0:
+            raise forms.ValidationError("Increment must be greater than 0")
+            
+        if all([min_value is not None, max_value is not None, increment is not None]):
+            if (max_value - min_value) % increment != 0:
+                raise forms.ValidationError("Maximum value minus minimum value must be divisible by increment")
+                
+        return cleaned_data
+
+
+# Update the LikertScaleResponseOptionFormSet to use TranslatableModelForm
 LikertScaleResponseOptionFormSet = inlineformset_factory(
     LikertScale, 
     LikertScaleResponseOption, 
+    form=TranslatableModelForm,
     fields=('option_order', 'option_value', 'option_text'),
     extra=1,
     can_delete=True

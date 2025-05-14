@@ -4,7 +4,7 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from patientapp.models import Patient,Diagnosis,Treatment
-
+from parler.models import TranslatableModel, TranslatedFields
 # Create your models here.
 
 class ConstructScale(models.Model):
@@ -44,15 +44,18 @@ class LikertScale(models.Model):
     def __str__(self):
         return self.likert_scale_name
 
-class LikertScaleResponseOption(models.Model):
+class LikertScaleResponseOption(TranslatableModel):
     '''
     Likert scale response options model. This is used to store the options for Likert Scale Responses.
+    In this the translatable fields are option_text, and option_media.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     likert_scale = models.ForeignKey(LikertScale, on_delete=models.CASCADE)
-    option_text = models.CharField(max_length=255, null=True, blank=True, help_text = "The text to display for the option")
     option_order = models.IntegerField(null=True, blank=True, help_text = "The order of the option. This will be a number.")
-    option_media = models.FileField(upload_to='likert_scale_response_options/', null=True, blank=True, help_text = "The media to display for the option. This will be an audio, video or image.")
+    translations = TranslatedFields(
+        option_text = models.CharField(max_length=255, null=True, blank=True, help_text = "The text to display for the option"),
+        option_media = models.FileField(upload_to='likert_scale_response_options/', null=True, blank=True, help_text = "The media to display for the option. This will be an audio, video or image.")
+    )
     option_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The value to store for the option. This will be a number with upto 2 decimal places.")
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
@@ -61,7 +64,7 @@ class LikertScaleResponseOption(models.Model):
         ordering = ['option_order']
         verbose_name = 'Likert Scale Response Option'
         verbose_name_plural = 'Likert Scale Response Options'
-        unique_together = ['option_text', 'option_order', 'option_value']
+        unique_together = ['option_order', 'option_value']
 
     def __str__(self):
         return self.option_text
@@ -83,16 +86,19 @@ class RangeScale(models.Model):
     def __str__(self):
         return self.range_scale_name
 
-class RangeScaleResponseOption(models.Model):
+class RangeScaleResponseOption(TranslatableModel):
     '''
     Range scale response options model. This is used to store the options for Range Scale Responses.
+    Translatable fields are min_value_text and max_value_text.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     range_scale = models.ForeignKey(RangeScale, on_delete=models.CASCADE)
     min_value = models.DecimalField(max_digits=10, decimal_places=2, help_text = "The minimum value for the range scale")
-    min_value_text = models.CharField(max_length=255, null=True, blank=True, help_text = "The text to display for the minimum value")
     max_value = models.DecimalField(max_digits=10, decimal_places=2, help_text = "The maximum value for the range scale")
-    max_value_text = models.CharField(max_length=255, null=True, blank=True, help_text = "The text to display for the maximum value")
+    translations = TranslatedFields(
+        min_value_text = models.CharField(max_length=255, null=True, blank=True, help_text = "The text to display for the minimum value"),  
+        max_value_text = models.CharField(max_length=255, null=True, blank=True, help_text = "The text to display for the maximum value")
+    )
     increment = models.DecimalField(max_digits=10, default=1, decimal_places=2, null=True, blank=True, help_text = "The increment for the range scale. Must be more than 0")
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
@@ -122,13 +128,16 @@ class ResponseTypeChoices(models.TextChoices):
     RANGE = 'Range', 'Range Response'
 
 
-class Item(models.Model):
+class Item(TranslatableModel):
     '''
-    Item model. Ensure full_clean() is called before saving in views and forms
+    Item model. Ensure full_clean() is called before saving in views and forms.
+    Translatable field is name.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     construct_scale = models.ForeignKey(ConstructScale, on_delete=models.CASCADE, help_text = "Each item can belong to a construct scale which is designed to measure a construct or domain related to the Patient Reported Outcome.")
-    name = models.CharField(max_length=255,null=True, blank=True, help_text = "The name of the item which will be displayed to the patient")
+    translations = TranslatedFields(
+        name = models.CharField(max_length=255,null=True, blank=True, help_text = "The name of the item which will be displayed to the patient")
+    )
     response_type = models.CharField(max_length=255, choices=ResponseTypeChoices.choices, help_text = "The type of response for the item")
     likert_response = models.ForeignKey(LikertScale, on_delete=models.CASCADE, null=True, blank=True)
     range_response = models.ForeignKey(RangeScale, on_delete=models.CASCADE, null=True, blank=True)
@@ -164,13 +173,16 @@ class Item(models.Model):
                 raise ValidationError({'range_response': 'Range Scale should not be selected for Text or Number response types'})
 
 
-class Questionnaire(models.Model):
+class Questionnaire(TranslatableModel):
     '''
     Questionnaire model. This is used to store the questionnaire.
+    Translatable field are name and description.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255, null=True, blank=True, help_text = "The name of the questionnaire")
-    description = models.TextField(null=True, blank=True, help_text = "The description of the questionnaire")
+    translations = TranslatedFields(
+        name = models.CharField(max_length=255, null=True, blank=True, help_text = "The name of the questionnaire"),
+        description = models.TextField(null=True, blank=True, help_text = "The description of the questionnaire")
+    )
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
