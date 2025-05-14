@@ -179,20 +179,14 @@ class Questionnaire(models.Model):
         verbose_name = 'Questionnaire'
         verbose_name_plural = 'Questionnaires'
 
-class QuestionnaireItemResponse(models.Model):
+class QuestionnaireItem(models.Model):
     '''
     Questionnaire Item Response model. This is used to store the items for the questionnaire. There is a many to many relationship between Questionnaire and Item.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, help_text = "The patient to whom the questionnaire belongs")
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    item_response_text = models.CharField(max_length=255, null=True, blank=True, help_text = "The response value for the item")
-    item_response_number = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The response value for the item")
-    item_response_likert_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The response value for the item")
-    item_response_range_min_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The minimum value for the item response")
-    item_response_range_max_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The maximum value for the item response")
-    response_date_time = models.DateTimeField(auto_now_add=True, help_text = "The date and time of the response")
+    questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE, help_text = "The questionnaire to which the response belongs")
+    question_number = models.IntegerField(null=True, blank=True, help_text = "The number of the question in the questionnaire")
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, help_text = "The item to which the response belongs")
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 

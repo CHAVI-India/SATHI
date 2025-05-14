@@ -24,8 +24,8 @@ class RangeScaleResponseOptionInline(TranslationStackedInline):
     group_fieldsets = True
 
 
-class QuestionnaireItemResponseInline(admin.StackedInline):
-    model = QuestionnaireItemResponse
+class QuestionnaireItemInline(admin.StackedInline):
+    model = QuestionnaireItem
     extra = 1
 
 @admin.register(LikertScale)
@@ -55,12 +55,12 @@ class QuestionnaireAdmin(admin.ModelAdmin):
     ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')
 
-@admin.register(QuestionnaireItemResponse)
-class QuestionnaireItemResponseAdmin(admin.ModelAdmin):
-    list_display = ('questionnaire', 'patient', 'item', 'item_response_text', 'item_response_number', 'item_response_likert_value', 'item_response_range_min_value', 'item_response_range_max_value', 'response_date_time')
-    search_fields = ('questionnaire', 'patient', 'item', 'item_response_text', 'item_response_number', 'item_response_likert_value', 'item_response_range_min_value', 'item_response_range_max_value', 'response_date_time')
-    list_filter = ('questionnaire', 'patient', 'item', 'item_response_text', 'item_response_number', 'item_response_likert_value', 'item_response_range_min_value', 'item_response_range_max_value', 'response_date_time')
-    ordering = ('-response_date_time',)
+@admin.register(QuestionnaireItem)
+class QuestionnaireItemAdmin(admin.ModelAdmin):
+    list_display = ('questionnaire', 'item', 'question_number')
+    search_fields = ('questionnaire', 'item', 'question_number')
+    list_filter = ('questionnaire', 'item', 'question_number')
+    ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')
 
 

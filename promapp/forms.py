@@ -1,5 +1,5 @@
 from django import forms
-from .models import Questionnaire, Item, QuestionnaireItemResponse, LikertScale, RangeScale, LikertScaleResponseOption, ConstructScale
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, LikertScaleResponseOption, ConstructScale
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Div, HTML, Submit, Button
 from django.forms import inlineformset_factory
@@ -91,9 +91,56 @@ class LikertScaleForm(forms.ModelForm):
 
 
 class RangeScaleForm(forms.ModelForm):
+    min_value = forms.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        help_text="The minimum value for the range scale"
+    )
+    min_value_text = forms.CharField(
+        max_length=255, 
+        required=False, 
+        help_text="The text to display for the minimum value"
+    )
+    max_value = forms.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        help_text="The maximum value for the range scale"
+    )
+    max_value_text = forms.CharField(
+        max_length=255, 
+        required=False, 
+        help_text="The text to display for the maximum value"
+    )
+    increment = forms.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        initial=1, 
+        required=False, 
+        help_text="The increment for the range scale. Must be more than 0"
+    )
+    
     class Meta:
         model = RangeScale
         fields = ['range_scale_name']
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        min_value = cleaned_data.get('min_value')
+        max_value = cleaned_data.get('max_value')
+        increment = cleaned_data.get('increment')
+        
+        if min_value is not None and max_value is not None:
+            if min_value > max_value:
+                raise forms.ValidationError("Minimum value cannot be greater than maximum value")
+                
+        if increment is not None and increment <= 0:
+            raise forms.ValidationError("Increment must be greater than 0")
+            
+        if all([min_value is not None, max_value is not None, increment is not None]):
+            if (max_value - min_value) % increment != 0:
+                raise forms.ValidationError("Maximum value minus minimum value must be divisible by increment")
+                
+        return cleaned_data
 
 
 LikertScaleResponseOptionFormSet = inlineformset_factory(
@@ -105,9 +152,9 @@ LikertScaleResponseOptionFormSet = inlineformset_factory(
 )
 
 
-class QuestionnaireItemResponseForm(forms.ModelForm):
+class QuestionnaireItemForm(forms.ModelForm):
     class Meta:
-        model = QuestionnaireItemResponse
-        fields = ['questionnaire', 'patient', 'item']
+        model = QuestionnaireItem
+        fields = ['questionnaire', 'item']
         # Excluding response fields as they will be filled when patient responds
 

@@ -56,9 +56,9 @@
                     <div class="text-sm text-gray-500 truncate max-w-xs">{{ questionnaire.description|default:"-" }}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    {% with item_count=questionnaire.questionnaireitemresponse_set.values('item').distinct.count %}
-                      <div class="text-sm text-gray-900">{{ item_count }} {% trans "items" %}</div>
-                    {% endwith %}
+                    <div class="text-sm text-gray-900">
+                      {{ questionnaire.QuestionnaireItem_set.count }} {% trans "items" %}
+                    </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-500">{{ questionnaire.created_date|date:"SHORT_DATE_FORMAT" }}</div>

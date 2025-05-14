@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Create Likert Scale" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-blue-700">{% trans "Create New Likert Scale" %}</h1>
+        <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          {% trans "Back to Item Creation" %}
+        </a>
+      </div>
+      
+      {% if messages %}
+        <div class="mb-6">
+          {% for message in messages %}
+            <div class="{% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 mb-3 rounded border" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="bg-gray-50 p-4 rounded-md">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Likert Scale Details" %}</h2>
+          
+          <div class="space-y-4">
+            <div>
+              <label for="id_likert_scale_name" class="block text-sm font-medium text-gray-700">{% trans "Scale Name" %}</label>
+              <input type="text" name="likert_scale_name" id="id_likert_scale_name" value="{{ form.likert_scale_name.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Enter scale name' %}">
+              {% if form.likert_scale_name.errors %}
+                <div class="text-red-500 text-sm mt-1">{{ form.likert_scale_name.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-gray-50 p-4 rounded-md">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Response Options" %}</h2>
+          
+          {{ formset.management_form }}
+          
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Option Text" %}</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Order" %}</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Value" %}</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Delete" %}</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for form in formset %}
+                <tr>
+                  <td class="px-4 py-2">
+                    {{ form.id }}
+                    <input type="text" name="{{ form.option_text.html_name }}" id="{{ form.option_text.id_for_label }}" value="{{ form.option_text.value|default:'' }}" class="w-full px-3 py-2 border rounded">
+                    {% if form.option_text.errors %}
+                      <div class="text-red-500 text-xs mt-1">{{ form.option_text.errors }}</div>
+                    {% endif %}
+                  </td>
+                  <td class="px-4 py-2">
+                    <input type="number" name="{{ form.option_order.html_name }}" id="{{ form.option_order.id_for_label }}" value="{{ form.option_order.value|default:'' }}" class="w-full px-3 py-2 border rounded">
+                    {% if form.option_order.errors %}
+                      <div class="text-red-500 text-xs mt-1">{{ form.option_order.errors }}</div>
+                    {% endif %}
+                  </td>
+                  <td class="px-4 py-2">
+                    <input type="number" name="{{ form.option_value.html_name }}" id="{{ form.option_value.id_for_label }}" value="{{ form.option_value.value|default:'' }}" class="w-full px-3 py-2 border rounded">
+                    {% if form.option_value.errors %}
+                      <div class="text-red-500 text-xs mt-1">{{ form.option_value.errors }}</div>
+                    {% endif %}
+                  </td>
+                  <td class="px-4 py-2">
+                    {% if form.instance.pk %}
+                      {{ form.DELETE }}
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+          <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            {% trans "Cancel" %}
+          </a>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            {% trans "Create Likert Scale" %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %} 

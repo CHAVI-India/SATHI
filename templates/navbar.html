@@ -5,14 +5,17 @@
     <div class="flex items-center justify-between h-16">
       <div class="flex items-center">
         <div class="flex-shrink-0">
-          <a href="/" class="text-white font-bold text-xl">ChavipProm</a>
+          <a href="/" class="text-white font-bold text-xl">CHAVI PROM Application</a>
         </div>
         <div class="hidden md:block">
           <div class="ml-10 flex items-baseline space-x-4">
             <a href="/" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Home" %}</a>
+            {% if user.is_staff %}
             <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Admin" %}</a>
+            {% endif %}
+            {% if user.is_authenticated and perms.promapp.view_questionnaire %}
             <a href="{% url 'questionnaire_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Questionnaires" %}</a>
-            <a href="{% url 'questionnaire_create' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Create Questionnaire" %}</a>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -37,7 +40,7 @@
           {% if user.is_authenticated %}
             <div class="relative">
               <div class="flex items-center">
-                <span class="text-white mr-2">{{ user.username }}</span>
+                <span class="text-white mr-2">Welcome, {{ user.username }}</span>
                 <form method="post" action="{% url 'logout' %}" class="inline">
                   {% csrf_token %}
                   <button type="submit" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
@@ -66,9 +69,12 @@
   <div class="hidden md:hidden" id="mobile-menu">
     <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
       <a href="/" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Home" %}</a>
+      {% if user.is_staff %}
       <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Admin" %}</a>
+      {% endif %}
+      {% if user.is_authenticated and perms.promapp.view_questionnaire %}
       <a href="{% url 'questionnaire_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Questionnaires" %}</a>
-      <a href="{% url 'questionnaire_create' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Create Questionnaire" %}</a>
+      {% endif %}
       
       <!-- Language Selector (Mobile) -->
       <div class="py-2">
