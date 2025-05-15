@@ -56,38 +56,38 @@
       <div>
         <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Questionnaire Items" %}</h2>
         
-        {% if items %}
+        {% if questionnaire.questionnaireitem_set.exists %}
           <div class="bg-gray-50 p-4 rounded-md">
-            {% regroup items by construct_scale as items_by_scale %}
-            
-            {% for scale_group in items_by_scale %}
-              <div class="mb-6">
-                <div class="p-2 mb-2 bg-blue-100 rounded">
-                  <h3 class="font-medium">
-                    {{ scale_group.grouper.name|default:"No Construct Scale" }}
-                    {% if scale_group.grouper.instrument_name %}
-                      <span class="text-sm text-gray-600 ml-2">({{ scale_group.grouper.instrument_name }}{% if scale_group.grouper.instrument_version %} v{{ scale_group.grouper.instrument_version }}{% endif %})</span>
-                    {% endif %}
-                  </h3>
-                </div>
-                
-                <div class="pl-4 space-y-4">
-                  {% for item in scale_group.list %}
-                    <div class="p-3 bg-white border border-gray-200 rounded-md">
-                      <div class="font-medium">{{ item.name|default:"Untitled Item" }}</div>
-                      <div class="text-sm text-gray-600 mt-1">
-                        {% trans "Response type" %}: {{ item.get_response_type_display }}
-                        {% if item.response_type == 'Likert' and item.likert_response %}
-                          - {{ item.likert_response.likert_scale_name }}
-                        {% elif item.response_type == 'Range' and item.range_response %}
-                          - {{ item.range_response.range_scale_name }}
-                        {% endif %}
-                      </div>
+            <div class="space-y-4">
+              {% for qi in questionnaire.questionnaireitem_set.all|dictsort:"question_number" %}
+                <div class="p-3 bg-white border border-gray-200 rounded-md flex">
+                  <div class="question-number-display font-bold mr-4 w-8 h-8 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center">
+                    {{ qi.question_number }}
+                  </div>
+                  <div class="flex-1">
+                    <div class="font-medium">{{ qi.item.name|default:"Untitled Item" }}</div>
+                    <div class="text-sm text-gray-600 mt-1">
+                      {% trans "Response type" %}: {{ qi.item.get_response_type_display }}
+                      {% if qi.item.response_type == 'Likert' and qi.item.likert_response %}
+                        - {{ qi.item.likert_response.likert_scale_name }}
+                      {% elif qi.item.response_type == 'Range' and qi.item.range_response %}
+                        - {{ qi.item.range_response.range_scale_name }}
+                      {% endif %}
                     </div>
-                  {% endfor %}
+                    {% if qi.item.construct_scale %}
+                      <div class="text-xs text-gray-500 mt-1">
+                        <span class="px-2 py-0.5 bg-blue-50 rounded">
+                          {{ qi.item.construct_scale.name|default:"No Construct Scale" }}
+                          {% if qi.item.construct_scale.instrument_name %}
+                            ({{ qi.item.construct_scale.instrument_name }}{% if qi.item.construct_scale.instrument_version %} v{{ qi.item.construct_scale.instrument_version }}{% endif %})
+                          {% endif %}
+                        </span>
+                      </div>
+                    {% endif %}
+                  </div>
                 </div>
-              </div>
-            {% endfor %}
+              {% endfor %}
+            </div>
           </div>
         {% else %}
           <div class="text-center py-8 bg-gray-50 rounded-md">

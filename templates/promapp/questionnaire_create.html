@@ -6,7 +6,7 @@
 
 {% block extra_css %}
 <style>
-  .item-list {
+  .item-list, .selected-items-list {
     max-height: 500px;
     overflow-y: auto;
   }
@@ -16,18 +16,26 @@
     background-color: #f3f4f6;
     z-index: 10;
   }
-  .question-number {
-    width: 60px;
-    text-align: center;
-  }
   .filtered-out {
     display: none;
+  }
+  .sortable-ghost {
+    opacity: 0.4;
+  }
+  .handle {
+    cursor: grab;
+  }
+  .handle:active {
+    cursor: grabbing;
+  }
+  .selected-item {
+    transition: all 0.2s ease;
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
+<div class="max-w-6xl mx-auto">
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
       <h1 class="text-2xl font-bold text-blue-700 mb-6">{% trans "Create New Questionnaire" %}</h1>
@@ -51,84 +59,114 @@
             </a>
           </div>
           
-          <!-- Search and Filter controls -->
-          <div class="mb-4 flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
-            <div class="flex-1">
-              <label for="item-search" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Search items" %}</label>
-              <input type="text" id="item-search" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Search by name...' %}" aria-label="{% trans 'Search items' %}">
+          <div class="flex flex-col lg:flex-row gap-4">
+            <!-- Left Panel (2/3): Available Items -->
+            <div class="w-full lg:w-2/3">
+              <!-- Search and Filter controls -->
+              <div class="mb-4 flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
+                <div class="flex-1">
+                  <label for="item-search" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Search items" %}</label>
+                  <input type="text" id="item-search" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Search by name...' %}" aria-label="{% trans 'Search items' %}">
+                </div>
+                <div class="w-full md:w-64">
+                  <label for="construct-filter" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Filter by construct scale" %}</label>
+                  <select id="construct-filter" class="w-full px-3 py-2 border rounded">
+                    <option value="all">{% trans "All construct scales" %}</option>
+                    {% for construct_scale in construct_scales %}
+                      <option value="{{ construct_scale.id }}">{{ construct_scale.name|default:"No name" }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              
+              {% if available_items %}
+                <div class="item-list border rounded p-2">
+                  <h3 class="font-medium text-gray-700 mb-2">{% trans "Available Items" %}</h3>
+                  
+                  {% regroup available_items by construct_scale as items_by_scale %}
+                  
+                  {% for scale_group in items_by_scale %}
+                    <div class="mb-6 scale-group" data-scale-id="{{ scale_group.grouper.id|default:'none' }}">
+                      <div class="construct-scale-header p-2 mb-2 bg-blue-100 rounded">
+                        <h3 class="font-medium">
+                          {{ scale_group.grouper.name|default:"No Construct Scale" }}
+                          {% if scale_group.grouper.instrument_name %}
+                            <span class="text-sm text-gray-600 ml-2">({{ scale_group.grouper.instrument_name }}{% if scale_group.grouper.instrument_version %} v{{ scale_group.grouper.instrument_version }}{% endif %})</span>
+                          {% endif %}
+                        </h3>
+                      </div>
+                      
+                      <div class="pl-4 space-y-2">
+                        {% for item in scale_group.list %}
+                          <div class="flex items-start p-2 hover:bg-gray-50 rounded item-row" 
+                               data-item-name="{{ item.name|default:'Untitled Item'|lower }}" 
+                               data-scale-id="{{ item.construct_scale.id|default:'none' }}"
+                               data-item-id="{{ item.id }}">
+                            <input type="checkbox" 
+                                   name="items" 
+                                   value="{{ item.id }}" 
+                                   id="item_{{ item.id }}" 
+                                   class="item-checkbox mt-1 mr-3">
+                            <!-- Hidden field to store question numbers -->
+                            <input type="hidden" 
+                                   name="question_number_{{ item.id }}" 
+                                   id="question_number_{{ item.id }}" 
+                                   class="question-number-hidden">
+                            <label for="item_{{ item.id }}" class="cursor-pointer flex-1">
+                              <div class="font-medium">{{ item.name|default:"Untitled Item" }}</div>
+                              <div class="text-sm text-gray-600">
+                                {% trans "Response type" %}: {{ item.get_response_type_display }}
+                                {% if item.response_type == 'Likert' and item.likert_response %}
+                                  - {{ item.likert_response.likert_scale_name }}
+                                {% elif item.response_type == 'Range' and item.range_response %}
+                                  - {{ item.range_response.range_scale_name }}
+                                {% endif %}
+                              </div>
+                            </label>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="text-center py-8">
+                  <p class="text-gray-600 mb-4">{% trans "No items available. Please create items first." %}</p>
+                  <a href="{% url 'item_create' %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    {% trans "Create First Item" %}
+                  </a>
+                </div>
+              {% endif %}
             </div>
-            <div class="w-full md:w-64">
-              <label for="construct-filter" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Filter by construct scale" %}</label>
-              <select id="construct-filter" class="w-full px-3 py-2 border rounded">
-                <option value="all">{% trans "All construct scales" %}</option>
-                {% for construct_scale in construct_scales %}
-                  <option value="{{ construct_scale.id }}">{{ construct_scale.name|default:"No name" }}</option>
-                {% endfor %}
-              </select>
+            
+            <!-- Right Panel (1/3): Selected Items Order -->
+            <div class="w-full lg:w-1/3">
+              <div class="border rounded p-4 bg-blue-50">
+                <div class="flex justify-between items-center mb-3">
+                  <h3 class="font-medium text-gray-700">{% trans "Selected Items" %} (<span id="selected-count">0</span>)</h3>
+                  <button type="button" id="clear-all-btn" class="text-sm text-red-600 hover:text-red-800">
+                    {% trans "Clear All" %}
+                  </button>
+                </div>
+                
+                <p class="text-sm text-gray-600 mb-3">
+                  {% trans "Drag items to reorder. Question numbers will update automatically." %}
+                </p>
+                
+                <div id="selected-items-container" class="selected-items-list border rounded bg-white p-2 min-h-[300px]">
+                  <div id="empty-selection-message" class="text-center py-10 text-gray-500">
+                    {% trans "No items selected yet. Check items from the left panel to add them here." %}
+                  </div>
+                  <ul id="selected-items-list" class="space-y-2">
+                    <!-- Selected items will be inserted here via JavaScript -->
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
-          
-          {% if available_items %}
-            <div class="item-list">
-              {% regroup available_items by construct_scale as items_by_scale %}
-              
-              {% for scale_group in items_by_scale %}
-                <div class="mb-6 scale-group" data-scale-id="{{ scale_group.grouper.id|default:'none' }}">
-                  <div class="construct-scale-header p-2 mb-2 bg-blue-100 rounded">
-                    <h3 class="font-medium">
-                      {{ scale_group.grouper.name|default:"No Construct Scale" }}
-                      {% if scale_group.grouper.instrument_name %}
-                        <span class="text-sm text-gray-600 ml-2">({{ scale_group.grouper.instrument_name }}{% if scale_group.grouper.instrument_version %} v{{ scale_group.grouper.instrument_version }}{% endif %})</span>
-                      {% endif %}
-                    </h3>
-                  </div>
-                  
-                  <div class="pl-4 space-y-2">
-                    {% for item in scale_group.list %}
-                      <div class="flex items-start p-2 hover:bg-gray-50 rounded item-row" data-item-name="{{ item.name|default:'Untitled Item'|lower }}" data-scale-id="{{ item.construct_scale.id|default:'none' }}">
-                        <input type="checkbox" 
-                               name="items" 
-                               value="{{ item.id }}" 
-                               id="item_{{ item.id }}" 
-                               class="mt-1 mr-3">
-                        <div class="flex-shrink-0 mr-3">
-                          <label for="question_number_{{ item.id }}" class="sr-only">{% trans "Question Number" %}</label>
-                          <input type="number" 
-                                 name="question_number_{{ item.id }}" 
-                                 id="question_number_{{ item.id }}" 
-                                 class="question-number form-control border rounded px-2 py-1"
-                                 min="1"
-                                 placeholder="#"
-                                 disabled>
-                        </div>
-                        <label for="item_{{ item.id }}" class="cursor-pointer flex-1">
-                          <div class="font-medium">{{ item.name|default:"Untitled Item" }}</div>
-                          <div class="text-sm text-gray-600">
-                            {% trans "Response type" %}: {{ item.get_response_type_display }}
-                            {% if item.response_type == 'Likert' and item.likert_response %}
-                              - {{ item.likert_response.likert_scale_name }}
-                            {% elif item.response_type == 'Range' and item.range_response %}
-                              - {{ item.range_response.range_scale_name }}
-                            {% endif %}
-                          </div>
-                        </label>
-                      </div>
-                    {% endfor %}
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="text-center py-8">
-              <p class="text-gray-600 mb-4">{% trans "No items available. Please create items first." %}</p>
-              <a href="{% url 'item_create' %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                </svg>
-                {% trans "Create First Item" %}
-              </a>
-            </div>
-          {% endif %}
         </div>
         
         <div class="flex justify-end space-x-3">
@@ -143,34 +181,195 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    const checkboxes = document.querySelectorAll('input[name="items"]');
     const searchInput = document.getElementById('item-search');
     const constructFilter = document.getElementById('construct-filter');
+    const selectedItemsList = document.getElementById('selected-items-list');
+    const emptySelectionMessage = document.getElementById('empty-selection-message');
+    const selectedCountDisplay = document.getElementById('selected-count');
+    const clearAllBtn = document.getElementById('clear-all-btn');
     
-    // Handle checkbox changes to enable/disable question number inputs
-    checkboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        const itemId = this.value;
-        const questionNumberInput = document.getElementById(`question_number_${itemId}`);
-        
-        if (this.checked) {
-          questionNumberInput.disabled = false;
-        } else {
-          questionNumberInput.disabled = true;
-          questionNumberInput.value = '';
-        }
-      });
+    // Track selected items and their order
+    let selectedItems = [];
+    
+    // Set up Sortable for drag-and-drop reordering
+    const sortable = new Sortable(selectedItemsList, {
+      animation: 150,
+      handle: '.handle',
+      ghostClass: 'sortable-ghost',
+      onEnd: function() {
+        updateQuestionNumbers();
+      }
     });
+    
+    // Initialize event listeners
+    initializeItemCheckboxes();
     
     // Handle search input
     searchInput.addEventListener('input', filterItems);
     
     // Handle construct scale filter
     constructFilter.addEventListener('change', filterItems);
+    
+    // Handle Clear All button
+    clearAllBtn.addEventListener('click', function() {
+      clearAllSelections();
+    });
+    
+    // Initialize checkbox listeners
+    function initializeItemCheckboxes() {
+      const checkboxes = document.querySelectorAll('.item-checkbox');
+      
+      checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          const itemId = this.value;
+          const itemRow = this.closest('.item-row');
+          const itemName = itemRow.querySelector('label div:first-child').textContent;
+          const itemDetails = itemRow.querySelector('label div:last-child').textContent;
+          
+          if (this.checked) {
+            // Add to selected items
+            addItemToSelection(itemId, itemName, itemDetails);
+          } else {
+            // Remove from selected items
+            removeItemFromSelection(itemId);
+          }
+          
+          updateSelectionCount();
+        });
+      });
+    }
+    
+    // Add item to the selected items panel
+    function addItemToSelection(itemId, itemName, itemDetails) {
+      // Create list item for selected panel
+      const listItem = document.createElement('li');
+      listItem.className = 'selected-item bg-white p-2 rounded border shadow-sm flex items-center';
+      listItem.setAttribute('data-item-id', itemId);
+      
+      // Add content to the list item
+      listItem.innerHTML = `
+        <div class="handle mr-2 text-gray-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+          </svg>
+        </div>
+        <div class="question-number font-bold mr-2 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+          ${selectedItems.length + 1}
+        </div>
+        <div class="flex-1">
+          <div class="font-medium">${itemName}</div>
+          <div class="text-xs text-gray-600">${itemDetails}</div>
+        </div>
+        <button type="button" class="remove-btn text-red-500 hover:text-red-700 p-1" onclick="removeItem('${itemId}')">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      `;
+      
+      // Add to the list and our tracking array
+      selectedItemsList.appendChild(listItem);
+      selectedItems.push({ id: itemId, element: listItem });
+      
+      // Update the hidden question number field
+      updateQuestionNumberField(itemId, selectedItems.length);
+      
+      // Hide the empty message if this is the first item
+      if (selectedItems.length > 0) {
+        emptySelectionMessage.style.display = 'none';
+      }
+    }
+    
+    // Remove item from selection
+    function removeItemFromSelection(itemId) {
+      // Find the item in our tracking array
+      const index = selectedItems.findIndex(item => item.id === itemId);
+      
+      if (index !== -1) {
+        // Remove the element from DOM
+        selectedItems[index].element.remove();
+        
+        // Remove from our tracking array
+        selectedItems.splice(index, 1);
+        
+        // Clear the hidden question number field
+        updateQuestionNumberField(itemId, '');
+        
+        // Update question numbers for remaining items
+        updateQuestionNumbers();
+        
+        // Show empty message if no items left
+        if (selectedItems.length === 0) {
+          emptySelectionMessage.style.display = 'block';
+        }
+      }
+    }
+    
+    // Update question numbers after reordering
+    function updateQuestionNumbers() {
+      // Get all items in their current order
+      const items = selectedItemsList.querySelectorAll('li');
+      
+      // Reset our tracking array
+      selectedItems = [];
+      
+      // Update each item with new number
+      items.forEach((item, index) => {
+        const itemId = item.getAttribute('data-item-id');
+        const numberDisplay = item.querySelector('.question-number');
+        
+        // Update the displayed number
+        numberDisplay.textContent = index + 1;
+        
+        // Update the hidden field
+        updateQuestionNumberField(itemId, index + 1);
+        
+        // Update our tracking array
+        selectedItems.push({ id: itemId, element: item });
+      });
+    }
+    
+    // Update the hidden question number field
+    function updateQuestionNumberField(itemId, value) {
+      const hiddenField = document.getElementById(`question_number_${itemId}`);
+      if (hiddenField) {
+        hiddenField.value = value;
+      }
+    }
+    
+    // Update the count display
+    function updateSelectionCount() {
+      selectedCountDisplay.textContent = selectedItems.length;
+    }
+    
+    // Clear all selections
+    function clearAllSelections() {
+      // Uncheck all checkboxes
+      document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+      
+      // Clear selected items list
+      selectedItemsList.innerHTML = '';
+      selectedItems = [];
+      
+      // Clear all hidden fields
+      document.querySelectorAll('.question-number-hidden').forEach(field => {
+        field.value = '';
+      });
+      
+      // Show empty message
+      emptySelectionMessage.style.display = 'block';
+      
+      // Update counter
+      updateSelectionCount();
+    }
     
     // Combined filter function
     function filterItems() {
@@ -217,7 +416,21 @@
         }
       });
     }
+    
+    // Make the removeItem function available globally
+    window.removeItem = function(itemId) {
+      // Uncheck the corresponding checkbox
+      const checkbox = document.getElementById(`item_${itemId}`);
+      if (checkbox) {
+        checkbox.checked = false;
+      }
+      
+      // Remove from selection
+      removeItemFromSelection(itemId);
+      
+      // Update count
+      updateSelectionCount();
+    };
   });
 </script>
-{% endblock %}
 {% endblock %} 
