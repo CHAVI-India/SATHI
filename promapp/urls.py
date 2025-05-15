@@ -13,6 +13,9 @@ urlpatterns = [
     path('items/create/', views.ItemCreateView.as_view(), name='item_create'),
     path('items/<uuid:pk>/update/', views.ItemUpdateView.as_view(), name='item_update'),
     
+    # Likert Scale URLs
+    path('likert-scales/', views.LikertScaleListView.as_view(), name='likert_scale_list'),
+    
     # AJAX URLs for dynamic forms
     path('get-response-fields/', views.get_response_fields, name='get_response_fields'),
     path('create-likert-scale/', views.create_likert_scale, name='create_likert_scale'),

@@ -2,17 +2,29 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block title %}{% trans "Create Likert Scale" %}{% endblock %}
+{% block title %}{% if is_edit %}{% trans "Edit Likert Scale" %}{% else %}{% trans "Create Likert Scale" %}{% endif %}{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-blue-700">{% trans "Create New Likert Scale" %}</h1>
-        <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-          {% trans "Back to Item Creation" %}
-        </a>
+        <h1 class="text-2xl font-bold text-blue-700">
+          {% if is_edit %}
+            {% trans "Edit Likert Scale" %}
+          {% else %}
+            {% trans "Create New Likert Scale" %}
+          {% endif %}
+        </h1>
+        {% if perms.promapp.view_likertscale %}
+          <a href="{% url 'likert_scale_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            {% trans "Back to Likert Scales" %}
+          </a>
+        {% else %}
+          <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            {% trans "Back to Item Creation" %}
+          </a>
+        {% endif %}
       </div>
       
       {% if messages %}
@@ -27,6 +39,7 @@
       
       <form method="post" class="space-y-6" enctype="multipart/form-data">
         {% csrf_token %}
+        <input type="hidden" name="dynamic_row_count" id="dynamic_row_count" value="0">
         
         <div class="bg-gray-50 p-4 rounded-md">
           <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Likert Scale Details" %}</h2>
@@ -50,11 +63,21 @@
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">{% trans "Option Order" %}</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">{% trans "Option Value" %}</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Option Text" %}</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Option Media" %}</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">{% trans "Delete" %}</th>
+                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                  {% trans "OPTION ORDER" %}
+                </th>
+                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                  {% trans "OPTION VALUE" %}
+                </th>
+                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% trans "OPTION TEXT" %}
+                </th>
+                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% trans "OPTION MEDIA" %}
+                </th>
+                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                  {% trans "DELETE" %}
+                </th>
               </tr>
             </thead>
             <tbody id="likert-options" class="bg-white divide-y divide-gray-200">
@@ -111,11 +134,13 @@
           
           <div class="mt-4">
             <button type="button" 
-                    hx-get="{% url 'add_likert_option' %}" 
-                    hx-vals='{"form_index": "{{ formset|length }}"}'
-                    hx-target="#likert-options" 
-                    hx-swap="beforeend"
-                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
+                    id="add-option-button"
+                    data-form-index="{{ formset|length|add:dynamic_row_count|default:1 }}"
+                    data-next-order="2"
+                    data-next-value="1"
+                    data-scale-id="{% if scale %}{{ scale.id }}{% endif %}"
+                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center"
+                    onclick="addNewOptionRow(this)">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
               </svg>
@@ -125,11 +150,21 @@
         </div>
         
         <div class="flex justify-end space-x-3">
-          <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-            {% trans "Cancel" %}
-          </a>
+          {% if perms.promapp.view_likertscale %}
+            <a href="{% url 'likert_scale_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+              {% trans "Cancel" %}
+            </a>
+          {% else %}
+            <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+              {% trans "Cancel" %}
+            </a>
+          {% endif %}
           <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-            {% trans "Create Likert Scale" %}
+            {% if is_edit %}
+              {% trans "Update Likert Scale" %}
+            {% else %}
+              {% trans "Create Likert Scale" %}
+            {% endif %}
           </button>
         </div>
       </form>
@@ -139,5 +174,240 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- HTMX is handling all the functionality, no custom JavaScript needed -->
+<script>
+  // Track the number of dynamically added rows
+  let dynamicRowCount = 0;
+  // Track the next available row index
+  let nextRowIndex = parseInt("{{ formset|length|add:1 }}");
+  // Track the next logical order and value for a new option
+  let nextOptionOrder = 2;
+  let nextOptionValue = 1;
+  
+  function updateDynamicRowCount() {
+    dynamicRowCount += 1;
+    // Also increment the next option order/value
+    nextOptionOrder += 1;
+    nextOptionValue += 1;
+    console.log(`Updated dynamic row count to ${dynamicRowCount}, next option order: ${nextOptionOrder}, next value: ${nextOptionValue}`);
+  }
+  
+  function addNewOptionRow(button) {
+    // Get the data attributes
+    const formIndex = button.getAttribute('data-form-index');
+    let nextOrder = button.getAttribute('data-next-order');
+    let nextValue = button.getAttribute('data-next-value');
+    const scaleId = button.getAttribute('data-scale-id');
+    
+    console.log(`Adding row with form_index=${formIndex}, next_order=${nextOrder}, next_value=${nextValue}`);
+    
+    // Build the URL with parameters
+    let url = "{% url 'add_likert_option' %}?form_index=" + formIndex;
+    url += "&next_order=" + nextOrder;
+    url += "&next_value=" + nextValue;
+    if (scaleId) {
+      url += "&scale_id=" + scaleId;
+    }
+    
+    // Make the HTMX request
+    htmx.ajax('GET', url, { target: '#likert-options', swap: 'beforeend' })
+      .then(() => {
+        // Update our counters
+        updateDynamicRowCount();
+        
+        // Update the button's data attributes for the next add
+        const newFormIndex = parseInt(formIndex) + 1;
+        button.setAttribute('data-form-index', newFormIndex.toString());
+        button.setAttribute('data-next-order', nextOptionOrder.toString());
+        button.setAttribute('data-next-value', nextOptionValue.toString());
+        
+        // Update the hidden field
+        document.getElementById('dynamic_row_count').value = dynamicRowCount;
+        
+        console.log(`Updated button attributes: form_index=${newFormIndex}, next_order=${nextOptionOrder}, next_value=${nextOptionValue}`);
+      })
+      .catch(error => {
+        console.error('Error adding option row:', error);
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get the form element
+    const form = document.querySelector('form');
+    
+    console.log("Initializing form values...");
+    
+    // Initialize the first option row if it exists
+    const firstFormRow = document.querySelector('input[name="likertscaleresponseoption_set-0-option_order"]');
+    if (firstFormRow) {
+      const firstOptionOrder = document.querySelector('input[name="likertscaleresponseoption_set-0-option_order"]');
+      const firstOptionValue = document.querySelector('input[name="likertscaleresponseoption_set-0-option_value"]');
+      
+      // Set order to 1 if it's empty
+      if (!firstOptionOrder.value || firstOptionOrder.value.trim() === '') {
+        firstOptionOrder.value = '1';
+        console.log("Set first option order to 1");
+      }
+      
+      // Set value to 0.00 if it's empty
+      if (!firstOptionValue.value || firstOptionValue.value.trim() === '') {
+        firstOptionValue.value = '0.00';
+        console.log("Set first option value to 0.00");
+      } else {
+        // If value exists, ensure it's properly formatted
+        try {
+          const numValue = parseFloat(firstOptionValue.value);
+          if (!isNaN(numValue)) {
+            firstOptionValue.value = numValue.toFixed(2);
+          }
+        } catch (e) {
+          console.error('Error formatting first option value:', e);
+        }
+      }
+      
+      // Make sure nextOptionOrder is greater than the first row
+      if (parseInt(firstOptionOrder.value) >= nextOptionOrder) {
+        nextOptionOrder = parseInt(firstOptionOrder.value) + 1;
+        nextOptionValue = parseInt(firstOptionOrder.value);
+        console.log(`Updated next option counters: order=${nextOptionOrder}, value=${nextOptionValue}`);
+      }
+    }
+    
+    // Format all option values
+    ensureDecimalFormat();
+    
+    // When editing, make sure all existing records are properly counted
+    const isEditing = "{{ is_edit|yesno:'true,false' }}";
+    if (isEditing === "true") {
+      updateFormsetManagement();
+      console.log("Updated management form counts for editing");
+    }
+    
+    // Function to ensure option_value is saved as decimal
+    function ensureDecimalFormat() {
+      document.querySelectorAll('input[name$="-option_value"]').forEach(input => {
+        // Ensure it's stored as a decimal number, even if it's 0
+        if (input.value === '' || input.value === null) {
+          input.value = '0.00';
+        } else {
+          // Parse as float and format
+          const numValue = parseFloat(input.value);
+          if (!isNaN(numValue)) {
+            input.value = numValue.toFixed(2);
+          } else {
+            input.value = '0.00';
+          }
+        }
+        console.log(`Formatted ${input.name} to ${input.value}`);
+      });
+    }
+    
+    // Add event listener for form submission
+    form.addEventListener('submit', function(e) {
+      // For debugging, not for production
+      console.log("Form is being submitted");
+      
+      // Update the dynamic row count field
+      document.getElementById('dynamic_row_count').value = dynamicRowCount;
+      console.log(`Set dynamic_row_count to ${dynamicRowCount}`);
+      
+      // Get current scale ID if editing
+      const scaleId = '{% if scale %}{{ scale.id }}{% else %}{% endif %}';
+      
+      // Process all rows (both formset and dynamically added)
+      const rows = document.querySelectorAll('tbody tr');
+      rows.forEach((row, index) => {
+        // Get the order input for this row
+        const orderInput = row.querySelector('input[name$="-option_order"]');
+        const valueInput = row.querySelector('input[name$="-option_value"]');
+        const scaleInput = row.querySelector('input[name$="-likert_scale"]');
+        
+        if (orderInput) {
+          // Set proper order value if empty
+          if (!orderInput.value || orderInput.value.trim() === '') {
+            orderInput.value = index + 1;
+            console.log(`Set option order for row ${index} to ${orderInput.value}`);
+          }
+          
+          // Make sure value is set even if it's 0
+          if (!valueInput.value || valueInput.value.trim() === '') {
+            valueInput.value = '0.00';
+            console.log(`Set option value for row ${index} to 0.00`);
+          }
+          
+          // Make sure scale ID is set for dynamic rows
+          if (scaleInput && scaleId && (!scaleInput.value || scaleInput.value.trim() === '')) {
+            scaleInput.value = scaleId;
+            console.log(`Set likert_scale for row ${index} to ${scaleInput.value}`);
+          }
+        }
+      });
+      
+      // Fix option_value format for all inputs
+      ensureDecimalFormat();
+      
+      // Update management form (for Django formset)
+      updateFormsetManagement();
+    });
+    
+    // Function to update management form after adding/removing rows
+    function updateFormsetManagement() {
+      const prefix = 'likertscaleresponseoption_set';
+      const totalFormsInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+      
+      // Only update Django formset management if it exists
+      if (totalFormsInput) {
+        // Count all formset rows (excluding empty ones that have neither order nor text)
+        const formRows = document.querySelectorAll('#likert-options tr');
+        let nonEmptyCount = 0;
+        
+        formRows.forEach(row => {
+          // Find inputs in this row with the formset prefix
+          const orderInput = row.querySelector(`input[name^="${prefix}-"][name$="-option_order"]`);
+          const textInput = row.querySelector(`input[name^="${prefix}-"][name$="-option_text"]`);
+          const deleteInput = row.querySelector(`input[name^="${prefix}-"][name$="-DELETE"]`);
+          const idInput = row.querySelector(`input[name^="${prefix}-"][name$="-id"]`);
+          
+          // Count this row if it has an ID (existing record) or has any data
+          if (idInput && idInput.value) {
+            // Existing record
+            nonEmptyCount++;
+            console.log(`Counting existing row with ID: ${idInput.value}`);
+          } else if (orderInput && textInput) {
+            // Check if this row has any data
+            const hasOrder = orderInput.value && orderInput.value.trim() !== '';
+            const hasText = textInput.value && textInput.value.trim() !== '';
+            
+            // If row has data and isn't marked for deletion
+            if ((hasOrder || hasText) && (!deleteInput || !deleteInput.checked)) {
+              nonEmptyCount++;
+              console.log(`Counting row with order: ${orderInput.value}, text: ${textInput.value}`);
+            }
+          }
+        });
+        
+        // Update the management form
+        totalFormsInput.value = nonEmptyCount;
+        console.log(`Updated ${prefix}-TOTAL_FORMS to ${nonEmptyCount}`);
+      }
+    }
+    
+    // Handle removing options
+    document.addEventListener('click', function(e) {
+      const removeButton = e.target.closest('.remove-option, button[onclick*="delete-"]');
+      if (removeButton) {
+        // After HTMX removes the row, update the management form
+        setTimeout(updateFormsetManagement, 100);
+      }
+    });
+    
+    // Handle adding options
+    const addOptionButton = document.querySelector('button[hx-get*="add_likert_option"]');
+    if (addOptionButton) {
+      addOptionButton.addEventListener('click', function() {
+        // After HTMX adds the row, update the management form
+        setTimeout(updateFormsetManagement, 100);
+      });
+    }
+  });
+</script>
 {% endblock %} 

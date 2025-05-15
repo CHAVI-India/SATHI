@@ -1,28 +1,101 @@
 {% load i18n %}
 
 <tr class="option-row">
+  <!-- These fields are dynamically added by HTMX, so we use a different prefix 
+       than Django's formset to handle them separately in the view -->
   <td class="px-4 py-2 w-24">
-    <input type="number" name="form-{{ form_index }}-option_order" id="id_form-{{ form_index }}-option_order" value="" class="w-full px-3 py-2 border rounded">
+    <!-- Hidden fields for tracking -->
+    <input type="hidden" name="form-{{ form_index }}-id" id="id_form-{{ form_index }}-id" value="">
+    <input type="hidden" name="form-{{ form_index }}-likert_scale" id="id_form-{{ form_index }}-likert_scale" value="{{ scale.id|default:'' }}">
+    <input type="hidden" name="form-{{ form_index }}-row_index" id="id_form-{{ form_index }}-row_index" value="{{ form_index }}">
+    
+    <!-- Option order field -->
+    <input type="number" 
+           name="form-{{ form_index }}-option_order" 
+           id="id_form-{{ form_index }}-option_order" 
+           value="{{ suggested_order }}" 
+           placeholder="{% trans 'Order' %}"
+           class="w-full px-3 py-2 border rounded">
   </td>
   <td class="px-4 py-2 w-24">
-    <input type="number" name="form-{{ form_index }}-option_value" id="id_form-{{ form_index }}-option_value" value="" class="w-full px-3 py-2 border rounded">
+    <!-- Option value field -->
+    <input type="number" 
+           step="0.01" 
+           name="form-{{ form_index }}-option_value" 
+           id="id_form-{{ form_index }}-option_value" 
+           value="{{ suggested_value }}" 
+           placeholder="{% trans 'Value' %}"
+           class="w-full px-3 py-2 border rounded">
   </td>
   <td class="px-4 py-2">
-    <input type="text" name="form-{{ form_index }}-option_text" id="id_form-{{ form_index }}-option_text" value="" class="w-full px-3 py-2 border rounded">
+    <!-- Option text field -->
+    <input type="text" 
+           name="form-{{ form_index }}-option_text" 
+           id="id_form-{{ form_index }}-option_text" 
+           value="" 
+           placeholder="{% trans 'Text' %}"
+           class="w-full px-3 py-2 border rounded">
   </td>
   <td class="px-4 py-2">
-    <input type="file" name="form-{{ form_index }}-option_media" id="id_form-{{ form_index }}-option_media" class="w-full px-3 py-2 border rounded">
+    <!-- Option media field -->
+    <input type="file" 
+           name="form-{{ form_index }}-option_media" 
+           id="id_form-{{ form_index }}-option_media" 
+           class="w-full px-3 py-2 border rounded">
   </td>
   <td class="px-4 py-2 w-16">
-    <button type="button" class="remove-option text-red-500 hover:text-red-700" hx-get="{% url 'remove_likert_option' %}" hx-target="closest tr" hx-swap="outerHTML" hx-trigger="click">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-      </svg>
-    </button>
+    <!-- Delete button styled like checkbox for consistency -->
+    <div class="flex items-center">
+      <input type="checkbox" id="delete-{{ form_index }}" class="remove-option-check hidden" hx-get="{% url 'remove_likert_option' %}" hx-target="closest tr" hx-swap="outerHTML" hx-trigger="change">
+      <button type="button" 
+              class="text-red-500 hover:text-red-700" 
+              onclick="document.getElementById('delete-{{ form_index }}').dispatchEvent(new Event('change'));">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
   </td>
 </tr>
 
-<!-- Update the total forms count -->
+<!-- No need to update TOTAL_FORMS here, we handle dynamic forms differently -->
 <script>
-  document.getElementById('id_form-TOTAL_FORMS').value = "{{ form_index|add:1 }}";
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get the current row
+    const currentRow = document.querySelector('tr:last-child');
+    
+    // Set the likert_scale value for this new row if we have a scale
+    if ('{{ scale.id|default:"" }}') {
+      const scaleInput = currentRow.querySelector(`input[name="form-{{ form_index }}-likert_scale"]`);
+      if (scaleInput) {
+        scaleInput.value = '{{ scale.id }}';
+        console.log(`Set likert_scale for row {{ form_index }} to {{ scale.id }}`);
+      }
+    }
+    
+    // Make sure we have the proper values for option order and value
+    const orderInput = currentRow.querySelector(`input[name="form-{{ form_index }}-option_order"]`);
+    const valueInput = currentRow.querySelector(`input[name="form-{{ form_index }}-option_value"]`);
+    
+    // Log the current values
+    console.log(`Current values for row {{ form_index }}: order=${orderInput.value}, value=${valueInput.value}`);
+    
+    // Format the option_value if needed
+    if (valueInput && valueInput.value) {
+      try {
+        const numValue = parseFloat(valueInput.value);
+        if (!isNaN(numValue)) {
+          valueInput.value = numValue.toFixed(2);
+          console.log(`Formatted option_value to ${valueInput.value}`);
+        }
+      } catch (e) {
+        console.error('Error formatting value:', e);
+      }
+    }
+    
+    // Update dynamic row count in the parent form
+    if (typeof updateDynamicRowCount === 'function') {
+      updateDynamicRowCount();
+    }
+  });
 </script> 

@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
 from django.contrib import messages
 from django.db import transaction
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, RangeScaleResponseOption, ResponseTypeChoices
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, RangeScaleResponseOption, ResponseTypeChoices, LikertScaleResponseOption
 from .forms import (
     QuestionnaireForm, ItemForm, QuestionnaireItemForm, 
     LikertScaleForm, RangeScaleForm, LikertScaleResponseOptionFormSet,
@@ -14,6 +14,7 @@ from .forms import (
     LikertScaleResponseOptionForm, RangeScaleResponseOptionForm
 )
 from django.utils.translation import get_language
+from django.db import models
 
 # Create your views here.
 
@@ -266,30 +267,229 @@ def add_item_form(request):
     return HttpResponse(html)
 
 def create_likert_scale(request):
+    # Check if we're editing an existing Likert scale
+    edit_id = request.GET.get('edit')
+    instance = None
+    
+    if edit_id:
+        instance = get_object_or_404(LikertScale, pk=edit_id)
+        print(f"Editing likert scale: {instance.likert_scale_name} (ID: {instance.id})")
+    
     if request.method == 'POST':
-        form = LikertScaleForm(request.POST)
-        formset = LikertScaleResponseOptionFormSet(request.POST, request.FILES)
+        # Collect and debug POST data
+        print("POST data:", request.POST)
         
-        if form.is_valid() and formset.is_valid():
-            with transaction.atomic():
-                likert_scale = form.save()
-                formset.instance = likert_scale
-                formset.save()
-                messages.success(request, "Likert scale created successfully.")
-                return redirect('item_create')
+        # Get the standard formset prefix
+        prefix = 'likertscaleresponseoption_set'
+        print(f"Standard formset prefix: {prefix}")
+        print(f"TOTAL_FORMS: {request.POST.get(f'{prefix}-TOTAL_FORMS')}")
+        print(f"INITIAL_FORMS: {request.POST.get(f'{prefix}-INITIAL_FORMS')}")
+        
+        # Process the form for the likert scale itself
+        form = LikertScaleForm(request.POST, instance=instance)
+        
+        # Process the standard formset
+        if instance:
+            formset = LikertScaleResponseOptionFormSet(request.POST, request.FILES, instance=instance)
         else:
-            if not form.is_valid():
+            formset = LikertScaleResponseOptionFormSet(request.POST, request.FILES)
+        
+        # Debug formset
+        print(f"Formset has {len(formset.forms)} forms")
+        for i, form_instance in enumerate(formset.forms):
+            print(f"Formset form {i} data:", {
+                'option_order': form_instance['option_order'].value(),
+                'option_value': form_instance['option_value'].value(),
+                'option_text': form_instance['option_text'].value(),
+            })
+        
+        # Check form validity first
+        valid_form = form.is_valid()
+        valid_formset = formset.is_valid()
+        
+        # Also collect any dynamically added forms (with 'form-' prefix)
+        dynamic_forms = []
+        
+        # We need to process the raw request data to get all form instances
+        # This is because request.POST.getlist() doesn't handle nested lists properly
+        
+        # First, identify all the unique form indices in the dynamic forms
+        form_indices = set()
+        for key in request.POST:
+            if key.startswith('form-') and '-option_order' in key:
+                parts = key.split('-')
+                if len(parts) == 3 and parts[1].isdigit():  # form-X-field format
+                    form_indices.add(parts[1])
+        
+        print(f"Found {len(form_indices)} unique form indices: {', '.join(form_indices)}")
+        
+        # For each form index, extract all fields
+        for form_index in form_indices:
+            option_order = request.POST.get(f'form-{form_index}-option_order', '')
+            option_value = request.POST.get(f'form-{form_index}-option_value', '')
+            option_text = request.POST.get(f'form-{form_index}-option_text', '')
+            likert_scale_id = request.POST.get(f'form-{form_index}-likert_scale', '')
+            
+            # Only add non-empty forms
+            if option_order.strip() or option_text.strip():
+                dynamic_forms.append({
+                    'index': form_index,
+                    'option_order': option_order.strip(),
+                    'option_value': option_value.strip(),
+                    'option_text': option_text.strip(),
+                    'likert_scale_id': likert_scale_id.strip()
+                })
+        
+        print(f"Found {len(dynamic_forms)} dynamically added form entries")
+        for i, dform in enumerate(dynamic_forms):
+            print(f"Dynamic form {i+1} data:", dform)
+        
+        if valid_form and valid_formset:
+            with transaction.atomic():
+                # First save the likert scale
+                likert_scale = form.save()
+                print(f"Saved likert scale: {likert_scale.likert_scale_name} (ID: {likert_scale.id})")
+                
+                # Save the standard formset (skip empty forms)
+                formset.instance = likert_scale
+                saved_options = []
+                for form_instance in formset.forms:
+                    # Check if this form has data and isn't marked for deletion
+                    if form_instance.is_valid():
+                        # Only process forms with actual data
+                        option_order = form_instance.cleaned_data.get('option_order')
+                        option_text = form_instance.cleaned_data.get('option_text', '')
+                        option_value = form_instance.cleaned_data.get('option_value')
+                        delete_flag = form_instance.cleaned_data.get('DELETE', False)
+                        
+                        # Debug
+                        print(f"Processing form with data: order={option_order}, value={option_value}, text={option_text}, delete={delete_flag}")
+                        
+                        if not delete_flag and (option_order is not None or option_text):
+                            try:
+                                # Handle existing or new instances
+                                if form_instance.instance.pk:
+                                    option = form_instance.instance
+                                    if option_order is not None:
+                                        option.option_order = option_order
+                                    if option_value is not None:
+                                        option.option_value = option_value
+                                    if option_text:
+                                        option.option_text = option_text
+                                    option.likert_scale = likert_scale
+                                else:
+                                    # Create new option
+                                    option = LikertScaleResponseOption()
+                                    option.likert_scale = likert_scale
+                                    option.option_order = option_order if option_order is not None else 0
+                                    option.option_value = option_value if option_value is not None else 0
+                                    option.option_text = option_text
+                                
+                                try:
+                                    # Save and track
+                                    option.save()
+                                    saved_options.append(option)
+                                    print(f"Saved option: {option.option_text} (order: {option.option_order}, value: {option.option_value})")
+                                except Exception as e:
+                                    if 'unique constraint' in str(e).lower():
+                                        error_msg = f"Cannot save option: A response option with order {option.option_order} and value {option.option_value} already exists in this scale."
+                                        print(error_msg)
+                                        messages.error(request, error_msg)
+                                    else:
+                                        print(f"Error saving option: {e}")
+                                        messages.error(request, f"Error saving option: {e}")
+                            except Exception as e:
+                                print(f"Error processing option: {e}")
+                                messages.error(request, f"Error processing option: {e}")
+                        elif delete_flag and form_instance.instance.pk:
+                            # Delete if marked and exists
+                            form_instance.instance.delete()
+                            print(f"Deleted option with ID: {form_instance.instance.pk}")
+                    else:
+                        print(f"Form validation failed: {form_instance.errors}")
+                
+                print(f"Saved {len(saved_options)} options from formset")
+                
+                # Process and save dynamically added forms manually
+                for dform in dynamic_forms:
+                    try:
+                        # Create a new option
+                        option = LikertScaleResponseOption()
+                        option.likert_scale = likert_scale
+                        
+                        # Handle empty values
+                        try:
+                            option.option_order = int(dform['option_order']) if dform['option_order'].strip() else 0
+                        except (ValueError, TypeError):
+                            option.option_order = 0
+                        
+                        try:
+                            # Explicitly handle '0' or '0.00' values
+                            option_value = dform['option_value'].strip()
+                            if option_value == '' or option_value is None:
+                                option.option_value = 0
+                            else:
+                                option.option_value = float(option_value)
+                        except (ValueError, TypeError):
+                            option.option_value = 0
+                        
+                        option.option_text = dform['option_text']
+                        
+                        # Check for duplicates before saving
+                        try:
+                            option.save()
+                            print(f"Saved dynamic option: {option.option_text} (order: {option.option_order}, value: {option.option_value})")
+                        except Exception as e:
+                            if 'unique constraint' in str(e).lower():
+                                error_msg = f"Cannot save dynamic option: A response option with order {option.option_order} and value {option.option_value} already exists in this scale."
+                                print(error_msg)
+                                messages.error(request, error_msg)
+                            else:
+                                print(f"Error saving dynamic option: {e}")
+                                messages.error(request, f"Error saving dynamic option: {e}")
+                    except Exception as e:
+                        print(f"Error processing dynamic option: {e}")
+                        messages.error(request, f"Error processing dynamic option: {e}")
+                
+                if instance:
+                    messages.success(request, "Likert scale updated successfully.")
+                else:
+                    messages.success(request, "Likert scale created successfully.")
+                
+                # Redirect to the likert scale list if available, otherwise to item create
+                if request.user.has_perm('promapp.view_likertscale'):
+                    return redirect('likert_scale_list')
+                else:
+                    return redirect('item_create')
+        else:
+            if not valid_form:
+                print("Form errors:", form.errors)
                 messages.error(request, "Please check the scale details for errors.")
-            if not formset.is_valid():
+            if not valid_formset:
+                print("Formset errors:", formset.errors)
+                print("Formset non-form errors:", formset.non_form_errors())
+                for i, form_errors in enumerate(formset.errors):
+                    if form_errors:
+                        print(f"Form {i} errors:", form_errors)
                 messages.error(request, "Please check the response options for errors.")
     else:
-        form = LikertScaleForm()
-        formset = LikertScaleResponseOptionFormSet()
+        # Initialize form and formset with instance data if editing
+        form = LikertScaleForm(instance=instance)
+        
+        if instance:
+            formset = LikertScaleResponseOptionFormSet(instance=instance)
+        else:
+            formset = LikertScaleResponseOptionFormSet()
     
-    return render(request, 'promapp/likert_scale_form.html', {
-        'form': form, 
-        'formset': formset
-    })
+    context = {
+        'form': form,
+        'formset': formset,
+        'is_edit': bool(instance),
+        'scale': instance,
+        'dynamic_row_count': request.POST.get('dynamic_row_count', 0) if request.method == 'POST' else 0
+    }
+    
+    return render(request, 'promapp/likert_scale_form.html', context)
 
 def create_range_scale(request):
     if request.method == 'POST':
@@ -338,16 +538,120 @@ def create_construct_scale(request):
 
 def add_likert_option(request):
     """Add a new empty row to the Likert scale formset."""
-    # Get the next form index
+    # Extract all parameters from the request for debugging
+    params = {key: request.GET.get(key) for key in request.GET}
+    print(f"Add option request parameters: {params}")
+    
+    # Get the form index (default to a safe value if missing)
     form_index = int(request.GET.get('form_index', 0))
+    
+    # Get the likert scale ID if it's being edited
+    scale_id = request.GET.get('scale_id', None)
+    scale = None
+    
+    # Get suggested order and value directly from request
+    # Explicitly handle the conversion to avoid type errors
+    try:
+        suggested_order = int(request.GET.get('next_order', 2))
+    except (ValueError, TypeError):
+        suggested_order = 2
+        
+    try:
+        suggested_value = float(request.GET.get('next_value', 1))
+    except (ValueError, TypeError):
+        suggested_value = 1.0
+    
+    # Handle edge case of first row
+    if suggested_order == 1:
+        suggested_value = 0.0
+    
+    if scale_id:
+        try:
+            scale = LikertScale.objects.get(pk=scale_id)
+            print(f"Found likert scale: {scale.likert_scale_name} (ID: {scale.id})")
+            
+            # If we have a scale but no suggested values in request, determine them
+            if 'next_order' not in request.GET:
+                max_order = LikertScaleResponseOption.objects.filter(
+                    likert_scale=scale
+                ).aggregate(models.Max('option_order'))['option_order__max'] or 0
+                suggested_order = max_order + 1
+                
+            if 'next_value' not in request.GET:
+                max_value = LikertScaleResponseOption.objects.filter(
+                    likert_scale=scale
+                ).aggregate(models.Max('option_value'))['option_value__max'] or 0
+                suggested_value = float(max_value) + 1
+        except LikertScale.DoesNotExist:
+            print(f"LikertScale with ID {scale_id} not found")
     
     # Render a new empty form row
     context = {
         'form_index': form_index,
+        'scale': scale,
+        'suggested_order': suggested_order,
+        'suggested_value': suggested_value,
     }
+    
+    # Log debug info
+    print(f"Adding option row with index {form_index}, scale_id: {scale_id}, suggested_order: {suggested_order}, suggested_value: {suggested_value}")
+    
     return render(request, 'promapp/likert_option_row.html', context)
 
 def remove_likert_option(request):
     """Remove a row from the Likert scale formset."""
     # Return an empty response to remove the row
     return HttpResponse('')
+
+class LikertScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = LikertScale
+    template_name = 'promapp/likert_scale_list.html'
+    context_object_name = 'likert_scales'
+    permission_required = 'promapp.view_likertscale'
+    paginate_by = 10  # Show 10 likert scales per page
+    
+    def get_queryset(self):
+        queryset = LikertScale.objects.all()
+        
+        # Apply search filter if provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(likert_scale_name__icontains=search)
+            
+        return queryset.order_by('-created_date')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Add response options for each likert scale
+        likert_scales_with_options = []
+        current_language = get_language()
+        
+        for scale in context['likert_scales']:
+            options = LikertScaleResponseOption.objects.language(current_language).filter(
+                likert_scale=scale
+            ).order_by('option_order')
+            
+            likert_scales_with_options.append({
+                'scale': scale,
+                'options': options,
+                'option_count': options.count()
+            })
+        
+        context['likert_scales_with_options'] = likert_scales_with_options
+        context['search_query'] = self.request.GET.get('search', '')
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        return context
+    
+    def get(self, request, *args, **kwargs):
+        # Check if this is an HTMX request
+        if request.META.get('HTTP_HX_REQUEST'):
+            # If it is an HTMX request, only return the table part
+            self.object_list = self.get_queryset()
+            context = self.get_context_data()
+            html = render_to_string('promapp/partials/likert_scale_list_table.html', context)
+            return HttpResponse(html)
+        
+        # Otherwise, return the full page as usual
+        return super().get(request, *args, **kwargs)

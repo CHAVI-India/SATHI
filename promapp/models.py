@@ -64,7 +64,9 @@ class LikertScaleResponseOption(TranslatableModel):
         ordering = ['option_order']
         verbose_name = 'Likert Scale Response Option'
         verbose_name_plural = 'Likert Scale Response Options'
-        unique_together = ['option_order', 'option_value']
+        # Each option_order and option_value combination must be unique within a likert_scale
+        # This ensures we can't have duplicate values in the same scale
+        unique_together = ['likert_scale', 'option_order', 'option_value']
 
     def __str__(self):
         return self.option_text

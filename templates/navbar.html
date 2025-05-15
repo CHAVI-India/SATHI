@@ -14,7 +14,31 @@
             <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Admin" %}</a>
             {% endif %}
             {% if user.is_authenticated and perms.promapp.view_questionnaire %}
-            <a href="{% url 'questionnaire_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Questionnaires" %}</a>
+            <div class="relative group inline-block">
+              <button class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium flex items-center" aria-haspopup="true">
+                {% trans "Instruments" %}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              <div class="absolute left-0 hidden pt-2 group-hover:block z-10">
+                <div class="bg-white rounded-md shadow-lg py-1 min-w-max">
+                  <a href="{% url 'questionnaire_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    {% trans "Questionnaires" %}
+                  </a>
+                  {% if perms.promapp.view_item %}
+                  <a href="{% url 'item_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    {% trans "Items" %}
+                  </a>
+                  {% endif %}
+                  {% if perms.promapp.view_likertscale %}
+                  <a href="{% url 'likert_scale_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    {% trans "Likert Scales" %}
+                  </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
             {% endif %}
           </div>
         </div>
@@ -72,8 +96,24 @@
       {% if user.is_staff %}
       <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Admin" %}</a>
       {% endif %}
+      
       {% if user.is_authenticated and perms.promapp.view_questionnaire %}
-      <a href="{% url 'questionnaire_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Questionnaires" %}</a>
+      <div class="py-2">
+        <div class="text-white px-3 py-2 font-medium">{% trans "Instruments" %}</div>
+        <a href="{% url 'questionnaire_list' %}" class="text-white hover:bg-blue-700 block px-6 py-2 rounded-md text-base font-medium">
+          {% trans "Questionnaires" %}
+        </a>
+        {% if perms.promapp.view_item %}
+        <a href="{% url 'item_list' %}" class="text-white hover:bg-blue-700 block px-6 py-2 rounded-md text-base font-medium">
+          {% trans "Items" %}
+        </a>
+        {% endif %}
+        {% if perms.promapp.view_likertscale %}
+        <a href="{% url 'likert_scale_list' %}" class="text-white hover:bg-blue-700 block px-6 py-2 rounded-md text-base font-medium">
+          {% trans "Likert Scales" %}
+        </a>
+        {% endif %}
+      </div>
       {% endif %}
       
       <!-- Language Selector (Mobile) -->
