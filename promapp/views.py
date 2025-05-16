@@ -6,12 +6,14 @@ from django.template.loader import render_to_string
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
 from django.contrib import messages
 from django.db import transaction
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption
+from django.utils.translation import gettext as _
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption, PatientQuestionnaire, QuestionnaireItemResponse, Patient
 from .forms import (
     QuestionnaireForm, ItemForm, QuestionnaireItemForm, 
     LikertScaleForm, LikertScaleResponseOptionFormSet,
     ItemSelectionForm, ConstructScaleForm,
-    LikertScaleResponseOptionForm, RangeScaleForm
+    LikertScaleResponseOptionForm, RangeScaleForm,
+    QuestionnaireResponseForm
 )
 from django.utils.translation import get_language
 from django.db import models
@@ -749,3 +751,177 @@ class ConstructScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListVi
         
         # Otherwise, return the full page as usual
         return super().get(request, *args, **kwargs)
+
+class QuestionnaireResponseView(LoginRequiredMixin, DetailView):
+    """
+    View for handling questionnaire responses.
+    This view allows patients to respond to questionnaires assigned to them.
+    """
+    model = PatientQuestionnaire
+    template_name = 'promapp/questionnaire_response.html'
+    context_object_name = 'patient_questionnaire'
+    
+    def get_queryset(self):
+        # Only allow access to questionnaires assigned to the current patient
+        return PatientQuestionnaire.objects.filter(
+            patient__user=self.request.user,
+            display_questionnaire=True
+        )
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        patient_questionnaire = self.get_object()
+        
+        # Get all questionnaire items ordered by question number
+        questionnaire_items = QuestionnaireItem.objects.filter(
+            questionnaire=patient_questionnaire.questionnaire
+        ).order_by('question_number')
+        
+        # Initialize the form with the questionnaire items
+        context['form'] = QuestionnaireResponseForm(
+            questionnaire_items=questionnaire_items
+        )
+        context['questionnaire_items'] = questionnaire_items
+        
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        patient_questionnaire = self.get_object()
+        questionnaire_items = QuestionnaireItem.objects.filter(
+            questionnaire=patient_questionnaire.questionnaire
+        ).order_by('question_number')
+        
+        form = QuestionnaireResponseForm(
+            request.POST,
+            questionnaire_items=questionnaire_items
+        )
+        
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    # Create response objects for each answered question
+                    for qi in questionnaire_items:
+                        response_value = form.cleaned_data.get(f'response_{qi.id}')
+                        if response_value:
+                            QuestionnaireItemResponse.objects.create(
+                                patient_questionnaire=patient_questionnaire,
+                                questionnaire_item=qi,
+                                response_value=str(response_value)
+                            )
+                
+                messages.success(request, _('Your responses have been saved successfully.'))
+                return redirect('patient_questionnaire_list')
+                
+            except Exception as e:
+                messages.error(request, _('An error occurred while saving your responses. Please try again.'))
+                return self.render_to_response(self.get_context_data(form=form))
+        else:
+            messages.error(request, _('Please correct the errors below.'))
+            return self.render_to_response(self.get_context_data(form=form))
+
+class PatientQuestionnaireManagementView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+    """
+    View for managing questionnaires assigned to a patient.
+    This view allows staff to assign/unassign questionnaires to patients.
+    """
+    model = Patient
+    template_name = 'promapp/patient_questionnaire_management.html'
+    context_object_name = 'patient'
+    permission_required = 'promapp.change_patientquestionnaire'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        patient = self.get_object()
+        
+        # Get all questionnaires
+        current_language = get_language()
+        all_questionnaires = Questionnaire.objects.language(current_language).all().order_by('translations__name')
+        
+        # Get currently assigned questionnaires
+        assigned_questionnaires = PatientQuestionnaire.objects.filter(
+            patient=patient
+        ).select_related('questionnaire')
+        
+        # Create a list of questionnaires with their assignment status
+        questionnaires_with_status = []
+        for questionnaire in all_questionnaires:
+            assigned = assigned_questionnaires.filter(questionnaire=questionnaire).first()
+            questionnaires_with_status.append({
+                'questionnaire': questionnaire,
+                'is_assigned': bool(assigned),
+                'is_displayed': assigned.display_questionnaire if assigned else False,
+                'assigned_date': assigned.created_date if assigned else None,
+                'patient_questionnaire_id': assigned.id if assigned else None
+            })
+        
+        context['questionnaires_with_status'] = questionnaires_with_status
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        patient = self.get_object()
+        action = request.POST.get('action')
+        questionnaire_id = request.POST.get('questionnaire_id')
+        
+        try:
+            questionnaire = Questionnaire.objects.get(id=questionnaire_id)
+            
+            if action == 'assign':
+                # Create new assignment
+                PatientQuestionnaire.objects.create(
+                    patient=patient,
+                    questionnaire=questionnaire,
+                    display_questionnaire=True
+                )
+                messages.success(request, _('Questionnaire assigned successfully.'))
+                
+            elif action == 'unassign':
+                # Remove assignment
+                PatientQuestionnaire.objects.filter(
+                    patient=patient,
+                    questionnaire=questionnaire
+                ).delete()
+                messages.success(request, _('Questionnaire unassigned successfully.'))
+                
+            elif action == 'toggle_display':
+                # Toggle display status
+                patient_questionnaire = PatientQuestionnaire.objects.get(
+                    patient=patient,
+                    questionnaire=questionnaire
+                )
+                patient_questionnaire.display_questionnaire = not patient_questionnaire.display_questionnaire
+                patient_questionnaire.save()
+                status = 'displayed' if patient_questionnaire.display_questionnaire else 'hidden'
+                messages.success(request, _(f'Questionnaire is now {status}.'))
+                
+        except Questionnaire.DoesNotExist:
+            messages.error(request, _('Questionnaire not found.'))
+        except PatientQuestionnaire.DoesNotExist:
+            messages.error(request, _('Questionnaire assignment not found.'))
+        except Exception as e:
+            messages.error(request, _('An error occurred. Please try again.'))
+        
+        return redirect('patient_questionnaire_management', pk=patient.id)
+
+class PatientQuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """
+    View for listing patients who have questionnaires assigned to them.
+    """
+    model = Patient
+    template_name = 'promapp/patient_questionnaire_list.html'
+    context_object_name = 'patients'
+    permission_required = 'promapp.view_patientquestionnaire'
+    paginate_by = 25
+
+    def get_queryset(self):
+        # Get all patients with their related user data
+        return Patient.objects.select_related('user').all().order_by('name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add questionnaire counts for each patient
+        for patient in context['patients']:
+            # Count only unique questionnaire assignments
+            patient.questionnaire_count = PatientQuestionnaire.objects.filter(
+                patient=patient
+            ).values('questionnaire').distinct().count()
+        return context

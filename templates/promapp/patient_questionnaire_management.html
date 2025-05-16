@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Manage Patient Questionnaires" %} - {{ patient.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">
+            {% trans "Manage Questionnaires for" %} {{ patient.get_full_name }}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            {% trans "Assign questionnaires to this patient and control their visibility" %}
+          </p>
+        </div>
+        <div>
+          <a href="{% url 'patient_detail' patient.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            {% trans "Back to Patient" %}
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+      <div class="px-6 py-4">
+        {% for message in messages %}
+          <div class="{% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 mb-3 rounded border" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Questionnaires List -->
+    <div class="px-6 py-4">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {% trans "Questionnaire" %}
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {% trans "Status" %}
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {% trans "Assigned Date" %}
+              </th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {% trans "Actions" %}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for qs in questionnaires_with_status %}
+              <tr class="{% if qs.is_assigned %}bg-blue-50{% endif %}">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">
+                    {{ qs.questionnaire.name }}
+                  </div>
+                  {% if qs.questionnaire.description %}
+                    <div class="text-sm text-gray-500">
+                      {{ qs.questionnaire.description|truncatechars:100 }}
+                    </div>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  {% if qs.is_assigned %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if qs.is_displayed %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                      {% if qs.is_displayed %}
+                        {% trans "Displayed" %}
+                      {% else %}
+                        {% trans "Hidden" %}
+                      {% endif %}
+                    </span>
+                  {% else %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                      {% trans "Not Assigned" %}
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {% if qs.assigned_date %}
+                    {{ qs.assigned_date|date:"M d, Y" }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                  {% if qs.is_assigned %}
+                    <form method="post" class="inline-block">
+                      {% csrf_token %}
+                      <input type="hidden" name="questionnaire_id" value="{{ qs.questionnaire.id }}">
+                      <input type="hidden" name="action" value="toggle_display">
+                      <button type="submit" class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        {% if qs.is_displayed %}
+                          {% trans "Hide" %}
+                        {% else %}
+                          {% trans "Show" %}
+                        {% endif %}
+                      </button>
+                    </form>
+                    <form method="post" class="inline-block">
+                      {% csrf_token %}
+                      <input type="hidden" name="questionnaire_id" value="{{ qs.questionnaire.id }}">
+                      <input type="hidden" name="action" value="unassign">
+                      <button type="submit" class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="return confirm('{% trans "Are you sure you want to unassign this questionnaire?" %}')">
+                        {% trans "Unassign" %}
+                      </button>
+                    </form>
+                  {% else %}
+                    <form method="post" class="inline-block">
+                      {% csrf_token %}
+                      <input type="hidden" name="questionnaire_id" value="{{ qs.questionnaire.id }}">
+                      <input type="hidden" name="action" value="assign">
+                      <button type="submit" class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        {% trans "Assign" %}
+                      </button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
+                  {% trans "No questionnaires available." %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

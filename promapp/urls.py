@@ -7,6 +7,7 @@ urlpatterns = [
     path('questionnaires/create/', views.QuestionnaireCreateView.as_view(), name='questionnaire_create'),
     path('questionnaires/<uuid:pk>/', views.QuestionnaireDetailView.as_view(), name='questionnaire_detail'),
     path('questionnaires/<uuid:pk>/update/', views.QuestionnaireUpdateView.as_view(), name='questionnaire_update'),
+    path('questionnaire/<uuid:pk>/respond/', views.QuestionnaireResponseView.as_view(), name='questionnaire_response'),
     
     # Item URLs
     path('items/', views.ItemListView.as_view(), name='item_list'),
@@ -31,4 +32,6 @@ urlpatterns = [
     # HTMX URLs
     path('add-likert-option/', views.add_likert_option, name='add_likert_option'),
     path('remove-likert-option/', views.remove_likert_option, name='remove_likert_option'),
+    path('patients/<uuid:pk>/questionnaires/', views.PatientQuestionnaireManagementView.as_view(), name='patient_questionnaire_management'),
+    path('patient-questionnaires/', views.PatientQuestionnaireListView.as_view(), name='patient_questionnaire_list'),
 ] 

@@ -50,6 +50,11 @@
               </div>
             </div>
             {% endif %}
+            {% if user.is_authenticated and perms.promapp.view_patientquestionnaire %}
+            <a href="{% url 'patient_questionnaire_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+              {% trans "Patient Questionnaires" %}
+            </a>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -134,6 +139,11 @@
         </a>
         {% endif %}
       </div>
+      {% endif %}
+      {% if user.is_authenticated and perms.promapp.view_patientquestionnaire %}
+      <a href="{% url 'patient_questionnaire_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
+        {% trans "Patient Questionnaires" %}
+      </a>
       {% endif %}
       
       <!-- Language Selector (Mobile) -->

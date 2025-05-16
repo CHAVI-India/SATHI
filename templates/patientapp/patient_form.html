@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h1 class="text-2xl font-bold text-gray-900">{{ title }}</h1>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+      <div class="px-6 py-4">
+        {% for message in messages %}
+          <div class="{% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 mb-3 rounded border" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Form -->
+    <div class="px-6 py-4">
+      <form method="post" class="space-y-8">
+        {% csrf_token %}
+        
+        <!-- User Account Information -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">{% trans "User Account Information" %}</h3>
+          <div class="grid grid-cols-1 gap-4">
+            {{ form.username|as_crispy_field }}
+            {{ form.email|as_crispy_field }}
+          </div>
+        </div>
+
+        <!-- Password Section -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">{% trans "Password" %}</h3>
+          <div class="grid grid-cols-1 gap-4">
+            {{ form.password1|as_crispy_field }}
+            {{ form.password2|as_crispy_field }}
+          </div>
+        </div>
+
+        <!-- Patient Information -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">{% trans "Patient Information" %}</h3>
+          <div class="grid grid-cols-1 gap-4">
+            {{ form.patient_id|as_crispy_field }}
+            {{ form.name|as_crispy_field }}
+            {{ form.age|as_crispy_field }}
+            {{ form.gender|as_crispy_field }}
+            {{ form.institution|as_crispy_field }}
+          </div>
+        </div>
+
+        <!-- Groups Section -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">{% trans "User Groups" %}</h3>
+          <div class="mt-2">
+            {{ form.groups|as_crispy_field }}
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+          <a href="{% url 'patient_list' %}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+            {% trans "Cancel" %}
+          </a>
+          <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+            {% trans "Create Patient" %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %} 

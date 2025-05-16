@@ -30,6 +30,7 @@ urlpatterns += i18n_patterns(
     
     # App URLs
     path('promapp/', include('promapp.urls')),
+    path('patientapp/', include('patientapp.urls')),
     
     # Authentication paths
     path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),

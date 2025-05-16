@@ -50,8 +50,7 @@ class Patient(models.Model):
         verbose_name = 'Patient'
         verbose_name_plural = 'Patients'
 
-    def __str__(self):
-        return self.patient_id
+
 
 
 class Diagnosis(models.Model):

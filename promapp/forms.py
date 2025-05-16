@@ -166,3 +166,73 @@ class RangeScaleForm(TranslatableModelForm):
             Field('max_value_text', css_class='w-full px-3 py-2 border rounded'),
         )
 
+
+class QuestionnaireResponseForm(forms.Form):
+    """
+    Form for handling questionnaire responses.
+    This is a dynamic form that will be populated with fields based on the questionnaire items.
+    """
+    def __init__(self, *args, **kwargs):
+        self.questionnaire_items = kwargs.pop('questionnaire_items', [])
+        super().__init__(*args, **kwargs)
+        
+        # Dynamically add fields based on questionnaire items
+        for qi in self.questionnaire_items:
+            field_name = f'response_{qi.id}'
+            
+            if qi.item.response_type == 'Text':
+                self.fields[field_name] = forms.CharField(
+                    required=False,
+                    widget=forms.Textarea(attrs={
+                        'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+                        'rows': 3,
+                        'placeholder': _('Enter your response here...')
+                    })
+                )
+            elif qi.item.response_type == 'Number':
+                self.fields[field_name] = forms.DecimalField(
+                    required=False,
+                    widget=forms.NumberInput(attrs={
+                        'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+                        'placeholder': _('Enter a number...')
+                    })
+                )
+            elif qi.item.response_type == 'Likert':
+                choices = [(option.option_value, option.option_text) 
+                          for option in qi.item.likert_response.likertscaleresponseoption_set.all()]
+                self.fields[field_name] = forms.ChoiceField(
+                    required=False,
+                    choices=choices,
+                    widget=forms.RadioSelect(attrs={
+                        'class': 'peer sr-only'
+                    })
+                )
+            elif qi.item.response_type == 'Range':
+                self.fields[field_name] = forms.DecimalField(
+                    required=False,
+                    min_value=qi.item.range_response.min_value,
+                    max_value=qi.item.range_response.max_value,
+                    widget=forms.NumberInput(attrs={
+                        'type': 'range',
+                        'min': qi.item.range_response.min_value,
+                        'max': qi.item.range_response.max_value,
+                        'step': qi.item.range_response.increment,
+                        'class': 'w-full'
+                    })
+                )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        # Validate that at least one response is provided
+        has_response = False
+        for field_name, value in cleaned_data.items():
+            if value:
+                has_response = True
+                break
+                
+        if not has_response:
+            raise forms.ValidationError(_('Please provide at least one response.'))
+            
+        return cleaned_data
+
