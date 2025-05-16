@@ -217,11 +217,7 @@ class QuestionnaireItemResponse(models.Model):
     questionnaire_item = models.ForeignKey(QuestionnaireItem, on_delete=models.CASCADE, help_text = "The item to which the response belongs")
     response_date = models.DateTimeField(help_text = "The date and time of the response",auto_now_add=True)
     response_date = models.DateTimeField(help_text = "The date and time of the response",auto_now_add=True)
-    text_response_value = models.TextField(help_text = "The response value",null=True, blank=True)
-    number_response_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The response value")
-    likert_response_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The response value")
-    range_response_min_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The response value")
-    range_response_max_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The response value")
+    response_value = models.CharField(max_length=255, help_text = "The response value",null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 

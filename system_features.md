@@ -25,4 +25,8 @@ Each questionnaire has multiple items and items can be of the following types:
     4. Likert
 
 We would like to store the response provided by the patient in the corresponding fields. 
-The patients will see the items in the questionnaire based on the question_number field order. For each item they will be the text of the qeustion and any media associated with it (fields - name)
+The patients will see the items in the questionnaire based on the question_number field order. For each item they will be the text of the question and any media associated with it (fields - name and media). Under the question they will see the widget corresponding to the response_type. 
+If it is a text response then there will be a text field and the data entred will be saved into the field called response_value
+If it is a number response then there will be a number field and the data will be saved into the field called response_value
+If it is a likert response then the user will see buttons corresponding to the likert response options (the fields called option_text and option_media ) need to displayed. The buttons should be styled such that the active button is bright blue colored and inactive buttons are white. The selected value (option_value) will be saved in the field called response_value
+If it is a range option then a slider is to be provided with minimum and maximum values along with the increment.  Selected value will be stored in the field called response_value.
