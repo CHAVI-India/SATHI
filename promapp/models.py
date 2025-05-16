@@ -120,7 +120,8 @@ class Item(TranslatableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     construct_scale = models.ForeignKey(ConstructScale, on_delete=models.CASCADE, db_index=True, help_text = "Each item can belong to a construct scale which is designed to measure a construct or domain related to the Patient Reported Outcome.")
     translations = TranslatedFields(
-        name = models.CharField(max_length=255,null=True, blank=True, help_text = "The name of the item which will be displayed to the patient", db_index=True)
+        name = models.CharField(max_length=255,null=True, blank=True, help_text = "The name of the item which will be displayed to the patient", db_index=True),
+        media = models.FileField(upload_to='item_media/', null=True, blank=True, help_text = "The media to display for the item. This will be an audio, video or image.")
     )
     response_type = models.CharField(max_length=255, choices=ResponseTypeChoices.choices, db_index=True, help_text = "The type of response for the item")
     likert_response = models.ForeignKey(LikertScale, on_delete=models.CASCADE, null=True, blank=True)
@@ -190,3 +191,41 @@ class QuestionnaireItem(models.Model):
         ordering = ['-created_date']
         verbose_name = 'Questionnaire Item Response'
         verbose_name_plural = 'Questionnaire Item Responses'
+
+class PatientQuestionnaire(models.Model):
+    '''
+    Patient Questionnaire model. This is used to store the questionnaire available for a patient.
+    '''
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, help_text = "The patient to which the questionnaire belongs")
+    questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE, help_text = "The questionnaire to which the patient belongs")
+    display_questionnaire = models.BooleanField(default=False, help_text = "If True, the questionnaire is currently will be displayed for the patient")
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_date']
+        verbose_name = 'Patient Questionnaire'
+        verbose_name_plural = 'Patient Questionnaires'  
+
+class QuestionnaireItemResponse(models.Model):
+    '''
+    Questionnaire Item Response model. This is used to store the responses for the questionnaire item.
+    '''
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    patient_questionnaire = models.ForeignKey(PatientQuestionnaire, on_delete=models.CASCADE, help_text = "The patient questionnaire to which the response belongs")
+    questionnaire_item = models.ForeignKey(QuestionnaireItem, on_delete=models.CASCADE, help_text = "The item to which the response belongs")
+    response_date = models.DateTimeField(help_text = "The date and time of the response",auto_now_add=True)
+    response_date = models.DateTimeField(help_text = "The date and time of the response",auto_now_add=True)
+    text_response_value = models.TextField(help_text = "The response value",null=True, blank=True)
+    number_response_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The response value")
+    likert_response_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The response value")
+    range_response_min_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The response value")
+    range_response_max_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The response value")
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-response_date']
+        verbose_name = 'Questionnaire Response'
+        verbose_name_plural = 'Questionnaire Responses'

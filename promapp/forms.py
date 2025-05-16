@@ -50,6 +50,7 @@ class ItemSelectionForm(forms.Form):
 
 class ItemForm(TranslatableModelForm):
     name = TranslatedField()
+    media = TranslatedField(required=False)
     
     class Meta:
         model = Item
@@ -67,6 +68,7 @@ class ItemForm(TranslatableModelForm):
         self.helper.layout = Layout(
             Field('construct_scale'),
             Field('name'),
+            Field('media'),
             Field('response_type'),
             Div(
                 Field('likert_response', css_class='w-full'),
