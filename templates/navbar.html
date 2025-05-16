@@ -36,6 +36,11 @@
                     {% trans "Likert Scales" %}
                   </a>
                   {% endif %}
+                  {% if perms.promapp.view_rangescale %}
+                  <a href="{% url 'range_scale_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    {% trans "Range Scales" %}
+                  </a>
+                  {% endif %}
                 </div>
               </div>
             </div>
@@ -111,6 +116,11 @@
         {% if perms.promapp.view_likertscale %}
         <a href="{% url 'likert_scale_list' %}" class="text-white hover:bg-blue-700 block px-6 py-2 rounded-md text-base font-medium">
           {% trans "Likert Scales" %}
+        </a>
+        {% endif %}
+        {% if perms.promapp.view_rangescale %}
+        <a href="{% url 'range_scale_list' %}" class="text-white hover:bg-blue-700 block px-6 py-2 rounded-md text-base font-medium">
+          {% trans "Range Scales" %}
         </a>
         {% endif %}
       </div>
