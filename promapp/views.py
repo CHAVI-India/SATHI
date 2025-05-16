@@ -6,15 +6,16 @@ from django.template.loader import render_to_string
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
 from django.contrib import messages
 from django.db import transaction
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, RangeScaleResponseOption, ResponseTypeChoices, LikertScaleResponseOption
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption
 from .forms import (
     QuestionnaireForm, ItemForm, QuestionnaireItemForm, 
-    LikertScaleForm, RangeScaleForm, LikertScaleResponseOptionFormSet,
-    RangeScaleResponseOptionFormSet, ItemSelectionForm, ConstructScaleForm,
-    LikertScaleResponseOptionForm, RangeScaleResponseOptionForm
+    LikertScaleForm, LikertScaleResponseOptionFormSet,
+    ItemSelectionForm, ConstructScaleForm,
+    LikertScaleResponseOptionForm, RangeScaleForm
 )
 from django.utils.translation import get_language
 from django.db import models
+from django.core.exceptions import ValidationError
 
 # Create your views here.
 
@@ -491,36 +492,7 @@ def create_likert_scale(request):
     
     return render(request, 'promapp/likert_scale_form.html', context)
 
-def create_range_scale(request):
-    if request.method == 'POST':
-        form = RangeScaleForm(request.POST)
-        formset = RangeScaleResponseOptionFormSet(request.POST)
-        
-        if form.is_valid() and formset.is_valid():
-            with transaction.atomic():
-                # Create the RangeScale
-                range_scale = form.save(commit=False)
-                range_scale.save()
-                
-                # Save the formset with the range_scale instance
-                formset.instance = range_scale
-                formset.save()
-                
-            messages.success(request, "Range scale created successfully.")
-            return redirect('item_create')
-        else:
-            if not form.is_valid():
-                messages.error(request, "Please check the scale details for errors.")
-            if not formset.is_valid():
-                messages.error(request, "Please check the response options for errors.")
-    else:
-        form = RangeScaleForm()
-        formset = RangeScaleResponseOptionFormSet()
-    
-    return render(request, 'promapp/range_scale_form.html', {
-        'form': form,
-        'formset': formset
-    })
+
 
 def create_construct_scale(request):
     if request.method == 'POST':
@@ -651,6 +623,93 @@ class LikertScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
             self.object_list = self.get_queryset()
             context = self.get_context_data()
             html = render_to_string('promapp/partials/likert_scale_list_table.html', context)
+            return HttpResponse(html)
+        
+        # Otherwise, return the full page as usual
+        return super().get(request, *args, **kwargs)
+
+def create_range_scale(request):
+    # Check if we're editing an existing Range scale
+    edit_id = request.GET.get('edit')
+    instance = None
+    
+    if edit_id:
+        instance = get_object_or_404(RangeScale, pk=edit_id)
+        print(f"Editing range scale: {instance.range_scale_name} (ID: {instance.id})")
+    
+    if request.method == 'POST':
+        form = RangeScaleForm(request.POST, instance=instance)
+        
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    range_scale = form.save()
+                    
+                    # Validate the range values
+                    if range_scale.min_value >= range_scale.max_value:
+                        raise ValidationError("Minimum value must be less than maximum value")
+                    if range_scale.increment <= 0:
+                        raise ValidationError("Increment must be greater than 0")
+                    if (range_scale.max_value - range_scale.min_value) % range_scale.increment != 0:
+                        raise ValidationError("Maximum value minus minimum value must be divisible by increment")
+                    
+                    if instance:
+                        messages.success(request, "Range scale updated successfully.")
+                    else:
+                        messages.success(request, "Range scale created successfully.")
+                    
+                    # Redirect to the range scale list if available, otherwise to item create
+                    if request.user.has_perm('promapp.view_rangescale'):
+                        return redirect('range_scale_list')
+                    else:
+                        return redirect('item_create')
+            except ValidationError as e:
+                messages.error(request, str(e))
+            except Exception as e:
+                messages.error(request, f"Error saving range scale: {str(e)}")
+        else:
+            messages.error(request, "Please check the form for errors.")
+    else:
+        form = RangeScaleForm(instance=instance)
+    
+    context = {
+        'form': form,
+        'is_edit': bool(instance),
+        'scale': instance
+    }
+    
+    return render(request, 'promapp/range_scale_form.html', context)
+
+class RangeScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = RangeScale
+    template_name = 'promapp/range_scale_list.html'
+    context_object_name = 'range_scales'
+    permission_required = 'promapp.view_rangescale'
+    paginate_by = 10  # Show 10 range scales per page
+    
+    def get_queryset(self):
+        queryset = RangeScale.objects.all()
+        
+        # Apply search filter if provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(range_scale_name__icontains=search)
+            
+        return queryset.order_by('-created_date')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search', '')
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        return context
+    
+    def get(self, request, *args, **kwargs):
+        # Check if this is an HTMX request
+        if request.META.get('HTTP_HX_REQUEST'):
+            # If it is an HTMX request, only return the table part
+            self.object_list = self.get_queryset()
+            context = self.get_context_data()
+            html = render_to_string('promapp/partials/range_scale_list_table.html', context)
             return HttpResponse(html)
         
         # Otherwise, return the full page as usual

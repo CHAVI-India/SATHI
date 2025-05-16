@@ -16,10 +16,13 @@ urlpatterns = [
     # Likert Scale URLs
     path('likert-scales/', views.LikertScaleListView.as_view(), name='likert_scale_list'),
     
+    # Range Scale URLs
+    path('range-scales/', views.RangeScaleListView.as_view(), name='range_scale_list'),
+    path('create-range-scale/', views.create_range_scale, name='create_range_scale'),
+    
     # AJAX URLs for dynamic forms
     path('get-response-fields/', views.get_response_fields, name='get_response_fields'),
     path('create-likert-scale/', views.create_likert_scale, name='create_likert_scale'),
-    path('create-range-scale/', views.create_range_scale, name='create_range_scale'),
     path('create-construct-scale/', views.create_construct_scale, name='create_construct_scale'),
     
     # HTMX URLs

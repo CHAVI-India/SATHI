@@ -71,12 +71,19 @@ class LikertScaleResponseOption(TranslatableModel):
     def __str__(self):
         return self.option_text
 
-class RangeScale(models.Model):
+class RangeScale(TranslatableModel):
     '''
     Range scale model. This is used to store the range of values for a range scale.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     range_scale_name = models.CharField(max_length=255, null=True, blank=True, help_text = "The name of the Range Scale")
+    max_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The maximum value for the range scale")
+    min_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The minimum value for the range scale")
+    increment = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The increment for the range scale. Must be more than 0")
+    translations = TranslatedFields(
+        min_value_text = models.CharField(max_length=255, null=True, blank=True, help_text = "The text to display for the minimum value"),  
+        max_value_text = models.CharField(max_length=255, null=True, blank=True, help_text = "The text to display for the maximum value")
+    )
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
@@ -87,32 +94,6 @@ class RangeScale(models.Model):
 
     def __str__(self):
         return self.range_scale_name
-
-class RangeScaleResponseOption(TranslatableModel):
-    '''
-    Range scale response options model. This is used to store the options for Range Scale Responses.
-    Translatable fields are min_value_text and max_value_text.
-    '''
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    range_scale = models.ForeignKey(RangeScale, on_delete=models.CASCADE)
-    min_value = models.DecimalField(max_digits=10, decimal_places=2, help_text = "The minimum value for the range scale")
-    max_value = models.DecimalField(max_digits=10, decimal_places=2, help_text = "The maximum value for the range scale")
-    translations = TranslatedFields(
-        min_value_text = models.CharField(max_length=255, null=True, blank=True, help_text = "The text to display for the minimum value"),  
-        max_value_text = models.CharField(max_length=255, null=True, blank=True, help_text = "The text to display for the maximum value")
-    )
-    increment = models.DecimalField(max_digits=10, default=1, decimal_places=2, null=True, blank=True, help_text = "The increment for the range scale. Must be more than 0")
-    created_date = models.DateTimeField(auto_now_add=True)
-    modified_date = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-created_date']
-        verbose_name = 'Range Scale Response Option'
-        verbose_name_plural = 'Range Scale Response Options'
-
-    def __str__(self):
-        return f"{self.range_scale.range_scale_name} - {self.min_value_text} to {self.max_value_text}"
-    
     def validate_increment(self):
         if self.min_value and self.max_value and self.increment:
             if self.min_value > self.max_value:
@@ -121,6 +102,7 @@ class RangeScaleResponseOption(TranslatableModel):
                 raise ValueError("Increment must be greater than 0")
             if (self.max_value - self.min_value) % self.increment != 0:
                 raise ValueError("Maximum value minus minimum value must be divisible by increment")
+
 
 
 class ResponseTypeChoices(models.TextChoices):
@@ -199,7 +181,7 @@ class QuestionnaireItem(models.Model):
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE, help_text = "The questionnaire to which the response belongs")
-    question_number = models.IntegerField(null=True, blank=True, help_text = "The number of the question in the questionnaire")
+    question_number = models.IntegerField(help_text = "The number of the question in the questionnaire")
     item = models.ForeignKey(Item, on_delete=models.CASCADE, help_text = "The item to which the response belongs")
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)

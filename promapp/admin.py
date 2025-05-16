@@ -17,14 +17,6 @@ class LikertScaleResponseOptionInline(TranslatableStackedInline):
     )
     extra = 1
 
-class RangeScaleResponseOptionInline(TranslatableStackedInline):
-    model = RangeScaleResponseOption
-    fieldsets = (
-        (None, {
-            'fields': ( 'min_value', 'min_value_text', 'max_value', 'max_value_text', 'increment')
-        }),
-    )
-    extra = 1
 
 
 
@@ -43,8 +35,7 @@ class LikertScaleAdmin(admin.ModelAdmin):
     group_fieldsets = True
 
 @admin.register(RangeScale)
-class RangeScaleAdmin(admin.ModelAdmin):
-    inlines = [RangeScaleResponseOptionInline]
+class RangeScaleAdmin(TranslatableAdmin):
     list_display = ('range_scale_name',)
     search_fields = ('range_scale_name',)
     list_filter = ('range_scale_name',)
