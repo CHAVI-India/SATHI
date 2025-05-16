@@ -31,6 +31,11 @@
                     {% trans "Items" %}
                   </a>
                   {% endif %}
+                  {% if perms.promapp.view_constructscale %}
+                  <a href="{% url 'construct_scale_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    {% trans "Construct Scales" %}
+                  </a>
+                  {% endif %}
                   {% if perms.promapp.view_likertscale %}
                   <a href="{% url 'likert_scale_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     {% trans "Likert Scales" %}
@@ -111,6 +116,11 @@
         {% if perms.promapp.view_item %}
         <a href="{% url 'item_list' %}" class="text-white hover:bg-blue-700 block px-6 py-2 rounded-md text-base font-medium">
           {% trans "Items" %}
+        </a>
+        {% endif %}
+        {% if perms.promapp.view_constructscale %}
+        <a href="{% url 'construct_scale_list' %}" class="text-white hover:bg-blue-700 block px-6 py-2 rounded-md text-base font-medium">
+          {% trans "Construct Scales" %}
         </a>
         {% endif %}
         {% if perms.promapp.view_likertscale %}

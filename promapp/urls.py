@@ -13,6 +13,9 @@ urlpatterns = [
     path('items/create/', views.ItemCreateView.as_view(), name='item_create'),
     path('items/<uuid:pk>/update/', views.ItemUpdateView.as_view(), name='item_update'),
     
+    # Construct Scale URLs
+    path('construct-scales/', views.ConstructScaleListView.as_view(), name='construct_scale_list'),
+    
     # Likert Scale URLs
     path('likert-scales/', views.LikertScaleListView.as_view(), name='likert_scale_list'),
     

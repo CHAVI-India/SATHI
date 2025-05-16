@@ -714,3 +714,38 @@ class RangeScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         
         # Otherwise, return the full page as usual
         return super().get(request, *args, **kwargs)
+
+class ConstructScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = ConstructScale
+    template_name = 'promapp/construct_scale_list.html'
+    context_object_name = 'construct_scales'
+    permission_required = 'promapp.view_constructscale'
+    paginate_by = 25  # Show 25 items per page
+    
+    def get_queryset(self):
+        queryset = ConstructScale.objects.all()
+        
+        # Apply search filter if provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+            
+        return queryset.order_by('name')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search', '')
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        return context
+    
+    def get(self, request, *args, **kwargs):
+        # Check if this is an HTMX request
+        if request.META.get('HTTP_HX_REQUEST'):
+            # If it is an HTMX request, only return the table part
+            self.object_list = self.get_queryset()
+            context = self.get_context_data()
+            html = render_to_string('promapp/partials/construct_scale_list_table.html', context)
+            return HttpResponse(html)
+        
+        # Otherwise, return the full page as usual
+        return super().get(request, *args, **kwargs)
