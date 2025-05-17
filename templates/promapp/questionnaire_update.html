@@ -172,6 +172,49 @@
           </div>
         </div>
         
+        <div class="bg-gray-50 p-4 rounded-md">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Questionnaire Rules" %}</h2>
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th class="px-4 py-2 text-left">{% trans "Item" %}</th>
+                <th class="px-4 py-2 text-left">{% trans "Actions" %}</th>
+                <th class="px-4 py-2 text-left">{% trans "Rule Orders" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for questionnaire_item in questionnaire_items|dictsort:'question_number' %}
+                <tr>
+                  <td class="px-4 py-2">{{ questionnaire_item.item.name }}</td>
+                  <td class="px-4 py-2 space-x-2">
+                    <button type="button"
+                      class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      onclick="window.open('{% url 'questionnaire_item_rules_list' questionnaire_item_id=questionnaire_item.id %}', 'rules_window', 'width=800,height=600')">
+                      {% trans "Manage Rules" %}
+                    </button>
+                    <button type="button"
+                      class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                      onclick="window.open('{% url 'questionnaire_item_rule_groups_list' questionnaire_item_id=questionnaire_item.id %}', 'rule_groups_window', 'width=800,height=600')">
+                      {% trans "Manage Rule Groups" %}
+                    </button>
+                  </td>
+                  <td class="px-4 py-2 text-sm text-gray-600">
+                    {% with rules=questionnaire_item.questionnaireitemrule_set.all %}
+                      {% if rules %}
+                        {% for rule in rules %}
+                          {{ rule.rule_order }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                      {% else %}
+                        <span>{% trans "No rules" %}</span>
+                      {% endif %}
+                    {% endwith %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        
         <div class="flex justify-end space-x-3">
           <a href="{% url 'questionnaire_detail' questionnaire.id %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
             {% trans "Cancel" %}
@@ -486,6 +529,59 @@
       // Update count
       updateSelectionCount();
     };
+    
+    // Rule Management Window Handlers
+    window.addEventListener('message', function(event) {
+      if (event.data.type === 'rule_updated' || event.data.type === 'rule_deleted') {
+        // Refresh the rules summary
+        fetch(`/questionnaire-items/${event.data.questionnaire_item_id}/rules/summary/`)
+          .then(response => response.text())
+          .then(html => {
+            document.getElementById('rules-summary').innerHTML = html;
+          });
+      }
+      
+      if (event.data.type === 'rule_group_updated' || event.data.type === 'rule_group_deleted') {
+        // Refresh the rule groups summary
+        fetch(`/questionnaire-items/${event.data.questionnaire_item_id}/rule-groups/summary/`)
+          .then(response => response.text())
+          .then(html => {
+            document.getElementById('rule-groups-summary').innerHTML = html;
+          });
+      }
+    });
+    
+    // Function to open rule management windows
+    function openRuleWindow(url, windowName) {
+      const width = 800;
+      const height = 600;
+      const left = (window.innerWidth - width) / 2;
+      const top = (window.innerHeight - height) / 2;
+      
+      window.open(url, windowName, 
+        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+      );
+    }
+    
+    // Add click handlers for rule management buttons
+    document.querySelectorAll('[data-rule-action]').forEach(button => {
+      button.addEventListener('click', function() {
+        const action = this.dataset.ruleAction;
+        const questionnaireItemId = this.dataset.questionnaireItemId;
+        
+        if (action === 'manage_rules') {
+          openRuleWindow(
+            `/questionnaire-items/${questionnaireItemId}/rules/`,
+            'rules_window'
+          );
+        } else if (action === 'manage_rule_groups') {
+          openRuleWindow(
+            `/questionnaire-items/${questionnaireItemId}/rule-groups/`,
+            'rule_groups_window'
+          );
+        }
+      });
+    });
   });
 </script>
 {% endblock %} 

@@ -1,0 +1,21 @@
+{% load i18n %}
+
+{% if rules %}
+  <ul class="space-y-2">
+    {% for rule in rules %}
+      <li class="flex items-start">
+        <span class="font-medium mr-2">{{ rule.rule_order }}.</span>
+        <span>
+          {% if rule.dependent_item %}
+            {{ rule.dependent_item.item.name }} {{ rule.get_operator_display }} {{ rule.comparison_value }}
+            {% if rule.logical_operator %}
+              {{ rule.get_logical_operator_display }}
+            {% endif %}
+          {% endif %}
+        </span>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>{% trans "No rules defined yet." %}</p>
+{% endif %} 

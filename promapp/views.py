@@ -1,19 +1,19 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, CreateView, UpdateView, DetailView
-from django.urls import reverse_lazy
+from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
+from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
 from django.contrib import messages
 from django.db import transaction
 from django.utils.translation import gettext as _
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption, PatientQuestionnaire, QuestionnaireItemResponse, Patient
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption, PatientQuestionnaire, QuestionnaireItemResponse, Patient, QuestionnaireItemRule, QuestionnaireItemRuleGroup
 from .forms import (
     QuestionnaireForm, ItemForm, QuestionnaireItemForm, 
     LikertScaleForm, LikertScaleResponseOptionFormSet,
     ItemSelectionForm, ConstructScaleForm,
     LikertScaleResponseOptionForm, RangeScaleForm,
-    QuestionnaireResponseForm
+    QuestionnaireResponseForm, QuestionnaireItemRuleForm, QuestionnaireItemRuleGroupForm
 )
 from django.utils.translation import get_language
 from django.db import models
@@ -59,10 +59,21 @@ class QuestionnaireCreateView(LoginRequiredMixin, PermissionRequiredMixin, Creat
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['item_selection_form'] = ItemSelectionForm()
-        # Use translations__name instead of name for ordering
         current_language = get_language()
         context['available_items'] = Item.objects.language(current_language).all().order_by('construct_scale__name', 'translations__name')
         context['construct_scales'] = ConstructScale.objects.all().order_by('name')
+        context['questionnaire_items'] = []  # Always empty for create view
+        
+        # Add rules and rule groups context
+        if self.object:
+            questionnaire_items = QuestionnaireItem.objects.filter(questionnaire=self.object)
+            context['rules'] = QuestionnaireItemRule.objects.filter(
+                questionnaire_item__in=questionnaire_items
+            ).order_by('rule_order')
+            context['rule_groups'] = QuestionnaireItemRuleGroup.objects.filter(
+                questionnaire_item__in=questionnaire_items
+            ).order_by('group_order')
+        
         return context
 
     @transaction.atomic
@@ -106,8 +117,9 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
         context = super().get_context_data(**kwargs)
         questionnaire = self.get_object()
         
-        # Get all questionnaire items for this questionnaire
-        questionnaire_items = QuestionnaireItem.objects.filter(questionnaire=questionnaire)
+        # Get all questionnaire items for this questionnaire, ordered by question_number
+        questionnaire_items = QuestionnaireItem.objects.filter(questionnaire=questionnaire).order_by('question_number')
+        context['questionnaire_items'] = questionnaire_items
         
         # Create a mapping of item IDs to question numbers
         item_to_question_number = {str(qi.item.id): qi.question_number for qi in questionnaire_items}
@@ -129,6 +141,15 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
         context['item_selection_form'] = ItemSelectionForm(initial={'items': current_items})
         context['available_items'] = available_items
         context['construct_scales'] = ConstructScale.objects.all().order_by('name')
+        
+        # Add rules and rule groups context
+        context['rules'] = QuestionnaireItemRule.objects.filter(
+            questionnaire_item__in=questionnaire_items
+        ).order_by('rule_order')
+        context['rule_groups'] = QuestionnaireItemRuleGroup.objects.filter(
+            questionnaire_item__in=questionnaire_items
+        ).order_by('group_order')
+        
         return context
 
     @transaction.atomic
@@ -1013,3 +1034,330 @@ class MyQuestionnaireListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['patient'] = getattr(self.request.user, 'patient', None)
         return context
+
+class QuestionnaireItemRuleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """
+    View for listing rules associated with a questionnaire item.
+    """
+    model = QuestionnaireItemRule
+    template_name = 'promapp/questionnaire_item_rules_list.html'
+    context_object_name = 'rules'
+    permission_required = 'promapp.view_questionnaireitemrule'
+
+    def get_queryset(self):
+        questionnaire_item = get_object_or_404(QuestionnaireItem, pk=self.kwargs['questionnaire_item_id'])
+        return QuestionnaireItemRule.objects.filter(
+            questionnaire_item=questionnaire_item
+        ).order_by('rule_order')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['questionnaire_item'] = get_object_or_404(
+            QuestionnaireItem, 
+            pk=self.kwargs['questionnaire_item_id']
+        )
+        return context
+
+class QuestionnaireItemRuleCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    """
+    View for creating a new rule for a questionnaire item.
+    """
+    model = QuestionnaireItemRule
+    form_class = QuestionnaireItemRuleForm
+    template_name = 'promapp/questionnaire_item_rule_form.html'
+    permission_required = 'promapp.add_questionnaireitemrule'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        questionnaire_item = get_object_or_404(QuestionnaireItem, pk=self.kwargs['questionnaire_item_id'])
+        kwargs['initial'] = kwargs.get('initial', {})
+        kwargs['initial']['questionnaire_item'] = questionnaire_item
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['questionnaire_item'] = get_object_or_404(
+            QuestionnaireItem, 
+            pk=self.kwargs['questionnaire_item_id']
+        )
+        return context
+
+    def form_valid(self, form):
+        form.instance.questionnaire_item = get_object_or_404(
+            QuestionnaireItem, 
+            pk=self.kwargs['questionnaire_item_id']
+        )
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('questionnaire_item_rules_list', 
+                      kwargs={'questionnaire_item_id': self.kwargs['questionnaire_item_id']})
+
+class QuestionnaireItemRuleUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    """
+    View for updating an existing rule.
+    """
+    model = QuestionnaireItemRule
+    form_class = QuestionnaireItemRuleForm
+    template_name = 'promapp/questionnaire_item_rule_form.html'
+    permission_required = 'promapp.change_questionnaireitemrule'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['questionnaire_item'] = self.object.questionnaire_item
+        return context
+
+    def get_success_url(self):
+        return reverse('questionnaire_item_rules_list', 
+                      kwargs={'questionnaire_item_id': self.object.questionnaire_item.id})
+
+class QuestionnaireItemRuleDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    """
+    View for deleting a rule.
+    """
+    model = QuestionnaireItemRule
+    permission_required = 'promapp.delete_questionnaireitemrule'
+
+    def get_success_url(self):
+        return reverse('questionnaire_item_rules_list', 
+                      kwargs={'questionnaire_item_id': self.object.questionnaire_item.id})
+
+class QuestionnaireItemRuleGroupListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """
+    View for listing rule groups associated with a questionnaire item.
+    """
+    model = QuestionnaireItemRuleGroup
+    template_name = 'promapp/questionnaire_item_rule_groups_list.html'
+    context_object_name = 'rule_groups'
+    permission_required = 'promapp.view_questionnaireitemrulegroup'
+
+    def get_queryset(self):
+        questionnaire_item = get_object_or_404(QuestionnaireItem, pk=self.kwargs['questionnaire_item_id'])
+        return QuestionnaireItemRuleGroup.objects.filter(
+            questionnaire_item=questionnaire_item
+        ).order_by('group_order')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['questionnaire_item'] = get_object_or_404(
+            QuestionnaireItem, 
+            pk=self.kwargs['questionnaire_item_id']
+        )
+        return context
+
+class QuestionnaireItemRuleGroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    """
+    View for creating a new rule group.
+    """
+    model = QuestionnaireItemRuleGroup
+    form_class = QuestionnaireItemRuleGroupForm
+    template_name = 'promapp/questionnaire_item_rule_group_form.html'
+    permission_required = 'promapp.add_questionnaireitemrulegroup'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        questionnaire_item = get_object_or_404(
+            QuestionnaireItem, 
+            pk=self.kwargs['questionnaire_item_id']
+        )
+        context['questionnaire_item'] = questionnaire_item
+        context['available_rules'] = QuestionnaireItemRule.objects.filter(
+            questionnaire_item=questionnaire_item
+        ).order_by('rule_order')
+        return context
+
+    def form_valid(self, form):
+        form.instance.questionnaire_item = get_object_or_404(
+            QuestionnaireItem, 
+            pk=self.kwargs['questionnaire_item_id']
+        )
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('questionnaire_item_rule_groups_list', 
+                      kwargs={'questionnaire_item_id': self.kwargs['questionnaire_item_id']})
+
+class QuestionnaireItemRuleGroupUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    """
+    View for updating an existing rule group.
+    """
+    model = QuestionnaireItemRuleGroup
+    form_class = QuestionnaireItemRuleGroupForm
+    template_name = 'promapp/questionnaire_item_rule_group_form.html'
+    permission_required = 'promapp.change_questionnaireitemrulegroup'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['questionnaire_item'] = self.object.questionnaire_item
+        context['available_rules'] = QuestionnaireItemRule.objects.filter(
+            questionnaire_item=self.object.questionnaire_item
+        ).order_by('rule_order')
+        return context
+
+    def get_success_url(self):
+        return reverse('questionnaire_item_rule_groups_list', 
+                      kwargs={'questionnaire_item_id': self.object.questionnaire_item.id})
+
+class QuestionnaireItemRuleGroupDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    """
+    View for deleting a rule group.
+    """
+    model = QuestionnaireItemRuleGroup
+    permission_required = 'promapp.delete_questionnaireitemrulegroup'
+
+    def get_success_url(self):
+        return reverse('questionnaire_item_rule_groups_list', 
+                      kwargs={'questionnaire_item_id': self.object.questionnaire_item.id})
+
+# HTMX Views for Rule Forms
+def validate_dependent_item(request):
+    """Validate the selected dependent item and return appropriate feedback."""
+    item_id = request.GET.get('dependent_item')
+    if not item_id:
+        return HttpResponse(_("Please select a dependent item."))
+    
+    try:
+        item = QuestionnaireItem.objects.get(id=item_id)
+        return HttpResponse(_("Selected item: {}").format(item.item.name))
+    except QuestionnaireItem.DoesNotExist:
+        return HttpResponse(_("Invalid item selected."))
+
+def validate_rule_operator(request):
+    """Validate the selected operator and return appropriate feedback."""
+    operator = request.GET.get('operator')
+    dependent_item_id = request.GET.get('dependent_item')
+    
+    if not operator:
+        return HttpResponse(_("Please select an operator."))
+    
+    try:
+        dependent_item = QuestionnaireItem.objects.get(id=dependent_item_id)
+        response_type = dependent_item.item.response_type
+        
+        # Return appropriate feedback based on response type
+        if response_type in ['Number', 'Likert', 'Range']:
+            return HttpResponse(_("Valid operator for numeric comparison."))
+        else:
+            return HttpResponse(_("Valid operator for text comparison."))
+    except QuestionnaireItem.DoesNotExist:
+        return HttpResponse(_("Invalid dependent item."))
+
+def validate_comparison_value(request):
+    """Validate the comparison value based on the dependent item's response type."""
+    value = request.GET.get('comparison_value')
+    dependent_item_id = request.GET.get('dependent_item')
+    
+    if not value:
+        return HttpResponse(_("Please enter a comparison value."))
+    
+    try:
+        dependent_item = QuestionnaireItem.objects.get(id=dependent_item_id)
+        response_type = dependent_item.item.response_type
+        
+        if response_type == 'Number':
+            try:
+                float(value)
+                return HttpResponse(_("Valid numeric value."))
+            except ValueError:
+                return HttpResponse(_("Please enter a valid number."))
+        elif response_type == 'Likert':
+            try:
+                float_value = float(value)
+                likert_options = dependent_item.item.likert_response.likertscaleresponseoption_set.all()
+                valid_values = [option.option_value for option in likert_options]
+                if float_value in valid_values:
+                    return HttpResponse(_("Valid Likert scale value."))
+                else:
+                    return HttpResponse(_("Please enter a valid Likert scale value."))
+            except ValueError:
+                return HttpResponse(_("Please enter a valid number."))
+        elif response_type == 'Range':
+            try:
+                float_value = float(value)
+                range_scale = dependent_item.item.range_response
+                if range_scale.min_value <= float_value <= range_scale.max_value:
+                    return HttpResponse(_("Valid range value."))
+                else:
+                    return HttpResponse(_("Value must be between {} and {}.").format(
+                        range_scale.min_value, range_scale.max_value))
+            except ValueError:
+                return HttpResponse(_("Please enter a valid number."))
+        else:
+            return HttpResponse(_("Valid text value."))
+    except QuestionnaireItem.DoesNotExist:
+        return HttpResponse(_("Invalid dependent item."))
+
+def validate_logical_operator(request):
+    """Validate the logical operator selection."""
+    operator = request.GET.get('logical_operator')
+    if not operator:
+        return HttpResponse(_("Please select a logical operator."))
+    return HttpResponse(_("Valid logical operator."))
+
+def validate_rule_order(request):
+    """Validate the rule order."""
+    order = request.GET.get('rule_order')
+    if not order:
+        return HttpResponse(_("Please enter a rule order."))
+    try:
+        order_num = int(order)
+        if order_num < 1:
+            return HttpResponse(_("Order must be greater than 0."))
+        return HttpResponse(_("Valid rule order."))
+    except ValueError:
+        return HttpResponse(_("Please enter a valid number."))
+
+def validate_group_order(request):
+    """Validate the group order."""
+    order = request.GET.get('group_order')
+    if not order:
+        return HttpResponse(_("Please enter a group order."))
+    try:
+        order_num = int(order)
+        if order_num < 1:
+            return HttpResponse(_("Order must be greater than 0."))
+        return HttpResponse(_("Valid group order."))
+    except ValueError:
+        return HttpResponse(_("Please enter a valid number."))
+
+def validate_rule_selection(request):
+    """Validate the selected rules for a rule group."""
+    rule_ids = request.GET.getlist('rules')
+    if not rule_ids:
+        return HttpResponse(_("Please select at least one rule."))
+    
+    try:
+        rules = QuestionnaireItemRule.objects.filter(id__in=rule_ids)
+        if len(rules) != len(rule_ids):
+            return HttpResponse(_("One or more invalid rules selected."))
+        
+        # Check if all rules belong to the same questionnaire item
+        questionnaire_items = set(rule.questionnaire_item for rule in rules)
+        if len(questionnaire_items) > 1:
+            return HttpResponse(_("All rules must belong to the same questionnaire item."))
+        
+        return HttpResponse(_("Valid rule selection."))
+    except Exception:
+        return HttpResponse(_("Error validating rules."))
+
+def rule_summary(request, questionnaire_item_id):
+    """Return a summary of rules for a questionnaire item."""
+    questionnaire_item = get_object_or_404(QuestionnaireItem, pk=questionnaire_item_id)
+    rules = QuestionnaireItemRule.objects.filter(
+        questionnaire_item=questionnaire_item
+    ).order_by('rule_order')
+    
+    return render(request, 'promapp/partials/rule_summary.html', {
+        'rules': rules
+    })
+
+def rule_group_summary(request, questionnaire_item_id):
+    """Return a summary of rule groups for a questionnaire item."""
+    questionnaire_item = get_object_or_404(QuestionnaireItem, pk=questionnaire_item_id)
+    rule_groups = QuestionnaireItemRuleGroup.objects.filter(
+        questionnaire_item=questionnaire_item
+    ).order_by('group_order')
+    
+    return render(request, 'promapp/partials/rule_group_summary.html', {
+        'rule_groups': rule_groups
+    })

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+  {% if form.instance.pk %}
+    {% trans "Edit Rule Group" %}
+  {% else %}
+    {% trans "Create Rule Group" %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-blue-700">
+          {% if form.instance.pk %}
+            {% trans "Edit Rule Group for" %} "{{ questionnaire_item.item.name }}"
+          {% else %}
+            {% trans "Create Rule Group for" %} "{{ questionnaire_item.item.name }}"
+          {% endif %}
+        </h1>
+        <a href="{% url 'questionnaire_item_rule_groups_list' questionnaire_item.id %}" 
+           class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          {% trans "Back to Rule Groups" %}
+        </a>
+      </div>
+
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="bg-gray-50 p-4 rounded-md space-y-4">
+          <div>
+            {{ form.group_order|as_crispy_field }}
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              {% trans "Select Rules" %}
+            </label>
+            <div class="border rounded-md p-4 bg-white">
+              {% if available_rules %}
+                <div class="space-y-2">
+                  {% for rule in available_rules %}
+                    <div class="flex items-center">
+                      <input type="checkbox" 
+                             name="rules" 
+                             value="{{ rule.id }}" 
+                             id="rule_{{ rule.id }}"
+                             {% if rule in form.instance.rules.all %}checked{% endif %}
+                             class="h-4 w-4 text-blue-600 rounded border-gray-300">
+                      <label for="rule_{{ rule.id }}" class="ml-2 text-sm text-gray-900">
+                        {{ rule.dependent_item.item.name }}
+                        <span class="text-gray-600 mx-1">{{ rule.get_operator_display }}</span>
+                        {{ rule.comparison_value }}
+                      </label>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="text-gray-500 text-sm">
+                  {% trans "No rules available. Please create rules first." %}
+                </p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <a href="{% url 'questionnaire_item_rule_groups_list' questionnaire_item.id %}" 
+             class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            {% trans "Cancel" %}
+          </a>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            {% if form.instance.pk %}
+              {% trans "Update Rule Group" %}
+            {% else %}
+              {% trans "Create Rule Group" %}
+            {% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %} 

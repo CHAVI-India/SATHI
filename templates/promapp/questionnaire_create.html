@@ -431,6 +431,59 @@
       // Update count
       updateSelectionCount();
     };
+    
+    // Rule Management Window Handlers
+    window.addEventListener('message', function(event) {
+      if (event.data.type === 'rule_updated' || event.data.type === 'rule_deleted') {
+        // Refresh the rules summary
+        fetch(`/questionnaire-items/${event.data.questionnaire_item_id}/rules/summary/`)
+          .then(response => response.text())
+          .then(html => {
+            document.getElementById('rules-summary').innerHTML = html;
+          });
+      }
+      
+      if (event.data.type === 'rule_group_updated' || event.data.type === 'rule_group_deleted') {
+        // Refresh the rule groups summary
+        fetch(`/questionnaire-items/${event.data.questionnaire_item_id}/rule-groups/summary/`)
+          .then(response => response.text())
+          .then(html => {
+            document.getElementById('rule-groups-summary').innerHTML = html;
+          });
+      }
+    });
+    
+    // Function to open rule management windows
+    function openRuleWindow(url, windowName) {
+      const width = 800;
+      const height = 600;
+      const left = (window.innerWidth - width) / 2;
+      const top = (window.innerHeight - height) / 2;
+      
+      window.open(url, windowName, 
+        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+      );
+    }
+    
+    // Add click handlers for rule management buttons
+    document.querySelectorAll('[data-rule-action]').forEach(button => {
+      button.addEventListener('click', function() {
+        const action = this.dataset.ruleAction;
+        const questionnaireItemId = this.dataset.questionnaireItemId;
+        
+        if (action === 'manage_rules') {
+          openRuleWindow(
+            `/questionnaire-items/${questionnaireItemId}/rules/`,
+            'rules_window'
+          );
+        } else if (action === 'manage_rule_groups') {
+          openRuleWindow(
+            `/questionnaire-items/${questionnaireItemId}/rule-groups/`,
+            'rule_groups_window'
+          );
+        }
+      });
+    });
   });
 </script>
 {% endblock %} 

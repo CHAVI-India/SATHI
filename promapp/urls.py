@@ -36,4 +36,49 @@ urlpatterns = [
     path('patients/<uuid:pk>/questionnaires/', views.PatientQuestionnaireManagementView.as_view(), name='patient_questionnaire_management'),
     path('patient-questionnaires/', views.PatientQuestionnaireListView.as_view(), name='patient_questionnaire_list'),
     path('my-questionnaires/', MyQuestionnaireListView.as_view(), name='my_questionnaire_list'),
+
+    # Questionnaire Item Rule URLs
+    path('questionnaire-items/<uuid:questionnaire_item_id>/rules/', 
+         views.QuestionnaireItemRuleListView.as_view(), 
+         name='questionnaire_item_rules_list'),
+    path('questionnaire-items/<uuid:questionnaire_item_id>/rules/create/', 
+         views.QuestionnaireItemRuleCreateView.as_view(), 
+         name='questionnaire_item_rule_create'),
+    path('questionnaire-item-rules/<uuid:pk>/update/', 
+         views.QuestionnaireItemRuleUpdateView.as_view(), 
+         name='questionnaire_item_rule_update'),
+    path('questionnaire-item-rules/<uuid:pk>/delete/', 
+         views.QuestionnaireItemRuleDeleteView.as_view(), 
+         name='questionnaire_item_rule_delete'),
+
+    # Questionnaire Item Rule Group URLs
+    path('questionnaire-items/<uuid:questionnaire_item_id>/rule-groups/', 
+         views.QuestionnaireItemRuleGroupListView.as_view(), 
+         name='questionnaire_item_rule_groups_list'),
+    path('questionnaire-items/<uuid:questionnaire_item_id>/rule-groups/create/', 
+         views.QuestionnaireItemRuleGroupCreateView.as_view(), 
+         name='questionnaire_item_rule_group_create'),
+    path('questionnaire-item-rule-groups/<uuid:pk>/update/', 
+         views.QuestionnaireItemRuleGroupUpdateView.as_view(), 
+         name='questionnaire_item_rule_group_update'),
+    path('questionnaire-item-rule-groups/<uuid:pk>/delete/', 
+         views.QuestionnaireItemRuleGroupDeleteView.as_view(), 
+         name='questionnaire_item_rule_group_delete'),
+
+    # HTMX URLs for Rule Forms
+    path('validate-dependent-item/', views.validate_dependent_item, name='validate_dependent_item'),
+    path('validate-rule-operator/', views.validate_rule_operator, name='validate_rule_operator'),
+    path('validate-comparison-value/', views.validate_comparison_value, name='validate_comparison_value'),
+    path('validate-logical-operator/', views.validate_logical_operator, name='validate_logical_operator'),
+    path('validate-rule-order/', views.validate_rule_order, name='validate_rule_order'),
+    path('validate-group-order/', views.validate_group_order, name='validate_group_order'),
+    path('validate-rule-selection/', views.validate_rule_selection, name='validate_rule_selection'),
+    
+    # Rule Summary URLs
+    path('questionnaire-items/<uuid:questionnaire_item_id>/rules/summary/', 
+         views.rule_summary, 
+         name='rule_summary'),
+    path('questionnaire-items/<uuid:questionnaire_item_id>/rule-groups/summary/', 
+         views.rule_group_summary, 
+         name='rule_group_summary'),
 ] 

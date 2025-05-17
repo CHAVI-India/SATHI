@@ -1,5 +1,5 @@
 from django import forms
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, LikertScaleResponseOption, ConstructScale
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, LikertScaleResponseOption, ConstructScale, QuestionnaireItemRule, QuestionnaireItemRuleGroup
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Div, HTML, Submit, Button
 from django.forms import inlineformset_factory
@@ -224,4 +224,210 @@ class QuestionnaireResponseForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         return cleaned_data
+
+
+class QuestionnaireItemRuleForm(forms.ModelForm):
+    """
+    Form for creating and editing questionnaire item rules.
+    """
+    class Meta:
+        model = QuestionnaireItemRule
+        fields = ['dependent_item', 'operator', 'comparison_value', 'logical_operator', 'rule_order']
+        widgets = {
+            'operator': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border rounded',
+                'hx-get': '/promapp/validate-rule-operator/',
+                'hx-trigger': 'change',
+                'hx-target': '#comparison-value-container',
+                'hx-swap': 'innerHTML'
+            }),
+            'comparison_value': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border rounded',
+                'hx-get': '/promapp/validate-comparison-value/',
+                'hx-trigger': 'change',
+                'hx-target': '#comparison-value-feedback',
+                'hx-swap': 'innerHTML'
+            }),
+            'logical_operator': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border rounded',
+                'hx-get': '/promapp/validate-logical-operator/',
+                'hx-trigger': 'change',
+                'hx-target': '#logical-operator-feedback',
+                'hx-swap': 'innerHTML'
+            }),
+            'rule_order': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border rounded',
+                'min': '1',
+                'hx-get': '/promapp/validate-rule-order/',
+                'hx-trigger': 'change',
+                'hx-target': '#rule-order-feedback',
+                'hx-swap': 'innerHTML'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Use questionnaire_item from instance or initial
+        questionnaire_item = getattr(self.instance, 'questionnaire_item', None) or kwargs.get('initial', {}).get('questionnaire_item')
+        if questionnaire_item:
+            self.fields['dependent_item'].queryset = QuestionnaireItem.objects.filter(
+                questionnaire=questionnaire_item.questionnaire
+            ).exclude(id=questionnaire_item.id)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Field('dependent_item', 
+                      css_class='w-full px-3 py-2 border rounded',
+                      hx_get='/promapp/validate-dependent-item/',
+                      hx_trigger='change',
+                      hx_target='#dependent-item-feedback',
+                      hx_swap='innerHTML'),
+                Div(id='dependent-item-feedback'),
+                css_class='mb-4'
+            ),
+            Div(
+                Field('operator'),
+                Div(id='comparison-value-container'),
+                css_class='mb-4'
+            ),
+            Div(
+                Field('comparison_value'),
+                Div(id='comparison-value-feedback'),
+                css_class='mb-4'
+            ),
+            Div(
+                Field('logical_operator'),
+                Div(id='logical-operator-feedback'),
+                css_class='mb-4'
+            ),
+            Div(
+                Field('rule_order'),
+                Div(id='rule-order-feedback'),
+                css_class='mb-4'
+            ),
+        )
+
+        # Add HTMX attributes to dependent_item field
+        self.fields['dependent_item'].widget.attrs.update({
+            'hx-get': '/promapp/validate-dependent-item/',
+            'hx-trigger': 'change',
+            'hx-target': '#dependent-item-feedback',
+            'hx-swap': 'innerHTML'
+        })
+
+    def clean(self):
+        cleaned_data = super().clean()
+        dependent_item = cleaned_data.get('dependent_item')
+        operator = cleaned_data.get('operator')
+        comparison_value = cleaned_data.get('comparison_value')
+        questionnaire_item = self.instance.questionnaire_item if self.instance.pk else self.initial.get('questionnaire_item')
+
+        if dependent_item and questionnaire_item:
+            # Ensure dependent item is from the same questionnaire
+            if dependent_item.questionnaire != questionnaire_item.questionnaire:
+                raise forms.ValidationError(_("Dependent item must be from the same questionnaire."))
+
+            # Validate comparison value based on the dependent item's response type
+            if dependent_item.item.response_type == 'Number':
+                try:
+                    float(comparison_value)
+                except (ValueError, TypeError):
+                    raise forms.ValidationError(_("Comparison value must be a number for numeric questions."))
+            elif dependent_item.item.response_type == 'Likert':
+                try:
+                    float(comparison_value)
+                except (ValueError, TypeError):
+                    raise forms.ValidationError(_("Comparison value must be a number for Likert scale questions."))
+                # Validate against Likert scale values
+                likert_options = dependent_item.item.likert_response.likertscaleresponseoption_set.all()
+                valid_values = [option.option_value for option in likert_options]
+                if float(comparison_value) not in valid_values:
+                    raise forms.ValidationError(_("Comparison value must be a valid Likert scale value."))
+            elif dependent_item.item.response_type == 'Range':
+                try:
+                    value = float(comparison_value)
+                    range_scale = dependent_item.item.range_response
+                    if not (range_scale.min_value <= value <= range_scale.max_value):
+                        raise forms.ValidationError(_("Comparison value must be within the range scale limits."))
+                except (ValueError, TypeError):
+                    raise forms.ValidationError(_("Comparison value must be a number for range scale questions."))
+
+        return cleaned_data
+
+
+class QuestionnaireItemRuleGroupForm(forms.ModelForm):
+    """
+    Form for creating and editing questionnaire item rule groups.
+    """
+    rules = forms.ModelMultipleChoiceField(
+        queryset=QuestionnaireItemRule.objects.none(),
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'space-y-2',
+            'hx-get': '/promapp/validate-rule-selection/',
+            'hx-trigger': 'change',
+            'hx-target': '#rule-selection-feedback',
+            'hx-swap': 'innerHTML'
+        }),
+        required=True,
+        label=_("Select Rules")
+    )
+
+    class Meta:
+        model = QuestionnaireItemRuleGroup
+        fields = ['group_order']
+        widgets = {
+            'group_order': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border rounded',
+                'min': '1',
+                'hx-get': '/promapp/validate-group-order/',
+                'hx-trigger': 'change',
+                'hx-target': '#group-order-feedback',
+                'hx-swap': 'innerHTML'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Use questionnaire_item from instance or initial
+        questionnaire_item = getattr(self.instance, 'questionnaire_item', None) or kwargs.get('initial', {}).get('questionnaire_item')
+        if questionnaire_item:
+            self.fields['rules'].queryset = QuestionnaireItemRule.objects.filter(
+                questionnaire_item=questionnaire_item
+            )
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Field('group_order'),
+                Div(id='group-order-feedback'),
+                css_class='mb-4'
+            ),
+            Div(
+                Field('rules'),
+                Div(id='rule-selection-feedback'),
+                css_class='mb-4'
+            ),
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        rules = cleaned_data.get('rules')
+        questionnaire_item = self.instance.questionnaire_item if self.instance.pk else self.initial.get('questionnaire_item')
+
+        if rules and questionnaire_item:
+            # Ensure all selected rules belong to the same questionnaire item
+            for rule in rules:
+                if rule.questionnaire_item != questionnaire_item:
+                    raise forms.ValidationError(_("All rules must belong to the same questionnaire item."))
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+            # Update the many-to-many relationship
+            instance.rules.set(self.cleaned_data['rules'])
+        return instance
 

@@ -1,0 +1,18 @@
+{% load i18n %}
+
+{% if rule_groups %}
+  <ul class="space-y-2">
+    {% for group in rule_groups %}
+      <li class="flex items-start">
+        <span class="font-medium mr-2">{{ group.group_order }}.</span>
+        <span>
+          {% for rule in group.rules.all %}
+            {{ rule.rule_order }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </span>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>{% trans "No rule groups defined yet." %}</p>
+{% endif %} 

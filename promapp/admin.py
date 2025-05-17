@@ -84,3 +84,12 @@ class QuestionnaireItemResponseAdmin(admin.ModelAdmin):
     list_filter = ('questionnaire_item', 'response_date', 'response_value')
     ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')
+
+
+@admin.register(QuestionnaireItemRule)
+class QuestionnaireItemRuleAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(QuestionnaireItemRuleGroup)
+class QuestionnaireItemRuleGroupAdmin(admin.ModelAdmin):
+    pass

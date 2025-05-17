@@ -5,6 +5,10 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from patientapp.models import Patient,Diagnosis,Treatment
 from parler.models import TranslatableModel, TranslatedFields
+from django.db.models import Q
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+
 # Create your models here.
 
 class ConstructScale(models.Model):
@@ -233,3 +237,120 @@ class QuestionnaireItemResponse(models.Model):
         ordering = ['-response_date']
         verbose_name = 'Questionnaire Response'
         verbose_name_plural = 'Questionnaire Responses'
+
+class QuestionnaireItemRule(models.Model):
+    '''
+    Questionnaire Item Rule model. This is used to store rules that determine when a questionnaire item should be visible.
+    '''
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    questionnaire_item = models.ForeignKey(QuestionnaireItem, on_delete=models.CASCADE, 
+        related_name='visibility_rules',
+        help_text="The item whose visibility is controlled by this rule")
+    dependent_item = models.ForeignKey(QuestionnaireItem, on_delete=models.CASCADE,
+        related_name='dependent_rules',
+        help_text="The previous item whose response determines visibility")
+    
+    # Operator choices for comparison
+    OPERATOR_CHOICES = [
+        ('EQUALS', 'Equals'),
+        ('NOT_EQUALS', 'Not Equals'),
+        ('GREATER_THAN', 'Greater Than'),
+        ('LESS_THAN', 'Less Than'),
+        ('GREATER_THAN_EQUALS', 'Greater Than or Equals'),
+        ('LESS_THAN_EQUALS', 'Less Than or Equals'),
+        ('CONTAINS', 'Contains'),
+        ('NOT_CONTAINS', 'Does Not Contain'),
+    ]
+    
+    operator = models.CharField(max_length=40, choices=OPERATOR_CHOICES,help_text="The operator to use for the comparison")
+    comparison_value = models.CharField(max_length=255, 
+        help_text="The value to compare against")
+    
+    # Logical operator to combine multiple rules
+    LOGICAL_OPERATOR_CHOICES = [
+        ('AND', 'And'),
+        ('OR', 'Or'),
+    ]
+    logical_operator = models.CharField(max_length=3, choices=LOGICAL_OPERATOR_CHOICES, 
+        default='AND',
+        help_text="How this rule combines with other rules")
+    
+    rule_order = models.IntegerField(default=0,
+        help_text="Order in which rules should be evaluated")
+    
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['rule_order']
+        unique_together = ['questionnaire_item', 'dependent_item', 'operator', 'comparison_value']
+        verbose_name = 'Questionnaire Item Rule'
+        verbose_name_plural = 'Questionnaire Item Rules'
+
+    def clean(self):
+        # Ensure dependent_item comes before the questionnaire_item
+        if self.dependent_item.question_number >= self.questionnaire_item.question_number:
+            raise ValidationError({
+                'dependent_item': 'Dependent question must come before the current question in the questionnaire'
+            })
+        
+        # Ensure both items belong to the same questionnaire
+        if self.dependent_item.questionnaire != self.questionnaire_item.questionnaire:
+            raise ValidationError({
+                'dependent_item': 'Dependent question must belong to the same questionnaire'
+            })
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Rule for {self.questionnaire_item} based on {self.dependent_item}"
+
+class QuestionnaireItemRuleGroup(models.Model):
+    '''
+    Questionnaire Item Rule Group model. This is used to group related rules together.
+    '''
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    questionnaire_item = models.ForeignKey(QuestionnaireItem, on_delete=models.CASCADE,
+        related_name='rule_groups')
+    rules = models.ManyToManyField(QuestionnaireItemRule, related_name='rule_groups')
+    group_order = models.IntegerField(default=0)
+    
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['group_order']
+        verbose_name = 'Questionnaire Item Rule Group'
+        verbose_name_plural = 'Questionnaire Item Rule Groups'
+
+    def __str__(self):
+        return f"Rule group for {self.questionnaire_item}"
+
+# Add signal to handle question number changes
+@receiver(pre_save, sender=QuestionnaireItem)
+def validate_question_number_change(sender, instance, **kwargs):
+    if not instance.pk:
+        return  # Only validate on update, not create
+    try:
+        old_instance = QuestionnaireItem.objects.get(pk=instance.pk)
+    except QuestionnaireItem.DoesNotExist:
+        return  # If the object does not exist, skip validation
+    if old_instance.question_number != instance.question_number:
+        # Check if this change would invalidate any rules
+        affected_rules = QuestionnaireItemRule.objects.filter(
+            models.Q(
+                questionnaire_item=instance,
+                dependent_item__question_number__gte=instance.question_number
+            ) |
+            models.Q(
+                dependent_item=instance,
+                questionnaire_item__question_number__lte=instance.question_number
+            )
+        )
+        if affected_rules.exists():
+            raise ValidationError(
+                'Changing question number would invalidate existing rules. '
+                'Please update or remove affected rules first.'
+            )
