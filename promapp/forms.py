@@ -182,7 +182,7 @@ class QuestionnaireResponseForm(forms.Form):
             
             if qi.item.response_type == 'Text':
                 self.fields[field_name] = forms.CharField(
-                    required=True,
+                    required=False,
                     widget=forms.Textarea(attrs={
                         'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
                         'rows': 3,
@@ -191,7 +191,7 @@ class QuestionnaireResponseForm(forms.Form):
                 )
             elif qi.item.response_type == 'Number':
                 self.fields[field_name] = forms.DecimalField(
-                    required=True,
+                    required=False,
                     widget=forms.NumberInput(attrs={
                         'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
                         'placeholder': _('Enter a number...')
@@ -201,7 +201,7 @@ class QuestionnaireResponseForm(forms.Form):
                 choices = [(option.option_value, option.option_text) 
                           for option in qi.item.likert_response.likertscaleresponseoption_set.all()]
                 self.fields[field_name] = forms.ChoiceField(
-                    required=True,
+                    required=False,
                     choices=choices,
                     widget=forms.RadioSelect(attrs={
                         'class': 'peer sr-only'
@@ -209,7 +209,7 @@ class QuestionnaireResponseForm(forms.Form):
                 )
             elif qi.item.response_type == 'Range':
                 self.fields[field_name] = forms.DecimalField(
-                    required=True,
+                    required=False,
                     min_value=qi.item.range_response.min_value,
                     max_value=qi.item.range_response.max_value,
                     widget=forms.NumberInput(attrs={
@@ -223,12 +223,5 @@ class QuestionnaireResponseForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        
-        # Validate that all required fields are filled
-        for qi in self.questionnaire_items:
-            field_name = f'response_{qi.id}'
-            if field_name not in cleaned_data:
-                self.add_error(field_name, _('This field is required.'))
-        
         return cleaned_data
 

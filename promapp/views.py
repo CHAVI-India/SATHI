@@ -805,15 +805,14 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
         if form.is_valid():
             try:
                 with transaction.atomic():
-                    # Create response objects for each answered question
+                    # Create response objects for all questions, using empty string for unanswered ones
                     for qi in questionnaire_items:
-                        response_value = form.cleaned_data.get(f'response_{qi.id}')
-                        if response_value:
-                            QuestionnaireItemResponse.objects.create(
-                                patient_questionnaire=patient_questionnaire,
-                                questionnaire_item=qi,
-                                response_value=str(response_value)
-                            )
+                        response_value = form.cleaned_data.get(f'response_{qi.id}', '')
+                        QuestionnaireItemResponse.objects.create(
+                            patient_questionnaire=patient_questionnaire,
+                            questionnaire_item=qi,
+                            response_value=str(response_value) if response_value else ''
+                        )
                 
                 messages.success(request, _('Your responses have been saved successfully.'))
                 return redirect('my_questionnaire_list')
