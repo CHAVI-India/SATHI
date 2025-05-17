@@ -174,45 +174,73 @@
         
         <div class="bg-gray-50 p-4 rounded-md">
           <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Questionnaire Rules" %}</h2>
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th class="px-4 py-2 text-left">{% trans "Item" %}</th>
-                <th class="px-4 py-2 text-left">{% trans "Actions" %}</th>
-                <th class="px-4 py-2 text-left">{% trans "Rule Orders" %}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for questionnaire_item in questionnaire_items|dictsort:'question_number' %}
-                <tr>
-                  <td class="px-4 py-2">{{ questionnaire_item.item.name }}</td>
-                  <td class="px-4 py-2 space-x-2">
+          <div class="grid grid-cols-1 gap-6">
+            {% for q in questionnaire_items_structured %}
+              <div class="bg-white rounded shadow p-4">
+                <div class="flex justify-between items-center mb-2">
+                  <h3 class="font-bold text-lg">{{ q.item.item.name }}</h3>
+                  <div class="space-x-2">
                     <button type="button"
                       class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                      onclick="window.open('{% url 'questionnaire_item_rules_list' questionnaire_item_id=questionnaire_item.id %}', 'rules_window', 'width=800,height=600')">
+                      onclick="window.open('{% url 'questionnaire_item_rules_list' questionnaire_item_id=q.item.id %}', 'rules_window', 'width=800,height=600')">
                       {% trans "Manage Rules" %}
                     </button>
                     <button type="button"
                       class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                      onclick="window.open('{% url 'questionnaire_item_rule_groups_list' questionnaire_item_id=questionnaire_item.id %}', 'rule_groups_window', 'width=800,height=600')">
+                      onclick="window.open('{% url 'questionnaire_item_rule_groups_list' questionnaire_item_id=q.item.id %}', 'rule_groups_window', 'width=800,height=600')">
                       {% trans "Manage Rule Groups" %}
                     </button>
-                  </td>
-                  <td class="px-4 py-2 text-sm text-gray-600">
-                    {% with rules=questionnaire_item.questionnaireitemrule_set.all %}
-                      {% if rules %}
-                        {% for rule in rules %}
-                          {{ rule.rule_order }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                      {% else %}
-                        <span>{% trans "No rules" %}</span>
-                      {% endif %}
-                    {% endwith %}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-blue-700 mb-1">{% trans "Rules" %}</h4>
+                  {% if q.ungrouped_rules %}
+                    <ul class="space-y-2">
+                      {% for rule in q.ungrouped_rules %}
+                        <li class="border rounded p-2 bg-gray-50">
+                          <span class="font-semibold text-blue-700">Order:</span> {{ rule.rule_order }}<br>
+                          <span class="font-semibold">Depends on:</span>
+                          <span class="text-gray-800">Q{{ rule.dependent_item.question_number }}: {{ rule.dependent_item.item.name }}</span><br>
+                          <span class="font-semibold">Operator:</span> {{ rule.get_operator_display }}<br>
+                          <span class="font-semibold">Value:</span> {{ rule.comparison_value }}<br>
+                          <span class="font-semibold">Logic:</span> {{ rule.get_logical_operator_display }}
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <span class="text-gray-400">{% trans "No ungrouped rules" %}</span>
+                  {% endif %}
+                </div>
+                <div class="mt-4">
+                  <h4 class="font-semibold text-green-700 mb-1">{% trans "Rule Groups" %}</h4>
+                  {% if q.rule_groups %}
+                    <ul class="space-y-3">
+                      {% for group in q.rule_groups %}
+                        <li class="border rounded p-2 bg-green-50">
+                          <div class="mb-1">
+                            <span class="font-semibold text-green-700">Group Order:</span> {{ group.group_order }}
+                          </div>
+                          <div>
+                            <span class="font-semibold">Rules:</span>
+                            <ul class="ml-2 list-disc">
+                              {% for rule in group.rules.all %}
+                                <li>
+                                  <span class="text-gray-800">Q{{ rule.dependent_item.question_number }}: {{ rule.dependent_item.item.name }}</span>
+                                  <span class="text-gray-600">({{ rule.get_operator_display }} {{ rule.comparison_value }}, {{ rule.get_logical_operator_display }})</span>
+                                </li>
+                              {% endfor %}
+                            </ul>
+                          </div>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <span class="text-gray-400">{% trans "No rule groups" %}</span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
         </div>
         
         <div class="flex justify-end space-x-3">
@@ -553,7 +581,7 @@
     
     // Function to open rule management windows
     function openRuleWindow(url, windowName) {
-      const width = 800;
+      const width = 1000;
       const height = 600;
       const left = (window.innerWidth - width) / 2;
       const top = (window.innerHeight - height) / 2;

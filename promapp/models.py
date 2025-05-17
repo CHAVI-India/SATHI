@@ -160,7 +160,10 @@ class Item(TranslatableModel):
                 raise ValidationError({'likert_response': 'Likert Scale should not be selected for Text or Number response types'})
             if self.range_response:
                 raise ValidationError({'range_response': 'Range Scale should not be selected for Text or Number response types'})
-
+    def __str__(self):
+        # Use Parler's safe_translation_getter to get the translated name
+        item_name = self.safe_translation_getter('name', any_language=True) if hasattr(self, 'safe_translation_getter') else str(self)
+        return item_name
 
 class Questionnaire(TranslatableModel):
     '''
@@ -179,7 +182,10 @@ class Questionnaire(TranslatableModel):
         ordering = ['-created_date']
         verbose_name = 'Questionnaire'
         verbose_name_plural = 'Questionnaires'
-
+    def __str__(self):
+        # Use Parler's safe_translation_getter to get the translated name
+        questionnaire_name = self.safe_translation_getter('name', any_language=True) if hasattr(self, 'safe_translation_getter') else str(self)
+        return questionnaire_name
 
 
 
@@ -310,7 +316,9 @@ class QuestionnaireItemRule(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Rule for {self.questionnaire_item} based on {self.dependent_item}"
+        qitem = getattr(self, 'questionnaire_item', None)
+        ditem = getattr(self, 'dependent_item', None)
+        return f"Rule for {qitem or '[unsaved]'} based on {ditem or '[unsaved]'}"
 
 class QuestionnaireItemRuleGroup(models.Model):
     '''

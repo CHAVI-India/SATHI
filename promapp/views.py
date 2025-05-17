@@ -18,6 +18,7 @@ from .forms import (
 from django.utils.translation import get_language
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.db.models import Prefetch
 
 # Create your views here.
 
@@ -116,40 +117,46 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         questionnaire = self.get_object()
-        
-        # Get all questionnaire items for this questionnaire, ordered by question_number
-        questionnaire_items = QuestionnaireItem.objects.filter(questionnaire=questionnaire).order_by('question_number')
-        context['questionnaire_items'] = questionnaire_items
-        
-        # Create a mapping of item IDs to question numbers
-        item_to_question_number = {str(qi.item.id): qi.question_number for qi in questionnaire_items}
-        
-        # Get all available items with proper translation handling
+        from django.db.models import Prefetch
+        # Prefetch rules and rule groups for all questionnaire items
+        raw_items = QuestionnaireItem.objects.filter(
+            questionnaire=questionnaire
+        ).order_by('question_number').prefetch_related(
+            Prefetch('visibility_rules', queryset=QuestionnaireItemRule.objects.order_by('rule_order')),
+            Prefetch('rule_groups', queryset=QuestionnaireItemRuleGroup.objects.order_by('group_order').prefetch_related('rules'))
+        )
+        questionnaire_items_structured = []
+        for item in raw_items:
+            rules = list(item.visibility_rules.all())
+            groups = list(item.rule_groups.all())
+            grouped_rule_ids = set()
+            for group in groups:
+                grouped_rule_ids.update(r.id for r in group.rules.all())
+            ungrouped_rules = [r for r in rules if r.id not in grouped_rule_ids]
+            questionnaire_items_structured.append({
+                'item': item,
+                'rules': rules,
+                'rule_groups': groups,
+                'ungrouped_rules': ungrouped_rules,
+            })
+        context['questionnaire_items_structured'] = questionnaire_items_structured
+        item_to_question_number = {str(qi.item.id): qi.question_number for qi in raw_items}
         current_language = get_language()
         available_items = Item.objects.language(current_language).all().order_by('construct_scale__name', 'translations__name')
-        
-        # Get currently selected items
         current_items = Item.objects.filter(
-            id__in=questionnaire_items.values_list('item', flat=True)
+            id__in=raw_items.values_list('item', flat=True)
         )
-        
-        # Add question_number attribute to each item
         for item in available_items:
             item.question_number = item_to_question_number.get(str(item.id))
-        
-        # Initialize the form with current items
         context['item_selection_form'] = ItemSelectionForm(initial={'items': current_items})
         context['available_items'] = available_items
         context['construct_scales'] = ConstructScale.objects.all().order_by('name')
-        
-        # Add rules and rule groups context
         context['rules'] = QuestionnaireItemRule.objects.filter(
-            questionnaire_item__in=questionnaire_items
+            questionnaire_item__in=raw_items
         ).order_by('rule_order')
         context['rule_groups'] = QuestionnaireItemRuleGroup.objects.filter(
-            questionnaire_item__in=questionnaire_items
+            questionnaire_item__in=raw_items
         ).order_by('group_order')
-        
         return context
 
     @transaction.atomic
@@ -1074,6 +1081,14 @@ class QuestionnaireItemRuleCreateView(LoginRequiredMixin, PermissionRequiredMixi
         kwargs['initial']['questionnaire_item'] = questionnaire_item
         return kwargs
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.instance.questionnaire_item = get_object_or_404(
+            QuestionnaireItem, 
+            pk=self.kwargs['questionnaire_item_id']
+        )
+        return form
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['questionnaire_item'] = get_object_or_404(
@@ -1081,13 +1096,6 @@ class QuestionnaireItemRuleCreateView(LoginRequiredMixin, PermissionRequiredMixi
             pk=self.kwargs['questionnaire_item_id']
         )
         return context
-
-    def form_valid(self, form):
-        form.instance.questionnaire_item = get_object_or_404(
-            QuestionnaireItem, 
-            pk=self.kwargs['questionnaire_item_id']
-        )
-        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('questionnaire_item_rules_list', 
@@ -1154,6 +1162,21 @@ class QuestionnaireItemRuleGroupCreateView(LoginRequiredMixin, PermissionRequire
     template_name = 'promapp/questionnaire_item_rule_group_form.html'
     permission_required = 'promapp.add_questionnaireitemrulegroup'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        questionnaire_item = get_object_or_404(QuestionnaireItem, pk=self.kwargs['questionnaire_item_id'])
+        kwargs['initial'] = kwargs.get('initial', {})
+        kwargs['initial']['questionnaire_item'] = questionnaire_item
+        return kwargs
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.instance.questionnaire_item = get_object_or_404(
+            QuestionnaireItem, 
+            pk=self.kwargs['questionnaire_item_id']
+        )
+        return form
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         questionnaire_item = get_object_or_404(
@@ -1165,13 +1188,6 @@ class QuestionnaireItemRuleGroupCreateView(LoginRequiredMixin, PermissionRequire
             questionnaire_item=questionnaire_item
         ).order_by('rule_order')
         return context
-
-    def form_valid(self, form):
-        form.instance.questionnaire_item = get_object_or_404(
-            QuestionnaireItem, 
-            pk=self.kwargs['questionnaire_item_id']
-        )
-        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('questionnaire_item_rule_groups_list', 

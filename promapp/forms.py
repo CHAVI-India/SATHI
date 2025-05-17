@@ -268,13 +268,25 @@ class QuestionnaireItemRuleForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         questionnaire_item = getattr(self.instance, 'questionnaire_item', None) or kwargs.get('initial', {}).get('questionnaire_item')
-        if questionnaire_item and questionnaire_item.question_number is not None:
-            self.fields['dependent_item'].queryset = QuestionnaireItem.objects.filter(
-                questionnaire=questionnaire_item.questionnaire,
-                question_number__lt=questionnaire_item.question_number
+        print('[DEBUG] __init__: instance.questionnaire_item =', getattr(self.instance, 'questionnaire_item', None))
+        print('[DEBUG] __init__: initial[questionnaire_item] =', kwargs.get('initial', {}).get('questionnaire_item'))
+        
+        if questionnaire_item:
+            # Get all items from the same questionnaire
+            base_queryset = QuestionnaireItem.objects.filter(
+                questionnaire=questionnaire_item.questionnaire
             )
+            
+            # If we have a question number, filter for items that come before this one
+            if questionnaire_item.question_number is not None:
+                base_queryset = base_queryset.filter(
+                    question_number__lt=questionnaire_item.question_number
+                )
+            
+            self.fields['dependent_item'].queryset = base_queryset
         else:
             self.fields['dependent_item'].queryset = QuestionnaireItem.objects.none()
+            
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
@@ -323,8 +335,12 @@ class QuestionnaireItemRuleForm(forms.ModelForm):
         dependent_item = cleaned_data.get('dependent_item')
         operator = cleaned_data.get('operator')
         comparison_value = cleaned_data.get('comparison_value')
-        questionnaire_item = self.instance.questionnaire_item if self.instance.pk else self.initial.get('questionnaire_item')
-
+        # Use initial for create, instance for update
+        questionnaire_item = self.initial.get('questionnaire_item')
+        if self.instance.pk:
+            questionnaire_item = getattr(self.instance, 'questionnaire_item', questionnaire_item)
+        print('[DEBUG] clean: instance.questionnaire_item =', getattr(self.instance, 'questionnaire_item', None))
+        print('[DEBUG] clean: initial[questionnaire_item] =', self.initial.get('questionnaire_item'))
         if dependent_item and questionnaire_item:
             # Ensure dependent item is from the same questionnaire
             if dependent_item.questionnaire != questionnaire_item.questionnaire:
