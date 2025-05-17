@@ -178,7 +178,7 @@ class Questionnaire(TranslatableModel):
 
 class QuestionnaireItem(models.Model):
     '''
-    Questionnaire Item Response model. This is used to store the items for the questionnaire. There is a many to many relationship between Questionnaire and Item.
+    Questionnaire Item model. This is used to store the items for the questionnaire. There is a many to many relationship between Questionnaire and Item.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE, help_text = "The questionnaire to which the response belongs")
@@ -189,8 +189,8 @@ class QuestionnaireItem(models.Model):
 
     class Meta:
         ordering = ['-created_date']
-        verbose_name = 'Questionnaire Item Response'
-        verbose_name_plural = 'Questionnaire Item Responses'
+        verbose_name = 'Questionnaire Item'
+        verbose_name_plural = 'Questionnaire Items'
 
 class PatientQuestionnaire(models.Model):
     '''

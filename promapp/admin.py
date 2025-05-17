@@ -43,7 +43,7 @@ class RangeScaleAdmin(TranslatableAdmin):
     readonly_fields = ('created_date', 'modified_date')
 
 @admin.register(Questionnaire)
-class QuestionnaireAdmin(admin.ModelAdmin):
+class QuestionnaireAdmin(TranslatableAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     ordering = ('-created_date',)
