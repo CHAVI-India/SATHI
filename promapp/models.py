@@ -231,6 +231,8 @@ class PatientQuestionnaire(models.Model):
         ordering = ['-created_date']
         verbose_name = 'Patient Questionnaire'
         verbose_name_plural = 'Patient Questionnaires'  
+    def __str__(self):
+        return f"{self.patient.name} - {self.questionnaire.name}"
 
 class QuestionnaireItemResponse(models.Model):
     '''
@@ -248,6 +250,8 @@ class QuestionnaireItemResponse(models.Model):
         ordering = ['-response_date']
         verbose_name = 'Questionnaire Response'
         verbose_name_plural = 'Questionnaire Responses'
+    def __str__(self):
+        return f"{self.patient_questionnaire.patient.name} - {self.questionnaire_item.item.name}"
 
 class QuestionnaireItemRule(models.Model):
     '''
