@@ -39,6 +39,66 @@
       </div>
     </div>
 
+    <!-- Search and Filter Section -->
+    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+      <div class="mb-2">
+        <span class="text-sm font-semibold text-gray-700">{% trans "Search & Filter" %}</span>
+      </div>
+      <form method="get">
+        <div class="flex flex-wrap gap-4 items-end">
+          <!-- Search Box -->
+          <div class="w-64">
+            <label for="search" class="sr-only">{% trans "Search" %}</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <input type="text" name="search" id="search" value="{{ request.GET.search }}" 
+                     class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                     placeholder="{% trans 'Search patients...' %}">
+            </div>
+          </div>
+
+          <!-- Questionnaire Count Filter -->
+          <div class="w-48">
+            <label for="questionnaire_count" class="block text-sm font-medium text-gray-700">{% trans "Questionnaires" %}</label>
+            <select name="questionnaire_count" id="questionnaire_count" 
+                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+              <option value="">{% trans "All" %}</option>
+              <option value="0" {% if request.GET.questionnaire_count == '0' %}selected{% endif %}>{% trans "None" %}</option>
+              <option value="1-5" {% if request.GET.questionnaire_count == '1-5' %}selected{% endif %}>{% trans "1-5" %}</option>
+              <option value="6-10" {% if request.GET.questionnaire_count == '6-10' %}selected{% endif %}>{% trans "6-10" %}</option>
+              <option value="10+" {% if request.GET.questionnaire_count == '10+' %}selected{% endif %}>{% trans "10+" %}</option>
+            </select>
+          </div>
+
+          <!-- Sort Order -->
+          <div class="w-48">
+            <label for="sort" class="block text-sm font-medium text-gray-700">{% trans "Sort By" %}</label>
+            <select name="sort" id="sort" 
+                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+              <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>{% trans "Name" %}</option>
+              <option value="-name" {% if request.GET.sort == '-name' %}selected{% endif %}>{% trans "Name (Z-A)" %}</option>
+              <option value="questionnaire_count" {% if request.GET.sort == 'questionnaire_count' %}selected{% endif %}>{% trans "Questionnaire Count" %}</option>
+              <option value="-questionnaire_count" {% if request.GET.sort == '-questionnaire_count' %}selected{% endif %}>{% trans "Questionnaire Count (High-Low)" %}</option>
+            </select>
+          </div>
+
+          <!-- Filter Buttons -->
+          <div class="flex items-end space-x-2">
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              {% trans "Apply Filters" %}
+            </button>
+            <a href="{% url 'patient_questionnaire_list' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+              {% trans "Clear" %}
+            </a>
+          </div>
+        </div>
+      </form>
+    </div>
+
     <!-- Messages -->
     {% if messages %}
       <div class="px-6 py-4">
@@ -100,24 +160,72 @@
         </table>
       </div>
 
-      <!-- Pagination -->
+      <!-- Enhanced Pagination -->
       {% if is_paginated %}
       <div class="px-6 py-4 border-t border-gray-200">
-        <div class="flex justify-between items-center">
-          <div class="text-sm text-gray-700">
-            {% trans "Showing" %} {{ page_obj.start_index }} - {{ page_obj.end_index }} {% trans "of" %} {{ page_obj.paginator.count }}
-          </div>
-          <div class="flex space-x-2">
+        <div class="flex items-center justify-between">
+          <div class="flex-1 flex justify-between sm:hidden">
             {% if page_obj.has_previous %}
-              <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 rounded-md bg-blue-600 text-white hover:bg-blue-700">
+              <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.questionnaire_count %}&questionnaire_count={{ request.GET.questionnaire_count }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                 class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                 {% trans "Previous" %}
               </a>
             {% endif %}
             {% if page_obj.has_next %}
-              <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 rounded-md bg-blue-600 text-white hover:bg-blue-700">
+              <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.questionnaire_count %}&questionnaire_count={{ request.GET.questionnaire_count }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                 class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                 {% trans "Next" %}
               </a>
             {% endif %}
+          </div>
+          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-700">
+                {% trans "Showing" %}
+                <span class="font-medium">{{ page_obj.start_index }}</span>
+                {% trans "to" %}
+                <span class="font-medium">{{ page_obj.end_index }}</span>
+                {% trans "of" %}
+                <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                {% trans "results" %}
+              </p>
+            </div>
+            <div>
+              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                {% if page_obj.has_previous %}
+                  <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.questionnaire_count %}&questionnaire_count={{ request.GET.questionnaire_count }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                     class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <span class="sr-only">{% trans "First" %}</span>
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </a>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                  {% if page_obj.number == num %}
+                    <span class="relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-50 text-sm font-medium text-blue-600">
+                      {{ num }}
+                    </span>
+                  {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.questionnaire_count %}&questionnaire_count={{ request.GET.questionnaire_count }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                       class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                      {{ num }}
+                    </a>
+                  {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                  <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.questionnaire_count %}&questionnaire_count={{ request.GET.questionnaire_count }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                     class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <span class="sr-only">{% trans "Last" %}</span>
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </a>
+                {% endif %}
+              </nav>
+            </div>
           </div>
         </div>
       </div>

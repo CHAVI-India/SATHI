@@ -913,8 +913,52 @@ class PatientQuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, 
     paginate_by = 25
 
     def get_queryset(self):
-        # Get all patients with their related user data
-        return Patient.objects.select_related('user').all().order_by('name')
+        queryset = Patient.objects.select_related('user').all()
+        
+        # Apply search filter
+        search_query = self.request.GET.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                models.Q(name__icontains=search_query) |
+                models.Q(patient_id__icontains=search_query)
+            )
+        
+        # Apply questionnaire count filter
+        questionnaire_count = self.request.GET.get('questionnaire_count')
+        if questionnaire_count:
+            if questionnaire_count == '0':
+                queryset = queryset.annotate(
+                    q_count=models.Count('patientquestionnaire', distinct=True)
+                ).filter(q_count=0)
+            elif questionnaire_count == '1-5':
+                queryset = queryset.annotate(
+                    q_count=models.Count('patientquestionnaire', distinct=True)
+                ).filter(q_count__gte=1, q_count__lte=5)
+            elif questionnaire_count == '6-10':
+                queryset = queryset.annotate(
+                    q_count=models.Count('patientquestionnaire', distinct=True)
+                ).filter(q_count__gte=6, q_count__lte=10)
+            elif questionnaire_count == '10+':
+                queryset = queryset.annotate(
+                    q_count=models.Count('patientquestionnaire', distinct=True)
+                ).filter(q_count__gt=10)
+        
+        # Apply sorting
+        sort_by = self.request.GET.get('sort', 'name')
+        if sort_by == 'name':
+            queryset = queryset.order_by('name')
+        elif sort_by == '-name':
+            queryset = queryset.order_by('-name')
+        elif sort_by == 'questionnaire_count':
+            queryset = queryset.annotate(
+                q_count=models.Count('patientquestionnaire', distinct=True)
+            ).order_by('q_count')
+        elif sort_by == '-questionnaire_count':
+            queryset = queryset.annotate(
+                q_count=models.Count('patientquestionnaire', distinct=True)
+            ).order_by('-q_count')
+        
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -924,4 +968,10 @@ class PatientQuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, 
             patient.questionnaire_count = PatientQuestionnaire.objects.filter(
                 patient=patient
             ).values('questionnaire').distinct().count()
+        
+        # Add current filter values to context
+        context['current_search'] = self.request.GET.get('search', '')
+        context['current_questionnaire_count'] = self.request.GET.get('questionnaire_count', '')
+        context['current_sort'] = self.request.GET.get('sort', 'name')
+        
         return context
