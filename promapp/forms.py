@@ -267,12 +267,14 @@ class QuestionnaireItemRuleForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Use questionnaire_item from instance or initial
         questionnaire_item = getattr(self.instance, 'questionnaire_item', None) or kwargs.get('initial', {}).get('questionnaire_item')
-        if questionnaire_item:
+        if questionnaire_item and questionnaire_item.question_number is not None:
             self.fields['dependent_item'].queryset = QuestionnaireItem.objects.filter(
-                questionnaire=questionnaire_item.questionnaire
-            ).exclude(id=questionnaire_item.id)
+                questionnaire=questionnaire_item.questionnaire,
+                question_number__lt=questionnaire_item.question_number
+            )
+        else:
+            self.fields['dependent_item'].queryset = QuestionnaireItem.objects.none()
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(

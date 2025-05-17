@@ -201,6 +201,11 @@ class QuestionnaireItem(models.Model):
         verbose_name = 'Questionnaire Item'
         verbose_name_plural = 'Questionnaire Items'
 
+    def __str__(self):
+        # Use Parler's safe_translation_getter to get the translated name
+        item_name = self.item.safe_translation_getter('name', any_language=True) if hasattr(self.item, 'safe_translation_getter') else str(self.item)
+        return f"Q{self.question_number}: {item_name}"
+
 
 
 
