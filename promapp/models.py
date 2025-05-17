@@ -176,6 +176,11 @@ class Questionnaire(TranslatableModel):
         verbose_name = 'Questionnaire'
         verbose_name_plural = 'Questionnaires'
 
+
+
+
+
+
 class QuestionnaireItem(models.Model):
     '''
     Questionnaire Item model. This is used to store the items for the questionnaire. There is a many to many relationship between Questionnaire and Item.
@@ -191,6 +196,10 @@ class QuestionnaireItem(models.Model):
         ordering = ['-created_date']
         verbose_name = 'Questionnaire Item'
         verbose_name_plural = 'Questionnaire Items'
+
+
+
+
 
 class PatientQuestionnaire(models.Model):
     '''
@@ -216,10 +225,9 @@ class QuestionnaireItemResponse(models.Model):
     patient_questionnaire = models.ForeignKey(PatientQuestionnaire, on_delete=models.CASCADE, help_text = "The patient questionnaire to which the response belongs")
     questionnaire_item = models.ForeignKey(QuestionnaireItem, on_delete=models.CASCADE, help_text = "The item to which the response belongs")
     response_date = models.DateTimeField(help_text = "The date and time of the response",auto_now_add=True)
-    response_date = models.DateTimeField(help_text = "The date and time of the response",auto_now_add=True)
     response_value = models.CharField(max_length=255, help_text = "The response value",null=True, blank=True)
-    created_date = models.DateTimeField(auto_now_add=True)
-    modified_date = models.DateTimeField(auto_now=True)
+    created_date = models.DateTimeField(auto_now_add=True,editable=False)
+    modified_date = models.DateTimeField(auto_now=True,editable=False)
 
     class Meta:
         ordering = ['-response_date']
