@@ -15,6 +15,9 @@ Use parler instead of django-modeltranslation module as when the migrations are 
 
 
 
+
+
+
 QuestionnaireItemResponse Model & PatientQuestionnaire Model
 The QuestionnaireItemResponse stores the response of individual patients for questions (items) in a questionnaire. 
 The model has a FK relationship to teh PatientQuestionnaire model which in turn is a M2M field betwen Patient and Questionnaire.
