@@ -833,9 +833,13 @@ class PatientQuestionnaireManagementView(LoginRequiredMixin, PermissionRequiredM
         context = super().get_context_data(**kwargs)
         patient = self.get_object()
         
-        # Get all questionnaires
+        # Get all questionnaires with proper translation handling
         current_language = get_language()
-        all_questionnaires = Questionnaire.objects.language(current_language).all().order_by('translations__name')
+        
+        # Get all questionnaires with their translations in the current language
+        all_questionnaires = Questionnaire.objects.filter(
+            translations__language_code=current_language
+        ).distinct('id').order_by('id', 'translations__name')
         
         # Get currently assigned questionnaires
         assigned_questionnaires = PatientQuestionnaire.objects.filter(
@@ -918,9 +922,10 @@ class PatientQuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, 
         # Apply search filter
         search_query = self.request.GET.get('search')
         if search_query:
+            # Use exact match for secured fields
             queryset = queryset.filter(
-                models.Q(name__icontains=search_query) |
-                models.Q(patient_id__icontains=search_query)
+                models.Q(name__exact=search_query) |
+                models.Q(patient_id__exact=search_query)
             )
         
         # Apply questionnaire count filter
