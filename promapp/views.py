@@ -752,7 +752,7 @@ class ConstructScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListVi
         # Otherwise, return the full page as usual
         return super().get(request, *args, **kwargs)
 
-class QuestionnaireResponseView(LoginRequiredMixin, DetailView):
+class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     """
     View for handling questionnaire responses.
     This view allows patients to respond to questionnaires assigned to them.
@@ -760,6 +760,7 @@ class QuestionnaireResponseView(LoginRequiredMixin, DetailView):
     model = PatientQuestionnaire
     template_name = 'promapp/questionnaire_response.html'
     context_object_name = 'patient_questionnaire'
+    permission_required = ['promapp.view_patientquestionnaire', 'promapp.add_questionnaireitemresponse']
     
     def get_queryset(self):
         # Only allow access to questionnaires assigned to the current patient
@@ -786,6 +787,11 @@ class QuestionnaireResponseView(LoginRequiredMixin, DetailView):
         return context
     
     def post(self, request, *args, **kwargs):
+        # Check if user has permission to add responses
+        if not request.user.has_perm('promapp.add_questionnaireitemresponse'):
+            messages.error(request, _('You do not have permission to submit responses.'))
+            return redirect('my_questionnaire_list')
+            
         patient_questionnaire = self.get_object()
         questionnaire_items = QuestionnaireItem.objects.filter(
             questionnaire=patient_questionnaire.questionnaire
@@ -810,7 +816,7 @@ class QuestionnaireResponseView(LoginRequiredMixin, DetailView):
                             )
                 
                 messages.success(request, _('Your responses have been saved successfully.'))
-                return redirect('patient_questionnaire_list')
+                return redirect('my_questionnaire_list')
                 
             except Exception as e:
                 messages.error(request, _('An error occurred while saving your responses. Please try again.'))
@@ -827,7 +833,7 @@ class PatientQuestionnaireManagementView(LoginRequiredMixin, PermissionRequiredM
     model = Patient
     template_name = 'promapp/patient_questionnaire_management.html'
     context_object_name = 'patient'
-    permission_required = 'promapp.change_patientquestionnaire'
+    permission_required = 'promapp.add_patientquestionnaire'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
