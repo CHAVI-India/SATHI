@@ -29,7 +29,7 @@ class PatientForm(forms.ModelForm):
     
     class Meta:
         model = Patient
-        fields = ['name', 'age', 'gender', 'institution', 'username', 'email', 'password1', 'password2', 'groups']
+        fields = ['patient_id', 'name', 'age', 'gender', 'institution', 'username', 'email', 'password1', 'password2', 'groups']
         widgets = {
             'age': forms.NumberInput(attrs={'min': 0, 'max': 150}),
             'password1': forms.PasswordInput(),

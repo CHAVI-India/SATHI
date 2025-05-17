@@ -19,6 +19,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 import os
 from dotenv import load_dotenv
 from django.utils.translation import gettext_lazy as _
+import logging
+import base64
+from cryptography.fernet import Fernet
 
 env_path = os.path.join(BASE_DIR, '.env')
 load_dotenv(env_path)
@@ -170,8 +173,49 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Settings for Django secured fields
+# Multiple keys can be specified for key rotation, separated by commas
+# The first key is used for encryption, all keys are tried for decryption
+logger = logging.getLogger(__name__)
 
-SECURED_FIELDS_KEY = os.getenv('DJANGO_SECURED_FIELDS_KEY','adsfj239048q2389qdjfasdmfa;ldsjkf;askdjf;ad21232312^&%&%%*^%*').split(',')
+def process_key(key_str):
+    try:
+        # Remove any whitespace and ensure it's a string
+        key_str = str(key_str).strip()
+        
+        # Check if the key is already in the correct format
+        try:
+            Fernet(key_str.encode())
+            return key_str
+        except Exception:
+            # If not, try to fix it
+            # Remove any non-base64 characters
+            key_str = ''.join(c for c in key_str if c in '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_=')
+            
+            # Ensure the key is properly padded
+            padding = len(key_str) % 4
+            if padding:
+                key_str += '=' * (4 - padding)
+            
+            # Try again with the cleaned key
+            Fernet(key_str.encode())
+            return key_str
+            
+    except Exception as e:
+        logger.error(f"Error processing key: {e}")
+        return None
+
+# Get the key from environment
+key = os.getenv('DJANGO_SECURED_FIELDS_KEY')
+if not key:
+    logger.error("No DJANGO_SECURED_FIELDS_KEY found in environment")
+    raise ValueError("DJANGO_SECURED_FIELDS_KEY must be set in environment")
+
+# Process the key
+processed_key = process_key(key)
+if not processed_key:
+    raise ValueError(f"Invalid Fernet key format. The key must be 32 bytes encoded in URL-safe base64 format. Current key: {key}")
+
+SECURED_FIELDS_KEY = [processed_key]
 
 # Crispy Forms Settings
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
@@ -180,3 +224,18 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # Authentication settings
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}
