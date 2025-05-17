@@ -6,30 +6,16 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-2xl font-bold text-gray-900">{{ title }}</h2>
+            <h2 class="text-2xl font-bold text-gray-900">
+                {% if object %}{% trans "Edit Treatment Type" %}{% else %}{% trans "Add Treatment Type" %}{% endif %}
+            </h2>
         </div>
         <div class="px-6 py-4">
             <form method="post">
                 {% csrf_token %}
-                {% for field in form %}
-                    <div class="mb-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ field.label }}
-                            </label>
-                            {% if field.name == 'treatment_type' and perms.patientapp.add_treatmenttype %}
-                                <a href="{% url 'treatment_type_create' %}" 
-                                   target="_blank"
-                                   class="text-sm text-blue-600 hover:text-blue-900">
-                                    {% trans "Add New Treatment Type" %}
-                                </a>
-                            {% endif %}
-                        </div>
-                        {{ field|as_crispy_field }}
-                    </div>
-                {% endfor %}
+                {{ form|crispy }}
                 <div class="mt-6 flex justify-end space-x-3">
-                    <a href="{% url 'patient_detail' diagnosis.patient.id %}" 
+                    <a href="{% url 'treatment_type_list' %}" 
                        class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm">
                         {% trans "Cancel" %}
                     </a>
@@ -42,4 +28,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

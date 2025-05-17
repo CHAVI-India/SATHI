@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
-from .models import Patient, Institution
+from .models import Patient, Institution, Treatment
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Div, Submit, HTML
 from django.utils.translation import gettext_lazy as _
@@ -29,9 +29,11 @@ class PatientForm(forms.ModelForm):
     
     class Meta:
         model = Patient
-        fields = ['patient_id', 'name', 'age', 'gender', 'institution']
+        fields = ['name', 'age', 'gender', 'institution', 'username', 'email', 'password1', 'password2', 'groups']
         widgets = {
             'age': forms.NumberInput(attrs={'min': 0, 'max': 150}),
+            'password1': forms.PasswordInput(),
+            'password2': forms.PasswordInput(),
         }
     
     def __init__(self, *args, **kwargs):
@@ -58,7 +60,6 @@ class PatientForm(forms.ModelForm):
             # Patient Information
             HTML('<h3 class="text-lg font-medium text-gray-900 mt-6 mb-4">{% trans "Patient Information" %}</h3>'),
             Div(
-                Field('patient_id', css_class='w-full px-3 py-2 border rounded'),
                 Field('name', css_class='w-full px-3 py-2 border rounded'),
                 Field('age', css_class='w-full px-3 py-2 border rounded'),
                 Field('gender', css_class='w-full px-3 py-2 border rounded'),
@@ -91,4 +92,12 @@ class PatientForm(forms.ModelForm):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError(_("A user with that email already exists."))
-        return email 
+        return email
+
+class TreatmentForm(forms.ModelForm):
+    class Meta:
+        model = Treatment
+        fields = ['treatment_type', 'treatment_intent', 'date_of_start_of_treatment']
+        widgets = {
+            'date_of_start_of_treatment': forms.DateInput(attrs={'type': 'date'}),
+        } 

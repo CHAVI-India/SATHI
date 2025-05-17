@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
 from .models import Patient, Diagnosis, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
-from .forms import PatientForm
+from .forms import PatientForm, TreatmentForm
 
 # Create your views here.
 
@@ -176,7 +176,7 @@ class DiagnosisDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteVie
 # Treatment Views
 class TreatmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Treatment
-    fields = ['treatment_type', 'treatment_intent', 'date_of_start_of_treatment']
+    form_class = TreatmentForm
     template_name = 'patientapp/treatment_form.html'
     permission_required = 'patientapp.add_treatment'
 
@@ -198,7 +198,7 @@ class TreatmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVie
 
 class TreatmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Treatment
-    fields = ['treatment_type', 'treatment_intent', 'date_of_start_of_treatment']
+    form_class = TreatmentForm
     template_name = 'patientapp/treatment_form.html'
     permission_required = 'patientapp.change_treatment'
 
@@ -219,6 +219,50 @@ class TreatmentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteVie
 
     def get_success_url(self):
         return reverse('patient_detail', kwargs={'pk': self.object.diagnosis.patient.pk})
+
+# Treatment Type Views
+class TreatmentTypeCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    model = TreatmentType
+    fields = ['treatment_type']
+    template_name = 'patientapp/treatment_type_form.html'
+    permission_required = 'patientapp.add_treatmenttype'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('Add Treatment Type')
+        return context
+
+    def get_success_url(self):
+        return reverse('treatment_type_list')
+
+class TreatmentTypeUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = TreatmentType
+    fields = ['treatment_type']
+    template_name = 'patientapp/treatment_type_form.html'
+    permission_required = 'patientapp.change_treatmenttype'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('Edit Treatment Type')
+        return context
+
+    def get_success_url(self):
+        return reverse('treatment_type_list')
+
+class TreatmentTypeDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = TreatmentType
+    template_name = 'patientapp/treatment_type_confirm_delete.html'
+    permission_required = 'patientapp.delete_treatmenttype'
+
+    def get_success_url(self):
+        return reverse('treatment_type_list')
+
+def treatment_type_list(request):
+    treatment_types = TreatmentType.objects.all()
+    return render(request, 'patientapp/treatment_type_list.html', {
+        'treatment_types': treatment_types,
+        'title': _('Treatment Types')
+    })
 
 
 
