@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Patients" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header Section -->
+    <div class="mb-6 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-900">{% trans "Patients" %}</h1>
+        {% if perms.patientapp.add_patient %}
+        <a href="{% url 'patient_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+            {% trans "Add Patient" %}
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Search and Filters Section -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <form hx-get="{% url 'patient_list' %}" hx-target="#patientsTable" hx-trigger="change from:select, keyup[target.name=='search'] from:input delay:500ms" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Search Box -->
+                    <div>
+                        <label for="search" class="block text-sm font-medium text-gray-700">{% trans "Search" %}</label>
+                        <input type="text" name="search" id="search" 
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                               placeholder="{% trans 'Search by name or ID...' %}"
+                               value="{{ request.GET.search|default:'' }}">
+                    </div>
+
+                    <!-- Institution Filter -->
+                    <div>
+                        <label for="institution" class="block text-sm font-medium text-gray-700">{% trans "Institution" %}</label>
+                        <select name="institution" id="institution" 
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                            <option value="">{% trans "All Institutions" %}</option>
+                            {% for institution in institutions %}
+                            <option value="{{ institution.id }}" {% if request.GET.institution == institution.id|stringformat:"s" %}selected{% endif %}>
+                                {{ institution.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Gender Filter -->
+                    <div>
+                        <label for="gender" class="block text-sm font-medium text-gray-700">{% trans "Gender" %}</label>
+                        <select name="gender" id="gender" 
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                            <option value="">{% trans "All Genders" %}</option>
+                            {% for value, label in gender_choices %}
+                            <option value="{{ value }}" {% if request.GET.gender == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Patients Table -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div id="patientsTable" hx-get="{% url 'patient_list' %}" hx-trigger="load">
+            <!-- Table content will be loaded here via HTMX -->
+        </div>
+    </div>
+</div>
+
+<!-- Table Template (will be loaded via HTMX) -->
+<template id="tableTemplate">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {% trans "Patient ID" %}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {% trans "Name" %}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {% trans "Age" %}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {% trans "Gender" %}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {% trans "Institution" %}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {% trans "Created Date" %}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {% trans "Actions" %}
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for patient in patients %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ patient.patient_id }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ patient.name }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ patient.age }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ patient.gender }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ patient.institution.name }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ patient.created_date|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="{% url 'patient_detail' patient.id %}" class="text-blue-600 hover:text-blue-900">
+                            {% trans "View" %}
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                        {% trans "No patients found" %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+        <div class="flex-1 flex justify-between sm:hidden">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                {% trans "Previous" %}
+            </a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                {% trans "Next" %}
+            </a>
+            {% endif %}
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm text-gray-700">
+                    {% trans "Showing" %}
+                    <span class="font-medium">{{ page_obj.start_index }}</span>
+                    {% trans "to" %}
+                    <span class="font-medium">{{ page_obj.end_index }}</span>
+                    {% trans "of" %}
+                    <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                    {% trans "results" %}
+                </p>
+            </div>
+            <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        <span class="sr-only">{% trans "Previous" %}</span>
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <span class="relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-50 text-sm font-medium text-blue-600">
+                            {{ num }}
+                        </span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            {{ num }}
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        <span class="sr-only">{% trans "Next" %}</span>
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle HTMX after swap to update URL with search parameters
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'patientsTable') {
+            const url = new URL(window.location);
+            const form = evt.detail.trigger.closest('form');
+            const formData = new FormData(form);
+            
+            // Update URL with form data
+            for (let [key, value] of formData.entries()) {
+                if (value) {
+                    url.searchParams.set(key, value);
+                } else {
+                    url.searchParams.delete(key);
+                }
+            }
+            
+            // Update browser history without reload
+            window.history.pushState({}, '', url);
+        }
+    });
+</script>
+{% endblock %}

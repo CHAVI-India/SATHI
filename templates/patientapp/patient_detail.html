@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Patient Details" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Patient Basic Information -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-900">{% trans "Patient Information" %}</h2>
+        </div>
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">{% trans "Patient ID" %}</p>
+                    <p class="mt-1 text-lg text-gray-900">{{ patient.patient_id }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">{% trans "Name" %}</p>
+                    <p class="mt-1 text-lg text-gray-900">{{ patient.name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">{% trans "Age" %}</p>
+                    <p class="mt-1 text-lg text-gray-900">{{ patient.age }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">{% trans "Gender" %}</p>
+                    <p class="mt-1 text-lg text-gray-900">{{ patient.gender }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">{% trans "Institution" %}</p>
+                    <p class="mt-1 text-lg text-gray-900">{{ patient.institution.name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">{% trans "Created Date" %}</p>
+                    <p class="mt-1 text-lg text-gray-900">{{ patient.created_date|date:"F j, Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagnoses Section -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-gray-900">{% trans "Diagnoses" %}</h2>
+            {% if perms.patientapp.add_diagnosis %}
+            <a href="{% url 'diagnosis_create' patient.id %}" 
+               target="_blank"
+               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+                {% trans "Add Diagnosis" %}
+            </a>
+            {% endif %}
+        </div>
+        <div class="px-6 py-4">
+            <div class="space-y-4">
+                {% for diagnosis in diagnoses %}
+                <div class="border rounded-lg p-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-lg font-medium text-gray-900">{{ diagnosis.diagnosis }}</p>
+                            <p class="text-sm text-gray-500">{{ diagnosis.created_date|date:"F j, Y" }}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            {% if perms.patientapp.change_diagnosis %}
+                            <a href="{% url 'diagnosis_update' diagnosis.id %}"
+                               target="_blank"
+                               class="text-blue-600 hover:text-blue-900">
+                                {% trans "Edit" %}
+                            </a>
+                            {% endif %}
+                            {% if perms.patientapp.delete_diagnosis %}
+                            <a href="{% url 'diagnosis_delete' diagnosis.id %}"
+                               target="_blank"
+                               class="text-red-600 hover:text-red-900">
+                                {% trans "Delete" %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Treatments for this diagnosis -->
+                    <div class="mt-4">
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">{% trans "Treatments" %}</h3>
+                        <div class="space-y-2">
+                            {% for treatment in diagnosis.treatment_set.all %}
+                            <div class="bg-gray-50 rounded p-3">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="font-medium">{{ treatment.treatment_intent }}</p>
+                                        <p class="text-sm text-gray-500">
+                                            {% for type in treatment.treatment_type.all %}
+                                            {{ type.treatment_type }}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </p>
+                                        {% if treatment.date_of_start_of_treatment %}
+                                        <p class="text-sm text-gray-500">
+                                            {% trans "Started" %}: {{ treatment.date_of_start_of_treatment|date:"F j, Y" }}
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        {% if perms.patientapp.change_treatment %}
+                                        <a href="{% url 'treatment_update' treatment.id %}"
+                                           target="_blank"
+                                           class="text-blue-600 hover:text-blue-900">
+                                            {% trans "Edit" %}
+                                        </a>
+                                        {% endif %}
+                                        {% if perms.patientapp.delete_treatment %}
+                                        <a href="{% url 'treatment_delete' treatment.id %}"
+                                           target="_blank"
+                                           class="text-red-600 hover:text-red-900">
+                                            {% trans "Delete" %}
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-gray-500">{% trans "No treatments recorded" %}</p>
+                            {% endfor %}
+                            
+                            {% if perms.patientapp.add_treatment %}
+                            <a href="{% url 'treatment_create' diagnosis.id %}"
+                               target="_blank"
+                               class="mt-2 text-blue-600 hover:text-blue-900">
+                                {% trans "Add Treatment" %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500">{% trans "No diagnoses recorded" %}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

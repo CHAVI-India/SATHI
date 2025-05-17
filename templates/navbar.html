@@ -13,6 +13,9 @@
             {% if user.is_staff %}
             <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Admin" %}</a>
             {% endif %}
+            {% if user.is_authenticated and perms.patientapp.add_patient %}
+            <a href="{% url 'patient_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Patients" %}</a>
+            {% endif %}
             {% if user.is_authenticated and perms.promapp.view_questionnaire %}
             <div class="relative group inline-block">
               <button class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium flex items-center" aria-haspopup="true">
@@ -116,7 +119,9 @@
       {% if user.is_staff %}
       <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Admin" %}</a>
       {% endif %}
-      
+      {% if user.is_authenticated and perms.patientapp.add_patient %}
+      <a href="{% url 'patient_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Patients" %}</a>
+      {% endif %}
       {% if user.is_authenticated and perms.promapp.view_questionnaire %}
       <div class="py-2">
         <div class="text-white px-3 py-2 font-medium">{% trans "Instruments" %}</div>

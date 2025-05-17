@@ -1,23 +1,80 @@
-from django.shortcuts import render, redirect
-from django.views.generic import ListView, DetailView, CreateView
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils.translation import gettext_lazy as _
 from django.db import transaction
-from .models import Patient, Diagnosis, Treatment
+from django.db.models import Q
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.http import JsonResponse
+from .models import Patient, Diagnosis, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
 from .forms import PatientForm
 
 # Create your views here.
 
 def patient_list(request):
+    # Get filter parameters
+    search_query = request.GET.get('search', '')
+    institution_id = request.GET.get('institution', '')
+    gender = request.GET.get('gender', '')
+    
+    # Start with base queryset
     patients = Patient.objects.all()
-    return render(request, 'patientapp/patient_list.html', {'patients': patients})
+    
+    # Apply filters
+    if search_query:
+        patients = patients.filter(
+            Q(name__icontains=search_query) |
+            Q(patient_id__icontains=search_query)
+        )
+    
+    if institution_id:
+        patients = patients.filter(institution_id=institution_id)
+    
+    if gender:
+        patients = patients.filter(gender=gender)
+    
+    # Get all institutions for the filter dropdown
+    institutions = Institution.objects.all()
+    
+    # Get gender choices for the filter dropdown
+    gender_choices = GenderChoices.choices
+    
+    # Pagination
+    page = request.GET.get('page', 1)
+    paginator = Paginator(patients, 10)  # Show 10 patients per page
+    
+    try:
+        patients = paginator.page(page)
+    except PageNotAnInteger:
+        patients = paginator.page(1)
+    except EmptyPage:
+        patients = paginator.page(paginator.num_pages)
+    
+    context = {
+        'patients': patients,
+        'institutions': institutions,
+        'gender_choices': gender_choices,
+        'is_paginated': patients.has_other_pages(),
+        'page_obj': patients,
+    }
+    
+    # If this is an HTMX request, only return the table part
+    if request.headers.get('HX-Request'):
+        return render(request, 'patientapp/partials/patient_table.html', context)
+    
+    return render(request, 'patientapp/patient_list.html', context)
 
 def patient_detail(request, pk):
-    patient = Patient.objects.get(pk=pk)
-    return render(request, 'patientapp/patient_detail.html', {'patient': patient})
+    patient = get_object_or_404(Patient, pk=pk)
+    diagnoses = patient.diagnosis_set.all().order_by('-created_date')
+    context = {
+        'patient': patient,
+        'diagnoses': diagnoses,
+    }
+    return render(request, 'patientapp/patient_detail.html', context)
 
 def diagnosis_list(request):
     diagnoses = Diagnosis.objects.all()
@@ -72,6 +129,96 @@ class PatientCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView)
         context = super().get_context_data(**kwargs)
         context['title'] = _('Add New Patient')
         return context
+
+# Diagnosis Views
+class DiagnosisCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    model = Diagnosis
+    fields = ['diagnosis']
+    template_name = 'patientapp/diagnosis_form.html'
+    permission_required = 'patientapp.add_diagnosis'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['patient'] = get_object_or_404(Patient, pk=self.kwargs['patient_pk'])
+        context['title'] = _('Add Diagnosis')
+        return context
+
+    def form_valid(self, form):
+        form.instance.patient = get_object_or_404(Patient, pk=self.kwargs['patient_pk'])
+        messages.success(self.request, _('Diagnosis added successfully.'))
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('patient_detail', kwargs={'pk': self.kwargs['patient_pk']})
+
+class DiagnosisUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Diagnosis
+    fields = ['diagnosis']
+    template_name = 'patientapp/diagnosis_form.html'
+    permission_required = 'patientapp.change_diagnosis'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('Edit Diagnosis')
+        return context
+
+    def get_success_url(self):
+        return reverse('patient_detail', kwargs={'pk': self.object.patient.pk})
+
+class DiagnosisDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = Diagnosis
+    template_name = 'patientapp/diagnosis_confirm_delete.html'
+    permission_required = 'patientapp.delete_diagnosis'
+
+    def get_success_url(self):
+        return reverse('patient_detail', kwargs={'pk': self.object.patient.pk})
+
+# Treatment Views
+class TreatmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    model = Treatment
+    fields = ['treatment_type', 'treatment_intent', 'date_of_start_of_treatment']
+    template_name = 'patientapp/treatment_form.html'
+    permission_required = 'patientapp.add_treatment'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['diagnosis'] = get_object_or_404(Diagnosis, pk=self.kwargs['diagnosis_pk'])
+        context['treatment_types'] = TreatmentType.objects.all()
+        context['treatment_intents'] = TreatmentIntentChoices.choices
+        context['title'] = _('Add Treatment')
+        return context
+
+    def form_valid(self, form):
+        form.instance.diagnosis = get_object_or_404(Diagnosis, pk=self.kwargs['diagnosis_pk'])
+        messages.success(self.request, _('Treatment added successfully.'))
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('patient_detail', kwargs={'pk': self.object.diagnosis.patient.pk})
+
+class TreatmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Treatment
+    fields = ['treatment_type', 'treatment_intent', 'date_of_start_of_treatment']
+    template_name = 'patientapp/treatment_form.html'
+    permission_required = 'patientapp.change_treatment'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['treatment_types'] = TreatmentType.objects.all()
+        context['treatment_intents'] = TreatmentIntentChoices.choices
+        context['title'] = _('Edit Treatment')
+        return context
+
+    def get_success_url(self):
+        return reverse('patient_detail', kwargs={'pk': self.object.diagnosis.patient.pk})
+
+class TreatmentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = Treatment
+    template_name = 'patientapp/treatment_confirm_delete.html'
+    permission_required = 'patientapp.delete_treatment'
+
+    def get_success_url(self):
+        return reverse('patient_detail', kwargs={'pk': self.object.diagnosis.patient.pk})
 
 
 
