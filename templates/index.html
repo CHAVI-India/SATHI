@@ -19,7 +19,7 @@
                         <h2 class="text-xl font-semibold text-blue-800 mb-3">{% trans "For Patients" %}</h2>
                         <p>{% trans "Complete questionnaires about your health and well-being. Your feedback helps healthcare providers understand your needs better." %}</p>
                         <div class="mt-4">
-                            <a href="#" class="inline-block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
+                            <a href="{% url 'my_questionnaire_list' %}" class="inline-block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
                                 {% trans "Complete a Questionnaire" %}
                             </a>
                         </div>

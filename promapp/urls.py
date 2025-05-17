@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import MyQuestionnaireListView
 
 urlpatterns = [
     # Questionnaire URLs
@@ -34,4 +35,5 @@ urlpatterns = [
     path('remove-likert-option/', views.remove_likert_option, name='remove_likert_option'),
     path('patients/<uuid:pk>/questionnaires/', views.PatientQuestionnaireManagementView.as_view(), name='patient_questionnaire_management'),
     path('patient-questionnaires/', views.PatientQuestionnaireListView.as_view(), name='patient_questionnaire_list'),
+    path('my-questionnaires/', MyQuestionnaireListView.as_view(), name='my_questionnaire_list'),
 ] 

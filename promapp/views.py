@@ -978,3 +978,20 @@ class PatientQuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, 
         context['current_questionnaire_count'] = self.request.GET.get('questionnaire_count', '')
         context['current_sort'] = self.request.GET.get('sort', 'name')
         return context
+
+class MyQuestionnaireListView(LoginRequiredMixin, ListView):
+    model = PatientQuestionnaire
+    template_name = 'promapp/my_questionnaire_list.html'
+    context_object_name = 'patient_questionnaires'
+
+    def get_queryset(self):
+        # Only show questionnaires for the logged-in patient
+        return PatientQuestionnaire.objects.filter(
+            patient__user=self.request.user,
+            display_questionnaire=True
+        ).select_related('questionnaire')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['patient'] = getattr(self.request.user, 'patient', None)
+        return context

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "My Questionnaires" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">{% trans "Available Questionnaires" %}</h1>
+  {% if patient_questionnaires %}
+    <div class="space-y-6">
+      {% for pq in patient_questionnaires %}
+        <div class="bg-white shadow rounded-lg p-6 w-full">
+          <h2 class="text-xl font-semibold text-blue-800">{{ pq.questionnaire.name }}</h2>
+          <p class="text-gray-700 mb-4">{{ pq.questionnaire.description }}</p>
+          <a href="{% url 'questionnaire_response' pq.id %}" class="inline-block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
+            {% trans "Answer Questionnaire" %}
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+      <p class="text-yellow-800">{% trans "No questionnaires are currently available for you." %}</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %} 
