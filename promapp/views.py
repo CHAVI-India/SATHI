@@ -962,16 +962,19 @@ class PatientQuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, 
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Add questionnaire counts for each patient
         for patient in context['patients']:
             # Count only unique questionnaire assignments
             patient.questionnaire_count = PatientQuestionnaire.objects.filter(
                 patient=patient
             ).values('questionnaire').distinct().count()
-        
+            # Add questionnaire names for display
+            patient.questionnaire_names = list(
+                PatientQuestionnaire.objects.filter(patient=patient)
+                .select_related('questionnaire')
+                .values_list('questionnaire__translations__name', flat=True)
+            )
         # Add current filter values to context
         context['current_search'] = self.request.GET.get('search', '')
         context['current_questionnaire_count'] = self.request.GET.get('questionnaire_count', '')
         context['current_sort'] = self.request.GET.get('sort', 'name')
-        
         return context
