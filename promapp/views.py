@@ -168,21 +168,76 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
         if item_selection_form.is_valid():
             selected_items = item_selection_form.cleaned_data.get('items', [])
             
-            # Remove existing item associations
-            QuestionnaireItem.objects.filter(
-                questionnaire=questionnaire,
-            ).delete()
+            # Get existing questionnaire items and their rules/groups
+            existing_items = QuestionnaireItem.objects.filter(
+                questionnaire=questionnaire
+            ).select_related('item').prefetch_related(
+                'visibility_rules',
+                'rule_groups'
+            )
             
-            # Create new associations for selected items
+            # Create a mapping of item IDs to their existing questionnaire items
+            existing_item_map = {str(qi.item.id): qi for qi in existing_items}
+            
+            # Track which items we've processed
+            processed_item_ids = set()
+            
+            # First pass: Update question numbers without saving
+            updated_items = []
             for item in selected_items:
-                # Get the question number for this item
+                question_number = self.request.POST.get(f'question_number_{item.id}')
+                if not question_number:
+                    continue
+                    
+                question_number = int(question_number)
+                if str(item.id) in existing_item_map:
+                    qi = existing_item_map[str(item.id)]
+                    if qi.question_number != question_number:
+                        # Check if this change would invalidate any rules
+                        affected_rules = QuestionnaireItemRule.objects.filter(
+                            models.Q(
+                                questionnaire_item=qi,
+                                dependent_item__question_number__gte=question_number
+                            ) |
+                            models.Q(
+                                dependent_item=qi,
+                                questionnaire_item__question_number__lte=question_number
+                            )
+                        )
+                        if affected_rules.exists():
+                            messages.error(
+                                self.request,
+                                f'Cannot change question number for "{qi.item.name}" as it would invalidate existing rules. '
+                                'Please update or remove affected rules first.'
+                            )
+                            return redirect('questionnaire_update', pk=questionnaire.id)
+                        
+                        qi.question_number = question_number
+                        updated_items.append(qi)
+                
+                processed_item_ids.add(str(item.id))
+            
+            # Second pass: Create new items and update existing ones
+            for item in selected_items:
                 question_number = self.request.POST.get(f'question_number_{item.id}')
                 
-                QuestionnaireItem.objects.create(
-                    questionnaire=questionnaire,
-                    item=item,
-                    question_number=question_number if question_number else None
-                )
+                if str(item.id) in existing_item_map:
+                    # Update existing questionnaire item
+                    qi = existing_item_map[str(item.id)]
+                    if qi not in updated_items:  # Skip if already updated in first pass
+                        qi.question_number = question_number if question_number else None
+                        qi.save()
+                else:
+                    # Create new questionnaire item
+                    qi = QuestionnaireItem.objects.create(
+                        questionnaire=questionnaire,
+                        item=item,
+                        question_number=question_number if question_number else None
+                    )
+            
+            # Remove questionnaire items that are no longer selected
+            items_to_remove = existing_items.exclude(item__id__in=processed_item_ids)
+            items_to_remove.delete()
             
             # Use getattr with default value instead of safe_translation_getter
             questionnaire_name = getattr(questionnaire, 'name', 'Questionnaire')
