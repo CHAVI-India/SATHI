@@ -37,7 +37,12 @@
     {% endif %}
 
     <!-- Questionnaire Form -->
-    <form method="post" id="questionnaire-form" class="space-y-8">
+    {% if not can_answer %}
+    <div class="alert alert-warning">
+        {% blocktrans %}You cannot answer this questionnaire yet. You can answer it again in {{ next_available|timeuntil }}.{% endblocktrans %}
+    </div>
+    {% endif %}
+    <form method="post" id="questionnaire-form" class="space-y-8" {% if not can_answer %}disabled{% endif %}>
       {% csrf_token %}
       
       {% for qi in questionnaire_items %}
