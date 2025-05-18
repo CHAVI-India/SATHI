@@ -8,6 +8,7 @@ from parler.models import TranslatableModel, TranslatedFields
 from django.db.models import Q
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django.utils.safestring import mark_safe
 
 # Create your models here.
 
@@ -400,4 +401,6 @@ def validate_question_number_change(sender, instance, **kwargs):
             rule_details.append("1. Update or remove the affected rules")
             rule_details.append("2. Ensure all dependent questions come before the questions that depend on them")
             
-            raise ValidationError('\n'.join(rule_details))
+            # Join with HTML line breaks and mark as safe
+            error_message = mark_safe('<br>'.join(rule_details))
+            raise ValidationError(error_message)
