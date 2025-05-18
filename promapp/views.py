@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
 from django.urls import reverse_lazy, reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
 from django.contrib import messages
@@ -19,6 +19,7 @@ from django.utils.translation import get_language
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Prefetch
+import json
 
 # Create your views here.
 
@@ -142,14 +143,24 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
         context['questionnaire_items_structured'] = questionnaire_items_structured
         item_to_question_number = {str(qi.item.id): qi.question_number for qi in raw_items}
         current_language = get_language()
-        available_items = Item.objects.language(current_language).all().order_by('construct_scale__name', 'translations__name')
+        
+        # Get all items and order them by their question numbers
+        available_items = Item.objects.language(current_language).all()
         current_items = Item.objects.filter(
             id__in=raw_items.values_list('item', flat=True)
         )
+        
+        # Create a list of items with their question numbers
+        items_with_numbers = []
         for item in available_items:
             item.question_number = item_to_question_number.get(str(item.id))
+            items_with_numbers.append(item)
+        
+        # Sort items by question number (None values go to the end)
+        items_with_numbers.sort(key=lambda x: (x.question_number is None, x.question_number))
+        
         context['item_selection_form'] = ItemSelectionForm(initial={'items': current_items})
-        context['available_items'] = available_items
+        context['available_items'] = items_with_numbers
         context['construct_scales'] = ConstructScale.objects.all().order_by('name')
         context['rules'] = QuestionnaireItemRule.objects.filter(
             questionnaire_item__in=raw_items
@@ -168,13 +179,10 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
         if item_selection_form.is_valid():
             selected_items = item_selection_form.cleaned_data.get('items', [])
             
-            # Get existing questionnaire items and their rules/groups
+            # Get existing questionnaire items
             existing_items = QuestionnaireItem.objects.filter(
                 questionnaire=questionnaire
-            ).select_related('item').prefetch_related(
-                'visibility_rules',
-                'rule_groups'
-            )
+            ).select_related('item')
             
             # Create a mapping of item IDs to their existing questionnaire items
             existing_item_map = {str(qi.item.id): qi for qi in existing_items}
@@ -182,70 +190,42 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
             # Track which items we've processed
             processed_item_ids = set()
             
-            # First pass: Update question numbers without saving
-            updated_items = []
-            used_question_numbers = set()
+            # Process selected items
             for item in selected_items:
                 question_number = self.request.POST.get(f'question_number_{item.id}')
-                if not question_number:
-                    continue
-                question_number = int(question_number)
-                if question_number in used_question_numbers:
-                    messages.error(self.request, f'Duplicate question number {question_number} detected. Please ensure all question numbers are unique.')
-                    return redirect('questionnaire_update', pk=questionnaire.id)
-                used_question_numbers.add(question_number)
-                if str(item.id) in existing_item_map:
-                    qi = existing_item_map[str(item.id)]
-                    if qi.question_number != question_number:
-                        # Check if this change would invalidate any rules
-                        affected_rules = QuestionnaireItemRule.objects.filter(
-                            models.Q(
-                                questionnaire_item=qi,
-                                dependent_item__question_number__gte=question_number
-                            ) |
-                            models.Q(
-                                dependent_item=qi,
-                                questionnaire_item__question_number__lte=question_number
-                            )
-                        )
-                        if affected_rules.exists():
-                            messages.error(
-                                self.request,
-                                f'Cannot change question number for "{qi.item.name}" as it would invalidate existing rules. '
-                                'Please update or remove affected rules first.'
-                            )
-                            return redirect('questionnaire_update', pk=questionnaire.id)
-                        qi.question_number = question_number
-                        updated_items.append(qi)
-                processed_item_ids.add(str(item.id))
-            # Second pass: Create new items and update existing ones
-            max_qn = QuestionnaireItem.objects.filter(questionnaire=questionnaire).aggregate(models.Max('question_number'))['question_number__max'] or 0
-            for item in selected_items:
-                question_number = self.request.POST.get(f'question_number_{item.id}')
-                if not question_number:
-                    # Assign next available number
-                    max_qn += 1
-                    question_number = max_qn
-                if str(item.id) in existing_item_map:
-                    qi = existing_item_map[str(item.id)]
-                    if qi not in updated_items:  # Skip if already updated in first pass
-                        qi.question_number = question_number if question_number else None
-                        qi.save()
-                else:
+                if question_number:
+                    try:
+                        question_number = int(question_number)
+                    except (ValueError, TypeError):
+                        question_number = None
+                
+                if str(item.id) not in existing_item_map:
                     # Create new questionnaire item
                     QuestionnaireItem.objects.create(
                         questionnaire=questionnaire,
                         item=item,
-                        question_number=question_number if question_number else None
+                        question_number=question_number
                     )
+                else:
+                    # Update existing questionnaire item
+                    qi = existing_item_map[str(item.id)]
+                    qi.question_number = question_number
+                    qi.save()
+                
+                processed_item_ids.add(str(item.id))
+            
             # Remove questionnaire items that are no longer selected
             items_to_remove = existing_items.exclude(item__id__in=processed_item_ids)
-            items_to_remove.delete()
+            if items_to_remove.exists():
+                items_to_remove.delete()
+            
             questionnaire_name = getattr(questionnaire, 'name', 'Questionnaire')
             messages.success(self.request, f"Questionnaire '{questionnaire_name}' updated successfully with {len(selected_items)} items.")
         else:
             messages.warning(self.request, "Questionnaire updated, but there was an issue with item selection.")
-        return redirect(self.success_url)
+        
+        # Stay on the same update page after saving
+        return redirect('questionnaire_update', pk=questionnaire.id)
 
 
 class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -1455,3 +1435,118 @@ def rule_group_summary(request, questionnaire_item_id):
     return render(request, 'promapp/partials/rule_group_summary.html', {
         'rule_groups': rule_groups
     })
+
+def save_question_numbers(request, pk):
+    """View to handle saving question numbers via AJAX."""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    
+    try:
+        questionnaire = get_object_or_404(Questionnaire, pk=pk)
+        
+        # Parse the JSON data
+        data = json.loads(request.body)
+        question_numbers = data.get('question_numbers', {})
+        removed_items = data.get('removed_items', [])
+        
+        if not question_numbers and not removed_items:
+            return JsonResponse({
+                'success': False,
+                'error': 'No changes provided'
+            })
+        
+        # Get all questionnaire items
+        questionnaire_items = QuestionnaireItem.objects.filter(
+            questionnaire=questionnaire
+        ).select_related('item')
+        
+        # Create a mapping of item IDs to questionnaire items
+        item_map = {str(qi.item.id): qi for qi in questionnaire_items}
+        
+        # Track used question numbers
+        used_numbers = set()
+        
+        # First pass: Validate all changes
+        for item_id, new_number in question_numbers.items():
+            if new_number in used_numbers:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Duplicate question number {new_number} detected'
+                })
+            used_numbers.add(new_number)
+            
+            if item_id in item_map:
+                qi = item_map[item_id]
+                if qi.question_number != new_number:
+                    # Check for rule conflicts
+                    affected_rules = QuestionnaireItemRule.objects.filter(
+                        models.Q(
+                            questionnaire_item=qi,
+                            dependent_item__question_number__gte=new_number
+                        ) |
+                        models.Q(
+                            dependent_item=qi,
+                            questionnaire_item__question_number__lte=new_number
+                        )
+                    )
+                    if affected_rules.exists():
+                        return JsonResponse({
+                            'success': False,
+                            'error': f'Cannot change question number for "{qi.item.name}" as it would invalidate existing rules'
+                        })
+        
+        # Second pass: Apply all changes
+        with transaction.atomic():
+            # Update question numbers for remaining items
+            for item_id, new_number in question_numbers.items():
+                if item_id in item_map:
+                    qi = item_map[item_id]
+                    if qi.question_number != new_number:
+                        qi.question_number = new_number
+                        qi.save()
+            
+            # Remove items that are no longer in the list
+            for item_id in removed_items:
+                if item_id in item_map:
+                    qi = item_map[item_id]
+                    # Check if there are any rules depending on this item
+                    dependent_rules = QuestionnaireItemRule.objects.filter(
+                        dependent_item=qi
+                    )
+                    if dependent_rules.exists():
+                        return JsonResponse({
+                            'success': False,
+                            'error': f'Cannot remove question "{qi.item.name}" as it is referenced by existing rules'
+                        })
+                    # Check if this item has any rules
+                    item_rules = QuestionnaireItemRule.objects.filter(
+                        questionnaire_item=qi
+                    )
+                    if item_rules.exists():
+                        return JsonResponse({
+                            'success': False,
+                            'error': f'Cannot remove question "{qi.item.name}" as it has existing rules'
+                        })
+                    # If no rules depend on this item and it has no rules, we can safely remove it
+                    qi.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Question numbers updated successfully'
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON data'
+        })
+    except Questionnaire.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Questionnaire not found'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'An error occurred: {str(e)}'
+        })

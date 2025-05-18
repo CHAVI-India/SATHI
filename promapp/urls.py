@@ -9,6 +9,7 @@ urlpatterns = [
     path('questionnaires/<uuid:pk>/', views.QuestionnaireDetailView.as_view(), name='questionnaire_detail'),
     path('questionnaires/<uuid:pk>/update/', views.QuestionnaireUpdateView.as_view(), name='questionnaire_update'),
     path('questionnaire/<uuid:pk>/respond/', views.QuestionnaireResponseView.as_view(), name='questionnaire_response'),
+    path('questionnaire/<uuid:pk>/save-question-numbers/', views.save_question_numbers, name='save_question_numbers'),
     
     # Item URLs
     path('items/', views.ItemListView.as_view(), name='item_list'),
