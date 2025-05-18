@@ -59,6 +59,8 @@ class ItemForm(TranslatableModelForm):
             'response_type': forms.Select(attrs={'hx-get': '/promapp/get-response-fields/', 
                                                'hx-target': '#response-fields',
                                                'hx-trigger': 'change'}),
+            'likert_response': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
+            'range_response': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -77,6 +79,10 @@ class ItemForm(TranslatableModelForm):
                 css_class='mt-3'
             )
         )
+        
+        # Set the querysets for the response fields
+        self.fields['likert_response'].queryset = LikertScale.objects.all()
+        self.fields['range_response'].queryset = RangeScale.objects.all()
         
         # Hide the appropriate fields based on the response type
         if self.instance.pk:

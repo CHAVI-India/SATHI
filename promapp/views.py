@@ -277,15 +277,38 @@ class ItemUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['likert_scales'] = LikertScale.objects.all()
         context['range_scales'] = RangeScale.objects.all()
+        
+        # Add the selected scales to the context
+        if self.object:
+            context['selected_likert_scale'] = str(self.object.likert_response.id) if self.object.likert_response else None
+            context['selected_range_scale'] = str(self.object.range_response.id) if self.object.range_response else None
+        
         return context
 
 
 def get_response_fields(request):
     response_type = request.GET.get('response_type')
+    selected_likert_scale = request.GET.get('likert_response')
+    selected_range_scale = request.GET.get('range_response')
+    
+    # Get the item instance if we're editing
+    item_id = request.GET.get('item_id')
+    if item_id:
+        try:
+            item = Item.objects.get(id=item_id)
+            if not selected_likert_scale and item.likert_response:
+                selected_likert_scale = str(item.likert_response.id)
+            if not selected_range_scale and item.range_response:
+                selected_range_scale = str(item.range_response.id)
+        except Item.DoesNotExist:
+            pass
+    
     html = render_to_string('promapp/response_fields.html', {
         'response_type': response_type,
         'likert_scales': LikertScale.objects.all(),
-        'range_scales': RangeScale.objects.all()
+        'range_scales': RangeScale.objects.all(),
+        'selected_likert_scale': selected_likert_scale,
+        'selected_range_scale': selected_range_scale
     })
     return HttpResponse(html)
 
