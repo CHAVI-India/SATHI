@@ -1,5 +1,6 @@
 1. Patients can answer PROM questionnaires in their own language
-2. Patients can see PROM questions with audio question
+2. Patients can see PROM questions with audio/video question
+3. Patients will be guided on which questionnaires they can answer and the order.
 3. Patients can see a patient portal like view of the answer summary for PRO questions with a secure login
 4. Doctors can see patient answers belonging to their institute
 5. PROM questionnaires can be tailored for diagnoses and other attributes.
@@ -11,10 +12,7 @@
 
 
 Notes:
-Use parler instead of django-modeltranslation module as when the migrations are created in the development environment they have all the translations in the git repository making it difficult to change languages at the local level. In case of parler, the translations are saved in a seperate table which makes it easy to migrate as seperate languages can be translated by simply adding the codes to the settings. 
-
-
-
+Use parler instead of django-modeltranslation module as when the migrations are created in the development environment they have all the translations in the git repository making it difficult to change languages at the local level. In case of parler, the translations are saved in a seperate table which makes it easy to migrate as seperate languages can be translated by simply adding the codes to the setting
 
 
 
