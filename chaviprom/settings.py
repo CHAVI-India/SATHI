@@ -233,9 +233,28 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
         },
+        'promapp_rules_file': {
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'promapp_rules.log'),
+            'level': 'DEBUG',
+            'formatter': 'verbose',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name} {message}',
+            'style': '{',
+        },
     },
     'root': {
         'handlers': ['console'],
         'level': 'DEBUG',
+    },
+    'loggers': {
+        'promapp.rules': {
+            'handlers': ['console', 'promapp_rules_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     },
 }

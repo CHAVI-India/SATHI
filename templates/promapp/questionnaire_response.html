@@ -188,6 +188,12 @@
 
 {% block extra_js %}
 <script>
+  // Get the rule evaluation URL template with a dummy UUID
+  const ruleEvalBase = "{% url 'evaluate_question_rules' '00000000-0000-0000-0000-000000000000' %}";
+  function getRuleEvalUrl(questionId) {
+    return ruleEvalBase.replace('00000000-0000-0000-0000-000000000000', questionId);
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     const questions = document.querySelectorAll('.question-item');
     const submitButton = document.getElementById('submit-btn');
@@ -237,7 +243,7 @@
     // Function to evaluate rules for a question
     async function evaluateRules(questionId) {
       try {
-        const response = await fetch(`/questionnaire/${questionId}/evaluate-rules/`, {
+        const response = await fetch(getRuleEvalUrl(questionId), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -245,7 +251,6 @@
           },
           body: JSON.stringify(responses)
         });
-        
         const data = await response.json();
         return data.should_show;
       } catch (error) {

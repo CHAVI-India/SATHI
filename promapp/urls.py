@@ -83,5 +83,5 @@ urlpatterns = [
     path('questionnaire-items/<uuid:questionnaire_item_id>/rule-groups/summary/', 
          views.rule_group_summary, 
          name='rule_group_summary'),
-    path('questionnaire/<int:questionnaire_item_id>/evaluate-rules/', views.evaluate_question_rules, name='evaluate_question_rules'),
+    path('questionnaire/<uuid:questionnaire_item_id>/evaluate-rules/', views.evaluate_question_rules, name='evaluate_question_rules'),
 ] 

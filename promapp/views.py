@@ -20,6 +20,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Prefetch
 import json
+import logging
 
 # Create your views here.
 
@@ -1618,9 +1619,11 @@ def evaluate_question_rules(request, questionnaire_item_id):
     View to evaluate rules for a questionnaire item.
     Returns JSON response indicating whether the question should be shown.
     """
+    logger = logging.getLogger("promapp.rules")
     try:
         questionnaire_item = get_object_or_404(QuestionnaireItem, pk=questionnaire_item_id)
         responses = json.loads(request.body)
+        logger.info(f"Evaluating rules for QuestionnaireItem {questionnaire_item_id} with responses: {responses}")
         
         # Get all rules and rule groups for this item
         rules = questionnaire_item.visibility_rules.all()
@@ -1628,16 +1631,18 @@ def evaluate_question_rules(request, questionnaire_item_id):
         
         # If no rules or groups, always show the question
         if not rules and not rule_groups:
+            logger.info(f"No rules or rule groups for QuestionnaireItem {questionnaire_item_id}. Showing question.")
             return JsonResponse({'should_show': True})
         
         # Evaluate individual rules
         rule_results = []
         for rule in rules:
             dependent_response = responses.get(str(rule.dependent_item.id))
+            logger.info(f"Evaluating rule: Dependent Q{rule.dependent_item.question_number}, Operator: {rule.operator}, Comparison: {rule.comparison_value}, User Response: {dependent_response}")
             if dependent_response is None:
+                logger.info(f"No response for dependent item {rule.dependent_item.id}. Skipping rule.")
                 continue
-                
-            # Convert response to appropriate type based on dependent item's response type
+            
             try:
                 if rule.dependent_item.item.response_type in ['Number', 'Likert', 'Range']:
                     dependent_value = float(dependent_response)
@@ -1646,7 +1651,6 @@ def evaluate_question_rules(request, questionnaire_item_id):
                     dependent_value = str(dependent_response)
                     comparison_value = str(rule.comparison_value)
                 
-                # Evaluate the rule based on operator
                 result = False
                 if rule.operator == 'EQUALS':
                     result = dependent_value == comparison_value
@@ -1664,9 +1668,10 @@ def evaluate_question_rules(request, questionnaire_item_id):
                     result = str(comparison_value) in str(dependent_value)
                 elif rule.operator == 'NOT_CONTAINS':
                     result = str(comparison_value) not in str(dependent_value)
-                
+                logger.info(f"Rule result: {result}")
                 rule_results.append((result, rule.logical_operator))
-            except (ValueError, TypeError):
+            except (ValueError, TypeError) as e:
+                logger.warning(f"Error evaluating rule: {e}")
                 continue
         
         # Evaluate rule groups
@@ -1675,13 +1680,13 @@ def evaluate_question_rules(request, questionnaire_item_id):
             group_rules = group.rules.all()
             if not group_rules:
                 continue
-                
             group_result = True
             for i, rule in enumerate(group_rules):
                 dependent_response = responses.get(str(rule.dependent_item.id))
+                logger.info(f"[Group {group.group_order}] Evaluating rule: Dependent Q{rule.dependent_item.question_number}, Operator: {rule.operator}, Comparison: {rule.comparison_value}, User Response: {dependent_response}")
                 if dependent_response is None:
+                    logger.info(f"[Group {group.group_order}] No response for dependent item {rule.dependent_item.id}. Skipping rule.")
                     continue
-                    
                 try:
                     if rule.dependent_item.item.response_type in ['Number', 'Likert', 'Range']:
                         dependent_value = float(dependent_response)
@@ -1689,8 +1694,6 @@ def evaluate_question_rules(request, questionnaire_item_id):
                     else:
                         dependent_value = str(dependent_response)
                         comparison_value = str(rule.comparison_value)
-                    
-                    # Evaluate the rule based on operator
                     result = False
                     if rule.operator == 'EQUALS':
                         result = dependent_value == comparison_value
@@ -1708,7 +1711,7 @@ def evaluate_question_rules(request, questionnaire_item_id):
                         result = str(comparison_value) in str(dependent_value)
                     elif rule.operator == 'NOT_CONTAINS':
                         result = str(comparison_value) not in str(dependent_value)
-                    
+                    logger.info(f"[Group {group.group_order}] Rule result: {result}")
                     if i > 0:
                         if rule.logical_operator == 'AND':
                             group_result = group_result and result
@@ -1716,15 +1719,13 @@ def evaluate_question_rules(request, questionnaire_item_id):
                             group_result = group_result or result
                     else:
                         group_result = result
-                except (ValueError, TypeError):
+                except (ValueError, TypeError) as e:
+                    logger.warning(f"[Group {group.group_order}] Error evaluating rule: {e}")
                     continue
-            
             group_results.append(group_result)
         
         # Combine all results
         should_show = True
-        
-        # First evaluate individual rules
         if rule_results:
             current_result = rule_results[0][0]
             for i in range(1, len(rule_results)):
@@ -1734,15 +1735,13 @@ def evaluate_question_rules(request, questionnaire_item_id):
                 else:  # OR
                     current_result = current_result or result
             should_show = should_show and current_result
-        
-        # Then evaluate rule groups
         if group_results:
             group_result = group_results[0]
             for result in group_results[1:]:
                 group_result = group_result or result
             should_show = should_show and group_result
-        
+        logger.info(f"Final should_show for QuestionnaireItem {questionnaire_item_id}: {should_show}")
         return JsonResponse({'should_show': should_show})
-        
     except Exception as e:
+        logger.error(f"Error in evaluate_question_rules: {e}")
         return JsonResponse({'error': str(e)}, status=400)
