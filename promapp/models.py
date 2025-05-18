@@ -353,21 +353,51 @@ def validate_question_number_change(sender, instance, **kwargs):
     try:
         old_instance = QuestionnaireItem.objects.get(pk=instance.pk)
     except QuestionnaireItem.DoesNotExist:
-        return  # If the object does not exist, skip validation
+        return
     if old_instance.question_number != instance.question_number:
         # Check if this change would invalidate any rules
         affected_rules = QuestionnaireItemRule.objects.filter(
+            # Case 1: This question has rules that depend on questions that would come after it
             models.Q(
                 questionnaire_item=instance,
-                dependent_item__question_number__gte=instance.question_number
+                dependent_item__question_number__gt=instance.question_number
             ) |
+            # Case 2: This question is a dependent item for rules of questions that would come before it
             models.Q(
                 dependent_item=instance,
-                questionnaire_item__question_number__lte=instance.question_number
+                questionnaire_item__question_number__lt=instance.question_number
             )
         )
         if affected_rules.exists():
-            raise ValidationError(
-                'Changing question number would invalidate existing rules. '
-                'Please update or remove affected rules first.'
-            )
+            rule_details = []
+            dependent_rules = []
+            dependent_item_rules = []
+            
+            for rule in affected_rules:
+                if rule.questionnaire_item == instance:
+                    dependent_rules.append(
+                        f"- Rule for question '{rule.questionnaire_item.item.name}' "
+                        f"based on question '{rule.dependent_item.item.name}'"
+                    )
+                else:
+                    dependent_item_rules.append(
+                        f"- Question '{rule.questionnaire_item.item.name}' "
+                        f"depends on this question"
+                    )
+            
+            if dependent_rules:
+                rule_details.append("This question has rules that depend on later questions:")
+                rule_details.extend(dependent_rules)
+            
+            if dependent_item_rules:
+                if rule_details:
+                    rule_details.append("")
+                rule_details.append("Other questions have rules that depend on this question:")
+                rule_details.extend(dependent_item_rules)
+            
+            rule_details.append("")
+            rule_details.append("To move this question, you must first:")
+            rule_details.append("1. Update or remove the affected rules")
+            rule_details.append("2. Ensure all dependent questions come before the questions that depend on them")
+            
+            raise ValidationError('\n'.join(rule_details))

@@ -172,60 +172,68 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
 
     @transaction.atomic
     def form_valid(self, form):
-        questionnaire = form.save()
-        
-        # Process selected items
-        item_selection_form = ItemSelectionForm(self.request.POST)
-        if item_selection_form.is_valid():
-            selected_items = item_selection_form.cleaned_data.get('items', [])
-            
-            # Get existing questionnaire items
-            existing_items = QuestionnaireItem.objects.filter(
-                questionnaire=questionnaire
-            ).select_related('item')
-            
-            # Create a mapping of item IDs to their existing questionnaire items
-            existing_item_map = {str(qi.item.id): qi for qi in existing_items}
-            
-            # Track which items we've processed
-            processed_item_ids = set()
+        try:
+            questionnaire = form.save()
             
             # Process selected items
-            for item in selected_items:
-                question_number = self.request.POST.get(f'question_number_{item.id}')
-                if question_number:
-                    try:
-                        question_number = int(question_number)
-                    except (ValueError, TypeError):
-                        question_number = None
+            item_selection_form = ItemSelectionForm(self.request.POST)
+            if item_selection_form.is_valid():
+                selected_items = item_selection_form.cleaned_data.get('items', [])
                 
-                if str(item.id) not in existing_item_map:
-                    # Create new questionnaire item
-                    QuestionnaireItem.objects.create(
-                        questionnaire=questionnaire,
-                        item=item,
-                        question_number=question_number
-                    )
-                else:
-                    # Update existing questionnaire item
-                    qi = existing_item_map[str(item.id)]
-                    qi.question_number = question_number
-                    qi.save()
+                # Get existing questionnaire items
+                existing_items = QuestionnaireItem.objects.filter(
+                    questionnaire=questionnaire
+                ).select_related('item')
                 
-                processed_item_ids.add(str(item.id))
+                # Create a mapping of item IDs to their existing questionnaire items
+                existing_item_map = {str(qi.item.id): qi for qi in existing_items}
+                
+                # Track which items we've processed
+                processed_item_ids = set()
+                
+                # Process selected items
+                for item in selected_items:
+                    question_number = self.request.POST.get(f'question_number_{item.id}')
+                    if question_number:
+                        try:
+                            question_number = int(question_number)
+                        except (ValueError, TypeError):
+                            question_number = None
+                    
+                    if str(item.id) not in existing_item_map:
+                        # Create new questionnaire item
+                        QuestionnaireItem.objects.create(
+                            questionnaire=questionnaire,
+                            item=item,
+                            question_number=question_number
+                        )
+                    else:
+                        # Update existing questionnaire item
+                        qi = existing_item_map[str(item.id)]
+                        qi.question_number = question_number
+                        qi.save()
+                    
+                    processed_item_ids.add(str(item.id))
+                
+                # Remove questionnaire items that are no longer selected
+                items_to_remove = existing_items.exclude(item__id__in=processed_item_ids)
+                if items_to_remove.exists():
+                    items_to_remove.delete()
+                
+                questionnaire_name = getattr(questionnaire, 'name', 'Questionnaire')
+                messages.success(self.request, f"Questionnaire '{questionnaire_name}' updated successfully with {len(selected_items)} items.")
+            else:
+                messages.warning(self.request, "Questionnaire updated, but there was an issue with item selection.")
             
-            # Remove questionnaire items that are no longer selected
-            items_to_remove = existing_items.exclude(item__id__in=processed_item_ids)
-            if items_to_remove.exists():
-                items_to_remove.delete()
+            # Stay on the same update page after saving
+            return redirect('questionnaire_update', pk=questionnaire.id)
             
-            questionnaire_name = getattr(questionnaire, 'name', 'Questionnaire')
-            messages.success(self.request, f"Questionnaire '{questionnaire_name}' updated successfully with {len(selected_items)} items.")
-        else:
-            messages.warning(self.request, "Questionnaire updated, but there was an issue with item selection.")
-        
-        # Stay on the same update page after saving
-        return redirect('questionnaire_update', pk=questionnaire.id)
+        except ValidationError as e:
+            messages.error(self.request, str(e))
+            return self.form_invalid(form)
+        except Exception as e:
+            messages.error(self.request, f"An error occurred while updating the questionnaire: {str(e)}")
+            return self.form_invalid(form)
 
 
 class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -1566,3 +1574,41 @@ def save_question_numbers(request, pk):
             'success': False,
             'error': f'An unexpected error occurred: {str(e)}. Please try again or contact support if the problem persists.'
         })
+
+class QuestionnaireRulesView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+    """
+    View for managing rules for a questionnaire.
+    """
+    model = Questionnaire
+    template_name = 'promapp/questionnaire_rules.html'
+    context_object_name = 'questionnaire'
+    permission_required = 'promapp.add_questionnaire'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        questionnaire = self.get_object()
+        
+        # Prefetch rules and rule groups for all questionnaire items
+        raw_items = QuestionnaireItem.objects.filter(
+            questionnaire=questionnaire
+        ).order_by('question_number').prefetch_related(
+            Prefetch('visibility_rules', queryset=QuestionnaireItemRule.objects.order_by('rule_order')),
+            Prefetch('rule_groups', queryset=QuestionnaireItemRuleGroup.objects.order_by('group_order').prefetch_related('rules'))
+        )
+        
+        questionnaire_items_structured = []
+        for item in raw_items:
+            rules = list(item.visibility_rules.all())
+            groups = list(item.rule_groups.all())
+            grouped_rule_ids = set()
+            for group in groups:
+                grouped_rule_ids.update(r.id for r in group.rules.all())
+            ungrouped_rules = [r for r in rules if r.id not in grouped_rule_ids]
+            questionnaire_items_structured.append({
+                'item': item,
+                'rules': ungrouped_rules,
+                'rule_groups': groups,
+            })
+        
+        context['questionnaire_items_structured'] = questionnaire_items_structured
+        return context

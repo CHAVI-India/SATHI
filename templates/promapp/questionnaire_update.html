@@ -40,6 +40,16 @@
     <div class="p-6">
       <h1 class="text-2xl font-bold text-blue-700 mb-6">{% trans "Update Questionnaire" %}</h1>
       
+      {% if messages %}
+      <div class="mb-6">
+        {% for message in messages %}
+          <div class="p-4 mb-4 rounded-md {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      
       <form method="post" class="space-y-6">
         {% csrf_token %}
         
@@ -174,6 +184,12 @@
         <div class="flex justify-end space-x-3">
           <a href="{% url 'questionnaire_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
             {% trans "Cancel" %}
+          </a>
+          <a href="{% url 'questionnaire_rules' questionnaire.id %}" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+            </svg>
+            {% trans "Manage Rules" %}
           </a>
           <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
             {% trans "Update Questionnaire" %}
