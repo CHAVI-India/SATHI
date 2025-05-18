@@ -9,8 +9,8 @@ urlpatterns = [
     path('questionnaires/<uuid:pk>/', views.QuestionnaireDetailView.as_view(), name='questionnaire_detail'),
     path('questionnaires/<uuid:pk>/update/', views.QuestionnaireUpdateView.as_view(), name='questionnaire_update'),
     path('questionnaires/<uuid:pk>/rules/', views.QuestionnaireRulesView.as_view(), name='questionnaire_rules'),
-    path('questionnaire/<uuid:pk>/respond/', views.QuestionnaireResponseView.as_view(), name='questionnaire_response'),
-    path('questionnaire/<uuid:pk>/save-question-numbers/', views.save_question_numbers, name='save_question_numbers'),
+    path('questionnaire/<uuid:pk>/response/', views.QuestionnaireResponseView.as_view(), name='questionnaire_response'),
+    path('questionnaires/<uuid:pk>/save-question-numbers/', views.save_question_numbers, name='save_question_numbers'),
     
     # Item URLs
     path('items/', views.ItemListView.as_view(), name='item_list'),
@@ -83,4 +83,5 @@ urlpatterns = [
     path('questionnaire-items/<uuid:questionnaire_item_id>/rule-groups/summary/', 
          views.rule_group_summary, 
          name='rule_group_summary'),
+    path('questionnaire/<int:questionnaire_item_id>/evaluate-rules/', views.evaluate_question_rules, name='evaluate_question_rules'),
 ] 

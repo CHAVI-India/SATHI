@@ -1612,3 +1612,137 @@ class QuestionnaireRulesView(LoginRequiredMixin, PermissionRequiredMixin, Detail
         
         context['questionnaire_items_structured'] = questionnaire_items_structured
         return context
+
+def evaluate_question_rules(request, questionnaire_item_id):
+    """
+    View to evaluate rules for a questionnaire item.
+    Returns JSON response indicating whether the question should be shown.
+    """
+    try:
+        questionnaire_item = get_object_or_404(QuestionnaireItem, pk=questionnaire_item_id)
+        responses = json.loads(request.body)
+        
+        # Get all rules and rule groups for this item
+        rules = questionnaire_item.visibility_rules.all()
+        rule_groups = questionnaire_item.rule_groups.all()
+        
+        # If no rules or groups, always show the question
+        if not rules and not rule_groups:
+            return JsonResponse({'should_show': True})
+        
+        # Evaluate individual rules
+        rule_results = []
+        for rule in rules:
+            dependent_response = responses.get(str(rule.dependent_item.id))
+            if dependent_response is None:
+                continue
+                
+            # Convert response to appropriate type based on dependent item's response type
+            try:
+                if rule.dependent_item.item.response_type in ['Number', 'Likert', 'Range']:
+                    dependent_value = float(dependent_response)
+                    comparison_value = float(rule.comparison_value)
+                else:
+                    dependent_value = str(dependent_response)
+                    comparison_value = str(rule.comparison_value)
+                
+                # Evaluate the rule based on operator
+                result = False
+                if rule.operator == 'EQUALS':
+                    result = dependent_value == comparison_value
+                elif rule.operator == 'NOT_EQUALS':
+                    result = dependent_value != comparison_value
+                elif rule.operator == 'GREATER_THAN':
+                    result = dependent_value > comparison_value
+                elif rule.operator == 'LESS_THAN':
+                    result = dependent_value < comparison_value
+                elif rule.operator == 'GREATER_THAN_EQUALS':
+                    result = dependent_value >= comparison_value
+                elif rule.operator == 'LESS_THAN_EQUALS':
+                    result = dependent_value <= comparison_value
+                elif rule.operator == 'CONTAINS':
+                    result = str(comparison_value) in str(dependent_value)
+                elif rule.operator == 'NOT_CONTAINS':
+                    result = str(comparison_value) not in str(dependent_value)
+                
+                rule_results.append((result, rule.logical_operator))
+            except (ValueError, TypeError):
+                continue
+        
+        # Evaluate rule groups
+        group_results = []
+        for group in rule_groups:
+            group_rules = group.rules.all()
+            if not group_rules:
+                continue
+                
+            group_result = True
+            for i, rule in enumerate(group_rules):
+                dependent_response = responses.get(str(rule.dependent_item.id))
+                if dependent_response is None:
+                    continue
+                    
+                try:
+                    if rule.dependent_item.item.response_type in ['Number', 'Likert', 'Range']:
+                        dependent_value = float(dependent_response)
+                        comparison_value = float(rule.comparison_value)
+                    else:
+                        dependent_value = str(dependent_response)
+                        comparison_value = str(rule.comparison_value)
+                    
+                    # Evaluate the rule based on operator
+                    result = False
+                    if rule.operator == 'EQUALS':
+                        result = dependent_value == comparison_value
+                    elif rule.operator == 'NOT_EQUALS':
+                        result = dependent_value != comparison_value
+                    elif rule.operator == 'GREATER_THAN':
+                        result = dependent_value > comparison_value
+                    elif rule.operator == 'LESS_THAN':
+                        result = dependent_value < comparison_value
+                    elif rule.operator == 'GREATER_THAN_EQUALS':
+                        result = dependent_value >= comparison_value
+                    elif rule.operator == 'LESS_THAN_EQUALS':
+                        result = dependent_value <= comparison_value
+                    elif rule.operator == 'CONTAINS':
+                        result = str(comparison_value) in str(dependent_value)
+                    elif rule.operator == 'NOT_CONTAINS':
+                        result = str(comparison_value) not in str(dependent_value)
+                    
+                    if i > 0:
+                        if rule.logical_operator == 'AND':
+                            group_result = group_result and result
+                        else:  # OR
+                            group_result = group_result or result
+                    else:
+                        group_result = result
+                except (ValueError, TypeError):
+                    continue
+            
+            group_results.append(group_result)
+        
+        # Combine all results
+        should_show = True
+        
+        # First evaluate individual rules
+        if rule_results:
+            current_result = rule_results[0][0]
+            for i in range(1, len(rule_results)):
+                result, operator = rule_results[i]
+                if operator == 'AND':
+                    current_result = current_result and result
+                else:  # OR
+                    current_result = current_result or result
+            should_show = should_show and current_result
+        
+        # Then evaluate rule groups
+        if group_results:
+            group_result = group_results[0]
+            for result in group_results[1:]:
+                group_result = group_result or result
+            should_show = should_show and group_result
+        
+        return JsonResponse({'should_show': should_show})
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)

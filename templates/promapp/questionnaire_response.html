@@ -13,6 +13,16 @@
       {% if patient_questionnaire.questionnaire.description %}
         <p class="text-gray-600">{{ patient_questionnaire.questionnaire.description }}</p>
       {% endif %}
+      <div class="mt-4">
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-600">
+            <span id="current-question-number">1</span> {% trans "of" %} <span id="total-questions">{{ questionnaire_items|length }}</span>
+          </div>
+        </div>
+        <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+          <div id="progress-bar" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Messages -->
@@ -27,18 +37,22 @@
     {% endif %}
 
     <!-- Questionnaire Form -->
-    <form method="post" class="space-y-8">
+    <form method="post" id="questionnaire-form" class="space-y-8">
       {% csrf_token %}
       
       {% for qi in questionnaire_items %}
-        <div class="question-item bg-gray-50 p-6 rounded-lg">
-          <!-- Question Number and Text -->
+        <div class="question-item bg-gray-50 p-6 rounded-lg {% if not forloop.first %}hidden{% endif %} transition-opacity duration-300 ease-in-out" 
+             data-question-number="{{ qi.question_number }}"
+             data-question-id="{{ qi.id }}"
+             data-rules="{{ qi.visibility_rules.all|length }}"
+             data-rule-groups="{{ qi.rule_groups.all|length }}">
+          
           <div class="flex items-start mb-4">
             <div class="question-number-display font-bold mr-4 w-8 h-8 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center">
               {{ qi.question_number }}
             </div>
             <div class="flex-1">
-              <h3 class="text-lg font-medium text-gray-900 mb-2">{{ qi.item.name }}</h3>
+              <h3 class="text-xl font-medium text-gray-900 mb-4">{{ qi.item.name }}</h3>
               {% if qi.item.media %}
                 <div class="mb-4">
                   <img src="{{ qi.item.media.url }}" alt="{{ qi.item.name }}" class="max-w-full h-auto rounded">
@@ -48,12 +62,12 @@
           </div>
 
           <!-- Response Field -->
-          <div class="response-field">
+          <div class="response-field mb-6">
             {% if qi.item.response_type == 'Text' %}
               <div class="form-group">
                 {{ form.response_qi.id }}
                 <textarea name="response_{{ qi.id }}" 
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          class="w-full px-4 py-3 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           rows="3"
                           placeholder="{% trans 'Enter your response here...' %}"></textarea>
               </div>
@@ -63,29 +77,64 @@
                 {{ form.response_qi.id }}
                 <input type="number" 
                        name="response_{{ qi.id }}"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       class="w-full px-4 py-3 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                        placeholder="{% trans 'Enter a number...' %}">
               </div>
 
             {% elif qi.item.response_type == 'Likert' %}
               <div class="form-group">
                 {{ form.response_qi.id }}
-                <div class="likert-options grid grid-cols-5 gap-2">
-                  {% for option in qi.item.likert_response.likertscaleresponseoption_set.all %}
-                    <label class="likert-option relative">
-                      <input type="radio" 
-                             name="response_{{ qi.id }}" 
-                             value="{{ option.option_value }}"
-                             class="peer sr-only">
-                      <div class="option-content p-2 text-center border rounded-md cursor-pointer peer-checked:bg-blue-600 peer-checked:text-white hover:bg-gray-100 peer-checked:hover:bg-blue-700">
-                        {% if option.option_media %}
-                          <img src="{{ option.option_media.url }}" alt="{{ option.option_text }}" class="w-8 h-8 mx-auto mb-1">
-                        {% endif %}
-                        <span class="text-sm">{{ option.option_text }}</span>
+                {% with option_count=qi.item.likert_response.likertscaleresponseoption_set.all|length %}
+                  {% if option_count <= 6 %}
+                    {% with col_count=option_count %}
+                      <div class="likert-options grid 
+                        grid-cols-1 
+                        sm:grid-cols-2 
+                        md:grid-cols-3 
+                        lg:grid-cols-{{ col_count }}
+                        gap-4 items-stretch">
+                        {% for option in qi.item.likert_response.likertscaleresponseoption_set.all %}
+                          <label class="likert-option relative">
+                            <input type="radio" 
+                                   name="response_{{ qi.id }}" 
+                                   value="{{ option.option_value }}"
+                                   class="peer sr-only">
+                            <div class="option-content p-2 min-w-[120px] h-full flex items-center justify-center text-center border-2 rounded-md cursor-pointer bg-blue-50 border-blue-200 text-blue-700 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white hover:bg-blue-100 peer-checked:hover:bg-green-700 transition-colors duration-200">
+                              {% if option.option_media %}
+                                <img src="{{ option.option_media.url }}" alt="{{ option.option_text }}" class="w-12 h-12 mx-auto mb-2">
+                              {% endif %}
+                              <span class="text-2xl font-medium">{{ option.option_text }}</span>
+                            </div>
+                          </label>
+                        {% endfor %}
                       </div>
-                    </label>
-                  {% endfor %}
-                </div>
+                    {% endwith %}
+                  {% else %}
+                    {% with col_count=6 %}
+                      <div class="likert-options grid 
+                        grid-cols-1 
+                        sm:grid-cols-2 
+                        md:grid-cols-3 
+                        lg:grid-cols-{{ col_count }}
+                        gap-4 items-stretch">
+                        {% for option in qi.item.likert_response.likertscaleresponseoption_set.all %}
+                          <label class="likert-option relative">
+                            <input type="radio" 
+                                   name="response_{{ qi.id }}" 
+                                   value="{{ option.option_value }}"
+                                   class="peer sr-only">
+                            <div class="option-content p-2 min-w-[120px] h-full flex items-center justify-center text-center border-2 rounded-md cursor-pointer bg-blue-50 border-blue-200 text-blue-700 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white hover:bg-blue-100 peer-checked:hover:bg-green-700 transition-colors duration-200">
+                              {% if option.option_media %}
+                                <img src="{{ option.option_media.url }}" alt="{{ option.option_text }}" class="w-12 h-12 mx-auto mb-2">
+                              {% endif %}
+                              <span class="text-2xl font-medium">{{ option.option_text }}</span>
+                            </div>
+                          </label>
+                        {% endfor %}
+                      </div>
+                    {% endwith %}
+                  {% endif %}
+                {% endwith %}
               </div>
 
             {% elif qi.item.response_type == 'Range' %}
@@ -97,23 +146,39 @@
                          min="{{ qi.item.range_response.min_value }}"
                          max="{{ qi.item.range_response.max_value }}"
                          step="{{ qi.item.range_response.increment }}"
-                         class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                         class="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                          oninput="this.nextElementSibling.value = this.value">
-                  <output class="text-center block mt-2 text-gray-700"></output>
+                  <output class="text-center block mt-4 text-2xl font-medium text-gray-700"></output>
                 </div>
-                <div class="flex justify-between text-sm text-gray-600 mt-1">
+                <div class="flex justify-between text-lg font-medium text-gray-600 mt-2">
                   <span>{{ qi.item.range_response.min_value }}</span>
                   <span>{{ qi.item.range_response.max_value }}</span>
                 </div>
               </div>
             {% endif %}
           </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-between mt-6 pt-4 border-t border-gray-200">
+            <button type="button" class="prev-btn px-4 py-2 text-base font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+              {% trans "Previous Question" %}
+            </button>
+            <button type="button" class="next-btn px-4 py-2 text-base font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center">
+              {% trans "Next Question" %}
+              <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
         </div>
       {% endfor %}
 
       <!-- Submit Button -->
       <div class="flex justify-end mt-8">
-        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+        <button type="submit" id="submit-btn" class="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 hidden">
           {% trans "Submit Responses" %}
         </button>
       </div>
@@ -123,9 +188,124 @@
 
 {% block extra_js %}
 <script>
-  // Initialize range slider outputs
-  document.querySelectorAll('input[type="range"]').forEach(slider => {
-    slider.nextElementSibling.value = slider.value;
+  document.addEventListener('DOMContentLoaded', function() {
+    const questions = document.querySelectorAll('.question-item');
+    const submitButton = document.getElementById('submit-btn');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('current-question-number');
+    let currentQuestionIndex = 0;
+    const responses = {};
+
+    // Function to show a specific question with fade effect
+    async function showQuestion(index) {
+      // Fade out current question
+      const currentQuestion = questions[currentQuestionIndex];
+      if (currentQuestion) {
+        currentQuestion.style.opacity = '0';
+        await new Promise(resolve => setTimeout(resolve, 300)); // Wait for fade out
+        currentQuestion.style.display = 'none';
+      }
+      
+      // Show and fade in new question
+      const newQuestion = questions[index];
+      newQuestion.style.display = 'block';
+      // Force a reflow
+      newQuestion.offsetHeight;
+      newQuestion.style.opacity = '1';
+      
+      // Update current index
+      currentQuestionIndex = index;
+      
+      // Update progress bar
+      const progress = ((index + 1) / questions.length) * 100;
+      progressBar.style.width = progress + '%';
+      progressText.textContent = `${index + 1} of ${questions.length}`;
+      
+      // Update button visibility for current question
+      const prevBtn = newQuestion.querySelector('.prev-btn');
+      const nextBtn = newQuestion.querySelector('.next-btn');
+      
+      // Enable/disable Previous button based on index
+      prevBtn.disabled = index === 0;
+      prevBtn.style.display = 'flex';  // Always show Previous button
+      
+      // Show/hide Next button based on index
+      nextBtn.style.display = index === questions.length - 1 ? 'none' : 'flex';
+      submitButton.style.display = index === questions.length - 1 ? 'block' : 'none';
+    }
+
+    // Function to evaluate rules for a question
+    async function evaluateRules(questionId) {
+      try {
+        const response = await fetch(`/questionnaire/${questionId}/evaluate-rules/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+          body: JSON.stringify(responses)
+        });
+        
+        const data = await response.json();
+        return data.should_show;
+      } catch (error) {
+        console.error('Error evaluating rules:', error);
+        return true; // Show question by default if there's an error
+      }
+    }
+
+    // Handle input changes
+    questions.forEach(question => {
+      const inputs = question.querySelectorAll('input, textarea');
+      inputs.forEach(input => {
+        input.addEventListener('change', async function() {
+          const questionId = question.dataset.questionId;
+          responses[questionId] = this.value;
+          
+          // Evaluate rules for subsequent questions
+          for (let i = currentQuestionIndex + 1; i < questions.length; i++) {
+            const nextQuestion = questions[i];
+            const shouldShow = await evaluateRules(nextQuestion.dataset.questionId);
+            if (!shouldShow) {
+              // Skip this question
+              continue;
+            }
+            // Show the next visible question
+            showQuestion(i);
+            break;
+          }
+        });
+      });
+    });
+
+    // Add click handlers for all navigation buttons
+    questions.forEach((question, index) => {
+      const prevBtn = question.querySelector('.prev-btn');
+      const nextBtn = question.querySelector('.next-btn');
+
+      prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+          showQuestion(currentQuestionIndex - 1);
+        }
+      });
+
+      nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < questions.length - 1) {
+          showQuestion(currentQuestionIndex + 1);
+        }
+      });
+    });
+
+    // Handle form submission
+    document.getElementById('questionnaire-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Submit the form without validation
+      this.submit();
+    });
+
+    // Show the first question
+    showQuestion(0);
   });
 </script>
 {% endblock %}
