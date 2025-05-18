@@ -23,6 +23,7 @@ from django.db.models import Prefetch
 import json
 import logging
 from datetime import datetime, timedelta
+from django.utils.timesince import timeuntil
 
 # Create your views here.
 
@@ -870,6 +871,25 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
         context = super().get_context_data(**kwargs)
         patient_questionnaire = self.get_object()
         
+        # Check if the questionnaire can be answered
+        last_response = QuestionnaireItemResponse.objects.filter(
+            patient_questionnaire=patient_questionnaire
+        ).order_by('-response_date').first()
+        
+        if last_response:
+            interval_seconds = patient_questionnaire.questionnaire.questionnaire_answer_interval
+            next_available = last_response.response_date + timedelta(seconds=interval_seconds)
+            can_answer = timezone.now() >= next_available
+        else:
+            can_answer = True
+            next_available = None
+        
+        if not can_answer:
+            messages.error(self.request, _('You cannot answer this questionnaire yet. You can answer it again in %(time)s.') % {
+                'time': timeuntil(next_available)
+            })
+            return redirect('my_questionnaire_list')
+        
         # Get all questionnaire items ordered by question number
         questionnaire_items = QuestionnaireItem.objects.filter(
             questionnaire=patient_questionnaire.questionnaire
@@ -890,6 +910,25 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
             return redirect('my_questionnaire_list')
             
         patient_questionnaire = self.get_object()
+        
+        # Check if the questionnaire can be answered
+        last_response = QuestionnaireItemResponse.objects.filter(
+            patient_questionnaire=patient_questionnaire
+        ).order_by('-response_date').first()
+        
+        if last_response:
+            interval_seconds = patient_questionnaire.questionnaire.questionnaire_answer_interval
+            next_available = last_response.response_date + timedelta(seconds=interval_seconds)
+            can_answer = timezone.now() >= next_available
+        else:
+            can_answer = True
+        
+        if not can_answer:
+            messages.error(request, _('You cannot answer this questionnaire yet. You can answer it again in %(time)s.') % {
+                'time': timeuntil(next_available)
+            })
+            return redirect('my_questionnaire_list')
+        
         questionnaire_items = QuestionnaireItem.objects.filter(
             questionnaire=patient_questionnaire.questionnaire
         ).order_by('question_number')

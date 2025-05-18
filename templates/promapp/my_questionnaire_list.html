@@ -4,23 +4,35 @@
 {% block title %}{% trans "My Questionnaires" %}{% endblock %}
 
 {% block content %}
+<style>
+  .hatched-bg {
+    background-image: repeating-linear-gradient(
+      45deg,
+      #f3f4f6,
+      #f3f4f6 10px,
+      #e5e7eb 10px,
+      #e5e7eb 20px
+    );
+  }
+</style>
+
 <div class="max-w-3xl mx-auto px-4 py-8">
   <h1 class="text-2xl font-bold mb-6">{% trans "Available Questionnaires" %}</h1>
   {% if patient_questionnaires %}
     <div class="space-y-6">
       {% for pq in patient_questionnaires %}
-        <div class="bg-white shadow rounded-lg p-6 w-full relative">
+        <div class="bg-white shadow rounded-lg p-6 w-full relative {% if not pq.can_answer %}hatched-bg{% endif %}">
           <!-- Timeline indicator -->
-          <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-200 rounded-l-lg"></div>
+          <div class="absolute left-0 top-0 bottom-0 w-1 {% if pq.can_answer %}bg-blue-200{% else %}bg-gray-300{% endif %} rounded-l-lg"></div>
           
           <!-- Order number circle -->
-          <div class="absolute -left-3 top-6 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+          <div class="absolute -left-3 top-6 w-6 h-6 {% if pq.can_answer %}bg-blue-600{% else %}bg-gray-500{% endif %} text-white rounded-full flex items-center justify-center text-sm font-semibold">
             {{ pq.questionnaire.questionnaire_order }}
           </div>
           
           <!-- Content -->
           <div class="ml-4">
-            <h2 class="text-xl font-semibold text-blue-800">{{ pq.questionnaire.name }}</h2>
+            <h2 class="text-xl font-semibold {% if pq.can_answer %}text-blue-800{% else %}text-gray-600{% endif %}">{{ pq.questionnaire.name }}</h2>
             <p class="text-gray-700 mb-4">{{ pq.questionnaire.description }}</p>
             
             <div class="mb-4">
