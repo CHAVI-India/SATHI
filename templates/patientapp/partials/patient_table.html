@@ -4,25 +4,31 @@
     <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
             <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {% trans "Patient ID" %}
+                <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                    {% trans "ID" %}
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                     {% trans "Name" %}
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
                     {% trans "Age" %}
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
                     {% trans "Gender" %}
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                     {% trans "Institution" %}
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {% trans "Created Date" %}
+                <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                    {% trans "Diagnoses" %}
                 </th>
-                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                    {% trans "Treatments" %}
+                </th>
+                <th scope="col" class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                    {% trans "Created" %}
+                </th>
+                <th scope="col" class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                     {% trans "Actions" %}
                 </th>
             </tr>
@@ -30,33 +36,58 @@
         <tbody class="bg-white divide-y divide-gray-200">
             {% for patient in patients %}
             <tr>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                     {{ patient.patient_id }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                     {{ patient.name }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 text-center">
                     {{ patient.age }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 text-center">
                     {{ patient.gender }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                     {{ patient.institution.name }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-4 py-2 text-sm text-gray-900">
+                    <div class="flex flex-wrap gap-1">
+                        {% for diagnosis in patient.diagnosis_set.all %}
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {{ diagnosis.diagnosis|truncatechars:20 }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </td>
+                <td class="px-4 py-2 text-sm text-gray-900">
+                    <div class="flex flex-wrap gap-1">
+                        {% for diagnosis in patient.diagnosis_set.all %}
+                            {% for treatment in diagnosis.treatment_set.all %}
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                {{ treatment.treatment_type.all|join:", "|truncatechars:20 }}
+                            </span>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                </td>
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 text-center">
                     {{ patient.created_date|date:"M d, Y" }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <a href="{% url 'patient_detail' patient.id %}" class="text-blue-600 hover:text-blue-900">
-                        {% trans "View" %}
-                    </a>
+                <td class="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">
+                    <div class="flex justify-end space-x-2">
+                        <a href="{% url 'patient_detail' patient.id %}" class="text-blue-600 hover:text-blue-900">
+                            {% trans "View" %}
+                        </a>
+                        <a href="{% url 'patient_questionnaire_management' patient.id %}" class="text-green-600 hover:text-green-900">
+                            {% trans "Manage" %}
+                        </a>
+                    </div>
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                <td colspan="9" class="px-4 py-2 text-center text-sm text-gray-500">
                     {% trans "No patients found" %}
                 </td>
             </tr>

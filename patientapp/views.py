@@ -19,6 +19,8 @@ def patient_list(request):
     search_query = request.GET.get('search', '')
     institution_id = request.GET.get('institution', '')
     gender = request.GET.get('gender', '')
+    diagnosis = request.GET.get('diagnosis', '')
+    treatment_type = request.GET.get('treatment_type', '')
     
     # Start with base queryset
     patients = Patient.objects.all()
@@ -36,11 +38,23 @@ def patient_list(request):
     if gender:
         patients = patients.filter(gender=gender)
     
+    if diagnosis:
+        patients = patients.filter(diagnosis__diagnosis__icontains=diagnosis).distinct()
+    
+    if treatment_type:
+        patients = patients.filter(diagnosis__treatment__treatment_type__treatment_type__icontains=treatment_type).distinct()
+    
     # Get all institutions for the filter dropdown
     institutions = Institution.objects.all()
     
     # Get gender choices for the filter dropdown
     gender_choices = GenderChoices.choices
+    
+    # Get unique diagnoses for the filter dropdown
+    diagnoses = Diagnosis.objects.values_list('diagnosis', flat=True).distinct()
+    
+    # Get unique treatment types for the filter dropdown
+    treatment_types = TreatmentType.objects.values_list('treatment_type', flat=True).distinct()
     
     # Pagination
     page = request.GET.get('page', 1)
@@ -57,6 +71,8 @@ def patient_list(request):
         'patients': patients,
         'institutions': institutions,
         'gender_choices': gender_choices,
+        'diagnoses': diagnoses,
+        'treatment_types': treatment_types,
         'is_paginated': patients.has_other_pages(),
         'page_obj': patients,
     }
