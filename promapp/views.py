@@ -958,6 +958,26 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
                         )
                 
                 messages.success(request, _('Your responses have been saved successfully.'))
+                
+                # Check if there's a redirect questionnaire
+                redirect_questionnaire = patient_questionnaire.questionnaire.questionnaire_redirect
+                if redirect_questionnaire:
+                    # Check if the patient has this questionnaire assigned
+                    try:
+                        next_patient_questionnaire = PatientQuestionnaire.objects.get(
+                            patient=patient_questionnaire.patient,
+                            questionnaire=redirect_questionnaire,
+                            display_questionnaire=True
+                        )
+                        # Redirect to the next questionnaire
+                        return redirect('questionnaire_response', pk=next_patient_questionnaire.id)
+                    except PatientQuestionnaire.DoesNotExist:
+                        # If the patient doesn't have the redirect questionnaire assigned,
+                        # just redirect to the questionnaire list
+                        messages.info(request, _('The next questionnaire is not available for you at this time.'))
+                        return redirect('my_questionnaire_list')
+                
+                # If no redirect questionnaire, go to the questionnaire list
                 return redirect('my_questionnaire_list')
                 
             except Exception as e:
