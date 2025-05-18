@@ -12,11 +12,39 @@ from django.utils.translation import get_language
 class QuestionnaireForm(TranslatableModelForm):
     name = TranslatedField()
     description = TranslatedField(form_class=forms.CharField, widget=forms.Textarea(attrs={'rows': 4}))
-    
+    questionnaire_answer_interval = forms.IntegerField(
+        required=False,
+        min_value=0,
+        help_text="Time interval between questionnaire attempts",
+        widget=forms.NumberInput(attrs={'class': 'interval-value'})
+    )
+    interval_unit = forms.ChoiceField(
+        required=False,
+        choices=[
+            ('seconds', 'Seconds'),
+            ('minutes', 'Minutes'),
+            ('hours', 'Hours'),
+            ('days', 'Days'),
+        ],
+        initial='seconds',
+        widget=forms.Select(attrs={'class': 'interval-unit'})
+    )
+    questionnaire_order = forms.IntegerField(
+        required=False,
+        min_value=0,
+        help_text="Order in which this questionnaire should be displayed"
+    )
+    questionnaire_redirect = forms.ModelChoiceField(
+        required=False,
+        queryset=Questionnaire.objects.all(),
+        help_text="Questionnaire to redirect to after completion",
+        empty_label="No redirect"
+    )
+
     class Meta:
         model = Questionnaire
-        fields = ['name', 'description']
-    
+        fields = ['name', 'description', 'questionnaire_answer_interval', 'questionnaire_order', 'questionnaire_redirect']
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
@@ -25,6 +53,42 @@ class QuestionnaireForm(TranslatableModelForm):
             Field('name', css_class='w-full px-3 py-2 border rounded'),
             Field('description', css_class='w-full px-3 py-2 border rounded'),
         )
+        # Exclude current questionnaire from redirect choices if editing
+        if self.instance and self.instance.pk:
+            self.fields['questionnaire_redirect'].queryset = Questionnaire.objects.exclude(pk=self.instance.pk)
+        
+        # Set initial values for interval fields if editing
+        if self.instance and self.instance.pk:
+            interval = self.instance.questionnaire_answer_interval
+            if interval:
+                if interval < 60:
+                    self.initial['interval_unit'] = 'seconds'
+                    self.initial['questionnaire_answer_interval'] = interval
+                elif interval < 3600:
+                    self.initial['interval_unit'] = 'minutes'
+                    self.initial['questionnaire_answer_interval'] = interval // 60
+                elif interval < 86400:
+                    self.initial['interval_unit'] = 'hours'
+                    self.initial['questionnaire_answer_interval'] = interval // 3600
+                else:
+                    self.initial['interval_unit'] = 'days'
+                    self.initial['questionnaire_answer_interval'] = interval // 86400
+
+    def clean(self):
+        cleaned_data = super().clean()
+        interval_value = cleaned_data.get('questionnaire_answer_interval')
+        interval_unit = cleaned_data.get('interval_unit')
+        
+        if interval_value is not None and interval_unit:
+            # Convert to seconds based on unit
+            if interval_unit == 'minutes':
+                cleaned_data['questionnaire_answer_interval'] = interval_value * 60
+            elif interval_unit == 'hours':
+                cleaned_data['questionnaire_answer_interval'] = interval_value * 3600
+            elif interval_unit == 'days':
+                cleaned_data['questionnaire_answer_interval'] = interval_value * 86400
+        
+        return cleaned_data
 
 
 class ItemSelectionForm(forms.Form):

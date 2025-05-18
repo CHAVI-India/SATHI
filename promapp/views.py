@@ -1098,11 +1098,11 @@ class MyQuestionnaireListView(LoginRequiredMixin, ListView):
     context_object_name = 'patient_questionnaires'
 
     def get_queryset(self):
-        # Only show questionnaires for the logged-in patient
+        # Only show questionnaires for the logged-in patient, ordered by questionnaire_order
         return PatientQuestionnaire.objects.filter(
             patient__user=self.request.user,
             display_questionnaire=True
-        ).select_related('questionnaire')
+        ).select_related('questionnaire').order_by('questionnaire__questionnaire_order')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -176,6 +176,9 @@ class Questionnaire(TranslatableModel):
         name = models.CharField(max_length=255, null=True, blank=True, help_text = "The name of the questionnaire"),
         description = models.TextField(null=True, blank=True, help_text = "The description of the questionnaire")
     )
+    questionnaire_answer_interval = models.IntegerField(default=0, help_text = "The interval in seconds between answering the same questionnaire by the same patient")
+    questionnaire_order = models.IntegerField(default=0, help_text = "The order of the questionnaire in the list of questionnaires for the patient")
+    questionnaire_redirect = models.ForeignKey('self', null=True, blank= True, on_delete=models.CASCADE, help_text = "The questionnaire to redirect to after the current questionnaire is answered",related_name="redirect_questionnaire")
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
