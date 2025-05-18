@@ -1439,7 +1439,7 @@ def rule_group_summary(request, questionnaire_item_id):
 def save_question_numbers(request, pk):
     """View to handle saving question numbers via AJAX."""
     if request.method != 'POST':
-        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+        return JsonResponse({'success': False, 'error': 'Invalid request method. Please use POST to update question numbers.'})
     
     try:
         questionnaire = get_object_or_404(Questionnaire, pk=pk)
@@ -1452,7 +1452,7 @@ def save_question_numbers(request, pk):
         if not question_numbers and not removed_items:
             return JsonResponse({
                 'success': False,
-                'error': 'No changes provided'
+                'error': 'No changes provided. Please select questions to update or remove.'
             })
         
         # Get all questionnaire items
@@ -1471,7 +1471,7 @@ def save_question_numbers(request, pk):
             if new_number in used_numbers:
                 return JsonResponse({
                     'success': False,
-                    'error': f'Duplicate question number {new_number} detected'
+                    'error': f'Duplicate question number {new_number} detected. Each question must have a unique number.'
                 })
             used_numbers.add(new_number)
             
@@ -1490,9 +1490,15 @@ def save_question_numbers(request, pk):
                         )
                     )
                     if affected_rules.exists():
+                        rule_details = []
+                        for rule in affected_rules:
+                            rule_details.append(
+                                f"- Rule for question '{rule.questionnaire_item.item.name}' "
+                                f"based on question '{rule.dependent_item.item.name}'"
+                            )
                         return JsonResponse({
                             'success': False,
-                            'error': f'Cannot change question number for "{qi.item.name}" as it would invalidate existing rules'
+                            'error': f'Cannot change question number for "{qi.item.name}" as it would invalidate the following rules:\n' + '\n'.join(rule_details)
                         })
         
         # Second pass: Apply all changes
@@ -1514,39 +1520,49 @@ def save_question_numbers(request, pk):
                         dependent_item=qi
                     )
                     if dependent_rules.exists():
+                        rule_details = []
+                        for rule in dependent_rules:
+                            rule_details.append(
+                                f"- Question '{rule.questionnaire_item.item.name}' depends on this question"
+                            )
                         return JsonResponse({
                             'success': False,
-                            'error': f'Cannot remove question "{qi.item.name}" as it is referenced by existing rules'
+                            'error': f'Cannot remove question "{qi.item.name}" as it is referenced by the following rules:\n' + '\n'.join(rule_details)
                         })
                     # Check if this item has any rules
                     item_rules = QuestionnaireItemRule.objects.filter(
                         questionnaire_item=qi
                     )
                     if item_rules.exists():
+                        rule_details = []
+                        for rule in item_rules:
+                            rule_details.append(
+                                f"- Rule based on question '{rule.dependent_item.item.name}'"
+                            )
                         return JsonResponse({
                             'success': False,
-                            'error': f'Cannot remove question "{qi.item.name}" as it has existing rules'
+                            'error': f'Cannot remove question "{qi.item.name}" as it has the following rules:\n' + '\n'.join(rule_details)
                         })
                     # If no rules depend on this item and it has no rules, we can safely remove it
                     qi.delete()
         
         return JsonResponse({
             'success': True,
-            'message': 'Question numbers updated successfully'
+            'message': 'Question numbers updated successfully. All changes have been saved.'
         })
         
     except json.JSONDecodeError:
         return JsonResponse({
             'success': False,
-            'error': 'Invalid JSON data'
+            'error': 'Invalid JSON data. Please check the format of your request.'
         })
     except Questionnaire.DoesNotExist:
         return JsonResponse({
             'success': False,
-            'error': 'Questionnaire not found'
+            'error': 'Questionnaire not found. Please refresh the page and try again.'
         })
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'error': f'An error occurred: {str(e)}'
+            'error': f'An unexpected error occurred: {str(e)}. Please try again or contact support if the problem persists.'
         })

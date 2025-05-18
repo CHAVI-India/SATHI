@@ -306,13 +306,13 @@ class QuestionnaireItemRule(models.Model):
         # Ensure dependent_item comes before the questionnaire_item
         if self.dependent_item.question_number >= self.questionnaire_item.question_number:
             raise ValidationError({
-                'dependent_item': 'Dependent question must come before the current question in the questionnaire'
+                'dependent_item': f'Rule validation failed: The dependent question (Q{self.dependent_item.question_number}) must come before the current question (Q{self.questionnaire_item.question_number}) in the questionnaire. Please reorder the questions or choose a different dependent question.'
             })
         
         # Ensure both items belong to the same questionnaire
         if self.dependent_item.questionnaire != self.questionnaire_item.questionnaire:
             raise ValidationError({
-                'dependent_item': 'Dependent question must belong to the same questionnaire'
+                'dependent_item': f'Rule validation failed: The dependent question "{self.dependent_item.item.name}" belongs to a different questionnaire than the current question "{self.questionnaire_item.item.name}". Please select a question from the same questionnaire.'
             })
 
     def save(self, *args, **kwargs):

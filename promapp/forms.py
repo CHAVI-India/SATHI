@@ -341,41 +341,51 @@ class QuestionnaireItemRuleForm(forms.ModelForm):
         dependent_item = cleaned_data.get('dependent_item')
         operator = cleaned_data.get('operator')
         comparison_value = cleaned_data.get('comparison_value')
-        # Use initial for create, instance for update
         questionnaire_item = self.initial.get('questionnaire_item')
         if self.instance.pk:
             questionnaire_item = getattr(self.instance, 'questionnaire_item', questionnaire_item)
-        print('[DEBUG] clean: instance.questionnaire_item =', getattr(self.instance, 'questionnaire_item', None))
-        print('[DEBUG] clean: initial[questionnaire_item] =', self.initial.get('questionnaire_item'))
+
         if dependent_item and questionnaire_item:
             # Ensure dependent item is from the same questionnaire
             if dependent_item.questionnaire != questionnaire_item.questionnaire:
-                raise forms.ValidationError(_("Dependent item must be from the same questionnaire."))
+                raise forms.ValidationError(
+                    f'Rule validation failed: The dependent question "{dependent_item.item.name}" belongs to a different questionnaire than the current question "{questionnaire_item.item.name}". Please select a question from the same questionnaire.'
+                )
 
             # Validate comparison value based on the dependent item's response type
             if dependent_item.item.response_type == 'Number':
                 try:
                     float(comparison_value)
                 except (ValueError, TypeError):
-                    raise forms.ValidationError(_("Comparison value must be a number for numeric questions."))
+                    raise forms.ValidationError(
+                        f'Rule validation failed: The comparison value "{comparison_value}" must be a valid number for the numeric question "{dependent_item.item.name}".'
+                    )
             elif dependent_item.item.response_type == 'Likert':
                 try:
-                    float(comparison_value)
+                    float_value = float(comparison_value)
+                    likert_options = dependent_item.item.likert_response.likertscaleresponseoption_set.all()
+                    valid_values = [option.option_value for option in likert_options]
+                    if float_value not in valid_values:
+                        valid_values_str = ', '.join(map(str, valid_values))
+                        raise forms.ValidationError(
+                            f'Rule validation failed: The comparison value "{comparison_value}" is not a valid option for the Likert scale question "{dependent_item.item.name}". Valid values are: {valid_values_str}'
+                        )
                 except (ValueError, TypeError):
-                    raise forms.ValidationError(_("Comparison value must be a number for Likert scale questions."))
-                # Validate against Likert scale values
-                likert_options = dependent_item.item.likert_response.likertscaleresponseoption_set.all()
-                valid_values = [option.option_value for option in likert_options]
-                if float(comparison_value) not in valid_values:
-                    raise forms.ValidationError(_("Comparison value must be a valid Likert scale value."))
+                    raise forms.ValidationError(
+                        f'Rule validation failed: The comparison value "{comparison_value}" must be a valid number for the Likert scale question "{dependent_item.item.name}".'
+                    )
             elif dependent_item.item.response_type == 'Range':
                 try:
                     value = float(comparison_value)
                     range_scale = dependent_item.item.range_response
                     if not (range_scale.min_value <= value <= range_scale.max_value):
-                        raise forms.ValidationError(_("Comparison value must be within the range scale limits."))
+                        raise forms.ValidationError(
+                            f'Rule validation failed: The comparison value "{comparison_value}" must be between {range_scale.min_value} and {range_scale.max_value} for the range scale question "{dependent_item.item.name}".'
+                        )
                 except (ValueError, TypeError):
-                    raise forms.ValidationError(_("Comparison value must be a number for range scale questions."))
+                    raise forms.ValidationError(
+                        f'Rule validation failed: The comparison value "{comparison_value}" must be a valid number for the range scale question "{dependent_item.item.name}".'
+                    )
 
         return cleaned_data
 
