@@ -7,6 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, 
 from django.contrib import messages
 from django.db import transaction
 from django.utils.translation import gettext as _
+from django.utils import timezone
 from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption, PatientQuestionnaire, QuestionnaireItemResponse, Patient, QuestionnaireItemRule, QuestionnaireItemRuleGroup
 from .forms import (
     QuestionnaireForm, ItemForm, QuestionnaireItemForm, 
@@ -21,6 +22,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Prefetch
 import json
 import logging
+from datetime import datetime, timedelta
 
 # Create your views here.
 
@@ -1107,6 +1109,28 @@ class MyQuestionnaireListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['patient'] = getattr(self.request.user, 'patient', None)
+        
+        # Add information about when each questionnaire can be answered next
+        for pq in context['patient_questionnaires']:
+            # Get the last response for this questionnaire
+            last_response = QuestionnaireItemResponse.objects.filter(
+                patient_questionnaire=pq
+            ).order_by('-response_date').first()
+            
+            # Store the last response for display
+            pq.last_response = last_response
+            
+            if last_response:
+                # Calculate when the questionnaire can be answered next
+                interval_seconds = pq.questionnaire.questionnaire_answer_interval
+                next_available = last_response.response_date + timedelta(seconds=interval_seconds)
+                pq.next_available = next_available
+                pq.can_answer = timezone.now() >= next_available
+            else:
+                # If no previous response, can answer immediately
+                pq.next_available = None
+                pq.can_answer = True
+        
         return context
 
 class QuestionnaireItemRuleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
