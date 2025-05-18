@@ -366,19 +366,11 @@
       if (selectedItems.some(item => item.id === itemId)) {
         return;
       }
-      
       // Create list item for selected panel
       const listItem = document.createElement('li');
       listItem.className = 'selected-item bg-white p-2 rounded border shadow-sm flex items-center';
       listItem.setAttribute('data-item-id', itemId);
-      
-      // Determine the question number to display
-      let questionNumber = existingNumber;
-      if (!questionNumber) {
-        questionNumber = selectedItems.length + 1;
-      }
-      
-      // Add content to the list item
+      // Add content to the list item (question number will be set by updateQuestionNumbers)
       listItem.innerHTML = `
         <div class="handle mr-2 text-gray-400">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -386,7 +378,7 @@
           </svg>
         </div>
         <div class="question-number font-bold mr-2 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-          ${questionNumber}
+          <!-- Will be set by updateQuestionNumbers -->
         </div>
         <div class="flex-1">
           <div class="font-medium">${itemName}</div>
@@ -398,38 +390,30 @@
           </svg>
         </button>
       `;
-      
       // Add to the list and our tracking array
       selectedItemsList.appendChild(listItem);
       selectedItems.push({ id: itemId, element: listItem });
-      
-      // Update the hidden question number field
-      updateQuestionNumberField(itemId, questionNumber);
-      
       // Hide the empty message if this is the first item
       if (selectedItems.length > 0) {
         emptySelectionMessage.style.display = 'none';
       }
+      // Always update question numbers after adding
+      updateQuestionNumbers();
     }
     
     // Remove item from selection
     function removeItemFromSelection(itemId) {
       // Find the item in our tracking array
       const index = selectedItems.findIndex(item => item.id === itemId);
-      
       if (index !== -1) {
         // Remove the element from DOM
         selectedItems[index].element.remove();
-        
         // Remove from our tracking array
         selectedItems.splice(index, 1);
-        
         // Clear the hidden question number field
         updateQuestionNumberField(itemId, '');
-        
         // Update question numbers for remaining items
         updateQuestionNumbers();
-        
         // Show empty message if no items left
         if (selectedItems.length === 0) {
           emptySelectionMessage.style.display = 'block';
@@ -441,24 +425,21 @@
     function updateQuestionNumbers() {
       // Get all items in their current order
       const items = selectedItemsList.querySelectorAll('li');
-      
       // Reset our tracking array
       selectedItems = [];
-      
       // Update each item with new number
       items.forEach((item, index) => {
         const itemId = item.getAttribute('data-item-id');
         const numberDisplay = item.querySelector('.question-number');
-        
         // Update the displayed number
         numberDisplay.textContent = index + 1;
-        
         // Update the hidden field
         updateQuestionNumberField(itemId, index + 1);
-        
         // Update our tracking array
         selectedItems.push({ id: itemId, element: item });
       });
+      // Update the count display
+      updateSelectionCount();
     }
     
     // Update the hidden question number field
@@ -495,6 +476,9 @@
       
       // Update counter
       updateSelectionCount();
+      
+      // Update question numbers
+      updateQuestionNumbers();
     }
     
     // Combined filter function

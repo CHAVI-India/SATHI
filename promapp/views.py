@@ -184,12 +184,16 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
             
             # First pass: Update question numbers without saving
             updated_items = []
+            used_question_numbers = set()
             for item in selected_items:
                 question_number = self.request.POST.get(f'question_number_{item.id}')
                 if not question_number:
                     continue
-                    
                 question_number = int(question_number)
+                if question_number in used_question_numbers:
+                    messages.error(self.request, f'Duplicate question number {question_number} detected. Please ensure all question numbers are unique.')
+                    return redirect('questionnaire_update', pk=questionnaire.id)
+                used_question_numbers.add(question_number)
                 if str(item.id) in existing_item_map:
                     qi = existing_item_map[str(item.id)]
                     if qi.question_number != question_number:
@@ -211,40 +215,36 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
                                 'Please update or remove affected rules first.'
                             )
                             return redirect('questionnaire_update', pk=questionnaire.id)
-                        
                         qi.question_number = question_number
                         updated_items.append(qi)
-                
                 processed_item_ids.add(str(item.id))
-            
             # Second pass: Create new items and update existing ones
+            max_qn = QuestionnaireItem.objects.filter(questionnaire=questionnaire).aggregate(models.Max('question_number'))['question_number__max'] or 0
             for item in selected_items:
                 question_number = self.request.POST.get(f'question_number_{item.id}')
-                
+                if not question_number:
+                    # Assign next available number
+                    max_qn += 1
+                    question_number = max_qn
                 if str(item.id) in existing_item_map:
-                    # Update existing questionnaire item
                     qi = existing_item_map[str(item.id)]
                     if qi not in updated_items:  # Skip if already updated in first pass
                         qi.question_number = question_number if question_number else None
                         qi.save()
                 else:
                     # Create new questionnaire item
-                    qi = QuestionnaireItem.objects.create(
+                    QuestionnaireItem.objects.create(
                         questionnaire=questionnaire,
                         item=item,
                         question_number=question_number if question_number else None
                     )
-            
             # Remove questionnaire items that are no longer selected
             items_to_remove = existing_items.exclude(item__id__in=processed_item_ids)
             items_to_remove.delete()
-            
-            # Use getattr with default value instead of safe_translation_getter
             questionnaire_name = getattr(questionnaire, 'name', 'Questionnaire')
             messages.success(self.request, f"Questionnaire '{questionnaire_name}' updated successfully with {len(selected_items)} items.")
         else:
             messages.warning(self.request, "Questionnaire updated, but there was an issue with item selection.")
-            
         return redirect(self.success_url)
 
 
