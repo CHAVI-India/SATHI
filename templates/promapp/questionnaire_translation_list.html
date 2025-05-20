@@ -10,19 +10,6 @@
         </a>
     </div>
 
-    <!-- Language Selector -->
-    <div class="mb-6">
-        <form action="{% url 'switch_language' %}" method="get" class="inline">
-            <input type="hidden" name="next" value="{{ request.path }}">
-            <select name="language" onchange="this.form.submit()" class="bg-white border border-gray-300 rounded px-3 py-2">
-                {% for lang_code, lang_name in available_languages %}
-                    <option value="{{ lang_code }}" {% if lang_code == current_language %}selected{% endif %}>
-                        {{ lang_name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </form>
-    </div>
 
     <!-- Questionnaires Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
