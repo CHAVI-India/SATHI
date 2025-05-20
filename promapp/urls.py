@@ -93,4 +93,8 @@ urlpatterns = [
     path('translations/questionnaires/', views.QuestionnaireTranslationListView.as_view(), name='questionnaire_translation_list'),
     path('translations/questionnaire/<uuid:pk>/', views.QuestionnaireTranslationView.as_view(), name='questionnaire_translation'),
     path('translations/switch-language/', views.switch_language, name='switch_language'),
+
+    # Item Translation URLs
+    path('translations/items/', views.ItemTranslationListView.as_view(), name='item_translation_list'),
+    path('translations/item/<uuid:pk>/', views.ItemTranslationView.as_view(), name='item_translation'),
 ] 

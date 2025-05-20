@@ -535,20 +535,33 @@ class ItemTranslationForm(TranslatableModelForm):
     """
     Form for translating Item model.
     """
-    name = TranslatedField()
-    media = TranslatedField(required=False)
-    
+    name = TranslatedField(
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-2 text-lg border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Enter item name'
+        })
+    )
+    media = TranslatedField(
+        required=False,
+        widget=forms.ClearableFileInput(attrs={
+            'class': 'w-full px-4 py-2 text-lg border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+        })
+    )
+
     class Meta:
         model = Item
         fields = ['name', 'media']
-        
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            Field('name', css_class='w-full px-3 py-2 border rounded'),
-            Field('media', css_class='w-full px-3 py-2 border rounded'),
+            Div(
+                Field('name', wrapper_class='mb-4'),
+                Field('media', wrapper_class='mb-4'),
+                css_class='space-y-4'
+            )
         )
 
 class QuestionnaireTranslationForm(TranslatableModelForm):

@@ -1845,17 +1845,66 @@ class ItemTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
     """
     model = Item
     form_class = ItemTranslationForm
-    template_name = 'promapp/item_translation.html'
+    template_name = 'promapp/item_translation_form.html'
     permission_required = 'promapp.add_item'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['available_languages'] = settings.LANGUAGES
         context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        item = self.get_object()
+        context['original_name'] = item.name
+        context['original_media'] = item.media
         return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        current_language = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        item = self.get_object()
+        try:
+            translation = item.translations.get(language_code=current_language)
+            kwargs['initial'] = {
+                'name': translation.name,
+                'media': translation.media
+            }
+        except item.translations.model.DoesNotExist:
+            kwargs['initial'] = {
+                'name': '',
+                'media': ''
+            }
+        return kwargs
+
+    def form_valid(self, form):
+        current_language = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        item = self.get_object()
+        item.set_current_language(current_language)
+        item.name = form.cleaned_data['name']
+        item.media = form.cleaned_data['media']
+        item.save()
+        messages.success(self.request, _('Translation saved successfully.'))
+        return redirect(self.get_success_url())
 
     def get_success_url(self):
         return reverse('item_list')
+
+class ItemTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """
+    View for listing items with translation links.
+    """
+    model = Item
+    template_name = 'promapp/item_translation_list.html'
+    context_object_name = 'items'
+    permission_required = 'promapp.add_item'
+
+    def get_queryset(self):
+        current_language = get_language()
+        return Item.objects.language(current_language).all().order_by('translations__name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['available_languages'] = settings.LANGUAGES
+        context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        return context
 
 class QuestionnaireTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
