@@ -97,4 +97,8 @@ urlpatterns = [
     # Item Translation URLs
     path('translations/items/', views.ItemTranslationListView.as_view(), name='item_translation_list'),
     path('translations/item/<uuid:pk>/', views.ItemTranslationView.as_view(), name='item_translation'),
+
+    # Likert Scale Response Option Translation URLs
+    path('translations/likert-options/', views.LikertScaleResponseOptionTranslationListView.as_view(), name='likert_scale_response_option_translation_list'),
+    path('translations/likert-option/<uuid:pk>/', views.LikertScaleResponseOptionTranslationView.as_view(), name='likert_scale_response_option_translation'),
 ] 

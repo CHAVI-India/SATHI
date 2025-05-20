@@ -1968,14 +1968,18 @@ class QuestionnaireTranslationView(LoginRequiredMixin, PermissionRequiredMixin, 
     def get_success_url(self):
         return reverse('questionnaire_translation_list')
 
-class LikertScaleResponseOptionTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class QuestionnaireTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     """
-    View for managing translations of a LikertScaleResponseOption.
+    View for listing questionnaires with translation links.
     """
-    model = LikertScaleResponseOption
-    form_class = LikertScaleResponseOptionTranslationForm
-    template_name = 'promapp/likert_scale_response_option_translation.html'
-    permission_required = 'promapp.add_likertscaleresponseoption'
+    model = Questionnaire
+    template_name = 'promapp/questionnaire_translation_list.html'
+    context_object_name = 'questionnaires'
+    permission_required = 'promapp.add_questionnaire'
+
+    def get_queryset(self):
+        current_language = get_language()
+        return Questionnaire.objects.language(current_language).all().order_by('translations__name')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1983,8 +1987,75 @@ class LikertScaleResponseOptionTranslationView(LoginRequiredMixin, PermissionReq
         context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
         return context
 
+
+
+
+class LikertScaleResponseOptionTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    """
+    View for managing translations of a LikertScaleResponseOption.
+    """
+    model = LikertScaleResponseOption
+    form_class = LikertScaleResponseOptionTranslationForm
+    template_name = 'promapp/likert_scale_response_option_translation_form.html'
+    permission_required = 'promapp.add_likertscaleresponseoption'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['available_languages'] = settings.LANGUAGES
+        context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        option = self.get_object()
+        context['original_option_text'] = option.option_text
+        context['original_option_media'] = option.option_media
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        current_language = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        option = self.get_object()
+        try:
+            translation = option.translations.get(language_code=current_language)
+            kwargs['initial'] = {
+                'option_text': translation.option_text,
+                'option_media': translation.option_media
+            }
+        except option.translations.model.DoesNotExist:
+            kwargs['initial'] = {
+                'option_text': '',
+                'option_media': None
+            }
+        return kwargs
+
+    def form_valid(self, form):
+        current_language = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        option = self.get_object()
+        option.set_current_language(current_language)
+        option.option_text = form.cleaned_data['option_text']
+        option.option_media = form.cleaned_data['option_media']
+        option.save()
+        messages.success(self.request, _('Translation saved successfully.'))
+        return redirect(self.get_success_url())
+
     def get_success_url(self):
         return reverse('likert_scale_list')
+    
+class LikertScaleResponseOptionTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """
+    View for listing LikertScaleResponseOptions with translation links.
+    """
+    model = LikertScaleResponseOption
+    template_name = 'promapp/likert_scale_response_option_translation_list.html'
+    context_object_name = 'options'
+    permission_required = 'promapp.add_likertscaleresponseoption'
+
+    def get_queryset(self):
+        current_language = get_language()
+        return LikertScaleResponseOption.objects.language(current_language).all().order_by('translations__option_text')
+
+    def get_context_data(self, **kwargs):   
+        context = super().get_context_data(**kwargs)
+        context['available_languages'] = settings.LANGUAGES
+        context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        return context
 
 class RangeScaleTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
@@ -2032,21 +2103,4 @@ class TranslationsDashboardView(LoginRequiredMixin, PermissionRequiredMixin, Tem
         context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
         return context
 
-class QuestionnaireTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    """
-    View for listing questionnaires with translation links.
-    """
-    model = Questionnaire
-    template_name = 'promapp/questionnaire_translation_list.html'
-    context_object_name = 'questionnaires'
-    permission_required = 'promapp.add_questionnaire'
 
-    def get_queryset(self):
-        current_language = get_language()
-        return Questionnaire.objects.language(current_language).all().order_by('translations__name')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['available_languages'] = settings.LANGUAGES
-        context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
-        return context

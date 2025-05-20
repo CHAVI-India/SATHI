@@ -603,8 +603,18 @@ class LikertScaleResponseOptionTranslationForm(TranslatableModelForm):
     """
     Form for translating LikertScaleResponseOption model.
     """
-    option_text = TranslatedField()
-    option_media = TranslatedField(required=False)
+    option_text = TranslatedField(
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-2 text-lg border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Enter option text'
+        })
+    )
+    option_media = TranslatedField(
+        required=False,
+        widget=forms.ClearableFileInput(attrs={
+            'class': 'w-full px-4 py-2 text-lg border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+        })
+    )
     
     class Meta:
         model = LikertScaleResponseOption
@@ -615,8 +625,11 @@ class LikertScaleResponseOptionTranslationForm(TranslatableModelForm):
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            Field('option_text', css_class='w-full px-3 py-2 border rounded'),
-            Field('option_media', css_class='w-full px-3 py-2 border rounded'),
+            Div(
+                Field('option_text', wrapper_class='mb-4'),
+                Field('option_media', wrapper_class='mb-4'),
+                css_class='space-y-4'
+            )
         )
 
 class RangeScaleTranslationForm(TranslatableModelForm):
