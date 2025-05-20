@@ -1,0 +1,49 @@
+{% load i18n %}
+
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {% trans "Range Scale Name" %}
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {% trans "Min Value Text" %}
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {% trans "Max Value Text" %}
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {% trans "Actions" %}
+                </th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for scale in range_scales %}
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {{ scale.range_scale_name }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {{ scale.min_value_text }}
+                </td>
+                <td class="px-6 py-4">
+                    {{ scale.max_value_text }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <a href="{% url 'range_scale_translate' scale.id %}?language={{ current_language }}" 
+                       class="text-blue-600 hover:text-blue-900">
+                        {% trans "Add/Edit Translation" %}
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                    {% trans "No range scales found." %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div> 

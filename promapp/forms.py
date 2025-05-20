@@ -665,3 +665,30 @@ class RangeScaleTranslationForm(TranslatableModelForm):
             )
         )
 
+class TranslationSearchForm(forms.Form):
+    """
+    Form for searching and filtering translation lists.
+    """
+    search = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+            'placeholder': _('Search...'),
+            'hx-get': '',  # Will be set in the view
+            'hx-trigger': 'keyup changed delay:500ms',
+            'hx-target': '#translation-table',
+            'hx-swap': 'innerHTML'
+        })
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Field('search'),
+                css_class='mb-4'
+            )
+        )
+

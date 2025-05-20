@@ -17,7 +17,8 @@ from .forms import (
     ItemSelectionForm, ConstructScaleForm,
     LikertScaleResponseOptionForm, RangeScaleForm,
     QuestionnaireResponseForm, QuestionnaireItemRuleForm, QuestionnaireItemRuleGroupForm,
-    ItemTranslationForm, QuestionnaireTranslationForm, LikertScaleResponseOptionTranslationForm, RangeScaleTranslationForm
+    ItemTranslationForm, QuestionnaireTranslationForm, LikertScaleResponseOptionTranslationForm, RangeScaleTranslationForm,
+    TranslationSearchForm
 )
 from django.utils.translation import get_language
 from django.db import models
@@ -1897,13 +1898,35 @@ class ItemTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListV
     permission_required = 'promapp.add_item'
 
     def get_queryset(self):
-        return Item.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__name')
+        queryset = Item.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__name')
+        
+        # Apply search filter if provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(translations__name__icontains=search)
+            
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['available_languages'] = settings.LANGUAGES
         context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        context['search_form'] = TranslationSearchForm(initial={'search': self.request.GET.get('search', '')})
+        context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('item_translation_list')
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         return context
+
+    def get(self, request, *args, **kwargs):
+        # Check if this is an HTMX request
+        if request.META.get('HTTP_HX_REQUEST'):
+            # If it is an HTMX request, only return the table part
+            self.object_list = self.get_queryset()
+            context = self.get_context_data()
+            html = render_to_string('promapp/partials/item_translation_list_table.html', context)
+            return HttpResponse(html)
+        
+        # Otherwise, return the full page as usual
+        return super().get(request, *args, **kwargs)
 
 class QuestionnaireTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
@@ -1977,16 +2000,35 @@ class QuestionnaireTranslationListView(LoginRequiredMixin, PermissionRequiredMix
     permission_required = 'promapp.add_questionnaire'
 
     def get_queryset(self):
-        return Questionnaire.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__name')
+        queryset = Questionnaire.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__name')
+        
+        # Apply search filter if provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(translations__name__icontains=search)
+            
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['available_languages'] = settings.LANGUAGES
         context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        context['search_form'] = TranslationSearchForm(initial={'search': self.request.GET.get('search', '')})
+        context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('questionnaire_translation_list')
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         return context
 
-
-
+    def get(self, request, *args, **kwargs):
+        # Check if this is an HTMX request
+        if request.META.get('HTTP_HX_REQUEST'):
+            # If it is an HTMX request, only return the table part
+            self.object_list = self.get_queryset()
+            context = self.get_context_data()
+            html = render_to_string('promapp/partials/questionnaire_translation_list_table.html', context)
+            return HttpResponse(html)
+        
+        # Otherwise, return the full page as usual
+        return super().get(request, *args, **kwargs)
 
 class LikertScaleResponseOptionTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
@@ -2046,13 +2088,35 @@ class LikertScaleResponseOptionTranslationListView(LoginRequiredMixin, Permissio
     permission_required = 'promapp.add_likertscaleresponseoption'
 
     def get_queryset(self):
-        return LikertScaleResponseOption.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__option_text')
+        queryset = LikertScaleResponseOption.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__option_text')
+        
+        # Apply search filter if provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(translations__option_text__icontains=search)
+            
+        return queryset
 
     def get_context_data(self, **kwargs):   
         context = super().get_context_data(**kwargs)
         context['available_languages'] = settings.LANGUAGES
         context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        context['search_form'] = TranslationSearchForm(initial={'search': self.request.GET.get('search', '')})
+        context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('likert_scale_response_option_translation_list')
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         return context
+
+    def get(self, request, *args, **kwargs):
+        # Check if this is an HTMX request
+        if request.META.get('HTTP_HX_REQUEST'):
+            # If it is an HTMX request, only return the table part
+            self.object_list = self.get_queryset()
+            context = self.get_context_data()
+            html = render_to_string('promapp/partials/likert_scale_response_option_translation_list_table.html', context)
+            return HttpResponse(html)
+        
+        # Otherwise, return the full page as usual
+        return super().get(request, *args, **kwargs)
 
 class RangeScaleTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
@@ -2112,13 +2176,38 @@ class RangeScaleTranslationListView(LoginRequiredMixin, PermissionRequiredMixin,
     permission_required = 'promapp.add_rangescale'
 
     def get_queryset(self):
-        return RangeScale.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__min_value_text')
+        queryset = RangeScale.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__min_value_text')
+        
+        # Apply search filter if provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                models.Q(translations__min_value_text__icontains=search) |
+                models.Q(translations__max_value_text__icontains=search)
+            )
+            
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['available_languages'] = settings.LANGUAGES
         context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        context['search_form'] = TranslationSearchForm(initial={'search': self.request.GET.get('search', '')})
+        context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('range_scale_translation_list')
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         return context
+
+    def get(self, request, *args, **kwargs):
+        # Check if this is an HTMX request
+        if request.META.get('HTTP_HX_REQUEST'):
+            # If it is an HTMX request, only return the table part
+            self.object_list = self.get_queryset()
+            context = self.get_context_data()
+            html = render_to_string('promapp/partials/range_scale_translation_list_table.html', context)
+            return HttpResponse(html)
+        
+        # Otherwise, return the full page as usual
+        return super().get(request, *args, **kwargs)
 
 def switch_language(request):
     """
