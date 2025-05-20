@@ -1897,8 +1897,7 @@ class ItemTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListV
     permission_required = 'promapp.add_item'
 
     def get_queryset(self):
-        current_language = get_language()
-        return Item.objects.language(current_language).all().order_by('translations__name')
+        return Item.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__name')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1978,8 +1977,7 @@ class QuestionnaireTranslationListView(LoginRequiredMixin, PermissionRequiredMix
     permission_required = 'promapp.add_questionnaire'
 
     def get_queryset(self):
-        current_language = get_language()
-        return Questionnaire.objects.language(current_language).all().order_by('translations__name')
+        return Questionnaire.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__name')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -2048,8 +2046,7 @@ class LikertScaleResponseOptionTranslationListView(LoginRequiredMixin, Permissio
     permission_required = 'promapp.add_likertscaleresponseoption'
 
     def get_queryset(self):
-        current_language = get_language()
-        return LikertScaleResponseOption.objects.language(current_language).all().order_by('translations__option_text')
+        return LikertScaleResponseOption.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__option_text')
 
     def get_context_data(self, **kwargs):   
         context = super().get_context_data(**kwargs)
@@ -2115,8 +2112,7 @@ class RangeScaleTranslationListView(LoginRequiredMixin, PermissionRequiredMixin,
     permission_required = 'promapp.add_rangescale'
 
     def get_queryset(self):
-        current_language = get_language()
-        return RangeScale.objects.language(current_language).all().order_by('translations__min_value_text')
+        return RangeScale.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__min_value_text')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
