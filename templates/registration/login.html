@@ -2,12 +2,12 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block title %}{% trans "Login" %}{% endblock %}
+{% block title %}{% translate "Login" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-md mx-auto">
     <div class="bg-white p-8 rounded-lg shadow-md">
-        <h2 class="text-2xl font-bold mb-6 text-center text-blue-700">{% trans "Login" %}</h2>
+        <h2 class="text-2xl font-bold mb-6 text-center text-blue-700">{% translate "Login" %}</h2>
         
         <form method="post" action="{% url 'login' %}">
             {% csrf_token %}
@@ -17,13 +17,13 @@
             
             <div class="mt-6">
                 <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
-                    {% trans "Login" %}
+                    {% translate "Login" %}
                 </button>
             </div>
         </form>
         
         <div class="mt-4 text-center">
-            <a href="#" class="text-blue-600 hover:underline">{% trans "Forgot password?" %}</a>
+            <a href="#" class="text-blue-600 hover:underline">{% translate "Forgot password?" %}</a>
         </div>
     </div>
 </div>

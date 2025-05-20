@@ -1,49 +1,49 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Welcome to Chavi PROM Application" %}{% endblock %}
+{% block title %}{% translate "Welcome to Chavi PROM Application" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
         <div class="p-6">
-            <h1 class="text-3xl font-bold text-blue-700 mb-6">{% trans "Patient Reported Outcome Monitoring" %}</h1>
+            <h1 class="text-3xl font-bold text-blue-700 mb-6">{% translate "Patient Reported Outcome Monitoring" %}</h1>
             
             <div class="prose max-w-none">
                 <p class="mb-4 text-lg">
-                    {% trans "Welcome to the Patient Reported Outcome Monitoring Application for CHAVI. This open source application has been designed to allow patients to report their problems and concerns using standardized questionnaires. Questionnaires can be translated into multiple languages. Additionally, the application also provides users with an easy way to view responses to the questions." %}
+                    {% translate "Welcome to the Patient Reported Outcome Monitoring Application for CHAVI. This open source application has been designed to allow patients to report their problems and concerns using standardized questionnaires. Questionnaires can be translated into multiple languages. Additionally, the application also provides users with an easy way to view responses to the questions." %}
                 </p>
                 
                 <div class="grid md:grid-cols-2 gap-6 mt-10">
                     <div class="bg-blue-50 p-6 rounded-lg shadow-sm">
-                        <h2 class="text-xl font-semibold text-blue-800 mb-3">{% trans "For Patients" %}</h2>
-                        <p>{% trans "Complete questionnaires about your health and well-being. Your feedback helps healthcare providers understand your needs better." %}</p>
+                        <h2 class="text-xl font-semibold text-blue-800 mb-3">{% translate "For Patients" %}</h2>
+                        <p>{% translate "Complete questionnaires about your health and well-being. Your feedback helps healthcare providers understand your needs better." %}</p>
                         <div class="mt-4">
                             <a href="{% url 'my_questionnaire_list' %}" class="inline-block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
-                                {% trans "Complete a Questionnaire" %}
+                                {% translate "Complete a Questionnaire" %}
                             </a>
                         </div>
                     </div>
                     
                     <div class="bg-blue-50 p-6 rounded-lg shadow-sm">
-                        <h2 class="text-xl font-semibold text-blue-800 mb-3">{% trans "For Healthcare Providers" %}</h2>
-                        <p>{% trans "Review patient-reported outcomes and gain insights into patient health status and treatment effectiveness." %}</p>
+                        <h2 class="text-xl font-semibold text-blue-800 mb-3">{% translate "For Healthcare Providers" %}</h2>
+                        <p>{% translate "Review patient-reported outcomes and gain insights into patient health status and treatment effectiveness." %}</p>
                         <div class="mt-4">
                             <a href="#" class="inline-block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
-                                {% trans "View Results" %}
+                                {% translate "View Results" %}
                             </a>
                         </div>
                     </div>
                 </div>
                 
                 <div class="mt-10">
-                    <h2 class="text-2xl font-semibold text-blue-800 mb-4">{% trans "Key Features" %}</h2>
+                    <h2 class="text-2xl font-semibold text-blue-800 mb-4">{% translate "Key Features" %}</h2>
                     <ul class="list-disc pl-6 space-y-2">
-                        <li>{% trans "Multilingual support for questionnaires" %}</li>
-                        <li>{% trans "Standardized assessment tools" %}</li>
-                        <li>{% trans "Secure data storage and privacy protection" %}</li>
-                        <li>{% trans "Easy-to-use interface for patients and providers" %}</li>
-                        <li>{% trans "Comprehensive reporting and visualization tools" %}</li>
+                        <li>{% translate "Multilingual support for questionnaires" %}</li>
+                        <li>{% translate "Standardized assessment tools" %}</li>
+                        <li>{% translate "Secure data storage and privacy protection" %}</li>
+                        <li>{% translate "Easy-to-use interface for patients and providers" %}</li>
+                        <li>{% translate "Comprehensive reporting and visualization tools" %}</li>
                     </ul>
                 </div>
             </div>

@@ -1,19 +1,19 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Items" %}{% endblock %}
+{% block title %}{% translate "Items" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-blue-700">{% trans "Items" %}</h1>
+        <h1 class="text-2xl font-bold text-blue-700">{% translate "Items" %}</h1>
         <a href="{% url 'item_create' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
           </svg>
-          {% trans "Create New Item" %}
+          {% translate "Create New Item" %}
         </a>
       </div>
       
@@ -36,23 +36,23 @@
               class="mb-6 w-full">
           <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
             <div class="flex-1">
-              <label for="search" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Search items" %}</label>
+              <label for="search" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Search items" %}</label>
               <input type="text" 
                      id="search" 
                      name="search" 
                      value="{{ search_query }}"
                      class="w-full px-3 py-2 border rounded" 
-                     placeholder="{% trans 'Search by name...' %}" 
-                     aria-label="{% trans 'Search items' %}"
+                     placeholder="{% translate 'Search by name...' %}" 
+                     aria-label="{% translate 'Search items' %}"
                      hx-trigger="keyup changed delay:500ms, search">
             </div>
             <div class="w-full md:w-64">
-              <label for="construct_scale" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Filter by construct scale" %}</label>
+              <label for="construct_scale" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Filter by construct scale" %}</label>
               <select id="construct_scale" 
                       name="construct_scale" 
                       class="w-full px-3 py-2 border rounded"
                       hx-trigger="change">
-                <option value="all" {% if selected_construct_scale == 'all' %}selected{% endif %}>{% trans "All construct scales" %}</option>
+                <option value="all" {% if selected_construct_scale == 'all' %}selected{% endif %}>{% translate "All construct scales" %}</option>
                 {% for scale in all_construct_scales %}
                   <option value="{{ scale.id }}" {% if selected_construct_scale == scale.id|stringformat:"s" %}selected{% endif %}>
                     {{ scale.name|default:"No name" }}
@@ -61,12 +61,12 @@
               </select>
             </div>
             <div class="w-full md:w-64">
-              <label for="response_type" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Filter by response type" %}</label>
+              <label for="response_type" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Filter by response type" %}</label>
               <select id="response_type" 
                       name="response_type" 
                       class="w-full px-3 py-2 border rounded"
                       hx-trigger="change">
-                <option value="all" {% if selected_response_type == 'all' %}selected{% endif %}>{% trans "All response types" %}</option>
+                <option value="all" {% if selected_response_type == 'all' %}selected{% endif %}>{% translate "All response types" %}</option>
                 {% for type in response_types %}
                   <option value="{{ type.value }}" {% if selected_response_type == type.value %}selected{% endif %}>
                     {{ type.display }}
@@ -81,7 +81,7 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span class="ml-2">{% trans "Loading..." %}</span>
+            <span class="ml-2">{% translate "Loading..." %}</span>
           </div>
         </form>
         
@@ -90,12 +90,12 @@
         </div>
       {% else %}
         <div class="text-center py-8">
-          <p class="text-gray-600 mb-4">{% trans "No items available yet." %}</p>
+          <p class="text-gray-600 mb-4">{% translate "No items available yet." %}</p>
           <a href="{% url 'item_create' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
             </svg>
-            {% trans "Create First Item" %}
+            {% translate "Create First Item" %}
           </a>
         </div>
       {% endif %}

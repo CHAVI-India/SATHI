@@ -2,7 +2,7 @@
 
 {% if response_type == 'Likert' %}
   <div class="mt-2">
-    <label for="id_likert_response" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Likert Scale" %}</label>
+    <label for="id_likert_response" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Likert Scale" %}</label>
     <select name="likert_response" id="id_likert_response" class="w-full px-3 py-2 border rounded">
       <option value="">---------</option>
       {% for scale in likert_scales %}
@@ -11,13 +11,13 @@
     </select>
     <div class="mt-2">
       <a href="{% url 'create_likert_scale' %}" class="text-sm text-blue-600 hover:underline">
-        {% trans "Create new Likert scale" %}
+        {% translate "Create new Likert scale" %}
       </a>
     </div>
   </div>
 {% elif response_type == 'Range' %}
   <div class="mt-2">
-    <label for="id_range_response" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Range Scale" %}</label>
+    <label for="id_range_response" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Range Scale" %}</label>
     <select name="range_response" id="id_range_response" class="w-full px-3 py-2 border rounded">
       <option value="">---------</option>
       {% for scale in range_scales %}
@@ -26,7 +26,7 @@
     </select>
     <div class="mt-2">
       <a href="{% url 'create_range_scale' %}" class="text-sm text-blue-600 hover:underline">
-        {% trans "Create new Range scale" %}
+        {% translate "Create new Range scale" %}
       </a>
     </div>
   </div>

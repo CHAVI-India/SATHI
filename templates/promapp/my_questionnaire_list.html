@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "My Questionnaires" %}{% endblock %}
+{% block title %}{% translate "My Questionnaires" %}{% endblock %}
 
 {% block content %}
 <style>
@@ -17,7 +17,7 @@
 </style>
 
 <div class="max-w-3xl mx-auto px-4 py-8">
-  <h1 class="text-2xl font-bold mb-6">{% trans "Available Questionnaires" %}</h1>
+  <h1 class="text-2xl font-bold mb-6">{% translate "Available Questionnaires" %}</h1>
   {% if patient_questionnaires %}
     <div class="space-y-6">
       {% for pq in patient_questionnaires %}
@@ -41,14 +41,14 @@
                 {% if pq.last_response %}
                   <span class="font-semibold">{{ pq.last_response.response_date|date:"F j, Y, g:i a" }}</span>
                 {% else %}
-                  <span class="font-semibold">{% trans "Never" %}</span>
+                  <span class="font-semibold">{% translate "Never" %}</span>
                 {% endif %}
               </p>
             </div>
             
             {% if pq.can_answer %}
               <a href="{% url 'questionnaire_response' pq.id %}" class="inline-block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
-                {% trans "Answer Questionnaire" %}
+                {% translate "Answer Questionnaire" %}
               </a>
             {% else %}
               <div class="space-y-2">
@@ -57,7 +57,7 @@
                   <span class="font-semibold">{{ pq.next_available|timeuntil }}</span>
                 </p>
                 <button disabled class="inline-block bg-gray-400 text-white py-2 px-4 rounded cursor-not-allowed">
-                  {% trans "Answer Questionnaire" %}
+                  {% translate "Answer Questionnaire" %}
                 </button>
               </div>
             {% endif %}
@@ -67,7 +67,7 @@
     </div>
   {% else %}
     <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-      <p class="text-yellow-800">{% trans "No questionnaires are currently available for you." %}</p>
+      <p class="text-yellow-800">{% translate "No questionnaires are currently available for you." %}</p>
     </div>
   {% endif %}
 </div>

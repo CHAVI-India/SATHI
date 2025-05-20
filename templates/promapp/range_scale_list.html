@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Range Scales" %}{% endblock %}
+{% block title %}{% translate "Range Scales" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-blue-700">{% trans "Range Scales" %}</h1>
+        <h1 class="text-2xl font-bold text-blue-700">{% translate "Range Scales" %}</h1>
         {% if perms.promapp.add_rangescale %}
           <a href="{% url 'create_range_scale' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-            {% trans "Create New Range Scale" %}
+            {% translate "Create New Range Scale" %}
           </a>
         {% endif %}
       </div>
@@ -29,10 +29,10 @@
       <div class="mb-6">
         <form method="get" class="flex gap-4" hx-get="{% url 'range_scale_list' %}" hx-target="#range-scales-table" hx-trigger="submit">
           <div class="flex-1">
-            <input type="text" name="search" value="{{ search_query }}" placeholder="{% trans 'Search range scales...' %}" class="w-full px-3 py-2 border rounded">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="{% translate 'Search range scales...' %}" class="w-full px-3 py-2 border rounded">
           </div>
           <button type="submit" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-            {% trans "Search" %}
+            {% translate "Search" %}
           </button>
         </form>
       </div>

@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block title %}{% trans "Create Questionnaire" %}{% endblock %}
+{% block title %}{% translate "Create Questionnaire" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -38,48 +38,48 @@
 <div class="max-w-6xl mx-auto">
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
-      <h1 class="text-2xl font-bold text-blue-700 mb-6">{% trans "Create New Questionnaire" %}</h1>
+      <h1 class="text-2xl font-bold text-blue-700 mb-6">{% translate "Create New Questionnaire" %}</h1>
       
       <form method="post" class="space-y-6">
         {% csrf_token %}
         
         <div class="bg-gray-50 p-4 rounded-md">
-          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Questionnaire Details" %}</h2>
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% translate "Questionnaire Details" %}</h2>
           <div class="space-y-4">
             {{ form.name|as_crispy_field }}
             {{ form.description|as_crispy_field }}
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Answer Interval" %}</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{% translate "Answer Interval" %}</label>
                 <div class="flex space-x-2">
                   {{ form.questionnaire_answer_interval|as_crispy_field }}
                   {{ form.interval_unit|as_crispy_field }}
                 </div>
-                <p class="text-sm text-gray-500 mt-1">{% trans "Time interval between questionnaire attempts" %}</p>
+                <p class="text-sm text-gray-500 mt-1">{% translate "Time interval between questionnaire attempts" %}</p>
               </div>
               
               <div>
                 {{ form.questionnaire_order|as_crispy_field }}
-                <p class="text-sm text-gray-500 mt-1">{% trans "Order in which this questionnaire should be displayed" %}</p>
+                <p class="text-sm text-gray-500 mt-1">{% translate "Order in which this questionnaire should be displayed" %}</p>
               </div>
             </div>
             
             <div>
               {{ form.questionnaire_redirect|as_crispy_field }}
-              <p class="text-sm text-gray-500 mt-1">{% trans "Questionnaire to redirect to after completion" %}</p>
+              <p class="text-sm text-gray-500 mt-1">{% translate "Questionnaire to redirect to after completion" %}</p>
             </div>
           </div>
         </div>
         
         <div class="bg-gray-50 p-4 rounded-md">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold text-gray-800">{% trans "Select Items" %}</h2>
+            <h2 class="text-lg font-semibold text-gray-800">{% translate "Select Items" %}</h2>
             <a href="{% url 'item_create' %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
               </svg>
-              {% trans "Create New Item" %}
+              {% translate "Create New Item" %}
             </a>
           </div>
           
@@ -89,13 +89,13 @@
               <!-- Search and Filter controls -->
               <div class="mb-4 flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
                 <div class="flex-1">
-                  <label for="item-search" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Search items" %}</label>
-                  <input type="text" id="item-search" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Search by name...' %}" aria-label="{% trans 'Search items' %}">
+                  <label for="item-search" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Search items" %}</label>
+                  <input type="text" id="item-search" class="w-full px-3 py-2 border rounded" placeholder="{% translate 'Search by name...' %}" aria-label="{% translate 'Search items' %}">
                 </div>
                 <div class="w-full md:w-64">
-                  <label for="construct-filter" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Filter by construct scale" %}</label>
+                  <label for="construct-filter" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Filter by construct scale" %}</label>
                   <select id="construct-filter" class="w-full px-3 py-2 border rounded">
-                    <option value="all">{% trans "All construct scales" %}</option>
+                    <option value="all">{% translate "All construct scales" %}</option>
                     {% for construct_scale in construct_scales %}
                       <option value="{{ construct_scale.id }}">{{ construct_scale.name|default:"No name" }}</option>
                     {% endfor %}
@@ -105,7 +105,7 @@
               
               {% if available_items %}
                 <div class="item-list border rounded p-2">
-                  <h3 class="font-medium text-gray-700 mb-2">{% trans "Available Items" %}</h3>
+                  <h3 class="font-medium text-gray-700 mb-2">{% translate "Available Items" %}</h3>
                   
                   {% regroup available_items by construct_scale as items_by_scale %}
                   
@@ -139,7 +139,7 @@
                             <label for="item_{{ item.id }}" class="cursor-pointer flex-1">
                               <div class="font-medium">{{ item.name|default:"Untitled Item" }}</div>
                               <div class="text-sm text-gray-600">
-                                {% trans "Response type" %}: {{ item.get_response_type_display }}
+                                {% translate "Response type" %}: {{ item.get_response_type_display }}
                                 {% if item.response_type == 'Likert' and item.likert_response %}
                                   - {{ item.likert_response.likert_scale_name }}
                                 {% elif item.response_type == 'Range' and item.range_response %}
@@ -155,12 +155,12 @@
                 </div>
               {% else %}
                 <div class="text-center py-8">
-                  <p class="text-gray-600 mb-4">{% trans "No items available. Please create items first." %}</p>
+                  <p class="text-gray-600 mb-4">{% translate "No items available. Please create items first." %}</p>
                   <a href="{% url 'item_create' %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                       <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                     </svg>
-                    {% trans "Create First Item" %}
+                    {% translate "Create First Item" %}
                   </a>
                 </div>
               {% endif %}
@@ -170,19 +170,19 @@
             <div class="w-full lg:w-1/3">
               <div class="border rounded p-4 bg-blue-50">
                 <div class="flex justify-between items-center mb-3">
-                  <h3 class="font-medium text-gray-700">{% trans "Selected Items" %} (<span id="selected-count">0</span>)</h3>
+                  <h3 class="font-medium text-gray-700">{% translate "Selected Items" %} (<span id="selected-count">0</span>)</h3>
                   <button type="button" id="clear-all-btn" class="text-sm text-red-600 hover:text-red-800">
-                    {% trans "Clear All" %}
+                    {% translate "Clear All" %}
                   </button>
                 </div>
                 
                 <p class="text-sm text-gray-600 mb-3">
-                  {% trans "Drag items to reorder. Question numbers will update automatically." %}
+                  {% translate "Drag items to reorder. Question numbers will update automatically." %}
                 </p>
                 
                 <div id="selected-items-container" class="selected-items-list border rounded bg-white p-2 min-h-[300px]">
                   <div id="empty-selection-message" class="text-center py-10 text-gray-500">
-                    {% trans "No items selected yet. Check items from the left panel to add them here." %}
+                    {% translate "No items selected yet. Check items from the left panel to add them here." %}
                   </div>
                   <ul id="selected-items-list" class="space-y-2">
                     <!-- Selected items will be inserted here via JavaScript -->
@@ -195,10 +195,10 @@
         
         <div class="flex justify-end space-x-3">
           <a href="{% url 'questionnaire_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-            {% trans "Cancel" %}
+            {% translate "Cancel" %}
           </a>
           <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-            {% trans "Create Questionnaire" %}
+            {% translate "Create Questionnaire" %}
           </button>
         </div>
       </form>

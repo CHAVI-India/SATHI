@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block title %}{% if is_edit %}{% trans "Edit Likert Scale" %}{% else %}{% trans "Create Likert Scale" %}{% endif %}{% endblock %}
+{% block title %}{% if is_edit %}{% translate "Edit Likert Scale" %}{% else %}{% translate "Create Likert Scale" %}{% endif %}{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
@@ -11,18 +11,18 @@
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">
           {% if is_edit %}
-            {% trans "Edit Likert Scale" %}
+            {% translate "Edit Likert Scale" %}
           {% else %}
-            {% trans "Create New Likert Scale" %}
+            {% translate "Create New Likert Scale" %}
           {% endif %}
         </h1>
         {% if perms.promapp.view_likertscale %}
           <a href="{% url 'likert_scale_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-            {% trans "Back to Likert Scales" %}
+            {% translate "Back to Likert Scales" %}
           </a>
         {% else %}
           <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-            {% trans "Back to Item Creation" %}
+            {% translate "Back to Item Creation" %}
           </a>
         {% endif %}
       </div>
@@ -42,12 +42,12 @@
         <input type="hidden" name="dynamic_row_count" id="dynamic_row_count" value="0">
         
         <div class="bg-gray-50 p-4 rounded-md">
-          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Likert Scale Details" %}</h2>
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% translate "Likert Scale Details" %}</h2>
           
           <div class="space-y-4">
             <div>
-              <label for="id_likert_scale_name" class="block text-sm font-medium text-gray-700">{% trans "Scale Name" %}</label>
-              <input type="text" name="likert_scale_name" id="id_likert_scale_name" value="{{ form.likert_scale_name.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Enter scale name' %}">
+              <label for="id_likert_scale_name" class="block text-sm font-medium text-gray-700">{% translate "Scale Name" %}</label>
+              <input type="text" name="likert_scale_name" id="id_likert_scale_name" value="{{ form.likert_scale_name.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% translate 'Enter scale name' %}">
               {% if form.likert_scale_name.errors %}
                 <div class="text-red-500 text-sm mt-1">{{ form.likert_scale_name.errors }}</div>
               {% endif %}
@@ -56,7 +56,7 @@
         </div>
         
         <div class="bg-gray-50 p-4 rounded-md">
-          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Response Options" %}</h2>
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% translate "Response Options" %}</h2>
           
           {{ formset.management_form }}
           
@@ -64,19 +64,19 @@
             <thead class="bg-gray-50">
               <tr>
                 <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                  {% trans "OPTION ORDER" %}
+                  {% translate "OPTION ORDER" %}
                 </th>
                 <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                  {% trans "OPTION VALUE" %}
+                  {% translate "OPTION VALUE" %}
                 </th>
                 <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% trans "OPTION TEXT" %}
+                  {% translate "OPTION TEXT" %}
                 </th>
                 <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% trans "OPTION MEDIA" %}
+                  {% translate "OPTION MEDIA" %}
                 </th>
                 <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
-                  {% trans "DELETE" %}
+                  {% translate "DELETE" %}
                 </th>
               </tr>
             </thead>
@@ -109,7 +109,7 @@
                     {% endif %}
                     {% if form.instance.option_media %}
                       <div class="text-xs text-gray-600 mt-1">
-                        {% trans "Current file:" %} {{ form.instance.option_media.name }}
+                        {% translate "Current file:" %} {{ form.instance.option_media.name }}
                       </div>
                     {% endif %}
                   </td>
@@ -117,7 +117,7 @@
                     {% if form.instance.pk %}
                       <div class="flex items-center">
                         {{ form.DELETE }}
-                        <label for="{{ form.DELETE.id_for_label }}" class="ml-2 text-sm text-red-600">{% trans "Delete" %}</label>
+                        <label for="{{ form.DELETE.id_for_label }}" class="ml-2 text-sm text-red-600">{% translate "Delete" %}</label>
                       </div>
                     {% else %}
                       <button type="button" class="remove-option text-red-500 hover:text-red-700" hx-get="{% url 'remove_likert_option' %}" hx-target="closest tr" hx-swap="outerHTML" hx-trigger="click">
@@ -144,7 +144,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
               </svg>
-              {% trans "Add Option" %}
+              {% translate "Add Option" %}
             </button>
           </div>
         </div>
@@ -152,18 +152,18 @@
         <div class="flex justify-end space-x-3">
           {% if perms.promapp.view_likertscale %}
             <a href="{% url 'likert_scale_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-              {% trans "Cancel" %}
+              {% translate "Cancel" %}
             </a>
           {% else %}
             <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-              {% trans "Cancel" %}
+              {% translate "Cancel" %}
             </a>
           {% endif %}
           <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
             {% if is_edit %}
-              {% trans "Update Likert Scale" %}
+              {% translate "Update Likert Scale" %}
             {% else %}
-              {% trans "Create Likert Scale" %}
+              {% translate "Create Likert Scale" %}
             {% endif %}
           </button>
         </div>

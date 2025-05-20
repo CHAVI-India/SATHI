@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Delete Rule" %}{% endblock %}
+{% block title %}{% translate "Delete Rule" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-xl mx-auto mt-10 bg-white shadow-md rounded-lg p-8">
-  <h1 class="text-2xl font-bold text-red-700 mb-4">{% trans "Confirm Delete" %}</h1>
-  <p class="mb-6 text-gray-700">{% trans "Are you sure you want to delete this rule? This action cannot be undone." %}</p>
+  <h1 class="text-2xl font-bold text-red-700 mb-4">{% translate "Confirm Delete" %}</h1>
+  <p class="mb-6 text-gray-700">{% translate "Are you sure you want to delete this rule? This action cannot be undone." %}</p>
   <div class="mb-6 p-4 bg-gray-50 rounded border">
-    <strong>{% trans "Rule:" %}</strong>
+    <strong>{% translate "Rule:" %}</strong>
     <div class="mt-2 text-gray-800">
       {% if object.dependent_item %}
         {{ object.dependent_item.item.name }} {{ object.get_operator_display }} {{ object.comparison_value }}
@@ -21,8 +21,8 @@
   <form method="post">
     {% csrf_token %}
     <div class="flex justify-between">
-      <a href="{% url 'questionnaire_item_rules_list' questionnaire_item_id=object.questionnaire_item.id %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">{% trans "Cancel" %}</a>
-      <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">{% trans "Confirm Delete" %}</button>
+      <a href="{% url 'questionnaire_item_rules_list' questionnaire_item_id=object.questionnaire_item.id %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">{% translate "Cancel" %}</a>
+      <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">{% translate "Confirm Delete" %}</button>
     </div>
   </form>
 </div>

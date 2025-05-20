@@ -24,7 +24,7 @@
     <div class="bg-gray-100 py-4">
         <div class="container mx-auto px-4">
             <div class="flex flex-col items-center space-y-2">
-                <h3 class="text-gray-700 font-medium text-center">{% trans "Select Language" %}</h3>
+                <h3 class="text-gray-700 font-medium text-center">{% translate "Select Language" %}</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:flex lg:flex-row lg:flex-wrap justify-center gap-2 w-full max-w-2xl">
                     {% get_current_language as CURRENT_LANGUAGE %}
                     {% get_available_languages as LANGUAGES %}

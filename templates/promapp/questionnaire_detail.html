@@ -11,10 +11,10 @@
         <h1 class="text-2xl font-bold text-blue-700">{{ questionnaire.name|default:"Questionnaire Details" }}</h1>
         <div class="flex space-x-2">
           <a href="{% url 'questionnaire_update' questionnaire.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-            {% trans "Edit" %}
+            {% translate "Edit" %}
           </a>
           <a href="{% url 'questionnaire_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-            {% trans "Back to List" %}
+            {% translate "Back to List" %}
           </a>
         </div>
       </div>
@@ -31,22 +31,22 @@
       
       <div class="mb-8">
         <div class="bg-gray-50 p-4 rounded-md">
-          <h2 class="text-lg font-semibold text-gray-800 mb-2">{% trans "Questionnaire Details" %}</h2>
+          <h2 class="text-lg font-semibold text-gray-800 mb-2">{% translate "Questionnaire Details" %}</h2>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p class="text-sm text-gray-500">{% trans "Created" %}</p>
+              <p class="text-sm text-gray-500">{% translate "Created" %}</p>
               <p>{{ questionnaire.created_date|date:"DATETIME_FORMAT" }}</p>
             </div>
             <div>
-              <p class="text-sm text-gray-500">{% trans "Last Modified" %}</p>
+              <p class="text-sm text-gray-500">{% translate "Last Modified" %}</p>
               <p>{{ questionnaire.modified_date|date:"DATETIME_FORMAT" }}</p>
             </div>
           </div>
           
           {% if questionnaire.description %}
             <div class="mt-4">
-              <p class="text-sm text-gray-500">{% trans "Description" %}</p>
+              <p class="text-sm text-gray-500">{% translate "Description" %}</p>
               <p class="whitespace-pre-line">{{ questionnaire.description|default:"" }}</p>
             </div>
           {% endif %}
@@ -54,7 +54,7 @@
       </div>
       
       <div>
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Questionnaire Items" %}</h2>
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">{% translate "Questionnaire Items" %}</h2>
         
         {% if questionnaire.questionnaireitem_set.exists %}
           <div class="bg-gray-50 p-4 rounded-md">
@@ -67,7 +67,7 @@
                   <div class="flex-1">
                     <div class="font-medium">{{ qi.item.name|default:"Untitled Item" }}</div>
                     <div class="text-sm text-gray-600 mt-1">
-                      {% trans "Response type" %}: {{ qi.item.get_response_type_display }}
+                      {% translate "Response type" %}: {{ qi.item.get_response_type_display }}
                       {% if qi.item.response_type == 'Likert' and qi.item.likert_response %}
                         - {{ qi.item.likert_response.likert_scale_name }}
                       {% elif qi.item.response_type == 'Range' and qi.item.range_response %}
@@ -91,10 +91,10 @@
           </div>
         {% else %}
           <div class="text-center py-8 bg-gray-50 rounded-md">
-            <p class="text-gray-600">{% trans "No items in this questionnaire." %}</p>
+            <p class="text-gray-600">{% translate "No items in this questionnaire." %}</p>
             <p class="mt-2">
               <a href="{% url 'questionnaire_update' questionnaire.id %}" class="text-blue-600 hover:underline">
-                {% trans "Add items to this questionnaire" %}
+                {% translate "Add items to this questionnaire" %}
               </a>
             </p>
           </div>

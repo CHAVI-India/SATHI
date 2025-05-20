@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block title %}{% trans "Edit Item" %}{% endblock %}
+{% block title %}{% translate "Edit Item" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -39,9 +39,9 @@
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-blue-700">{% trans "Edit Item" %}</h1>
+        <h1 class="text-2xl font-bold text-blue-700">{% translate "Edit Item" %}</h1>
         <a href="{% url 'item_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-          {% trans "Back to Items" %}
+          {% translate "Back to Items" %}
         </a>
       </div>
       
@@ -59,11 +59,11 @@
         {% csrf_token %}
         
         <div class="bg-gray-50 p-4 rounded-md">
-          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Item Details" %}</h2>
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% translate "Item Details" %}</h2>
           
           <div class="space-y-4">
             <div>
-              <label for="id_construct_scale" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Construct Scale" %}</label>
+              <label for="id_construct_scale" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Construct Scale" %}</label>
               <select name="construct_scale" id="id_construct_scale" class="w-full px-3 py-2 border rounded">
                 <option value="">---------</option>
                 {% for scale in form.construct_scale.field.queryset %}
@@ -77,33 +77,33 @@
               {% endif %}
               <div class="mt-2">
                 <a href="{% url 'create_construct_scale' %}" class="text-sm text-blue-600 hover:underline">
-                  {% trans "Create new Construct Scale" %}
+                  {% translate "Create new Construct Scale" %}
                 </a>
               </div>
             </div>
             
             <div>
-              <label for="id_name" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Item Name" %}</label>
-              <input type="text" name="name" id="id_name" value="{{ form.name.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Enter item name' %}">
+              <label for="id_name" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Item Name" %}</label>
+              <input type="text" name="name" id="id_name" value="{{ form.name.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% translate 'Enter item name' %}">
               {% if form.name.errors %}
                 <div class="text-red-500 text-sm mt-1">{{ form.name.errors }}</div>
               {% endif %}
             </div>
 
             <div>
-              <label for="id_media" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Item Media" %}</label>
+              <label for="id_media" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Item Media" %}</label>
               {% if form.instance.media %}
                 <div class="mb-2">
-                  <p class="text-sm text-gray-600">{% trans "Current media:" %}</p>
+                  <p class="text-sm text-gray-600">{% translate "Current media:" %}</p>
                   {% with media_url=form.instance.media.url|lower %}
                     {% if '.jpg' in media_url or '.jpeg' in media_url or '.png' in media_url or '.gif' in media_url %}
-                      <img src="{{ form.instance.media.url }}" alt="{% trans 'Item media' %}" class="max-w-xs mt-2 rounded">
+                      <img src="{{ form.instance.media.url }}" alt="{% translate 'Item media' %}" class="max-w-xs mt-2 rounded">
                     {% elif '.mp4' in media_url or '.webm' in media_url %}
                       <video src="{{ form.instance.media.url }}" controls class="max-w-xs mt-2 rounded"></video>
                     {% elif '.mp3' in media_url or '.wav' in media_url %}
                       <audio src="{{ form.instance.media.url }}" controls class="mt-2"></audio>
                     {% else %}
-                      <a href="{{ form.instance.media.url }}" class="text-blue-600 hover:underline" target="_blank">{% trans "View current media" %}</a>
+                      <a href="{{ form.instance.media.url }}" class="text-blue-600 hover:underline" target="_blank">{% translate "View current media" %}</a>
                     {% endif %}
                   {% endwith %}
                 </div>
@@ -112,11 +112,11 @@
               {% if form.media.errors %}
                 <div class="text-red-500 text-sm mt-1">{{ form.media.errors }}</div>
               {% endif %}
-              <p class="text-sm text-gray-500 mt-1">{% trans "Upload an image, video, or audio file to display with this item" %}</p>
+              <p class="text-sm text-gray-500 mt-1">{% translate "Upload an image, video, or audio file to display with this item" %}</p>
             </div>
             
             <div>
-              <label for="id_response_type" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Response Type" %}</label>
+              <label for="id_response_type" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Response Type" %}</label>
               <select name="response_type" id="id_response_type" class="w-full px-3 py-2 border rounded" hx-get="/promapp/get-response-fields/" hx-target="#response-fields" hx-trigger="change">
                 {% for value, display in form.response_type.field.choices %}
                   <option value="{{ value }}" {% if form.instance.response_type == value %}selected{% endif %}>{{ display }}</option>
@@ -130,21 +130,21 @@
             <div id="response-fields" class="mt-4">
               {% if form.instance.response_type == 'Likert' %}
                 <div class="mt-2">
-                  <label for="id_likert_response" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Likert Scale" %}</label>
+                  <label for="id_likert_response" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Likert Scale" %}</label>
                   {{ form.likert_response }}
                   <div class="mt-2">
                     <a href="{% url 'create_likert_scale' %}" class="text-sm text-blue-600 hover:underline">
-                      {% trans "Create new Likert scale" %}
+                      {% translate "Create new Likert scale" %}
                     </a>
                   </div>
                 </div>
               {% elif form.instance.response_type == 'Range' %}
                 <div class="mt-2">
-                  <label for="id_range_response" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Range Scale" %}</label>
+                  <label for="id_range_response" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Range Scale" %}</label>
                   {{ form.range_response }}
                   <div class="mt-2">
                     <a href="{% url 'create_range_scale' %}" class="text-sm text-blue-600 hover:underline">
-                      {% trans "Create new Range scale" %}
+                      {% translate "Create new Range scale" %}
                     </a>
                   </div>
                 </div>
@@ -155,10 +155,10 @@
         
         <div class="flex justify-end space-x-3">
           <a href="{% url 'item_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-            {% trans "Cancel" %}
+            {% translate "Cancel" %}
           </a>
           <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-            {% trans "Update Item" %}
+            {% translate "Update Item" %}
           </button>
         </div>
       </form>

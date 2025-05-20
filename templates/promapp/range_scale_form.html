@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block title %}{% if is_edit %}{% trans "Edit Range Scale" %}{% else %}{% trans "Create Range Scale" %}{% endif %}{% endblock %}
+{% block title %}{% if is_edit %}{% translate "Edit Range Scale" %}{% else %}{% translate "Create Range Scale" %}{% endif %}{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
@@ -11,18 +11,18 @@
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">
           {% if is_edit %}
-            {% trans "Edit Range Scale" %}
+            {% translate "Edit Range Scale" %}
           {% else %}
-            {% trans "Create New Range Scale" %}
+            {% translate "Create New Range Scale" %}
           {% endif %}
         </h1>
         {% if perms.promapp.view_rangescale %}
           <a href="{% url 'range_scale_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-            {% trans "Back to Range Scales" %}
+            {% translate "Back to Range Scales" %}
           </a>
         {% else %}
           <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-            {% trans "Back to Item Creation" %}
+            {% translate "Back to Item Creation" %}
           </a>
         {% endif %}
       </div>
@@ -41,12 +41,12 @@
         {% csrf_token %}
         
         <div class="bg-gray-50 p-4 rounded-md">
-          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Range Scale Details" %}</h2>
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% translate "Range Scale Details" %}</h2>
           
           <div class="space-y-4">
             <div>
-              <label for="id_range_scale_name" class="block text-sm font-medium text-gray-700">{% trans "Scale Name" %}</label>
-              <input type="text" name="range_scale_name" id="id_range_scale_name" value="{{ form.range_scale_name.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Enter scale name' %}">
+              <label for="id_range_scale_name" class="block text-sm font-medium text-gray-700">{% translate "Scale Name" %}</label>
+              <input type="text" name="range_scale_name" id="id_range_scale_name" value="{{ form.range_scale_name.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% translate 'Enter scale name' %}">
               {% if form.range_scale_name.errors %}
                 <div class="text-red-500 text-sm mt-1">{{ form.range_scale_name.errors }}</div>
               {% endif %}
@@ -54,24 +54,24 @@
 
             <div class="grid grid-cols-3 gap-4">
               <div>
-                <label for="id_min_value" class="block text-sm font-medium text-gray-700">{% trans "Minimum Value" %}</label>
-                <input type="number" step="0.01" name="min_value" id="id_min_value" value="{{ form.min_value.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Enter minimum value' %}">
+                <label for="id_min_value" class="block text-sm font-medium text-gray-700">{% translate "Minimum Value" %}</label>
+                <input type="number" step="0.01" name="min_value" id="id_min_value" value="{{ form.min_value.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% translate 'Enter minimum value' %}">
                 {% if form.min_value.errors %}
                   <div class="text-red-500 text-sm mt-1">{{ form.min_value.errors }}</div>
                 {% endif %}
               </div>
 
               <div>
-                <label for="id_max_value" class="block text-sm font-medium text-gray-700">{% trans "Maximum Value" %}</label>
-                <input type="number" step="0.01" name="max_value" id="id_max_value" value="{{ form.max_value.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Enter maximum value' %}">
+                <label for="id_max_value" class="block text-sm font-medium text-gray-700">{% translate "Maximum Value" %}</label>
+                <input type="number" step="0.01" name="max_value" id="id_max_value" value="{{ form.max_value.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% translate 'Enter maximum value' %}">
                 {% if form.max_value.errors %}
                   <div class="text-red-500 text-sm mt-1">{{ form.max_value.errors }}</div>
                 {% endif %}
               </div>
 
               <div>
-                <label for="id_increment" class="block text-sm font-medium text-gray-700">{% trans "Increment" %}</label>
-                <input type="number" step="0.01" name="increment" id="id_increment" value="{{ form.increment.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Enter increment' %}">
+                <label for="id_increment" class="block text-sm font-medium text-gray-700">{% translate "Increment" %}</label>
+                <input type="number" step="0.01" name="increment" id="id_increment" value="{{ form.increment.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% translate 'Enter increment' %}">
                 {% if form.increment.errors %}
                   <div class="text-red-500 text-sm mt-1">{{ form.increment.errors }}</div>
                 {% endif %}
@@ -80,16 +80,16 @@
 
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label for="id_min_value_text" class="block text-sm font-medium text-gray-700">{% trans "Minimum Value Text" %}</label>
-                <input type="text" name="min_value_text" id="id_min_value_text" value="{{ form.min_value_text.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Enter text for minimum value' %}">
+                <label for="id_min_value_text" class="block text-sm font-medium text-gray-700">{% translate "Minimum Value Text" %}</label>
+                <input type="text" name="min_value_text" id="id_min_value_text" value="{{ form.min_value_text.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% translate 'Enter text for minimum value' %}">
                 {% if form.min_value_text.errors %}
                   <div class="text-red-500 text-sm mt-1">{{ form.min_value_text.errors }}</div>
                 {% endif %}
               </div>
 
               <div>
-                <label for="id_max_value_text" class="block text-sm font-medium text-gray-700">{% trans "Maximum Value Text" %}</label>
-                <input type="text" name="max_value_text" id="id_max_value_text" value="{{ form.max_value_text.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Enter text for maximum value' %}">
+                <label for="id_max_value_text" class="block text-sm font-medium text-gray-700">{% translate "Maximum Value Text" %}</label>
+                <input type="text" name="max_value_text" id="id_max_value_text" value="{{ form.max_value_text.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% translate 'Enter text for maximum value' %}">
                 {% if form.max_value_text.errors %}
                   <div class="text-red-500 text-sm mt-1">{{ form.max_value_text.errors }}</div>
                 {% endif %}
@@ -101,18 +101,18 @@
         <div class="flex justify-end space-x-3">
           {% if perms.promapp.view_rangescale %}
             <a href="{% url 'range_scale_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-              {% trans "Cancel" %}
+              {% translate "Cancel" %}
             </a>
           {% else %}
             <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-              {% trans "Cancel" %}
+              {% translate "Cancel" %}
             </a>
           {% endif %}
           <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
             {% if is_edit %}
-              {% trans "Update Range Scale" %}
+              {% translate "Update Range Scale" %}
             {% else %}
-              {% trans "Create Range Scale" %}
+              {% translate "Create Range Scale" %}
             {% endif %}
           </button>
         </div>
@@ -136,17 +136,17 @@
       const increment = parseFloat(incrementInput.value);
 
       if (minValue >= maxValue) {
-        alert("{% trans 'Minimum value must be less than maximum value' %}");
+        alert("{% translate 'Minimum value must be less than maximum value' %}");
         return false;
       }
 
       if (increment <= 0) {
-        alert("{% trans 'Increment must be greater than 0' %}");
+        alert("{% translate 'Increment must be greater than 0' %}");
         return false;
       }
 
       if ((maxValue - minValue) % increment !== 0) {
-        alert("{% trans 'Maximum value minus minimum value must be divisible by increment' %}");
+        alert("{% translate 'Maximum value minus minimum value must be divisible by increment' %}");
         return false;
       }
 

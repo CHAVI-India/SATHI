@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block title %}{% trans "Questionnaire Item Rules" %}{% endblock %}
+{% block title %}{% translate "Questionnaire Item Rules" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
@@ -10,7 +10,7 @@
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">
-          {% trans "Rules for" %} "{{ questionnaire_item.item.name }}"
+          {% translate "Rules for" %} "{{ questionnaire_item.item.name }}"
         </h1>
         <div class="space-x-3">
           <a href="{% url 'questionnaire_item_rule_create' questionnaire_item.id %}" 
@@ -18,14 +18,14 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
             </svg>
-            {% trans "Add Rule" %}
+            {% translate "Add Rule" %}
           </a>
           <a href="{% url 'questionnaire_item_rule_groups_list' questionnaire_item.id %}" 
              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M7 2a1 1 0 00-1 1v1H5a1 1 0 00-1 1v1H3a1 1 0 00-1 1v1H1a1 1 0 000 2h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1h-1V8a1 1 0 00-1-1h-1V6a1 1 0 00-1-1h-1V4a1 1 0 00-1-1h-1V2a1 1 0 00-1-1H7z" clip-rule="evenodd" />
             </svg>
-            {% trans "Manage Rule Groups" %}
+            {% translate "Manage Rule Groups" %}
           </a>
         </div>
       </div>
@@ -36,22 +36,22 @@
             <thead class="bg-gray-50">
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% trans "Dependent Question" %}
+                  {% translate "Dependent Question" %}
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% trans "Operator" %}
+                  {% translate "Operator" %}
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% trans "Comparison Value" %}
+                  {% translate "Comparison Value" %}
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% trans "Logical Operator" %}
+                  {% translate "Logical Operator" %}
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% trans "Order" %}
+                  {% translate "Order" %}
                 </th>
                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% trans "Actions" %}
+                  {% translate "Actions" %}
                 </th>
               </tr>
             </thead>
@@ -63,7 +63,7 @@
                       {{ rule.dependent_item.item.name }}
                     </div>
                     <div class="text-sm text-gray-500">
-                      {% trans "Question" %} #{{ rule.dependent_item.question_number }}
+                      {% translate "Question" %} #{{ rule.dependent_item.question_number }}
                     </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
@@ -81,12 +81,12 @@
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <a href="{% url 'questionnaire_item_rule_update' rule.id %}" 
                        class="text-blue-600 hover:text-blue-900 mr-3">
-                      {% trans "Edit" %}
+                      {% translate "Edit" %}
                     </a>
                     <a href="{% url 'questionnaire_item_rule_delete' rule.id %}" 
                        class="text-red-600 hover:text-red-900"
-                       onclick="return confirm('{% trans "Are you sure you want to delete this rule?" %}')">
-                      {% trans "Delete" %}
+                       onclick="return confirm('{% translate "Are you sure you want to delete this rule?" %}')">
+                      {% translate "Delete" %}
                     </a>
                   </td>
                 </tr>
@@ -96,13 +96,13 @@
         </div>
       {% else %}
         <div class="text-center py-8">
-          <p class="text-gray-600 mb-4">{% trans "No rules defined for this question yet." %}</p>
+          <p class="text-gray-600 mb-4">{% translate "No rules defined for this question yet." %}</p>
           <a href="{% url 'questionnaire_item_rule_create' questionnaire_item.id %}" 
              class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
             </svg>
-            {% trans "Add First Rule" %}
+            {% translate "Add First Rule" %}
           </a>
         </div>
       {% endif %}

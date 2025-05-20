@@ -2,16 +2,16 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block title %}{% trans "Create Construct Scale" %}{% endblock %}
+{% block title %}{% translate "Create Construct Scale" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-blue-700">{% trans "Create New Construct Scale" %}</h1>
+        <h1 class="text-2xl font-bold text-blue-700">{% translate "Create New Construct Scale" %}</h1>
         <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-          {% trans "Back to Item Creation" %}
+          {% translate "Back to Item Creation" %}
         </a>
       </div>
       
@@ -29,43 +29,43 @@
         {% csrf_token %}
         
         <div class="bg-gray-50 p-4 rounded-md">
-          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Construct Scale Details" %}</h2>
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">{% translate "Construct Scale Details" %}</h2>
           
           <div class="space-y-4">
             <div>
-              <label for="id_name" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Scale Name" %}</label>
-              <input type="text" name="name" id="id_name" value="{{ form.name.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Enter scale name' %}">
+              <label for="id_name" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Scale Name" %}</label>
+              <input type="text" name="name" id="id_name" value="{{ form.name.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% translate 'Enter scale name' %}">
               {% if form.name.errors %}
                 <div class="text-red-500 text-sm mt-1">{{ form.name.errors }}</div>
               {% endif %}
             </div>
             
             <div>
-              <label for="id_instrument_name" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Instrument Name" %}</label>
-              <input type="text" name="instrument_name" id="id_instrument_name" value="{{ form.instrument_name.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Enter instrument name' %}">
+              <label for="id_instrument_name" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Instrument Name" %}</label>
+              <input type="text" name="instrument_name" id="id_instrument_name" value="{{ form.instrument_name.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% translate 'Enter instrument name' %}">
               {% if form.instrument_name.errors %}
                 <div class="text-red-500 text-sm mt-1">{{ form.instrument_name.errors }}</div>
               {% endif %}
-              <p class="text-xs text-gray-500 mt-1">{% trans "The name of the instrument that the construct scale belongs to" %}</p>
+              <p class="text-xs text-gray-500 mt-1">{% translate "The name of the instrument that the construct scale belongs to" %}</p>
             </div>
             
             <div>
-              <label for="id_instrument_version" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Instrument Version" %}</label>
-              <input type="text" name="instrument_version" id="id_instrument_version" value="{{ form.instrument_version.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% trans 'Enter instrument version' %}">
+              <label for="id_instrument_version" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Instrument Version" %}</label>
+              <input type="text" name="instrument_version" id="id_instrument_version" value="{{ form.instrument_version.value|default:'' }}" class="w-full px-3 py-2 border rounded" placeholder="{% translate 'Enter instrument version' %}">
               {% if form.instrument_version.errors %}
                 <div class="text-red-500 text-sm mt-1">{{ form.instrument_version.errors }}</div>
               {% endif %}
-              <p class="text-xs text-gray-500 mt-1">{% trans "The version of the instrument that the construct scale belongs to" %}</p>
+              <p class="text-xs text-gray-500 mt-1">{% translate "The version of the instrument that the construct scale belongs to" %}</p>
             </div>
           </div>
         </div>
         
         <div class="flex justify-end space-x-3">
           <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-            {% trans "Cancel" %}
+            {% translate "Cancel" %}
           </a>
           <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-            {% trans "Create Construct Scale" %}
+            {% translate "Create Construct Scale" %}
           </button>
         </div>
       </form>

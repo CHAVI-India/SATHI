@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block title %}{% trans "Manage Questionnaire Rules" %}{% endblock %}
+{% block title %}{% translate "Manage Questionnaire Rules" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -30,9 +30,9 @@
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-blue-700">{% trans "Manage Questionnaire Rules" %}</h1>
+        <h1 class="text-2xl font-bold text-blue-700">{% translate "Manage Questionnaire Rules" %}</h1>
         <a href="{% url 'questionnaire_update' questionnaire.id %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-          {% trans "Back to Questionnaire" %}
+          {% translate "Back to Questionnaire" %}
         </a>
       </div>
 
@@ -44,7 +44,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Questions List -->
         <div class="bg-gray-50 p-4 rounded-md">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Questions" %}</h3>
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">{% translate "Questions" %}</h3>
           <div class="space-y-4">
             {% for item in questionnaire_items_structured %}
               <div class="question-card bg-white p-4 rounded-md border">
@@ -65,7 +65,7 @@
                   <div class="flex space-x-2">
                     <a href="{% url 'questionnaire_item_rules_list' item.item.id %}" 
                        class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
-                      {% trans "Manage Rules" %}
+                      {% translate "Manage Rules" %}
                     </a>
                   </div>
                 </div>
@@ -75,11 +75,11 @@
                     <div class="text-sm text-gray-600">
                       {% if item.rules %}
                         <div class="mb-2">
-                          <span class="font-medium">{% trans "Individual Rules" %}:</span>
+                          <span class="font-medium">{% translate "Individual Rules" %}:</span>
                           <ul class="list-disc list-inside">
                             {% for rule in item.rules %}
                               <li>
-                                {% trans "If" %} Q{{ rule.dependent_item.question_number }} 
+                                {% translate "If" %} Q{{ rule.dependent_item.question_number }} 
                                 {{ rule.get_operator_display }} 
                                 "{{ rule.comparison_value }}"
                               </li>
@@ -90,11 +90,11 @@
                       
                       {% if item.rule_groups %}
                         <div>
-                          <span class="font-medium">{% trans "Rule Groups" %}:</span>
+                          <span class="font-medium">{% translate "Rule Groups" %}:</span>
                           <ul class="list-disc list-inside">
                             {% for group in item.rule_groups %}
                               <li>
-                                {% trans "Group" %} {{ group.group_order }}:
+                                {% translate "Group" %} {{ group.group_order }}:
                                 {% for rule in group.rules.all %}
                                   {% if not forloop.first %}{{ rule.logical_operator }} {% endif %}
                                   Q{{ rule.dependent_item.question_number }}
@@ -116,7 +116,7 @@
 
         <!-- Rules Summary -->
         <div class="bg-gray-50 p-4 rounded-md">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">{% trans "Rules Summary" %}</h3>
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">{% translate "Rules Summary" %}</h3>
           <div class="rule-list space-y-4">
             {% for item in questionnaire_items_structured %}
               {% if item.rules or item.rule_groups %}
@@ -127,11 +127,11 @@
                   <div class="text-sm text-gray-600">
                     {% if item.rules %}
                       <div class="mb-2">
-                        <span class="font-medium">{% trans "Individual Rules" %}:</span>
+                        <span class="font-medium">{% translate "Individual Rules" %}:</span>
                         <ul class="list-disc list-inside">
                           {% for rule in item.rules %}
                             <li>
-                              {% trans "If" %} Q{{ rule.dependent_item.question_number }} 
+                              {% translate "If" %} Q{{ rule.dependent_item.question_number }} 
                               {{ rule.get_operator_display }} 
                               "{{ rule.comparison_value }}"
                             </li>
@@ -142,11 +142,11 @@
                     
                     {% if item.rule_groups %}
                       <div>
-                        <span class="font-medium">{% trans "Rule Groups" %}:</span>
+                        <span class="font-medium">{% translate "Rule Groups" %}:</span>
                         <ul class="list-disc list-inside">
                           {% for group in item.rule_groups %}
                             <li>
-                              {% trans "Group" %} {{ group.group_order }}:
+                              {% translate "Group" %} {{ group.group_order }}:
                               {% for rule in group.rules.all %}
                                 {% if not forloop.first %}{{ rule.logical_operator }} {% endif %}
                                 Q{{ rule.dependent_item.question_number }}

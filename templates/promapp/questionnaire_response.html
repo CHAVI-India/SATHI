@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "Questionnaire Response" %} - {{ patient_questionnaire.questionnaire.name }}{% endblock %}
+{% block title %}{% translate "Questionnaire Response" %} - {{ patient_questionnaire.questionnaire.name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto px-4 py-8">
@@ -16,7 +16,7 @@
       <div class="mt-4">
         <div class="flex items-center justify-between">
           <div class="text-sm text-gray-600">
-            <span id="current-question-number">1</span> {% trans "of" %} <span id="total-questions">{{ questionnaire_items|length }}</span>
+            <span id="current-question-number">1</span> {% translate "of" %} <span id="total-questions">{{ questionnaire_items|length }}</span>
           </div>
         </div>
         <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
@@ -74,7 +74,7 @@
                 <textarea name="response_{{ qi.id }}" 
                           class="w-full px-4 py-3 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           rows="3"
-                          placeholder="{% trans 'Enter your response here...' %}"></textarea>
+                          placeholder="{% translate 'Enter your response here...' %}"></textarea>
               </div>
 
             {% elif qi.item.response_type == 'Number' %}
@@ -83,7 +83,7 @@
                 <input type="number" 
                        name="response_{{ qi.id }}"
                        class="w-full px-4 py-3 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                       placeholder="{% trans 'Enter a number...' %}">
+                       placeholder="{% translate 'Enter a number...' %}">
               </div>
 
             {% elif qi.item.response_type == 'Likert' %}
@@ -169,10 +169,10 @@
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
               </svg>
-              {% trans "Previous Question" %}
+              {% translate "Previous Question" %}
             </button>
             <button type="button" class="next-btn px-4 py-2 text-base font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center">
-              {% trans "Next Question" %}
+              {% translate "Next Question" %}
               <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
               </svg>
@@ -184,7 +184,7 @@
       <!-- Submit Button -->
       <div class="flex justify-end mt-8">
         <button type="submit" id="submit-btn" class="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 hidden">
-          {% trans "Submit Responses" %}
+          {% translate "Submit Responses" %}
         </button>
       </div>
     </form>

@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Questionnaires" %}{% endblock %}
+{% block title %}{% translate "Questionnaires" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-blue-700">{% trans "Questionnaires" %}</h1>
+        <h1 class="text-2xl font-bold text-blue-700">{% translate "Questionnaires" %}</h1>
         <a href="{% url 'questionnaire_create' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-          {% trans "Create New Questionnaire" %}
+          {% translate "Create New Questionnaire" %}
         </a>
       </div>
       
@@ -30,19 +30,19 @@
             <thead class="bg-gray-50">
               <tr>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% trans "Name" %}
+                  {% translate "Name" %}
                 </th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% trans "Description" %}
+                  {% translate "Description" %}
                 </th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% trans "Items" %}
+                  {% translate "Items" %}
                 </th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% trans "Created" %}
+                  {% translate "Created" %}
                 </th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% trans "Actions" %}
+                  {% translate "Actions" %}
                 </th>
               </tr>
             </thead>
@@ -57,7 +57,7 @@
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900">
-                      {{ questionnaire.questionnaireitem_set.count }} {% trans "items" %}
+                      {{ questionnaire.questionnaireitem_set.count }} {% translate "items" %}
                     </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
@@ -66,10 +66,10 @@
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div class="flex space-x-2">
                       <a href="{% url 'questionnaire_detail' questionnaire.id %}" class="text-blue-600 hover:text-blue-900">
-                        {% trans "View" %}
+                        {% translate "View" %}
                       </a>
                       <a href="{% url 'questionnaire_update' questionnaire.id %}" class="text-indigo-600 hover:text-indigo-900">
-                        {% trans "Edit" %}
+                        {% translate "Edit" %}
                       </a>
                     </div>
                   </td>
@@ -80,10 +80,10 @@
         </div>
       {% else %}
         <div class="text-center py-8">
-          <p class="text-gray-600">{% trans "No questionnaires found." %}</p>
+          <p class="text-gray-600">{% translate "No questionnaires found." %}</p>
           <p class="mt-2">
             <a href="{% url 'questionnaire_create' %}" class="text-blue-600 hover:underline">
-              {% trans "Create your first questionnaire" %}
+              {% translate "Create your first questionnaire" %}
             </a>
           </p>
         </div>
