@@ -2063,17 +2063,66 @@ class RangeScaleTranslationView(LoginRequiredMixin, PermissionRequiredMixin, Upd
     """
     model = RangeScale
     form_class = RangeScaleTranslationForm
-    template_name = 'promapp/range_scale_translation.html'
+    template_name = 'promapp/range_scale_translation_form.html'
     permission_required = 'promapp.add_rangescale'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['available_languages'] = settings.LANGUAGES
         context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        scale = self.get_object()
+        context['original_min_value_text'] = scale.min_value_text
+        context['original_max_value_text'] = scale.max_value_text
         return context
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        current_language = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        scale = self.get_object()
+        try:
+            translation = scale.translations.get(language_code=current_language)
+            kwargs['initial'] = {
+                'min_value_text': translation.min_value_text,
+                'max_value_text': translation.max_value_text
+            }
+        except scale.translations.model.DoesNotExist:
+            kwargs['initial'] = {
+                'min_value_text': '',
+                'max_value_text': ''
+            }
+        return kwargs
+
+    def form_valid(self, form):
+        current_language = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        scale = self.get_object()
+        scale.set_current_language(current_language)
+        scale.min_value_text = form.cleaned_data['min_value_text']
+        scale.max_value_text = form.cleaned_data['max_value_text']
+        scale.save()
+        messages.success(self.request, _('Translation saved successfully.'))
+        return redirect(self.get_success_url())
+
     def get_success_url(self):
-        return reverse('range_scale_list')
+        return reverse('range_scale_translation_list')
+
+class RangeScaleTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """
+    View for listing range scales with translation links.
+    """
+    model = RangeScale
+    template_name = 'promapp/range_scale_translation_list.html'
+    context_object_name = 'range_scales'
+    permission_required = 'promapp.add_rangescale'
+
+    def get_queryset(self):
+        current_language = get_language()
+        return RangeScale.objects.language(current_language).all().order_by('translations__min_value_text')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['available_languages'] = settings.LANGUAGES
+        context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        return context
 
 def switch_language(request):
     """

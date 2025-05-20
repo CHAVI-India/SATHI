@@ -4,7 +4,7 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold">{% trans "Likert Scale Option Translations" %}</h1>
+        <h1 class="text-3xl font-bold">{% trans "Range Scale Translations" %}</h1>
         <a href="{% url 'translations_dashboard' %}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
             {% trans "Back to Dashboard" %}
         </a>
@@ -24,19 +24,19 @@
         </form>
     </div>
 
-    <!-- Options Table -->
+    <!-- Range Scales Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {% trans "Likert Scale Name" %}
+                        {% trans "Range Scale Name" %}
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {% trans "Option Text" %}
+                        {% trans "Min Value Text" %}
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {% trans "Option Media" %}
+                        {% trans "Max Value Text" %}
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         {% trans "Actions" %}
@@ -44,23 +44,19 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                {% for option in options %}
+                {% for scale in range_scales %}
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        {{ option.likert_scale.likert_scale_name }}
+                        {{ scale.range_scale_name }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        {{ option.option_text }}
+                        {{ scale.min_value_text }}
                     </td>
                     <td class="px-6 py-4">
-                        {% if option.option_media %}
-                            <a href="{{ option.option_media.url }}" target="_blank">{{ option.option_media.name|truncatechars:40 }}</a>
-                        {% else %}
-                            <span class="text-gray-400">{% trans "No media" %}</span>
-                        {% endif %}
+                        {{ scale.max_value_text }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <a href="{% url 'likert_scale_response_option_translation' option.id %}?language={{ current_language }}" 
+                        <a href="{% url 'range_scale_translate' scale.id %}?language={{ current_language }}" 
                            class="text-blue-600 hover:text-blue-900">
                             {% trans "Add/Edit Translation" %}
                         </a>
@@ -69,7 +65,7 @@
                 {% empty %}
                 <tr>
                     <td colspan="3" class="px-6 py-4 text-center text-gray-500">
-                        {% trans "No options found." %}
+                        {% trans "No range scales found." %}
                     </td>
                 </tr>
                 {% endfor %}

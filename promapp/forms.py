@@ -636,8 +636,18 @@ class RangeScaleTranslationForm(TranslatableModelForm):
     """
     Form for translating RangeScale model.
     """
-    min_value_text = TranslatedField()
-    max_value_text = TranslatedField()
+    min_value_text = TranslatedField(
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-2 text-lg border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Enter min value text'
+        })
+    )
+    max_value_text = TranslatedField(
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-2 text-lg border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Enter max value text'
+        })
+    )
     
     class Meta:
         model = RangeScale
@@ -648,7 +658,10 @@ class RangeScaleTranslationForm(TranslatableModelForm):
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            Field('min_value_text', css_class='w-full px-3 py-2 border rounded'),
-            Field('max_value_text', css_class='w-full px-3 py-2 border rounded'),
+            Div(
+                Field('min_value_text', wrapper_class='mb-4'),
+                Field('max_value_text', wrapper_class='mb-4'),
+                css_class='space-y-4'
+            )
         )
 

@@ -101,4 +101,8 @@ urlpatterns = [
     # Likert Scale Response Option Translation URLs
     path('translations/likert-options/', views.LikertScaleResponseOptionTranslationListView.as_view(), name='likert_scale_response_option_translation_list'),
     path('translations/likert-option/<uuid:pk>/', views.LikertScaleResponseOptionTranslationView.as_view(), name='likert_scale_response_option_translation'),
+
+    # Range Scale Translation URLs
+    path('translations/range-scales/', views.RangeScaleTranslationListView.as_view(), name='range_scale_translation_list'),
+    path('translations/range-scale/<uuid:pk>/', views.RangeScaleTranslationView.as_view(), name='range_scale_translation'),
 ] 
