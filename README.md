@@ -43,6 +43,12 @@ Users can add patients to the system using a single page form and assign the que
 
 Users can choose to add diagnoses, and treatments for diagnoses for the patients. 
 
+# Translations
+The system allows users to add translations for questionnaires, items, and options in the Likert and Range scale options values. Media translations are also supported. Once an item is translated it can be used in multiple questionnaires. The same is true for Likert scale and Range Scale translations. 
+
+The ability to add translations is provided for the users with appropriate permissions. 
+
+
 # Security
 
 Patient identifies are securekly encrypted in the database. 
