@@ -1,0 +1,1944 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-21 01:12+0530\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: patientapp/forms.py:16 templates/patientapp/patient_form.html:43
+msgid "Password"
+msgstr ""
+
+#: patientapp/forms.py:21
+msgid "Repeat Password"
+msgstr ""
+
+#: patientapp/forms.py:27
+msgid "Groups"
+msgstr ""
+
+#: patientapp/forms.py:82
+msgid "Passwords don't match"
+msgstr ""
+
+#: patientapp/forms.py:88
+msgid "A user with that username already exists."
+msgstr ""
+
+#: patientapp/forms.py:94
+msgid "A user with that email already exists."
+msgstr ""
+
+#: patientapp/views.py:137
+msgid "Patient created successfully."
+msgstr ""
+
+#: patientapp/views.py:141
+msgid "An error occurred while creating the patient."
+msgstr ""
+
+#: patientapp/views.py:146
+msgid "Add New Patient"
+msgstr ""
+
+#: patientapp/views.py:159 templates/patientapp/diagnosis_form.html:10
+#: templates/patientapp/patient_detail.html:52
+msgid "Add Diagnosis"
+msgstr ""
+
+#: patientapp/views.py:164
+msgid "Diagnosis added successfully."
+msgstr ""
+
+#: patientapp/views.py:178 templates/patientapp/diagnosis_form.html:10
+msgid "Edit Diagnosis"
+msgstr ""
+
+#: patientapp/views.py:204 templates/patientapp/patient_detail.html:129
+msgid "Add Treatment"
+msgstr ""
+
+#: patientapp/views.py:209
+msgid "Treatment added successfully."
+msgstr ""
+
+#: patientapp/views.py:225
+msgid "Edit Treatment"
+msgstr ""
+
+#: patientapp/views.py:248 templates/patientapp/treatment_type_form.html:10
+#: templates/patientapp/treatment_type_list.html:13
+msgid "Add Treatment Type"
+msgstr ""
+
+#: patientapp/views.py:262 templates/patientapp/treatment_type_form.html:10
+msgid "Edit Treatment Type"
+msgstr ""
+
+#: patientapp/views.py:280 templates/patientapp/treatment_type_list.html:8
+msgid "Treatment Types"
+msgstr ""
+
+#: promapp/forms.py:99
+msgid "Select Items for Questionnaire"
+msgstr ""
+
+#: promapp/forms.py:259 templates/promapp/questionnaire_response.html:77
+msgid "Enter your response here..."
+msgstr ""
+
+#: promapp/forms.py:267 templates/promapp/questionnaire_response.html:86
+msgid "Enter a number..."
+msgstr ""
+
+#: promapp/forms.py:471
+#: templates/promapp/questionnaire_item_rule_group_form.html:41
+msgid "Select Rules"
+msgstr ""
+
+#: promapp/forms.py:520 promapp/views.py:1513
+msgid "All rules must belong to the same questionnaire item."
+msgstr ""
+
+#: promapp/forms.py:676
+msgid "Search..."
+msgstr ""
+
+#: promapp/views.py:895 promapp/views.py:937
+#, python-format
+msgid ""
+"You cannot answer this questionnaire yet. You can answer it again in "
+"%(time)s."
+msgstr ""
+
+#: promapp/views.py:928
+msgid "You do not have permission to submit responses."
+msgstr ""
+
+#: promapp/views.py:963
+msgid "Your responses have been saved successfully."
+msgstr ""
+
+#: promapp/views.py:980
+msgid "The next questionnaire is not available for you at this time."
+msgstr ""
+
+#: promapp/views.py:987
+msgid "An error occurred while saving your responses. Please try again."
+msgstr ""
+
+#: promapp/views.py:990
+msgid "Please correct the errors below."
+msgstr ""
+
+#: promapp/views.py:1050
+msgid "Questionnaire assigned successfully."
+msgstr ""
+
+#: promapp/views.py:1058
+msgid "Questionnaire unassigned successfully."
+msgstr ""
+
+#: promapp/views.py:1069
+#, python-brace-format
+msgid "Questionnaire is now {status}."
+msgstr ""
+
+#: promapp/views.py:1072
+msgid "Questionnaire not found."
+msgstr ""
+
+#: promapp/views.py:1074
+msgid "Questionnaire assignment not found."
+msgstr ""
+
+#: promapp/views.py:1076
+msgid "An error occurred. Please try again."
+msgstr ""
+
+#: promapp/views.py:1393
+msgid "Please select a dependent item."
+msgstr ""
+
+#: promapp/views.py:1397
+msgid "Selected item: {}"
+msgstr ""
+
+#: promapp/views.py:1399
+msgid "Invalid item selected."
+msgstr ""
+
+#: promapp/views.py:1407
+msgid "Please select an operator."
+msgstr ""
+
+#: promapp/views.py:1415
+msgid "Valid operator for numeric comparison."
+msgstr ""
+
+#: promapp/views.py:1417
+msgid "Valid operator for text comparison."
+msgstr ""
+
+#: promapp/views.py:1419 promapp/views.py:1464
+msgid "Invalid dependent item."
+msgstr ""
+
+#: promapp/views.py:1427
+msgid "Please enter a comparison value."
+msgstr ""
+
+#: promapp/views.py:1436
+msgid "Valid numeric value."
+msgstr ""
+
+#: promapp/views.py:1438 promapp/views.py:1449 promapp/views.py:1460
+#: promapp/views.py:1484 promapp/views.py:1497
+msgid "Please enter a valid number."
+msgstr ""
+
+#: promapp/views.py:1445
+msgid "Valid Likert scale value."
+msgstr ""
+
+#: promapp/views.py:1447
+msgid "Please enter a valid Likert scale value."
+msgstr ""
+
+#: promapp/views.py:1455
+msgid "Valid range value."
+msgstr ""
+
+#: promapp/views.py:1457
+msgid "Value must be between {} and {}."
+msgstr ""
+
+#: promapp/views.py:1462
+msgid "Valid text value."
+msgstr ""
+
+#: promapp/views.py:1470
+msgid "Please select a logical operator."
+msgstr ""
+
+#: promapp/views.py:1471
+msgid "Valid logical operator."
+msgstr ""
+
+#: promapp/views.py:1477
+msgid "Please enter a rule order."
+msgstr ""
+
+#: promapp/views.py:1481 promapp/views.py:1494
+msgid "Order must be greater than 0."
+msgstr ""
+
+#: promapp/views.py:1482
+msgid "Valid rule order."
+msgstr ""
+
+#: promapp/views.py:1490
+msgid "Please enter a group order."
+msgstr ""
+
+#: promapp/views.py:1495
+msgid "Valid group order."
+msgstr ""
+
+#: promapp/views.py:1503
+msgid "Please select at least one rule."
+msgstr ""
+
+#: promapp/views.py:1508
+msgid "One or more invalid rules selected."
+msgstr ""
+
+#: promapp/views.py:1515
+msgid "Valid rule selection."
+msgstr ""
+
+#: promapp/views.py:1517
+msgid "Error validating rules."
+msgstr ""
+
+#: promapp/views.py:1885 promapp/views.py:1987 promapp/views.py:2075
+#: promapp/views.py:2163
+msgid "Translation saved successfully."
+msgstr ""
+
+#: templates/base.html:27 templates/promapp/item_translation_form.html:13
+#: templates/promapp/likert_scale_response_option_translation_form.html:13
+#: templates/promapp/questionnaire_translation_form.html:13
+#: templates/promapp/range_scale_translation_form.html:13
+msgid "Select Language"
+msgstr ""
+
+#: templates/index.html:4
+msgid "Welcome to Chavi PROM Application"
+msgstr ""
+
+#: templates/index.html:10
+msgid "Patient Reported Outcome Monitoring"
+msgstr ""
+
+#: templates/index.html:14
+msgid ""
+"Welcome to the Patient Reported Outcome Monitoring Application for CHAVI. "
+"This open source application has been designed to allow patients to report "
+"their problems and concerns using standardized questionnaires. "
+"Questionnaires can be translated into multiple languages. Additionally, the "
+"application also provides users with an easy way to view responses to the "
+"questions."
+msgstr ""
+
+#: templates/index.html:19
+msgid "For Patients"
+msgstr ""
+
+#: templates/index.html:20
+msgid ""
+"Complete questionnaires about your health and well-being. Your feedback "
+"helps healthcare providers understand your needs better."
+msgstr "আপনার স্বাস্থ্য ও সুস্থতা সম্পর্কে প্রশ্নমালা পূরণ করুন। আপনার মতামত স্বাস্থ্যসেবা প্রদানকারীদের আপনার প্রয়োজনগুলি আরও ভালভাবে বুঝতে সাহায্য করে।"
+
+#: templates/index.html:23 templates/navbar.html:88 templates/navbar.html:211
+msgid "Complete a Questionnaire"
+msgstr ""
+
+#: templates/index.html:29
+msgid "For Healthcare Providers"
+msgstr ""
+
+#: templates/index.html:30
+msgid ""
+"Review patient-reported outcomes and gain insights into patient health "
+"status and treatment effectiveness."
+msgstr ""
+
+#: templates/index.html:33
+msgid "View Results"
+msgstr ""
+
+#: templates/index.html:40
+msgid "Key Features"
+msgstr ""
+
+#: templates/index.html:42
+msgid "Multilingual support for questionnaires"
+msgstr ""
+
+#: templates/index.html:43
+msgid "Standardized assessment tools"
+msgstr ""
+
+#: templates/index.html:44
+msgid "Secure data storage and privacy protection"
+msgstr ""
+
+#: templates/index.html:45
+msgid "Easy-to-use interface for patients and providers"
+msgstr ""
+
+#: templates/index.html:46
+msgid "Comprehensive reporting and visualization tools"
+msgstr ""
+
+#: templates/navbar.html:12 templates/navbar.html:148
+msgid "Home"
+msgstr ""
+
+#: templates/navbar.html:14 templates/navbar.html:150
+#: templates/patientapp/patient_list.html:5
+#: templates/patientapp/patient_list.html:11
+msgid "Patients"
+msgstr ""
+
+#: templates/navbar.html:19 templates/navbar.html:154
+msgid "Instruments"
+msgstr ""
+
+#: templates/navbar.html:28 templates/navbar.html:157
+#: templates/promapp/patient_questionnaire_list.html:35
+#: templates/promapp/questionnaire_create.html:5
+#: templates/promapp/questionnaire_create.html:201
+msgid "Create Questionnaire"
+msgstr ""
+
+#: templates/navbar.html:32 templates/navbar.html:160
+#: templates/promapp/construct_scale_list.html:4
+#: templates/promapp/construct_scale_list.html:11
+msgid "Construct Scales"
+msgstr ""
+
+#: templates/navbar.html:37 templates/navbar.html:165
+#: templates/promapp/item_list.html:4 templates/promapp/item_list.html:11
+#: templates/promapp/questionnaire_list.html:39
+#: templates/promapp/translations_dashboard.html:20
+msgid "Items"
+msgstr ""
+
+#: templates/navbar.html:41 templates/navbar.html:169
+#: templates/promapp/patient_questionnaire_list.html:66
+#: templates/promapp/questionnaire_list.html:4
+#: templates/promapp/questionnaire_list.html:11
+#: templates/promapp/translations_dashboard.html:11
+msgid "Questionnaires"
+msgstr ""
+
+#: templates/navbar.html:45 templates/navbar.html:173
+#: templates/promapp/likert_scale_list.html:4
+#: templates/promapp/likert_scale_list.html:11
+msgid "Likert Scales"
+msgstr ""
+
+#: templates/navbar.html:50 templates/navbar.html:178
+#: templates/promapp/range_scale_list.html:4
+#: templates/promapp/range_scale_list.html:11
+#: templates/promapp/translations_dashboard.html:38
+msgid "Range Scales"
+msgstr ""
+
+#: templates/navbar.html:59 templates/navbar.html:186
+msgid "Translations"
+msgstr ""
+
+#: templates/navbar.html:63 templates/navbar.html:189
+msgid "Translation Dashboard"
+msgstr ""
+
+#: templates/navbar.html:72 templates/navbar.html:197
+msgid "Manage Questionnaire"
+msgstr ""
+
+#: templates/navbar.html:76 templates/navbar.html:200
+msgid "Assign Questionnaire to Patient"
+msgstr ""
+
+#: templates/navbar.html:84 templates/navbar.html:207
+msgid "Admin"
+msgstr ""
+
+#: templates/navbar.html:119 templates/navbar.html:238
+msgid "Logout"
+msgstr ""
+
+#: templates/navbar.html:125 templates/navbar.html:243
+#: templates/registration/login.html:5 templates/registration/login.html:10
+#: templates/registration/login.html:20
+msgid "Login"
+msgstr ""
+
+#: templates/navbar.html:126 templates/navbar.html:244
+msgid "Register"
+msgstr ""
+
+#: templates/navbar.html:136
+msgid "Open main menu"
+msgstr ""
+
+#: templates/patientapp/diagnosis_confirm_delete.html:14
+msgid "Delete Diagnosis"
+msgstr ""
+
+#: templates/patientapp/diagnosis_confirm_delete.html:19
+msgid ""
+"Are you sure you want to delete this diagnosis? This action cannot be undone."
+msgstr ""
+
+#: templates/patientapp/diagnosis_confirm_delete.html:26
+#: templates/patientapp/diagnosis_form.html:20
+#: templates/patientapp/patient_form.html:73
+#: templates/patientapp/treatment_confirm_delete.html:36
+#: templates/patientapp/treatment_form.html:34
+#: templates/patientapp/treatment_type_confirm_delete.html:26
+#: templates/patientapp/treatment_type_form.html:20
+#: templates/promapp/construct_scale_form.html:65
+#: templates/promapp/item_create.html:153
+#: templates/promapp/item_translation_form.html:45
+#: templates/promapp/item_update.html:158
+#: templates/promapp/likert_scale_form.html:155
+#: templates/promapp/likert_scale_form.html:159
+#: templates/promapp/likert_scale_response_option_translation_form.html:49
+#: templates/promapp/questionnaire_create.html:198
+#: templates/promapp/questionnaire_item_rule_form.html:61
+#: templates/promapp/questionnaire_item_rule_group_form.html:74
+#: templates/promapp/questionnaire_translation_form.html:45
+#: templates/promapp/questionnaire_update.html:210
+#: templates/promapp/questionnaireitemrule_confirm_delete.html:24
+#: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:28
+#: templates/promapp/range_scale_form.html:104
+#: templates/promapp/range_scale_form.html:108
+#: templates/promapp/range_scale_translation_form.html:45
+msgid "Cancel"
+msgstr ""
+
+#: templates/patientapp/diagnosis_confirm_delete.html:30
+#: templates/patientapp/patient_detail.html:77
+#: templates/patientapp/patient_detail.html:115
+#: templates/patientapp/treatment_confirm_delete.html:33
+#: templates/patientapp/treatment_type_confirm_delete.html:30
+#: templates/patientapp/treatment_type_list.html:60
+#: templates/promapp/likert_scale_form.html:120
+#: templates/promapp/questionnaire_item_rule_groups_list.html:49
+#: templates/promapp/questionnaire_item_rules_list.html:89
+msgid "Delete"
+msgstr ""
+
+#: templates/patientapp/diagnosis_form.html:24
+#: templates/patientapp/treatment_form.html:38
+#: templates/patientapp/treatment_type_form.html:24
+msgid "Update"
+msgstr ""
+
+#: templates/patientapp/diagnosis_form.html:24
+#: templates/patientapp/treatment_form.html:38
+#: templates/patientapp/treatment_type_form.html:24
+msgid "Add"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:8
+#: templates/patientapp/patient_list.html:109
+#: templates/promapp/patient_questionnaire_list.html:147
+msgid "ID"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:11
+#: templates/patientapp/patient_detail.html:21
+#: templates/patientapp/patient_list.html:112
+#: templates/promapp/item_translation_form.html:29
+#: templates/promapp/partials/construct_scale_list_table.html:8
+#: templates/promapp/partials/item_list_table.html:14
+#: templates/promapp/patient_questionnaire_list.html:82
+#: templates/promapp/questionnaire_list.html:33
+#: templates/promapp/questionnaire_translation_form.html:29
+msgid "Name"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:14
+#: templates/patientapp/patient_detail.html:25
+#: templates/patientapp/patient_list.html:115
+#: templates/promapp/patient_questionnaire_list.html:126
+msgid "Age"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:17
+#: templates/patientapp/patient_detail.html:29
+#: templates/patientapp/patient_list.html:50
+#: templates/patientapp/patient_list.html:118
+#: templates/promapp/patient_questionnaire_list.html:123
+msgid "Gender"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:20
+#: templates/patientapp/patient_detail.html:33
+#: templates/patientapp/patient_list.html:36
+#: templates/patientapp/patient_list.html:121
+msgid "Institution"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:23
+#: templates/patientapp/patient_detail.html:47
+#: templates/patientapp/patient_list.html:124
+msgid "Diagnoses"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:26
+#: templates/patientapp/patient_detail.html:85
+#: templates/patientapp/patient_list.html:127
+msgid "Treatments"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:29
+#: templates/patientapp/patient_list.html:130
+#: templates/promapp/partials/item_list_table.html:26
+#: templates/promapp/partials/likert_scale_list_table.html:14
+#: templates/promapp/partials/range_scale_list_table.html:17
+#: templates/promapp/questionnaire_detail.html:38
+#: templates/promapp/questionnaire_list.html:42
+msgid "Created"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:32
+#: templates/patientapp/patient_list.html:133
+#: templates/patientapp/treatment_type_list.html:32
+#: templates/promapp/partials/construct_scale_list_table.html:23
+#: templates/promapp/partials/item_list_table.html:29
+#: templates/promapp/partials/item_translation_list_table.html:14
+#: templates/promapp/partials/likert_scale_list_table.html:17
+#: templates/promapp/partials/likert_scale_response_option_translation_list_table.html:17
+#: templates/promapp/partials/questionnaire_translation_list_table.html:14
+#: templates/promapp/partials/range_scale_list_table.html:20
+#: templates/promapp/partials/range_scale_translation_list_table.html:17
+#: templates/promapp/patient_questionnaire_list.html:135
+#: templates/promapp/patient_questionnaire_management.html:56
+#: templates/promapp/questionnaire_item_rules_list.html:54
+#: templates/promapp/questionnaire_list.html:45
+msgid "Actions"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:80
+#: templates/patientapp/patient_list.html:181
+#: templates/promapp/questionnaire_list.html:69
+msgid "View"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:83
+#: templates/patientapp/patient_list.html:184
+msgid "Manage"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:91
+#: templates/patientapp/patient_list.html:192
+msgid "No patients found"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:105
+#: templates/patientapp/partials/patient_table.html:130
+#: templates/patientapp/patient_list.html:206
+#: templates/patientapp/patient_list.html:231
+#: templates/promapp/partials/construct_scale_list_table.html:61
+#: templates/promapp/partials/construct_scale_list_table.html:82
+#: templates/promapp/partials/item_list_table.html:100
+#: templates/promapp/partials/item_list_table.html:104
+#: templates/promapp/partials/item_list_table.html:138
+#: templates/promapp/partials/item_list_table.html:145
+#: templates/promapp/partials/likert_scale_list_table.html:78
+#: templates/promapp/partials/range_scale_list_table.html:75
+#: templates/promapp/patient_questionnaire_list.html:197
+msgid "Previous"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:110
+#: templates/patientapp/partials/patient_table.html:151
+#: templates/patientapp/patient_list.html:211
+#: templates/patientapp/patient_list.html:252
+#: templates/promapp/partials/construct_scale_list_table.html:66
+#: templates/promapp/partials/construct_scale_list_table.html:103
+#: templates/promapp/partials/item_list_table.html:113
+#: templates/promapp/partials/item_list_table.html:117
+#: templates/promapp/partials/item_list_table.html:174
+#: templates/promapp/partials/item_list_table.html:181
+#: templates/promapp/partials/likert_scale_list_table.html:101
+#: templates/promapp/partials/range_scale_list_table.html:98
+#: templates/promapp/patient_questionnaire_list.html:203
+msgid "Next"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:117
+#: templates/patientapp/patient_list.html:218
+#: templates/promapp/patient_questionnaire_list.html:210
+msgid "Showing"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:119
+#: templates/patientapp/patient_list.html:220
+#: templates/promapp/patient_questionnaire_list.html:212
+msgid "to"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:121
+#: templates/patientapp/patient_list.html:222
+#: templates/promapp/patient_questionnaire_list.html:214
+#: templates/promapp/questionnaire_response.html:19
+msgid "of"
+msgstr ""
+
+#: templates/patientapp/partials/patient_table.html:123
+#: templates/patientapp/patient_list.html:224
+#: templates/promapp/patient_questionnaire_list.html:216
+msgid "results"
+msgstr ""
+
+#: templates/patientapp/patient_detail.html:5
+msgid "Patient Details"
+msgstr ""
+
+#: templates/patientapp/patient_detail.html:12
+#: templates/patientapp/patient_form.html:52
+msgid "Patient Information"
+msgstr ""
+
+#: templates/patientapp/patient_detail.html:17
+msgid "Patient ID"
+msgstr ""
+
+#: templates/patientapp/patient_detail.html:37
+#: templates/patientapp/treatment_type_list.html:26
+#: templates/promapp/partials/construct_scale_list_table.html:17
+msgid "Created Date"
+msgstr ""
+
+#: templates/patientapp/patient_detail.html:70
+#: templates/patientapp/patient_detail.html:108
+#: templates/patientapp/treatment_type_list.html:53
+#: templates/promapp/partials/likert_scale_list_table.html:51
+#: templates/promapp/partials/range_scale_list_table.html:52
+#: templates/promapp/questionnaire_detail.html:14
+#: templates/promapp/questionnaire_item_rule_groups_list.html:44
+#: templates/promapp/questionnaire_item_rules_list.html:84
+#: templates/promapp/questionnaire_list.html:72
+msgid "Edit"
+msgstr ""
+
+#: templates/patientapp/patient_detail.html:99
+msgid "Started"
+msgstr ""
+
+#: templates/patientapp/patient_detail.html:122
+msgid "No treatments recorded"
+msgstr ""
+
+#: templates/patientapp/patient_detail.html:136
+msgid "No diagnoses recorded"
+msgstr ""
+
+#: templates/patientapp/patient_form.html:34
+msgid "User Account Information"
+msgstr ""
+
+#: templates/patientapp/patient_form.html:64
+msgid "User Groups"
+msgstr ""
+
+#: templates/patientapp/patient_form.html:76
+msgid "Create Patient"
+msgstr ""
+
+#: templates/patientapp/patient_list.html:14
+#: templates/promapp/patient_questionnaire_list.html:27
+msgid "Add Patient"
+msgstr ""
+
+#: templates/patientapp/patient_list.html:26
+#: templates/promapp/patient_questionnaire_list.html:51
+#: templates/promapp/range_scale_list.html:35
+msgid "Search"
+msgstr ""
+
+#: templates/patientapp/patient_list.html:29
+msgid "Search by name or ID..."
+msgstr ""
+
+#: templates/patientapp/patient_list.html:31
+msgid "Note: Please enter patient name or ID in full"
+msgstr ""
+
+#: templates/patientapp/patient_list.html:39
+msgid "All Institutions"
+msgstr ""
+
+#: templates/patientapp/patient_list.html:53
+msgid "All Genders"
+msgstr ""
+
+#: templates/patientapp/patient_list.html:64
+msgid "Diagnosis"
+msgstr ""
+
+#: templates/patientapp/patient_list.html:67
+msgid "All Diagnoses"
+msgstr ""
+
+#: templates/patientapp/patient_list.html:78
+#: templates/patientapp/treatment_type_list.html:23
+msgid "Treatment Type"
+msgstr ""
+
+#: templates/patientapp/patient_list.html:81
+msgid "All Treatment Types"
+msgstr ""
+
+#: templates/patientapp/treatment_confirm_delete.html:21
+msgid "Delete Treatment"
+msgstr ""
+
+#: templates/patientapp/treatment_confirm_delete.html:25
+msgid ""
+"Are you sure you want to delete this treatment? This action cannot be undone."
+msgstr ""
+
+#: templates/patientapp/treatment_form.html:24
+msgid "Add New Treatment Type"
+msgstr ""
+
+#: templates/patientapp/treatment_type_confirm_delete.html:14
+msgid "Delete Treatment Type"
+msgstr ""
+
+#: templates/patientapp/treatment_type_confirm_delete.html:19
+msgid ""
+"Are you sure you want to delete this treatment type? This action cannot be "
+"undone."
+msgstr ""
+
+#: templates/patientapp/treatment_type_list.html:29
+#: templates/promapp/partials/construct_scale_list_table.html:20
+msgid "Modified Date"
+msgstr ""
+
+#: templates/patientapp/treatment_type_list.html:68
+msgid "No treatment types found"
+msgstr ""
+
+#: templates/promapp/construct_scale_form.html:5
+#: templates/promapp/construct_scale_form.html:68
+msgid "Create Construct Scale"
+msgstr ""
+
+#: templates/promapp/construct_scale_form.html:12
+#: templates/promapp/construct_scale_list.html:16
+msgid "Create New Construct Scale"
+msgstr ""
+
+#: templates/promapp/construct_scale_form.html:14
+#: templates/promapp/likert_scale_form.html:25
+#: templates/promapp/range_scale_form.html:25
+msgid "Back to Item Creation"
+msgstr ""
+
+#: templates/promapp/construct_scale_form.html:32
+msgid "Construct Scale Details"
+msgstr ""
+
+#: templates/promapp/construct_scale_form.html:36
+#: templates/promapp/likert_scale_form.html:49
+#: templates/promapp/partials/likert_scale_list_table.html:8
+#: templates/promapp/partials/range_scale_list_table.html:8
+#: templates/promapp/range_scale_form.html:48
+msgid "Scale Name"
+msgstr ""
+
+#: templates/promapp/construct_scale_form.html:37
+#: templates/promapp/likert_scale_form.html:50
+#: templates/promapp/range_scale_form.html:49
+msgid "Enter scale name"
+msgstr ""
+
+#: templates/promapp/construct_scale_form.html:44
+#: templates/promapp/partials/construct_scale_list_table.html:11
+msgid "Instrument Name"
+msgstr ""
+
+#: templates/promapp/construct_scale_form.html:45
+msgid "Enter instrument name"
+msgstr ""
+
+#: templates/promapp/construct_scale_form.html:49
+msgid "The name of the instrument that the construct scale belongs to"
+msgstr ""
+
+#: templates/promapp/construct_scale_form.html:53
+#: templates/promapp/partials/construct_scale_list_table.html:14
+msgid "Instrument Version"
+msgstr ""
+
+#: templates/promapp/construct_scale_form.html:54
+msgid "Enter instrument version"
+msgstr ""
+
+#: templates/promapp/construct_scale_form.html:58
+msgid "The version of the instrument that the construct scale belongs to"
+msgstr ""
+
+#: templates/promapp/construct_scale_list.html:39
+#: templates/promapp/construct_scale_list.html:46
+msgid "Search construct scales"
+msgstr ""
+
+#: templates/promapp/construct_scale_list.html:45
+#: templates/promapp/item_list.html:45
+#: templates/promapp/questionnaire_create.html:93
+#: templates/promapp/questionnaire_update.html:103
+msgid "Search by name..."
+msgstr ""
+
+#: templates/promapp/construct_scale_list.html:56
+#: templates/promapp/item_list.html:84
+#: templates/promapp/likert_scale_list.html:56
+msgid "Loading..."
+msgstr ""
+
+#: templates/promapp/construct_scale_list.html:65
+msgid "No construct scales available yet."
+msgstr ""
+
+#: templates/promapp/construct_scale_list.html:70
+msgid "Create First Construct Scale"
+msgstr ""
+
+#: templates/promapp/item_create.html:5 templates/promapp/item_create.html:156
+msgid "Create Item"
+msgstr ""
+
+#: templates/promapp/item_create.html:42 templates/promapp/item_list.html:16
+#: templates/promapp/questionnaire_create.html:82
+#: templates/promapp/questionnaire_update.html:92
+msgid "Create New Item"
+msgstr ""
+
+#: templates/promapp/item_create.html:44 templates/promapp/item_update.html:44
+msgid "Back to Items"
+msgstr ""
+
+#: templates/promapp/item_create.html:62 templates/promapp/item_update.html:62
+msgid "Item Details"
+msgstr ""
+
+#: templates/promapp/item_create.html:66 templates/promapp/item_update.html:66
+#: templates/promapp/partials/item_list_table.html:17
+msgid "Construct Scale"
+msgstr ""
+
+#: templates/promapp/item_create.html:80 templates/promapp/item_update.html:80
+msgid "Create new Construct Scale"
+msgstr ""
+
+#: templates/promapp/item_create.html:86 templates/promapp/item_update.html:86
+#: templates/promapp/partials/item_translation_list_table.html:8
+msgid "Item Name"
+msgstr ""
+
+#: templates/promapp/item_create.html:87 templates/promapp/item_update.html:87
+msgid "Enter item name"
+msgstr ""
+
+#: templates/promapp/item_create.html:94 templates/promapp/item_update.html:94
+msgid "Item Media"
+msgstr ""
+
+#: templates/promapp/item_create.html:99 templates/promapp/item_update.html:115
+msgid "Upload an image, video, or audio file to display with this item"
+msgstr ""
+
+#: templates/promapp/item_create.html:103
+#: templates/promapp/item_update.html:119
+#: templates/promapp/partials/item_list_table.html:20
+msgid "Response Type"
+msgstr ""
+
+#: templates/promapp/item_create.html:118
+#: templates/promapp/item_update.html:133
+#: templates/promapp/response_fields.html:5
+msgid "Likert Scale"
+msgstr ""
+
+#: templates/promapp/item_create.html:127
+#: templates/promapp/item_update.html:137
+#: templates/promapp/response_fields.html:14
+msgid "Create new Likert scale"
+msgstr ""
+
+#: templates/promapp/item_create.html:133
+#: templates/promapp/item_update.html:143
+#: templates/promapp/response_fields.html:20
+msgid "Range Scale"
+msgstr ""
+
+#: templates/promapp/item_create.html:142
+#: templates/promapp/item_update.html:147
+#: templates/promapp/response_fields.html:29
+msgid "Create new Range scale"
+msgstr ""
+
+#: templates/promapp/item_list.html:39 templates/promapp/item_list.html:46
+#: templates/promapp/questionnaire_create.html:92
+#: templates/promapp/questionnaire_create.html:93
+#: templates/promapp/questionnaire_update.html:102
+#: templates/promapp/questionnaire_update.html:103
+msgid "Search items"
+msgstr ""
+
+#: templates/promapp/item_list.html:50
+#: templates/promapp/questionnaire_create.html:96
+#: templates/promapp/questionnaire_update.html:106
+msgid "Filter by construct scale"
+msgstr ""
+
+#: templates/promapp/item_list.html:55
+#: templates/promapp/questionnaire_create.html:98
+#: templates/promapp/questionnaire_update.html:108
+msgid "All construct scales"
+msgstr ""
+
+#: templates/promapp/item_list.html:64
+msgid "Filter by response type"
+msgstr ""
+
+#: templates/promapp/item_list.html:69
+msgid "All response types"
+msgstr ""
+
+#: templates/promapp/item_list.html:93
+msgid "No items available yet."
+msgstr ""
+
+#: templates/promapp/item_list.html:98
+#: templates/promapp/questionnaire_create.html:163
+#: templates/promapp/questionnaire_update.html:175
+msgid "Create First Item"
+msgstr ""
+
+#: templates/promapp/item_translation_form.html:9
+msgid "Translate Item"
+msgstr ""
+
+#: templates/promapp/item_translation_form.html:26
+#: templates/promapp/questionnaire_translation_form.html:26
+msgid "Original Text"
+msgstr ""
+
+#: templates/promapp/item_translation_form.html:33
+#: templates/promapp/partials/item_translation_list_table.html:11
+msgid "Media"
+msgstr ""
+
+#: templates/promapp/item_translation_form.html:48
+#: templates/promapp/likert_scale_response_option_translation_form.html:52
+#: templates/promapp/questionnaire_translation_form.html:48
+#: templates/promapp/range_scale_translation_form.html:48
+msgid "Save Translation"
+msgstr ""
+
+#: templates/promapp/item_translation_list.html:8
+msgid "Item Translations"
+msgstr ""
+
+#: templates/promapp/item_translation_list.html:10
+#: templates/promapp/likert_scale_response_option_translation_list.html:10
+#: templates/promapp/questionnaire_translation_list.html:10
+#: templates/promapp/range_scale_translation_list.html:10
+msgid "Back to Dashboard"
+msgstr ""
+
+#: templates/promapp/item_update.html:5 templates/promapp/item_update.html:42
+msgid "Edit Item"
+msgstr ""
+
+#: templates/promapp/item_update.html:97
+msgid "Current media:"
+msgstr ""
+
+#: templates/promapp/item_update.html:100
+msgid "Item media"
+msgstr ""
+
+#: templates/promapp/item_update.html:106
+msgid "View current media"
+msgstr ""
+
+#: templates/promapp/item_update.html:161
+msgid "Update Item"
+msgstr ""
+
+#: templates/promapp/likert_option_row.html:17
+#: templates/promapp/questionnaire_item_rules_list.html:51
+msgid "Order"
+msgstr ""
+
+#: templates/promapp/likert_option_row.html:27
+msgid "Value"
+msgstr ""
+
+#: templates/promapp/likert_option_row.html:36
+msgid "Text"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:5
+#: templates/promapp/likert_scale_form.html:14
+msgid "Edit Likert Scale"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:5
+#: templates/promapp/likert_scale_form.html:166
+msgid "Create Likert Scale"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:16
+#: templates/promapp/likert_scale_list.html:16
+msgid "Create New Likert Scale"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:21
+msgid "Back to Likert Scales"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:45
+msgid "Likert Scale Details"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:59
+#: templates/promapp/partials/likert_scale_list_table.html:11
+msgid "Response Options"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:67
+msgid "OPTION ORDER"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:70
+msgid "OPTION VALUE"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:73
+msgid "OPTION TEXT"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:76
+msgid "OPTION MEDIA"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:79
+msgid "DELETE"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:112
+msgid "Current file:"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:147
+msgid "Add Option"
+msgstr ""
+
+#: templates/promapp/likert_scale_form.html:164
+msgid "Update Likert Scale"
+msgstr ""
+
+#: templates/promapp/likert_scale_list.html:39
+#: templates/promapp/likert_scale_list.html:46
+msgid "Search likert scales"
+msgstr ""
+
+#: templates/promapp/likert_scale_list.html:45
+msgid "Search by scale name..."
+msgstr ""
+
+#: templates/promapp/likert_scale_list.html:65
+msgid "No likert scales available yet."
+msgstr ""
+
+#: templates/promapp/likert_scale_list.html:70
+msgid "Create First Likert Scale"
+msgstr ""
+
+#: templates/promapp/likert_scale_response_option_translation_form.html:9
+msgid "Translate Likert Scale Option"
+msgstr ""
+
+#: templates/promapp/likert_scale_response_option_translation_form.html:26
+msgid "Original Option"
+msgstr ""
+
+#: templates/promapp/likert_scale_response_option_translation_form.html:29
+#: templates/promapp/partials/likert_scale_response_option_translation_list_table.html:11
+msgid "Option Text"
+msgstr ""
+
+#: templates/promapp/likert_scale_response_option_translation_form.html:33
+#: templates/promapp/partials/likert_scale_response_option_translation_list_table.html:14
+msgid "Option Media"
+msgstr ""
+
+#: templates/promapp/likert_scale_response_option_translation_form.html:37
+#: templates/promapp/partials/likert_scale_response_option_translation_list_table.html:34
+msgid "No media"
+msgstr ""
+
+#: templates/promapp/likert_scale_response_option_translation_list.html:8
+msgid "Likert Scale Response Option Translations"
+msgstr ""
+
+#: templates/promapp/my_questionnaire_list.html:4
+msgid "My Questionnaires"
+msgstr ""
+
+#: templates/promapp/my_questionnaire_list.html:20
+msgid "Available Questionnaires"
+msgstr ""
+
+#: templates/promapp/my_questionnaire_list.html:40
+msgid "Last answered:"
+msgstr ""
+
+#: templates/promapp/my_questionnaire_list.html:44
+msgid "Never"
+msgstr ""
+
+#: templates/promapp/my_questionnaire_list.html:51
+#: templates/promapp/my_questionnaire_list.html:60
+msgid "Answer Questionnaire"
+msgstr ""
+
+#: templates/promapp/my_questionnaire_list.html:56
+msgid "You can answer this questionnaire again in:"
+msgstr ""
+
+#: templates/promapp/my_questionnaire_list.html:70
+msgid "No questionnaires are currently available for you."
+msgstr ""
+
+#: templates/promapp/partials/construct_scale_list_table.html:47
+msgid "Add Item"
+msgstr ""
+
+#: templates/promapp/partials/construct_scale_list_table.html:73
+#, python-format
+msgid ""
+"\n"
+"          Showing %(start)s to %(end)s of %(total)s results\n"
+"        "
+msgstr ""
+
+#: templates/promapp/partials/item_list_table.html:5
+msgid "No items match your search criteria."
+msgstr ""
+
+#: templates/promapp/partials/item_list_table.html:23
+msgid "Scale"
+msgstr ""
+
+#: templates/promapp/partials/item_list_table.html:72
+msgid "Edit item"
+msgstr ""
+
+#: templates/promapp/partials/item_list_table.html:82
+msgid "No items available."
+msgstr ""
+
+#: templates/promapp/partials/item_list_table.html:125
+#, python-format
+msgid ""
+"\n"
+"              Showing <span class=\"font-medium\">%(start)s</span> to <span "
+"class=\"font-medium\">%(end)s</span> of <span class=\"font-"
+"medium\">%(total)s</span> items\n"
+"            "
+msgstr ""
+
+#: templates/promapp/partials/item_translation_list_table.html:30
+#: templates/promapp/partials/likert_scale_response_option_translation_list_table.html:40
+#: templates/promapp/partials/questionnaire_translation_list_table.html:30
+#: templates/promapp/partials/range_scale_translation_list_table.html:36
+msgid "Add/Edit Translation"
+msgstr ""
+
+#: templates/promapp/partials/item_translation_list_table.html:37
+msgid "No items found."
+msgstr ""
+
+#: templates/promapp/partials/likert_scale_list_table.html:26
+msgid "options"
+msgstr ""
+
+#: templates/promapp/partials/likert_scale_list_table.html:41
+msgid "No response options defined"
+msgstr ""
+
+#: templates/promapp/partials/likert_scale_list_table.html:74
+msgid "Pagination"
+msgstr ""
+
+#: templates/promapp/partials/likert_scale_response_option_translation_list_table.html:8
+msgid "Likert Scale Name"
+msgstr ""
+
+#: templates/promapp/partials/likert_scale_response_option_translation_list_table.html:47
+msgid "No options found."
+msgstr ""
+
+#: templates/promapp/partials/questionnaire_translation_list_table.html:8
+msgid "Questionnaire Name"
+msgstr ""
+
+#: templates/promapp/partials/questionnaire_translation_list_table.html:11
+#: templates/promapp/questionnaire_detail.html:49
+#: templates/promapp/questionnaire_list.html:36
+#: templates/promapp/questionnaire_translation_form.html:33
+msgid "Description"
+msgstr ""
+
+#: templates/promapp/partials/questionnaire_translation_list_table.html:37
+#: templates/promapp/questionnaire_list.html:83
+msgid "No questionnaires found."
+msgstr ""
+
+#: templates/promapp/partials/range_scale_list_table.html:11
+msgid "Range"
+msgstr ""
+
+#: templates/promapp/partials/range_scale_list_table.html:14
+#: templates/promapp/range_scale_form.html:73
+msgid "Increment"
+msgstr ""
+
+#: templates/promapp/partials/range_scale_list_table.html:61
+#: templates/promapp/partials/range_scale_translation_list_table.html:43
+msgid "No range scales found."
+msgstr ""
+
+#: templates/promapp/partials/range_scale_translation_list_table.html:8
+msgid "Range Scale Name"
+msgstr ""
+
+#: templates/promapp/partials/range_scale_translation_list_table.html:11
+#: templates/promapp/range_scale_translation_form.html:29
+msgid "Min Value Text"
+msgstr ""
+
+#: templates/promapp/partials/range_scale_translation_list_table.html:14
+#: templates/promapp/range_scale_translation_form.html:33
+msgid "Max Value Text"
+msgstr ""
+
+#: templates/promapp/partials/rule_group_summary.html:17
+msgid "No rule groups defined yet."
+msgstr ""
+
+#: templates/promapp/partials/rule_summary.html:20
+msgid "No rules defined yet."
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:5
+#: templates/promapp/patient_questionnaire_list.html:15
+msgid "Patient Questionnaires"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:18
+msgid "Manage questionnaires assigned to patients"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:45
+msgid "Search & Filter"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:60
+msgid "Search by exact name or ID..."
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:69
+msgid "All"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:70
+#: templates/promapp/patient_questionnaire_list.html:169
+msgid "None"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:71
+msgid "1-5"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:72
+msgid "6-10"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:73
+msgid "10+"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:79
+msgid "Sort By"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:83
+msgid "Name (Z-A)"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:84
+#: templates/promapp/patient_questionnaire_list.html:129
+msgid "Questionnaire Count"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:85
+msgid "Questionnaire Count (High-Low)"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:92
+msgid "Apply Filters"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:95
+msgid "Clear"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:120
+msgid "Patient Name"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:132
+msgid "Questionnaire Titles"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:174
+msgid "Manage Questionnaires"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:181
+msgid "No patients found."
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:224
+msgid "First"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_list.html:247
+msgid "Last"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:5
+msgid "Manage Patient Questionnaires"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:15
+msgid "Manage Questionnaires for"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:18
+msgid "Assign questionnaires to this patient and control their visibility"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:23
+msgid "Back to Patient List"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:47
+msgid "Questionnaire"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:50
+msgid "Status"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:53
+msgid "Assigned Date"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:77
+msgid "Displayed"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:79
+msgid "Hidden"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:84
+msgid "Not Assigned"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:103
+msgid "Hide"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:105
+msgid "Show"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:113
+msgid "Are you sure you want to unassign this questionnaire?"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:114
+msgid "Unassign"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:123
+msgid "Assign"
+msgstr ""
+
+#: templates/promapp/patient_questionnaire_management.html:132
+msgid "No questionnaires available."
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:41
+#: templates/promapp/questionnaire_list.html:13
+msgid "Create New Questionnaire"
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:47
+#: templates/promapp/questionnaire_detail.html:34
+#: templates/promapp/questionnaire_update.html:57
+msgid "Questionnaire Details"
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:54
+#: templates/promapp/questionnaire_update.html:64
+msgid "Answer Interval"
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:59
+#: templates/promapp/questionnaire_update.html:69
+msgid "Time interval between questionnaire attempts"
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:64
+#: templates/promapp/questionnaire_update.html:74
+msgid "Order in which this questionnaire should be displayed"
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:70
+#: templates/promapp/questionnaire_update.html:80
+msgid "Questionnaire to redirect to after completion"
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:77
+msgid "Select Items"
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:108
+#: templates/promapp/questionnaire_update.html:118
+msgid "Available Items"
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:142
+#: templates/promapp/questionnaire_detail.html:70
+#: templates/promapp/questionnaire_update.html:154
+msgid "Response type"
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:158
+#: templates/promapp/questionnaire_update.html:170
+msgid "No items available. Please create items first."
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:173
+#: templates/promapp/questionnaire_update.html:185
+msgid "Selected Items"
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:175
+#: templates/promapp/questionnaire_update.html:187
+msgid "Clear All"
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:180
+#: templates/promapp/questionnaire_update.html:192
+msgid "Drag items to reorder. Question numbers will update automatically."
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:185
+#: templates/promapp/questionnaire_update.html:197
+msgid ""
+"No items selected yet. Check items from the left panel to add them here."
+msgstr ""
+
+#: templates/promapp/questionnaire_detail.html:17
+msgid "Back to List"
+msgstr ""
+
+#: templates/promapp/questionnaire_detail.html:42
+msgid "Last Modified"
+msgstr ""
+
+#: templates/promapp/questionnaire_detail.html:57
+msgid "Questionnaire Items"
+msgstr ""
+
+#: templates/promapp/questionnaire_detail.html:94
+msgid "No items in this questionnaire."
+msgstr ""
+
+#: templates/promapp/questionnaire_detail.html:97
+msgid "Add items to this questionnaire"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_form.html:7
+msgid "Edit Rule"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_form.html:9
+#: templates/promapp/questionnaire_item_rule_form.html:67
+msgid "Create Rule"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_form.html:20
+msgid "Edit Rule for"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_form.html:22
+msgid "Create Rule for"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_form.html:27
+msgid "Back to Rules"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_form.html:65
+msgid "Update Rule"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_group_form.html:7
+msgid "Edit Rule Group"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_group_form.html:9
+#: templates/promapp/questionnaire_item_rule_group_form.html:80
+msgid "Create Rule Group"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_group_form.html:20
+msgid "Edit Rule Group for"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_group_form.html:22
+msgid "Create Rule Group for"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_group_form.html:27
+msgid "Back to Rule Groups"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_group_form.html:64
+msgid "No rules available. Please create rules first."
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_group_form.html:78
+msgid "Update Rule Group"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_groups_list.html:5
+msgid "Questionnaire Item Rule Groups"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_groups_list.html:13
+msgid "Rule Groups for"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_groups_list.html:21
+msgid "Add Rule Group"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_groups_list.html:28
+#: templates/promapp/questionnaire_rules.html:68
+#: templates/promapp/questionnaire_update.html:216
+msgid "Manage Rules"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_groups_list.html:39
+#: templates/promapp/questionnaire_rules.html:97
+#: templates/promapp/questionnaire_rules.html:149
+msgid "Group"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_groups_list.html:48
+msgid "Are you sure you want to delete this rule group?"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_groups_list.html:55
+msgid "Rules in this group:"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_groups_list.html:78
+msgid "No rule groups defined for this question yet."
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rule_groups_list.html:84
+msgid "Add First Rule Group"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rules_list.html:5
+msgid "Questionnaire Item Rules"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rules_list.html:13
+msgid "Rules for"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rules_list.html:21
+msgid "Add Rule"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rules_list.html:28
+msgid "Manage Rule Groups"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rules_list.html:39
+msgid "Dependent Question"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rules_list.html:42
+msgid "Operator"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rules_list.html:45
+msgid "Comparison Value"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rules_list.html:48
+msgid "Logical Operator"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rules_list.html:66
+msgid "Question"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rules_list.html:88
+msgid "Are you sure you want to delete this rule?"
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rules_list.html:99
+msgid "No rules defined for this question yet."
+msgstr ""
+
+#: templates/promapp/questionnaire_item_rules_list.html:105
+msgid "Add First Rule"
+msgstr ""
+
+#: templates/promapp/questionnaire_list.html:60
+msgid "items"
+msgstr ""
+
+#: templates/promapp/questionnaire_list.html:86
+msgid "Create your first questionnaire"
+msgstr ""
+
+#: templates/promapp/questionnaire_response.html:5
+msgid "Questionnaire Response"
+msgstr ""
+
+#: templates/promapp/questionnaire_response.html:42
+#, python-format
+msgid ""
+"You cannot answer this questionnaire yet. You can answer it again in "
+"%(next_available|timeuntil)s."
+msgstr ""
+
+#: templates/promapp/questionnaire_response.html:172
+msgid "Previous Question"
+msgstr ""
+
+#: templates/promapp/questionnaire_response.html:175
+msgid "Next Question"
+msgstr ""
+
+#: templates/promapp/questionnaire_response.html:187
+msgid "Submit Responses"
+msgstr ""
+
+#: templates/promapp/questionnaire_rules.html:5
+#: templates/promapp/questionnaire_rules.html:33
+msgid "Manage Questionnaire Rules"
+msgstr ""
+
+#: templates/promapp/questionnaire_rules.html:35
+msgid "Back to Questionnaire"
+msgstr ""
+
+#: templates/promapp/questionnaire_rules.html:47
+msgid "Questions"
+msgstr ""
+
+#: templates/promapp/questionnaire_rules.html:78
+#: templates/promapp/questionnaire_rules.html:130
+msgid "Individual Rules"
+msgstr ""
+
+#: templates/promapp/questionnaire_rules.html:82
+#: templates/promapp/questionnaire_rules.html:134
+msgid "If"
+msgstr ""
+
+#: templates/promapp/questionnaire_rules.html:93
+#: templates/promapp/questionnaire_rules.html:145
+msgid "Rule Groups"
+msgstr ""
+
+#: templates/promapp/questionnaire_rules.html:119
+msgid "Rules Summary"
+msgstr ""
+
+#: templates/promapp/questionnaire_translation_form.html:9
+msgid "Translate Questionnaire"
+msgstr ""
+
+#: templates/promapp/questionnaire_translation_list.html:8
+msgid "Questionnaire Translations"
+msgstr ""
+
+#: templates/promapp/questionnaire_update.html:5
+#: templates/promapp/questionnaire_update.html:41
+#: templates/promapp/questionnaire_update.html:219
+msgid "Update Questionnaire"
+msgstr ""
+
+#: templates/promapp/questionnaire_update.html:87
+msgid "Manage Items"
+msgstr ""
+
+#: templates/promapp/questionnaireitemrule_confirm_delete.html:4
+msgid "Delete Rule"
+msgstr ""
+
+#: templates/promapp/questionnaireitemrule_confirm_delete.html:8
+#: templates/promapp/questionnaireitemrule_confirm_delete.html:25
+#: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:8
+#: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:29
+msgid "Confirm Delete"
+msgstr ""
+
+#: templates/promapp/questionnaireitemrule_confirm_delete.html:9
+msgid ""
+"Are you sure you want to delete this rule? This action cannot be undone."
+msgstr ""
+
+#: templates/promapp/questionnaireitemrule_confirm_delete.html:11
+msgid "Rule:"
+msgstr ""
+
+#: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:4
+msgid "Delete Rule Group"
+msgstr ""
+
+#: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:9
+msgid ""
+"Are you sure you want to delete this rule group? This action cannot be "
+"undone."
+msgstr ""
+
+#: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:11
+msgid "Rule Group Order:"
+msgstr ""
+
+#: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:12
+msgid "Rules in Group:"
+msgstr ""
+
+#: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:20
+msgid "No rules in this group."
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:5
+#: templates/promapp/range_scale_form.html:14
+msgid "Edit Range Scale"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:5
+#: templates/promapp/range_scale_form.html:115
+msgid "Create Range Scale"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:16
+#: templates/promapp/range_scale_list.html:14
+msgid "Create New Range Scale"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:21
+msgid "Back to Range Scales"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:44
+msgid "Range Scale Details"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:57
+msgid "Minimum Value"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:58
+msgid "Enter minimum value"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:65
+msgid "Maximum Value"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:66
+msgid "Enter maximum value"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:74
+msgid "Enter increment"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:83
+msgid "Minimum Value Text"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:84
+msgid "Enter text for minimum value"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:91
+msgid "Maximum Value Text"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:92
+msgid "Enter text for maximum value"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:113
+msgid "Update Range Scale"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:139
+msgid "Minimum value must be less than maximum value"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:144
+msgid "Increment must be greater than 0"
+msgstr ""
+
+#: templates/promapp/range_scale_form.html:149
+msgid "Maximum value minus minimum value must be divisible by increment"
+msgstr ""
+
+#: templates/promapp/range_scale_list.html:32
+msgid "Search range scales..."
+msgstr ""
+
+#: templates/promapp/range_scale_translation_form.html:9
+msgid "Translate Range Scale"
+msgstr ""
+
+#: templates/promapp/range_scale_translation_form.html:26
+msgid "Original Range Scale"
+msgstr ""
+
+#: templates/promapp/range_scale_translation_list.html:8
+msgid "Range Scale Translations"
+msgstr ""
+
+#: templates/promapp/translations_dashboard.html:6
+msgid "Translations Dashboard"
+msgstr ""
+
+#: templates/promapp/translations_dashboard.html:12
+msgid "Translate questionnaire names and descriptions"
+msgstr ""
+
+#: templates/promapp/translations_dashboard.html:14
+#: templates/promapp/translations_dashboard.html:23
+#: templates/promapp/translations_dashboard.html:32
+#: templates/promapp/translations_dashboard.html:41
+msgid "Manage Translations"
+msgstr ""
+
+#: templates/promapp/translations_dashboard.html:21
+msgid "Translate item names and media"
+msgstr ""
+
+#: templates/promapp/translations_dashboard.html:29
+msgid "Likert Scale Response Options"
+msgstr ""
+
+#: templates/promapp/translations_dashboard.html:30
+msgid "Translate option text and media"
+msgstr ""
+
+#: templates/promapp/translations_dashboard.html:39
+msgid "Translate minimum and maximum value text"
+msgstr ""
+
+#: templates/registration/login.html:26
+msgid "Forgot password?"
+msgstr ""

@@ -137,6 +137,13 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Locale paths
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
+
+
+
 # Parse LANGUAGES from environment variable
 # Format in .env should be: en:English,de:German,fr:French
 language_settings = os.getenv('DJANGO_LANGUAGES', 'en:English')
