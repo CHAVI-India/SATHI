@@ -53,6 +53,11 @@
               </div>
             </div>
             {% endif %}
+            {% if perms.promapp.add_questionnaire %}
+            <a href="{% url 'translations_dashboard' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+              {% trans "Translations" %}
+            </a>
+            {% endif %}
             {% if user.is_authenticated and perms.promapp.add_patientquestionnaire %}
             <a href="{% url 'patient_questionnaire_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
               {% trans "Patient Questionnaires" %}

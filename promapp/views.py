@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView, TemplateView
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
@@ -8,13 +8,16 @@ from django.contrib import messages
 from django.db import transaction
 from django.utils.translation import gettext as _
 from django.utils import timezone
+from django.conf import settings
+from django.utils import translation
 from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption, PatientQuestionnaire, QuestionnaireItemResponse, Patient, QuestionnaireItemRule, QuestionnaireItemRuleGroup
 from .forms import (
     QuestionnaireForm, ItemForm, QuestionnaireItemForm, 
     LikertScaleForm, LikertScaleResponseOptionFormSet,
     ItemSelectionForm, ConstructScaleForm,
     LikertScaleResponseOptionForm, RangeScaleForm,
-    QuestionnaireResponseForm, QuestionnaireItemRuleForm, QuestionnaireItemRuleGroupForm
+    QuestionnaireResponseForm, QuestionnaireItemRuleForm, QuestionnaireItemRuleGroupForm,
+    ItemTranslationForm, QuestionnaireTranslationForm, LikertScaleResponseOptionTranslationForm, RangeScaleTranslationForm
 )
 from django.utils.translation import get_language
 from django.db import models
@@ -24,6 +27,8 @@ import json
 import logging
 from datetime import datetime, timedelta
 from django.utils.timesince import timeuntil
+from django.conf import settings
+from django.utils import translation
 
 # Create your views here.
 
@@ -165,10 +170,7 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
         
         context['item_selection_form'] = ItemSelectionForm(initial={'items': current_items})
         context['available_items'] = items_with_numbers
-        context['construct_scales'] = ConstructScale.objects.all().order_by('name')
-        context['rules'] = QuestionnaireItemRule.objects.filter(
-            questionnaire_item__in=raw_items
-        ).order_by('rule_order')
+        context['construct_scales'] = ConstructScale.objects.all
         context['rule_groups'] = QuestionnaireItemRuleGroup.objects.filter(
             questionnaire_item__in=raw_items
         ).order_by('group_order')
@@ -1835,3 +1837,167 @@ def evaluate_question_rules(request, questionnaire_item_id):
     except Exception as e:
         logger.error(f"Error in evaluate_question_rules: {e}")
         return JsonResponse({'error': str(e)}, status=400)
+
+# Translation Views
+class ItemTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    """
+    View for managing translations of an Item.
+    """
+    model = Item
+    form_class = ItemTranslationForm
+    template_name = 'promapp/item_translation.html'
+    permission_required = 'promapp.add_item'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['available_languages'] = settings.LANGUAGES
+        context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        return context
+
+    def get_success_url(self):
+        return reverse('item_list')
+
+class QuestionnaireTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    """
+    View for managing translations of a Questionnaire.
+    """
+    model = Questionnaire
+    form_class = QuestionnaireTranslationForm
+    template_name = 'promapp/questionnaire_translation_form.html'
+    permission_required = 'promapp.add_questionnaire'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['available_languages'] = settings.LANGUAGES
+        context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        
+        # Get the questionnaire instance
+        questionnaire = self.get_object()
+        
+        # Get the original text in the default language
+        context['original_name'] = questionnaire.name
+        context['original_description'] = questionnaire.description
+        
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        current_language = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        
+        # Get the questionnaire instance
+        questionnaire = self.get_object()
+        
+        # Try to get existing translation
+        try:
+            translation = questionnaire.translations.get(language_code=current_language)
+            # If translation exists, use its values
+            kwargs['initial'] = {
+                'name': translation.name,
+                'description': translation.description
+            }
+        except questionnaire.translations.model.DoesNotExist:
+            # If no translation exists, use empty values
+            kwargs['initial'] = {
+                'name': '',
+                'description': ''
+            }
+        
+        return kwargs
+
+    def form_valid(self, form):
+        # Get the current language from the request
+        current_language = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        questionnaire = self.get_object()
+        questionnaire.set_current_language(current_language)
+        # Set translated fields
+        questionnaire.name = form.cleaned_data['name']
+        questionnaire.description = form.cleaned_data['description']
+        questionnaire.save()  # This saves the translation for the current language only
+        messages.success(self.request, _('Translation saved successfully.'))
+        return redirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse('questionnaire_translation_list')
+
+class LikertScaleResponseOptionTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    """
+    View for managing translations of a LikertScaleResponseOption.
+    """
+    model = LikertScaleResponseOption
+    form_class = LikertScaleResponseOptionTranslationForm
+    template_name = 'promapp/likert_scale_response_option_translation.html'
+    permission_required = 'promapp.add_likertscaleresponseoption'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['available_languages'] = settings.LANGUAGES
+        context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        return context
+
+    def get_success_url(self):
+        return reverse('likert_scale_list')
+
+class RangeScaleTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    """
+    View for managing translations of a RangeScale.
+    """
+    model = RangeScale
+    form_class = RangeScaleTranslationForm
+    template_name = 'promapp/range_scale_translation.html'
+    permission_required = 'promapp.add_rangescale'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['available_languages'] = settings.LANGUAGES
+        context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        return context
+
+    def get_success_url(self):
+        return reverse('range_scale_list')
+
+def switch_language(request):
+    """
+    View to switch the current language for translation.
+    """
+    language = request.GET.get('language')
+    if language and language in [lang[0] for lang in settings.LANGUAGES]:
+        # Just redirect with the language parameter
+        next_url = request.GET.get('next', '/')
+        if '?' in next_url:
+            next_url += '&language=' + language
+        else:
+            next_url += '?language=' + language
+        return redirect(next_url)
+    return redirect(request.GET.get('next', '/'))
+
+class TranslationsDashboardView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+    """
+    View for the translations dashboard.
+    """
+    template_name = 'promapp/translations_dashboard.html'
+    permission_required = 'promapp.add_questionnaire'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['available_languages'] = settings.LANGUAGES
+        context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        return context
+
+class QuestionnaireTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """
+    View for listing questionnaires with translation links.
+    """
+    model = Questionnaire
+    template_name = 'promapp/questionnaire_translation_list.html'
+    context_object_name = 'questionnaires'
+    permission_required = 'promapp.add_questionnaire'
+
+    def get_queryset(self):
+        current_language = get_language()
+        return Questionnaire.objects.language(current_language).all().order_by('translations__name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['available_languages'] = settings.LANGUAGES
+        context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        return context

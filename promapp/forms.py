@@ -529,3 +529,100 @@ class QuestionnaireItemRuleGroupForm(forms.ModelForm):
             instance.rules.set(self.cleaned_data['rules'])
         return instance
 
+
+# Translation Forms
+class ItemTranslationForm(TranslatableModelForm):
+    """
+    Form for translating Item model.
+    """
+    name = TranslatedField()
+    media = TranslatedField(required=False)
+    
+    class Meta:
+        model = Item
+        fields = ['name', 'media']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Field('name', css_class='w-full px-3 py-2 border rounded'),
+            Field('media', css_class='w-full px-3 py-2 border rounded'),
+        )
+
+class QuestionnaireTranslationForm(TranslatableModelForm):
+    """
+    Form for translating Questionnaire model.
+    """
+    name = TranslatedField(
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-2 text-lg border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Enter questionnaire name'
+        })
+    )
+    description = TranslatedField(
+        form_class=forms.CharField,
+        widget=forms.Textarea(attrs={
+            'class': 'w-full px-4 py-2 text-lg border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'rows': 4,
+            'placeholder': 'Enter questionnaire description'
+        })
+    )
+    
+    class Meta:
+        model = Questionnaire
+        fields = ['name', 'description']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Field('name', wrapper_class='mb-4'),
+                Field('description', wrapper_class='mb-4'),
+                css_class='space-y-4'
+            )
+        )
+
+class LikertScaleResponseOptionTranslationForm(TranslatableModelForm):
+    """
+    Form for translating LikertScaleResponseOption model.
+    """
+    option_text = TranslatedField()
+    option_media = TranslatedField(required=False)
+    
+    class Meta:
+        model = LikertScaleResponseOption
+        fields = ['option_text', 'option_media']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Field('option_text', css_class='w-full px-3 py-2 border rounded'),
+            Field('option_media', css_class='w-full px-3 py-2 border rounded'),
+        )
+
+class RangeScaleTranslationForm(TranslatableModelForm):
+    """
+    Form for translating RangeScale model.
+    """
+    min_value_text = TranslatedField()
+    max_value_text = TranslatedField()
+    
+    class Meta:
+        model = RangeScale
+        fields = ['min_value_text', 'max_value_text']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Field('min_value_text', css_class='w-full px-3 py-2 border rounded'),
+            Field('max_value_text', css_class='w-full px-3 py-2 border rounded'),
+        )
+

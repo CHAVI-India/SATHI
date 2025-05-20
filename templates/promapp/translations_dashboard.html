@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">{% trans "Translations Dashboard" %}</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Questionnaires Section -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">{% trans "Questionnaires" %}</h2>
+            <p class="text-gray-600 mb-4">{% trans "Translate questionnaire names and descriptions" %}</p>
+            <a href="{% url 'questionnaire_translation_list' %}" class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                {% trans "Manage Translations" %}
+            </a>
+        </div>
+
+        <!-- Items Section -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">{% trans "Items" %}</h2>
+            <p class="text-gray-600 mb-4">{% trans "Translate item names and media" %}</p>
+            <a href="{% url 'item_list' %}" class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                {% trans "Manage Translations" %}
+            </a>
+        </div>
+
+        <!-- Likert Scale Response Options Section -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">{% trans "Likert Scale Response Options" %}</h2>
+            <p class="text-gray-600 mb-4">{% trans "Translate option text and media" %}</p>
+            <a href="{% url 'likert_scale_list' %}" class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                {% trans "Manage Translations" %}
+            </a>
+        </div>
+
+        <!-- Range Scales Section -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">{% trans "Range Scales" %}</h2>
+            <p class="text-gray-600 mb-4">{% trans "Translate minimum and maximum value text" %}</p>
+            <a href="{% url 'range_scale_list' %}" class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                {% trans "Manage Translations" %}
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

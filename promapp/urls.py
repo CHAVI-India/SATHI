@@ -26,6 +26,7 @@ urlpatterns = [
     # Range Scale URLs
     path('range-scales/', views.RangeScaleListView.as_view(), name='range_scale_list'),
     path('create-range-scale/', views.create_range_scale, name='create_range_scale'),
+    path('range-scale/<uuid:pk>/translate/', views.RangeScaleTranslationView.as_view(), name='range_scale_translate'),
     
     # AJAX URLs for dynamic forms
     path('get-response-fields/', views.get_response_fields, name='get_response_fields'),
@@ -84,4 +85,12 @@ urlpatterns = [
          views.rule_group_summary, 
          name='rule_group_summary'),
     path('questionnaire/<uuid:questionnaire_item_id>/evaluate-rules/', views.evaluate_question_rules, name='evaluate_question_rules'),
+    path('switch-language/', views.switch_language, name='switch_language'),
+    path('translations/', views.TranslationsDashboardView.as_view(), name='translations_dashboard'),
+
+    # Translation URLs
+    path('translations/dashboard/', views.TranslationsDashboardView.as_view(), name='translations_dashboard'),
+    path('translations/questionnaires/', views.QuestionnaireTranslationListView.as_view(), name='questionnaire_translation_list'),
+    path('translations/questionnaire/<uuid:pk>/', views.QuestionnaireTranslationView.as_view(), name='questionnaire_translation'),
+    path('translations/switch-language/', views.switch_language, name='switch_language'),
 ] 
