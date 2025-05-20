@@ -10,9 +10,6 @@
         <div class="hidden md:block">
           <div class="ml-10 flex items-baseline space-x-4">
             <a href="/" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Home" %}</a>
-            {% if user.is_staff %}
-            <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Admin" %}</a>
-            {% endif %}
             {% if user.is_authenticated and perms.patientapp.add_patient %}
             <a href="{% url 'patient_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Patients" %}</a>
             {% endif %}
@@ -26,19 +23,23 @@
               </button>
               <div class="absolute left-0 hidden pt-2 group-hover:block z-10">
                 <div class="bg-white rounded-md shadow-lg py-1 min-w-max">
-                  <a href="{% url 'questionnaire_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    {% trans "Questionnaires" %}
-                  </a>
-                  {% if perms.promapp.view_item %}
-                  <a href="{% url 'item_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    {% trans "Items" %}
-                  </a>
-                  {% endif %}
+                  <!-- Create Questionnaire Section -->
+                  <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {% trans "Create Questionnaire" %}
+                  </div>
                   {% if perms.promapp.view_constructscale %}
                   <a href="{% url 'construct_scale_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     {% trans "Construct Scales" %}
                   </a>
                   {% endif %}
+                  {% if perms.promapp.view_item %}
+                  <a href="{% url 'item_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    {% trans "Items" %}
+                  </a>
+                  {% endif %}
+                  <a href="{% url 'questionnaire_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    {% trans "Questionnaires" %}
+                  </a>
                   {% if perms.promapp.view_likertscale %}
                   <a href="{% url 'likert_scale_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     {% trans "Likert Scales" %}
@@ -49,19 +50,38 @@
                     {% trans "Range Scales" %}
                   </a>
                   {% endif %}
+                  
+                  <!-- Separator -->
+                  <div class="border-t border-gray-200 my-1"></div>
+                  
+                  <!-- Translations Section -->
+                  <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {% trans "Translations" %}
+                  </div>
+                  {% if perms.promapp.add_questionnaire %}
+                  <a href="{% url 'translations_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    {% trans "Translation Dashboard" %}
+                  </a>
+                  {% endif %}
+                  
+                  <!-- Separator -->
+                  <div class="border-t border-gray-200 my-1"></div>
+                  
+                  <!-- Manage Questionnaire Section -->
+                  <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {% trans "Manage Questionnaire" %}
+                  </div>
+                  {% if user.is_authenticated and perms.promapp.add_patientquestionnaire %}
+                  <a href="{% url 'patient_questionnaire_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    {% trans "Assign Questionnaire to Patient" %}
+                  </a>
+                  {% endif %}
                 </div>
               </div>
             </div>
             {% endif %}
-            {% if perms.promapp.add_questionnaire %}
-            <a href="{% url 'translations_dashboard' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
-              {% trans "Translations" %}
-            </a>
-            {% endif %}
-            {% if user.is_authenticated and perms.promapp.add_patientquestionnaire %}
-            <a href="{% url 'patient_questionnaire_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
-              {% trans "Patient Questionnaires" %}
-            </a>
+            {% if user.is_staff %}
+            <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% trans "Admin" %}</a>
             {% endif %}
             {% if user.is_authenticated and user.patient %}
             <a href="{% url 'my_questionnaire_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
@@ -108,7 +128,11 @@
         </div>
       </div>
       <div class="-mr-2 flex md:hidden">
-        <button type="button" class="bg-blue-700 inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-blue-800 focus:outline-none" aria-controls="mobile-menu" aria-expanded="false" hx-get="#mobile-menu" hx-swap="classes:toggle(hidden)">
+        <button type="button" 
+                class="bg-blue-700 inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-blue-800 focus:outline-none" 
+                aria-controls="mobile-menu" 
+                aria-expanded="false"
+                onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
           <span class="sr-only">{% trans "Open main menu" %}</span>
           <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -118,47 +142,69 @@
     </div>
   </div>
 
+  <!-- Mobile menu, show/hide based on menu state -->
   <div class="hidden md:hidden" id="mobile-menu">
-    <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+    <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-blue-600">
       <a href="/" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Home" %}</a>
-      {% if user.is_staff %}
-      <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Admin" %}</a>
-      {% endif %}
       {% if user.is_authenticated and perms.patientapp.add_patient %}
       <a href="{% url 'patient_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Patients" %}</a>
       {% endif %}
       {% if user.is_authenticated and perms.promapp.view_questionnaire %}
       <div class="py-2">
         <div class="text-white px-3 py-2 font-medium">{% trans "Instruments" %}</div>
-        <a href="{% url 'questionnaire_list' %}" class="text-white hover:bg-blue-700 block px-6 py-2 rounded-md text-base font-medium">
-          {% trans "Questionnaires" %}
-        </a>
-        {% if perms.promapp.view_item %}
-        <a href="{% url 'item_list' %}" class="text-white hover:bg-blue-700 block px-6 py-2 rounded-md text-base font-medium">
-          {% trans "Items" %}
-        </a>
-        {% endif %}
-        {% if perms.promapp.view_constructscale %}
-        <a href="{% url 'construct_scale_list' %}" class="text-white hover:bg-blue-700 block px-6 py-2 rounded-md text-base font-medium">
-          {% trans "Construct Scales" %}
-        </a>
-        {% endif %}
-        {% if perms.promapp.view_likertscale %}
-        <a href="{% url 'likert_scale_list' %}" class="text-white hover:bg-blue-700 block px-6 py-2 rounded-md text-base font-medium">
-          {% trans "Likert Scales" %}
-        </a>
-        {% endif %}
-        {% if perms.promapp.view_rangescale %}
-        <a href="{% url 'range_scale_list' %}" class="text-white hover:bg-blue-700 block px-6 py-2 rounded-md text-base font-medium">
-          {% trans "Range Scales" %}
-        </a>
-        {% endif %}
+        <div class="pl-4 space-y-1">
+          <!-- Create Questionnaire Section -->
+          <div class="text-white px-3 py-1 text-sm font-medium opacity-75">{% trans "Create Questionnaire" %}</div>
+          {% if perms.promapp.view_constructscale %}
+          <a href="{% url 'construct_scale_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
+            {% trans "Construct Scales" %}
+          </a>
+          {% endif %}
+          {% if perms.promapp.view_item %}
+          <a href="{% url 'item_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
+            {% trans "Items" %}
+          </a>
+          {% endif %}
+          <a href="{% url 'questionnaire_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
+            {% trans "Questionnaires" %}
+          </a>
+          {% if perms.promapp.view_likertscale %}
+          <a href="{% url 'likert_scale_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
+            {% trans "Likert Scales" %}
+          </a>
+          {% endif %}
+          {% if perms.promapp.view_rangescale %}
+          <a href="{% url 'range_scale_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
+            {% trans "Range Scales" %}
+          </a>
+          {% endif %}
+          
+          <!-- Separator -->
+          <div class="border-t border-blue-500 my-2"></div>
+          
+          <!-- Translations Section -->
+          <div class="text-white px-3 py-1 text-sm font-medium opacity-75">{% trans "Translations" %}</div>
+          {% if perms.promapp.add_questionnaire %}
+          <a href="{% url 'translations_dashboard' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
+            {% trans "Translation Dashboard" %}
+          </a>
+          {% endif %}
+          
+          <!-- Separator -->
+          <div class="border-t border-blue-500 my-2"></div>
+          
+          <!-- Manage Questionnaire Section -->
+          <div class="text-white px-3 py-1 text-sm font-medium opacity-75">{% trans "Manage Questionnaire" %}</div>
+          {% if user.is_authenticated and perms.promapp.add_patientquestionnaire %}
+          <a href="{% url 'patient_questionnaire_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
+            {% trans "Assign Questionnaire to Patient" %}
+          </a>
+          {% endif %}
+        </div>
       </div>
       {% endif %}
-      {% if user.is_authenticated and perms.promapp.add_patientquestionnaire %}
-      <a href="{% url 'patient_questionnaire_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
-        {% trans "Patient Questionnaires" %}
-      </a>
+      {% if user.is_staff %}
+      <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Admin" %}</a>
       {% endif %}
       {% if user.is_authenticated and user.patient %}
       <a href="{% url 'my_questionnaire_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
@@ -167,7 +213,7 @@
       {% endif %}
       
       <!-- Language Selector (Mobile) -->
-      <div class="py-2">
+      <div class="py-2 px-3">
         <form action="{% url 'set_language' %}" method="post">
           {% csrf_token %}
           <input name="next" type="hidden" value="{{ redirect_to }}">
@@ -184,13 +230,15 @@
       </div>
       
       {% if user.is_authenticated %}
-        <span class="text-white block px-3 py-2">{{ user.username }}</span>
-        <form method="post" action="{% url 'logout' %}">
-          {% csrf_token %}
-          <button type="submit" class="text-white hover:bg-blue-700 block w-full text-left px-3 py-2 rounded-md text-base font-medium">
-            {% trans "Logout" %}
-          </button>
-        </form>
+        <div class="px-3 py-2">
+          <span class="text-white block">{{ user.username }}</span>
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="text-white hover:bg-blue-700 block w-full text-left px-3 py-2 rounded-md text-base font-medium">
+              {% trans "Logout" %}
+            </button>
+          </form>
+        </div>
       {% else %}
         <a href="{% url 'login' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Login" %}</a>
         <a href="#" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% trans "Register" %}</a>
@@ -198,3 +246,15 @@
     </div>
   </div>
 </nav>
+
+<script>
+  // Add event listener to close mobile menu when clicking outside
+  document.addEventListener('click', function(event) {
+    const mobileMenu = document.getElementById('mobile-menu');
+    const hamburgerButton = document.querySelector('[aria-controls="mobile-menu"]');
+    
+    if (!mobileMenu.contains(event.target) && !hamburgerButton.contains(event.target)) {
+      mobileMenu.classList.add('hidden');
+    }
+  });
+</script>
