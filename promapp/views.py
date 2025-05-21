@@ -291,6 +291,9 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         context['selected_response_type'] = self.request.GET.get('response_type', 'all')
         context['search_query'] = self.request.GET.get('search', '')
         
+        # Add available languages to context
+        context['available_languages'] = settings.LANGUAGES
+        
         # Flag to determine if we're responding to an HTMX request
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         
