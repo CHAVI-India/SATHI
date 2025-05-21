@@ -1,60 +1,56 @@
 {% load i18n %}
 
-<div class="overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200">
-    <thead class="bg-gray-50">
-      <tr>
-        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          {% translate "Name" %}
-        </th>
-        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          {% translate "Instrument Name" %}
-        </th>
-        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          {% translate "Instrument Version" %}
-        </th>
-        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          {% translate "Created Date" %}
-        </th>
-        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          {% translate "Modified Date" %}
-        </th>
-        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-          {% translate "Actions" %}
-        </th>
-      </tr>
-    </thead>
-    <tbody class="bg-white divide-y divide-gray-200">
-      {% for scale in construct_scales %}
-        <tr>
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-            {{ scale.name|default:"No name" }}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ scale.instrument_name|default:"-" }}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ scale.instrument_version|default:"-" }}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ scale.created_date|date:"Y-m-d H:i" }}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ scale.modified_date|date:"Y-m-d H:i" }}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-            <a href="{% url 'item_create' %}?construct_scale={{ scale.id }}" class="text-blue-600 hover:text-blue-900">
+<div class="space-y-4">
+  {% for scale in construct_scales %}
+    <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow duration-200">
+      <div class="p-6">
+        <div class="flex justify-between items-start mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">
+            {{ scale.name|default:"Untitled Construct Scale" }}
+          </h3>
+          <div class="flex space-x-2">
+            <a href="{% url 'item_create' %}?construct_scale={{ scale.id }}" 
+               class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center"
+               title="{% translate 'Add item to this scale' %}">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+              </svg>
               {% translate "Add Item" %}
             </a>
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+          </div>
+        </div>
+        
+        <div class="flex justify-between items-center text-sm text-gray-500">
+          <div class="flex items-center space-x-4">
+            {% if scale.instrument_name or scale.instrument_version %}
+              {% if scale.instrument_name %}
+                <div class="flex items-center">
+                  <span class="font-medium mr-1">{% translate "Instrument:" %}</span>
+                  {{ scale.instrument_name }}
+                </div>
+              {% endif %}
+              {% if scale.instrument_version %}
+                <div class="flex items-center">
+                  <span class="font-medium mr-1">{% translate "Version:" %}</span>
+                  {{ scale.instrument_version }}
+                </div>
+              {% endif %}
+            {% else %}
+              -
+            {% endif %}
+          </div>
+          <div class="flex items-center text-gray-600">
+            <span class="font-medium mr-1">{% translate "Created:" %}</span>
+            {{ scale.created_date|date:"SHORT_DATE_FORMAT" }}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
 </div>
 
 {% if is_paginated %}
-<div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+<div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
   <div class="flex-1 flex justify-between sm:hidden">
     {% if page_obj.has_previous %}
       <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
