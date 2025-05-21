@@ -166,6 +166,10 @@ class Item(TranslatableModel):
         item_name = self.safe_translation_getter('name', any_language=True) if hasattr(self, 'safe_translation_getter') else str(self)
         return item_name
 
+    def get_available_languages(self):
+        """Return a list of language codes for which translations exist."""
+        return list(self.translations.values_list('language_code', flat=True))
+
 class Questionnaire(TranslatableModel):
     '''
     Questionnaire model. This is used to store the questionnaire.
@@ -190,6 +194,10 @@ class Questionnaire(TranslatableModel):
         # Use Parler's safe_translation_getter to get the translated name
         questionnaire_name = self.safe_translation_getter('name', any_language=True) if hasattr(self, 'safe_translation_getter') else str(self)
         return questionnaire_name
+
+    def get_available_languages(self):
+        """Return a list of language codes for which translations exist."""
+        return list(self.translations.values_list('language_code', flat=True))
 
 
 

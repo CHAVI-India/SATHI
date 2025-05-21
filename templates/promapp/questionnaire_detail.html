@@ -66,6 +66,29 @@
               <p class="whitespace-pre-line">{{ questionnaire.description|default:"" }}</p>
             </div>
           {% endif %}
+
+          <!-- Translation Status -->
+          <div class="mt-4">
+            <p class="text-sm text-gray-500 mb-2">{% translate "Translation Status" %}</p>
+            <div class="flex flex-wrap gap-2">
+              {% for lang_code, lang_name in available_languages %}
+                {% with available_langs=questionnaire.get_available_languages %}
+                  <div class="px-3 py-1 rounded-full text-sm {% if lang_code in available_langs %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                    {{ lang_name }}
+                    {% if lang_code in available_langs %}
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    {% else %}
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    {% endif %}
+                  </div>
+                {% endwith %}
+              {% endfor %}
+            </div>
+          </div>
         </div>
       </div>
       
@@ -101,6 +124,25 @@
                           </span>
                         </div>
                       {% endif %}
+                    </div>
+                    <!-- Item Translation Status -->
+                    <div class="mt-2 flex flex-wrap gap-2">
+                      {% for lang_code, lang_name in available_languages %}
+                        {% with available_langs=qi.item.get_available_languages %}
+                          <div class="px-2 py-0.5 rounded-full text-xs {% if lang_code in available_langs %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ lang_name }}
+                            {% if lang_code in available_langs %}
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline-block ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                            {% else %}
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline-block ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            {% endif %}
+                          </div>
+                        {% endwith %}
+                      {% endfor %}
                     </div>
                   </div>
                   <div class="flex items-center space-x-2 ml-4">

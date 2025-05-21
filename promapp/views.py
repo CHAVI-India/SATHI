@@ -58,6 +58,7 @@ class QuestionnaireDetailView(LoginRequiredMixin, PermissionRequiredMixin, Detai
             ).values_list('item', flat=True).distinct()
         )
         context['items'] = items
+        context['available_languages'] = settings.LANGUAGES
         return context
 
 
