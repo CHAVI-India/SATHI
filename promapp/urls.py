@@ -19,6 +19,8 @@ urlpatterns = [
     
     # Construct Scale URLs
     path('construct-scales/', views.ConstructScaleListView.as_view(), name='construct_scale_list'),
+    path('construct-scales/<uuid:pk>/edit/', views.ConstructScaleUpdateView.as_view(), name='construct_scale_edit'),
+    path('construct-scales/<uuid:pk>/delete/', views.ConstructScaleDeleteView.as_view(), name='construct_scale_delete'),
     
     # Likert Scale URLs
     path('likert-scales/', views.LikertScaleListView.as_view(), name='likert_scale_list'),
@@ -108,4 +110,6 @@ urlpatterns = [
 
     # Construct Scale Search URLs
     path('search-construct-scales/', views.search_construct_scales, name='search_construct_scales'),
+
+    path('construct-scale/<uuid:pk>/equation/', views.ConstructEquationView.as_view(), name='construct_equation_edit'),
 ] 

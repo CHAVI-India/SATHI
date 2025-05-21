@@ -18,7 +18,7 @@ from .forms import (
     LikertScaleResponseOptionForm, RangeScaleForm,
     QuestionnaireResponseForm, QuestionnaireItemRuleForm, QuestionnaireItemRuleGroupForm,
     ItemTranslationForm, QuestionnaireTranslationForm, LikertScaleResponseOptionTranslationForm, RangeScaleTranslationForm,
-    TranslationSearchForm
+    TranslationSearchForm, ConstructEquationForm
 )
 from django.utils.translation import get_language
 from django.db import models
@@ -2284,5 +2284,77 @@ def search_construct_scales(request):
     scales = ConstructScale.objects.filter(name__icontains=search_query).order_by('name')[:10]
     results = [{'id': scale.id, 'text': scale.name} for scale in scales]
     return JsonResponse({'results': results})
+
+class ConstructEquationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    """
+    View for managing the equation of a construct scale.
+    """
+    model = ConstructScale
+    form_class = ConstructEquationForm
+    template_name = 'promapp/construct_equation_form.html'
+    permission_required = 'promapp.change_constructscale'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        construct_scale = self.get_object()
+        
+        # Get all items associated with this construct scale
+        items = Item.objects.filter(construct_scale=construct_scale).order_by('id')
+        
+        # Filter items that can be used in equations (Number, Likert, or Range)
+        valid_items = []
+        invalid_items = []
+        
+        for item in items:
+            if item.response_type in ['Number', 'Likert', 'Range']:
+                valid_items.append(item)
+            else:
+                invalid_items.append(item)
+        
+        context['valid_items'] = valid_items
+        context['invalid_items'] = invalid_items
+        return context
+
+    def form_valid(self, form):
+        try:
+            # Validate the equation before saving
+            construct_scale = form.save(commit=False)
+            construct_scale.validate_scale_equation()
+            construct_scale.save()
+            messages.success(self.request, _('Equation saved successfully.'))
+            return redirect('construct_scale_list')
+        except ValidationError as e:
+            messages.error(self.request, str(e))
+            return self.form_invalid(form)
+
+class ConstructScaleUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    """
+    View for updating a construct scale.
+    """
+    model = ConstructScale
+    form_class = ConstructScaleForm
+    template_name = 'promapp/construct_scale_form.html'
+    permission_required = 'promapp.change_constructscale'
+
+    def get_success_url(self):
+        return reverse('construct_scale_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, _('Construct scale updated successfully.'))
+        return super().form_valid(form)
+
+class ConstructScaleDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    """
+    View for deleting a construct scale.
+    """
+    model = ConstructScale
+    permission_required = 'promapp.delete_constructscale'
+
+    def get_success_url(self):
+        return reverse('construct_scale_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, _('Construct scale deleted successfully.'))
+        return super().delete(request, *args, **kwargs)
 
 

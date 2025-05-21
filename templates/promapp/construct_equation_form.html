@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">{% trans "Edit Construct Scale Equation" %}</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">{{ object.name }}</h2>
+            
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="{{ form.scale_equation.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {% trans "Scale Equation" %}
+                        </label>
+                        {{ form.scale_equation }}
+                        {% if form.scale_equation.help_text %}
+                            <p class="mt-2 text-sm text-gray-500">{{ form.scale_equation.help_text|safe }}</p>
+                        {% endif %}
+                        {% if form.scale_equation.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.scale_equation.errors }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'construct_scale_list' %}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        {% trans "Save Equation" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Valid Items Section -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">{% trans "Items Available for Equations" %}</h3>
+                {% if valid_items %}
+                    <div class="space-y-2">
+                        {% for item in valid_items %}
+                            <div class="p-3 bg-green-50 rounded-md">
+                                <p class="font-medium">q{{ forloop.counter }}: {{ item.name }}</p>
+                                <p class="text-sm text-gray-600">{{ item.get_response_type_display }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-gray-500">{% trans "No items available for equations." %}</p>
+                {% endif %}
+            </div>
+
+            <!-- Invalid Items Section -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">{% trans "Items Not Available for Equations" %}</h3>
+                {% if invalid_items %}
+                    <div class="space-y-2">
+                        {% for item in invalid_items %}
+                            <div class="p-3 bg-red-50 rounded-md">
+                                <p class="font-medium">{{ item.name }}</p>
+                                <p class="text-sm text-gray-600">{{ item.get_response_type_display }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-gray-500">{% trans "No items excluded from equations." %}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

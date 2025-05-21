@@ -9,6 +9,16 @@
             {{ scale.name|default:"Untitled Construct Scale" }}
           </h3>
           <div class="flex space-x-2">
+            {% if perms.promapp.change_constructscale %}
+              <a href="{% url 'construct_equation_edit' scale.pk %}" 
+                 class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center"
+                 title="{% translate 'Edit equation for this scale' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                </svg>
+                {% translate "Equation" %}
+              </a>
+            {% endif %}
             <a href="{% url 'item_create' %}?construct_scale={{ scale.id }}" 
                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center"
                title="{% translate 'Add item to this scale' %}">
@@ -50,60 +60,43 @@
 </div>
 
 {% if is_paginated %}
-<div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
-  <div class="flex-1 flex justify-between sm:hidden">
-    {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-        {% translate "Previous" %}
-      </a>
-    {% endif %}
-    {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-        {% translate "Next" %}
-      </a>
-    {% endif %}
-  </div>
-  <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-    <div>
-      <p class="text-sm text-gray-700">
-        {% blocktrans with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}
-          Showing {{ start }} to {{ end }} of {{ total }} results
-        {% endblocktrans %}
-      </p>
-    </div>
-    <div>
-      <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+  <div class="mt-4">
+    <nav class="flex justify-center">
+      <ul class="flex space-x-2">
         {% if page_obj.has_previous %}
-          <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-            <span class="sr-only">{% translate "Previous" %}</span>
-            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-          </a>
+          <li>
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+               class="px-3 py-1 border rounded hover:bg-gray-50">
+              {% translate "Previous" %}
+            </a>
+          </li>
         {% endif %}
         
-        {% for i in page_obj.paginator.page_range %}
-          {% if page_obj.number == i %}
-            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
-              {{ i }}
-            </span>
-          {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
-            <a href="?page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-              {{ i }}
-            </a>
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <li>
+              <span class="px-3 py-1 border rounded bg-blue-50 text-blue-600">{{ num }}</span>
+            </li>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li>
+              <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                 class="px-3 py-1 border rounded hover:bg-gray-50">
+                {{ num }}
+              </a>
+            </li>
           {% endif %}
         {% endfor %}
         
         {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-            <span class="sr-only">{% translate "Next" %}</span>
-            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-            </svg>
-          </a>
+          <li>
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+               class="px-3 py-1 border rounded hover:bg-gray-50">
+              {% translate "Next" %}
+            </a>
+          </li>
         {% endif %}
-      </nav>
-    </div>
+      </ul>
+    </nav>
   </div>
-</div>
-{% endif %} 
+{% endif %}
+

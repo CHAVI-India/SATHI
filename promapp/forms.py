@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from parler.forms import TranslatableModelForm
 from parler.forms import TranslatedField
 from django.utils.translation import get_language
+from django.utils.safestring import mark_safe
 
 
 class QuestionnaireForm(TranslatableModelForm):
@@ -690,5 +691,30 @@ class TranslationSearchForm(forms.Form):
                 Field('search'),
                 css_class='mb-4'
             )
+        )
+
+
+class ConstructEquationForm(forms.ModelForm):
+    """
+    Form for managing the equation of a construct scale.
+    """
+    scale_equation = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-2 text-lg border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Enter equation (e.g., q1 + q2)'
+        })
+    )
+
+    class Meta:
+        model = ConstructScale
+        fields = ['scale_equation']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['scale_equation'].help_text = mark_safe(
+            'Enter an equation using question references (q1, q2, etc.). '
+            'Available functions: abs(), round(), min(), max(), sum(), pow(), sqrt(). '
+            'Example: (q1 + q2) / 2 or if q1 > 5 then q2 else q3'
         )
 
