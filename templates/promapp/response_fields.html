@@ -6,7 +6,7 @@
     <select name="likert_response" id="id_likert_response" class="w-full px-3 py-2 border rounded">
       <option value="">---------</option>
       {% for scale in likert_scales %}
-        <option value="{{ scale.id }}" {% if selected_likert_scale == scale.id %}selected{% endif %}>{{ scale.likert_scale_name }}</option>
+        <option value="{{ scale.id }}" {% if selected_likert_scale == scale.id|stringformat:"s" %}selected{% endif %}>{{ scale.likert_scale_name }}</option>
       {% endfor %}
     </select>
     <div class="mt-2">
@@ -21,7 +21,7 @@
     <select name="range_response" id="id_range_response" class="w-full px-3 py-2 border rounded">
       <option value="">---------</option>
       {% for scale in range_scales %}
-        <option value="{{ scale.id }}" {% if selected_range_scale == scale.id %}selected{% endif %}>{{ scale.range_scale_name }}</option>
+        <option value="{{ scale.id }}" {% if selected_range_scale == scale.id|stringformat:"s" %}selected{% endif %}>{{ scale.range_scale_name }}</option>
       {% endfor %}
     </select>
     <div class="mt-2">
