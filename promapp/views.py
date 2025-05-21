@@ -253,7 +253,12 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     
     def get_queryset(self):
         current_language = get_language()
-        queryset = Item.objects.language(current_language)
+        # Start with base queryset and select related fields
+        queryset = Item.objects.language(current_language).select_related(
+            'construct_scale',
+            'likert_response',
+            'range_response'
+        )
         
         # Apply filters based on query parameters
         construct_scale = self.request.GET.get('construct_scale')
@@ -269,7 +274,8 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         if search:
             queryset = queryset.filter(translations__name__icontains=search)
             
-        return queryset.order_by('construct_scale__name', 'translations__name')
+        # Use distinct() with id to prevent duplicates while keeping all fields
+        return queryset.distinct('id').order_by('id', 'construct_scale__name', 'translations__name')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
