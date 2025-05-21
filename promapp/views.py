@@ -249,7 +249,7 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     template_name = 'promapp/item_list.html'
     context_object_name = 'items'
     permission_required = 'promapp.view_item'
-    paginate_by = 25  # Show 25 items per page
+    paginate_by = 10  # Show 5 items per page for testing
     
     def get_queryset(self):
         current_language = get_language()
