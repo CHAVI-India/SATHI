@@ -7,17 +7,33 @@
 <div class="max-w-4xl mx-auto">
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-blue-700">{{ questionnaire.name|default:"Questionnaire Details" }}</h1>
+      <div class="flex justify-end mb-4">
         <div class="flex space-x-2">
           <a href="{% url 'questionnaire_update' questionnaire.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
             {% translate "Edit" %}
+          </a>
+          <a href="{% url 'questionnaire_translation' questionnaire.id %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+            </svg>
+            {% translate "Manage Translations" %}
+          </a>
+          <a href="{% url 'questionnaire_rules' questionnaire.id %}" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+            </svg>
+            {% translate "Manage Rules" %}
           </a>
           <a href="{% url 'questionnaire_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
             {% translate "Back to List" %}
           </a>
         </div>
       </div>
+
+      <h1 class="text-2xl font-bold text-blue-700 mb-6">{{ questionnaire.name|default:"Questionnaire Details" }}</h1>
       
       {% if messages %}
         <div class="mb-6">
@@ -54,7 +70,7 @@
       </div>
       
       <div>
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">{% translate "Questionnaire Items" %}</h2>
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">{% translate "Questionnaire Items" %} ({{ questionnaire.questionnaireitem_set.count }})</h2>
         
         {% if questionnaire.questionnaireitem_set.exists %}
           <div class="bg-gray-50 p-4 rounded-md">
@@ -66,24 +82,38 @@
                   </div>
                   <div class="flex-1">
                     <div class="font-medium">{{ qi.item.name|default:"Untitled Item" }}</div>
-                    <div class="text-sm text-gray-600 mt-1">
-                      {% translate "Response type" %}: {{ qi.item.get_response_type_display }}
-                      {% if qi.item.response_type == 'Likert' and qi.item.likert_response %}
-                        - {{ qi.item.likert_response.likert_scale_name }}
-                      {% elif qi.item.response_type == 'Range' and qi.item.range_response %}
-                        - {{ qi.item.range_response.range_scale_name }}
+                    <div class="flex items-center space-x-4 mt-1">
+                      <div class="text-xs text-gray-600">
+                        {% translate "Response type" %}: {{ qi.item.get_response_type_display }}
+                        {% if qi.item.response_type == 'Likert' and qi.item.likert_response %}
+                          - {{ qi.item.likert_response.likert_scale_name }}
+                        {% elif qi.item.response_type == 'Range' and qi.item.range_response %}
+                          - {{ qi.item.range_response.range_scale_name }}
+                        {% endif %}
+                      </div>
+                      {% if qi.item.construct_scale %}
+                        <div class="text-xs">
+                          <span class="px-2 py-0.5 bg-blue-50 rounded">
+                            {{ qi.item.construct_scale.name|default:"No Construct Scale" }}
+                            {% if qi.item.construct_scale.instrument_name %}
+                              ({{ qi.item.construct_scale.instrument_name }}{% if qi.item.construct_scale.instrument_version %} v{{ qi.item.construct_scale.instrument_version }}{% endif %})
+                            {% endif %}
+                          </span>
+                        </div>
                       {% endif %}
                     </div>
-                    {% if qi.item.construct_scale %}
-                      <div class="text-xs text-gray-500 mt-1">
-                        <span class="px-2 py-0.5 bg-blue-50 rounded">
-                          {{ qi.item.construct_scale.name|default:"No Construct Scale" }}
-                          {% if qi.item.construct_scale.instrument_name %}
-                            ({{ qi.item.construct_scale.instrument_name }}{% if qi.item.construct_scale.instrument_version %} v{{ qi.item.construct_scale.instrument_version }}{% endif %})
-                          {% endif %}
-                        </span>
-                      </div>
-                    {% endif %}
+                  </div>
+                  <div class="flex items-center space-x-2 ml-4">
+                    <a href="{% url 'item_update' qi.item.id %}" class="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded" title="{% translate 'Edit Item' %}">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </a>
+                    <a href="{% url 'item_translation' qi.item.id %}" class="p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded" title="{% translate 'Translate Item' %}">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                      </svg>
+                    </a>
                   </div>
                 </div>
               {% endfor %}
@@ -99,6 +129,32 @@
             </p>
           </div>
         {% endif %}
+      </div>
+      
+      <div class="flex justify-end mt-6">
+        <div class="flex space-x-2">
+          <a href="{% url 'questionnaire_update' questionnaire.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            {% translate "Edit" %}
+          </a>
+          <a href="{% url 'questionnaire_translation' questionnaire.id %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+            </svg>
+            {% translate "Manage Translations" %}
+          </a>
+          <a href="{% url 'questionnaire_rules' questionnaire.id %}" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+            </svg>
+            {% translate "Manage Rules" %}
+          </a>
+          <a href="{% url 'questionnaire_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            {% translate "Back to List" %}
+          </a>
+        </div>
       </div>
     </div>
   </div>
