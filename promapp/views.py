@@ -40,6 +40,34 @@ class QuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
     ordering = ['-created_date']
     permission_required = 'promapp.view_questionnaire'
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Apply search filter if provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(translations__name__icontains=search)
+            
+        return queryset.distinct('id').order_by('id', 'translations__name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search', '')
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        return context
+
+    def get(self, request, *args, **kwargs):
+        # Check if this is an HTMX request
+        if request.META.get('HTTP_HX_REQUEST'):
+            # If it is an HTMX request, only return the table part
+            self.object_list = self.get_queryset()
+            context = self.get_context_data()
+            html = render_to_string('promapp/partials/questionnaire_list_table.html', context)
+            return HttpResponse(html)
+        
+        # Otherwise, return the full page as usual
+        return super().get(request, *args, **kwargs)
+
 
 class QuestionnaireDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Questionnaire

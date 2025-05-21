@@ -9,7 +9,10 @@
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">{% translate "Questionnaires" %}</h1>
-        <a href="{% url 'questionnaire_create' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <a href="{% url 'questionnaire_create' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
           {% translate "Create New Questionnaire" %}
         </a>
       </div>
@@ -25,67 +28,47 @@
       {% endif %}
       
       {% if questionnaires %}
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% translate "Name" %}
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% translate "Description" %}
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% translate "Items" %}
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% translate "Created" %}
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% translate "Actions" %}
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              {% for questionnaire in questionnaires %}
-                <tr>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">{{ questionnaire.name|default:"Untitled Questionnaire" }}</div>
-                  </td>
-                  <td class="px-6 py-4">
-                    <div class="text-sm text-gray-500 max-w-xs max-h-24 overflow-y-auto">{{ questionnaire.description|default:"-" }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">
-                      {{ questionnaire.questionnaireitem_set.count }} {% translate "items" %}
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-500">{{ questionnaire.created_date|date:"SHORT_DATE_FORMAT" }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div class="flex space-x-2">
-                      <a href="{% url 'questionnaire_detail' questionnaire.id %}" class="text-blue-600 hover:text-blue-900">
-                        {% translate "View" %}
-                      </a>
-                      <a href="{% url 'questionnaire_update' questionnaire.id %}" class="text-indigo-600 hover:text-indigo-900">
-                        {% translate "Edit" %}
-                      </a>
-                    </div>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <!-- Search and Filter controls -->
+        <form hx-get="{% url 'questionnaire_list' %}" 
+              hx-target="#questionnaires-container" 
+              hx-indicator="#loading-indicator"
+              hx-push-url="true"
+              class="mb-6 w-full">
+          <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
+            <div class="flex-1">
+              <label for="search" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Search questionnaires" %}</label>
+              <input type="text" 
+                     id="search" 
+                     name="search" 
+                     value="{{ search_query }}"
+                     class="w-full px-3 py-2 border rounded" 
+                     placeholder="{% translate 'Search by name...' %}" 
+                     aria-label="{% translate 'Search questionnaires' %}"
+                     hx-trigger="keyup changed delay:500ms, search">
+            </div>
+          </div>
+          
+          <div id="loading-indicator" class="htmx-indicator flex justify-center my-4">
+            <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="ml-2">{% translate "Loading..." %}</span>
+          </div>
+        </form>
+        
+        <div id="questionnaires-container" class="w-full overflow-hidden">
+          {% include "promapp/partials/questionnaire_list_table.html" %}
         </div>
       {% else %}
         <div class="text-center py-8">
-          <p class="text-gray-600">{% translate "No questionnaires found." %}</p>
-          <p class="mt-2">
-            <a href="{% url 'questionnaire_create' %}" class="text-blue-600 hover:underline">
-              {% translate "Create your first questionnaire" %}
-            </a>
-          </p>
+          <p class="text-gray-600 mb-4">{% translate "No questionnaires available yet." %}</p>
+          <a href="{% url 'questionnaire_create' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            {% translate "Create First Questionnaire" %}
+          </a>
         </div>
       {% endif %}
     </div>
