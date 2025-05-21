@@ -2244,4 +2244,14 @@ class TranslationsDashboardView(LoginRequiredMixin, PermissionRequiredMixin, Tem
         context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
         return context
 
+def search_construct_scales(request):
+    """Search construct scales and return matching results as JSON."""
+    search_query = request.GET.get('q', '')
+    if not search_query:
+        return JsonResponse({'results': []})
+    
+    scales = ConstructScale.objects.filter(name__icontains=search_query).order_by('name')[:10]
+    results = [{'id': scale.id, 'text': scale.name} for scale in scales]
+    return JsonResponse({'results': results})
+
 

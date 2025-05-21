@@ -105,4 +105,7 @@ urlpatterns = [
     # Range Scale Translation URLs
     path('translations/range-scales/', views.RangeScaleTranslationListView.as_view(), name='range_scale_translation_list'),
     path('translations/range-scale/<uuid:pk>/', views.RangeScaleTranslationView.as_view(), name='range_scale_translation'),
+
+    # Construct Scale Search URLs
+    path('search-construct-scales/', views.search_construct_scales, name='search_construct_scales'),
 ] 
