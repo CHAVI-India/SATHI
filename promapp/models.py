@@ -37,19 +37,16 @@ class ConstructScale(models.Model):
     
     def get_valid_items_with_numbers(self):
         """
-        Returns a list of valid items (Number, Likert, or Range) with their generated question numbers.
-        The question numbers are generated based on the order of items in the construct scale.
+        Returns a list of valid items (Number, Likert, or Range) with their stored item numbers.
         """
         valid_items = []
-        question_number = 1
         
         for item in self.item_set.all():
             if item.response_type in ['Number', 'Likert', 'Range']:
                 valid_items.append({
                     'item': item,
-                    'question_number': question_number
+                    'question_number': item.item_number
                 })
-                question_number += 1
                 
         return valid_items
     
@@ -173,7 +170,13 @@ class RangeScale(TranslatableModel):
         verbose_name_plural = 'Range Scales'
 
     def __str__(self):
-        return self.range_scale_name
+        # Use Parler's safe_translation_getter to get the translated name
+        range_scale_name = self.safe_translation_getter('range_scale_name', any_language=True) if hasattr(self, 'safe_translation_getter') else None
+        if range_scale_name is None:
+            # Fallback to a default string representation if no translation is found
+            return f"Range Scale {self.id}"
+        return range_scale_name
+
     def validate_increment(self):
         if self.min_value and self.max_value and self.increment:
             if self.min_value > self.max_value:
@@ -203,6 +206,7 @@ class Item(TranslatableModel):
         name = models.CharField(max_length=255,null=True, blank=True, help_text = "The name of the item which will be displayed to the patient", db_index=True),
         media = models.FileField(upload_to='item_media/', null=True, blank=True, help_text = "The media to display for the item. This will be an audio, video or image.")
     )
+    item_number = models.IntegerField(null=True, blank=True, help_text = "The number of the item in the construct scale")
     response_type = models.CharField(max_length=255, choices=ResponseTypeChoices.choices, db_index=True, help_text = "The type of response for the item")
     likert_response = models.ForeignKey(LikertScale, on_delete=models.CASCADE, null=True, blank=True)
     range_response = models.ForeignKey(RangeScale, on_delete=models.CASCADE, null=True, blank=True)
@@ -214,6 +218,12 @@ class Item(TranslatableModel):
         verbose_name = 'Item'
         verbose_name_plural = 'Items'
 
+    def save(self, *args, **kwargs):
+        if not self.item_number and self.construct_scale:
+            # Get the highest item number for this construct scale
+            last_item = Item.objects.filter(construct_scale=self.construct_scale).order_by('-item_number').first()
+            self.item_number = (last_item.item_number + 1) if last_item and last_item.item_number else 1
+        super().save(*args, **kwargs)
 
     def clean(self):
         if self.likert_response and self.range_response:
@@ -238,7 +248,10 @@ class Item(TranslatableModel):
                 raise ValidationError({'range_response': 'Range Scale should not be selected for Text or Number response types'})
     def __str__(self):
         # Use Parler's safe_translation_getter to get the translated name
-        item_name = self.safe_translation_getter('name', any_language=True) if hasattr(self, 'safe_translation_getter') else str(self)
+        item_name = self.safe_translation_getter('name', any_language=True) if hasattr(self, 'safe_translation_getter') else None
+        if item_name is None:
+            # Fallback to a default string representation if no translation is found
+            return f"Item {self.id}"
         return item_name
 
     def get_available_languages(self):
@@ -267,7 +280,10 @@ class Questionnaire(TranslatableModel):
         verbose_name_plural = 'Questionnaires'
     def __str__(self):
         # Use Parler's safe_translation_getter to get the translated name
-        questionnaire_name = self.safe_translation_getter('name', any_language=True) if hasattr(self, 'safe_translation_getter') else str(self)
+        questionnaire_name = self.safe_translation_getter('name', any_language=True) if hasattr(self, 'safe_translation_getter') else None
+        if questionnaire_name is None:
+            # Fallback to a default string representation if no translation is found
+            return f"Questionnaire {self.id}"
         return questionnaire_name
 
     def get_available_languages(self):
