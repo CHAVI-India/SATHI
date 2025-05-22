@@ -87,6 +87,21 @@ class EquationParserTest(TestCase):
             ("if {q1} > {q2} * {q3} then min({q1}, {q4}) else max({q2}, {q3})", 5),  # Fixed: 10 > (5 * 2) is False, so max(5, 2) = 5
             ("abs({q1} - {q2}) * if {q3} < {q4} then {q5} else {q2}", 15),  # 5 * (if 2 < 8 then 3 else 5) = 5 * 3 = 15
             ("round(sqrt({q1} * {q2})) + if {q3} == {q5} - 1 then {q4} else {q5}", 15),  # Fixed: round(sqrt(50)) + 8 = 7 + 8 = 15
+            # Nested if statements
+            ("if {q1} > {q2} then if {q3} < {q4} then {q5} else {q2} else {q4}", 3),  # Nested if: True and True -> 3
+            ("if {q1} > {q2} then if {q3} > {q4} then {q5} else {q2} else {q4}", 5),  # Nested if: True and False -> 5
+            # Complex logical conditions
+            ("if {q1} > {q2} and {q3} < {q4} or {q5} > {q2} then {q1} else {q4}", 10),  # (True and True) or False -> True -> 10
+            ("if {q1} > {q2} xor {q3} > {q4} and {q5} < {q4} then {q1} else {q4}", 10),  # (True xor False) and True -> True -> 10
+            # Multiple function calls
+            ("min(max({q1}, {q2}), min({q3}, {q4})) + round(sqrt({q5} * {q2}))", 6),  # min(10, 2) + round(sqrt(15)) = 2 + 4 = 6
+            ("abs(if {q1} > {q2} * {q3} then {q4} - {q5} else {q2} - {q3})", 3),  # abs(if False then 5 else 3) = abs(3) = 3
+            # Complex arithmetic with functions
+            ("round(sqrt({q1} * {q2})) * if {q3} == {q5} - 1 then min({q1}, {q4}) else max({q2}, {q3})", 56),  # 7 * 8 = 56
+            ("if {q1} > {q2} * {q3} and {q4} > {q5} then round(sqrt({q1} * {q2})) else abs({q2} - {q3})", 3),  # False and True -> abs(3) = 3
+            # Multiple nested operations
+            ("if {q1} > {q2} * {q3} then min({q1}, {q4}) + round(sqrt({q5} * {q2})) else max({q2}, {q3}) * abs({q4} - {q5})", 25),  # False -> 5 * 5 = 25
+            ("round(sqrt({q1} * {q2})) + if {q3} == {q5} - 1 then min({q1}, {q4}) * abs({q2} - {q3}) else max({q2}, {q3})", 31),  # 7 + (8 * 3) = 31
         ]
 
         for equation, expected in test_cases:
