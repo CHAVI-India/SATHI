@@ -1908,14 +1908,18 @@ class ItemTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListV
     permission_required = 'promapp.add_item'
 
     def get_queryset(self):
-        queryset = Item.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__name')
+        # Get all items with their translations in the default language
+        queryset = Item.objects.all()
         
         # Apply search filter if provided
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(translations__name__icontains=search)
             
-        return queryset
+        # Prefetch translations for better performance
+        queryset = queryset.prefetch_related('translations')
+        
+        return queryset.order_by('id')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1925,18 +1929,6 @@ class ItemTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListV
         context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('item_translation_list')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         return context
-
-    def get(self, request, *args, **kwargs):
-        # Check if this is an HTMX request
-        if request.META.get('HTTP_HX_REQUEST'):
-            # If it is an HTMX request, only return the table part
-            self.object_list = self.get_queryset()
-            context = self.get_context_data()
-            html = render_to_string('promapp/partials/item_translation_list_table.html', context)
-            return HttpResponse(html)
-        
-        # Otherwise, return the full page as usual
-        return super().get(request, *args, **kwargs)
 
 class QuestionnaireTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
@@ -2010,14 +2002,18 @@ class QuestionnaireTranslationListView(LoginRequiredMixin, PermissionRequiredMix
     permission_required = 'promapp.add_questionnaire'
 
     def get_queryset(self):
-        queryset = Questionnaire.objects.language(settings.LANGUAGE_CODE).distinct('id').order_by('id', 'translations__name')
+        # Get all questionnaires with their translations
+        queryset = Questionnaire.objects.all()
         
         # Apply search filter if provided
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(translations__name__icontains=search)
             
-        return queryset
+        # Prefetch translations for better performance
+        queryset = queryset.prefetch_related('translations')
+        
+        return queryset.order_by('id')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -2027,18 +2023,6 @@ class QuestionnaireTranslationListView(LoginRequiredMixin, PermissionRequiredMix
         context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('questionnaire_translation_list')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         return context
-
-    def get(self, request, *args, **kwargs):
-        # Check if this is an HTMX request
-        if request.META.get('HTTP_HX_REQUEST'):
-            # If it is an HTMX request, only return the table part
-            self.object_list = self.get_queryset()
-            context = self.get_context_data()
-            html = render_to_string('promapp/partials/questionnaire_translation_list_table.html', context)
-            return HttpResponse(html)
-        
-        # Otherwise, return the full page as usual
-        return super().get(request, *args, **kwargs)
 
 class LikertScaleResponseOptionTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
