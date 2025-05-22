@@ -48,6 +48,10 @@
             {% else %}
               -
             {% endif %}
+            <div class="flex items-center">
+              <span class="font-medium mr-1">{% translate "Items:" %}</span>
+              {{ scale.item_set.count }}
+            </div>
           </div>
           <div class="flex items-center text-gray-600">
             <span class="font-medium mr-1">{% translate "Created:" %}</span>

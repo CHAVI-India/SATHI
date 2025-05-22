@@ -641,12 +641,20 @@ def create_construct_scale(request):
         if form.is_valid():
             construct_scale = form.save()
             messages.success(request, "Construct scale created successfully.")
-            return redirect('item_create')
+            # Get the referrer URL, defaulting to item_create if not available
+            referrer = request.META.get('HTTP_REFERER')
+            if referrer and 'item_create' in referrer:
+                return redirect('item_create')
+            elif referrer and 'item_update' in referrer:
+                return redirect('item_update', pk=request.GET.get('item_id'))
+            else:
+                return redirect('construct_scale_list')
     else:
         form = ConstructScaleForm()
     
     return render(request, 'promapp/construct_scale_form.html', {
-        'form': form
+        'form': form,
+        'referrer': request.META.get('HTTP_REFERER', '')
     })
 
 def add_likert_option(request):
