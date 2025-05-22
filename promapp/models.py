@@ -10,7 +10,7 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 import re
-from .equation_parser import EquationValidator
+from .equation_parser import EquationValidator, EquationTransformer
 
 # Create your models here.
 
@@ -23,7 +23,7 @@ class ConstructScale(models.Model):
     instrument_name = models.CharField(max_length=255,null=True, blank=True,help_text = "The name of the instrument that the construct scale belongs to")
     instrument_version = models.CharField(max_length=255,null=True, blank=True,help_text = "The version of the instrument that the construct scale belongs to")
     scale_equation = models.CharField(max_length=255,null=True,blank=True,help_text = "The equation to calculate the score for the construct scale from the items in the scale")
-    scale_value = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True,help_text = "The value of the construct scale calculated from the items in the scale")
+    minimum_number_of_items = models.IntegerField(default=0,help_text = "The minimum number of items that must be answered to calculate the score for the construct scale")
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
@@ -80,12 +80,16 @@ class ConstructScale(models.Model):
 
         # Validate equation syntax using Lark
         validator = EquationValidator()
-        try:
-            validator.validate(self.scale_equation)
-        except ValidationError as e:
-            raise ValidationError(f"Equation syntax error: {str(e)}")
+        validator.validate(self.scale_equation)
 
-        return True
+        # Test the equation with sample data to ensure it works with minimum required items
+        sample_data = {num: 1 for num in valid_question_numbers}  # Use 1 as a sample value
+        transformer = EquationTransformer(sample_data, self.minimum_number_of_items)
+        try:
+            tree = validator.parser.parse(self.scale_equation)
+            transformer.transform(tree)
+        except ValidationError as e:
+            raise ValidationError(f"Equation validation failed: {str(e)}")
 
     def clean(self):
         """

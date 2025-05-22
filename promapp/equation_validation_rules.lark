@@ -30,6 +30,7 @@
      | func
      | QUESTION_REF
      | NUMBER
+     | "null"                      -> null
      | "(" expr ")"
      | if_expr
 
@@ -42,7 +43,7 @@
 
 ?func: FUNCNAME "(" [expr ("," expr)*] ")" -> func
 
-FUNCNAME: "abs" | "min" | "max" | "sum" | "round" | "sqrt"
+FUNCNAME: "abs" | "min" | "max" | "sum" | "round" | "sqrt" | "count_available"
 QUESTION_REF: /\{q\d+\}/
 NUMBER: /\d+(\.\d+)?/
 

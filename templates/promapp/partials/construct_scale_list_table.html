@@ -58,6 +58,15 @@
             {{ scale.created_date|date:"SHORT_DATE_FORMAT" }}
           </div>
         </div>
+
+        {% if scale.scale_equation %}
+          <div class="mt-4 p-3 bg-gray-50 rounded-md">
+            <div class="text-sm">
+              <span class="font-medium text-gray-700">{% translate "Equation:" %}</span>
+              <code class="ml-2 text-blue-600 break-all">{{ scale.scale_equation }}</code>
+            </div>
+          </div>
+        {% endif %}
       </div>
     </div>
   {% endfor %}
