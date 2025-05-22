@@ -67,6 +67,70 @@ class EquationParserTest(TestCase):
                 result = EquationTransformer(self.question_values).transform(tree)
                 self.assertEqual(result, expected)
 
+    def test_multiple_elif_statements(self):
+        """Test expressions with multiple elif statements"""
+        test_cases = [
+            # Single elif
+            ("if {q1} > 15 then 100 elif {q1} > 10 then 50 else 0", 0),
+            # Multiple elifs
+            ("if {q1} > 15 then 100 elif {q1} > 12 then 75 elif {q1} > 10 then 50 else 0", 0),
+            # Nested conditions
+            ("if {q1} > 15 then 100 elif {q1} > 10 and {q2} > 3 then 75 elif {q1} > 5 then 50 else 0", 50),
+            # Complex conditions with functions
+            ("if {q1} > 15 then 100 elif sqrt({q1} * {q2}) > 7 then 75 elif {q1} > 5 then 50 else 0", 75),
+            # Multiple conditions with logical operators
+            ("if {q1} > 15 then 100 elif {q1} > 10 or {q2} > 8 then 75 elif {q1} > 5 and {q2} > 3 then 50 else 0", 50),
+            # Deep nesting
+            ("if {q1} > 20 then 100 elif {q1} > 15 then 90 elif {q1} > 12 then 80 elif {q1} > 10 then 70 elif {q1} > 5 then 60 else 0", 60),
+        ]
+
+        for equation, expected in test_cases:
+            with self.subTest(equation=equation):
+                tree = self.parser.parse(equation)
+                result = EquationTransformer(self.question_values).transform(tree)
+                self.assertEqual(result, expected)
+
+    def test_question_combinations(self):
+        """Test multiple question combinations using elif statements"""
+        # Define the equation that implements the grading logic in a readable format
+        equation = """
+        if {q1} == 1 and {q2} == 1 and {q3} == 1 then 1
+        elif {q1} == 1 and {q2} == 1 and {q3} == 2 then 1
+        elif {q1} == 1 and {q2} == 2 and {q3} == 1 then 1
+        elif {q1} == 2 and {q2} == 1 and {q3} == 1 then 2
+        elif {q1} == 2 and {q2} == 1 and {q3} == 2 then 2
+        elif {q1} == 2 and {q2} == 2 and {q3} == 2 then 3
+        else 0
+        """
+
+        # Test cases based on the provided combinations
+        test_cases = [
+            # q1, q2, q3, expected_value
+            (1, 1, 1, 1),  # All 1s -> 1
+            (1, 1, 2, 1),  # Two 1s, one 2 -> 1
+            (1, 2, 1, 1),  # Two 1s, one 2 -> 1
+            (2, 1, 1, 2),  # Two 1s, one 2 -> 2
+            (2, 1, 2, 2),  # Two 2s, one 1 -> 2
+            (2, 2, 2, 3),  # All 2s -> 3
+            # Additional edge cases
+            (1, 2, 2, 0),  # Not in original pattern -> 0
+            (2, 2, 1, 0),  # Not in original pattern -> 0
+            (3, 1, 1, 0),  # Value not in pattern -> 0
+        ]
+
+        for q1, q2, q3, expected in test_cases:
+            with self.subTest(q1=q1, q2=q2, q3=q3):
+                # Create question values for this test case
+                question_values = {
+                    1: q1,
+                    2: q2,
+                    3: q3
+                }
+                # Parse and evaluate the equation
+                tree = self.parser.parse(equation)
+                result = EquationTransformer(question_values).transform(tree)
+                self.assertEqual(result, expected)
+
     def test_logical_operations(self):
         """Test logical operations in conditions"""
         test_cases = [

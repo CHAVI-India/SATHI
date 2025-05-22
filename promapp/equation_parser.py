@@ -146,8 +146,20 @@ class EquationTransformer(Transformer):
 
     # If-then-else handler
     @v_args(inline=True)
-    def if_expr(self, condition, then_expr, else_expr):
-        return then_expr if condition else else_expr
+    def if_expr(self, condition, then_expr, else_clause):
+        if bool(condition):
+            return then_expr
+        return else_clause
+
+    @v_args(inline=True)
+    def elif_expr(self, condition, then_expr, else_clause):
+        if bool(condition):
+            return then_expr
+        return else_clause
+
+    @v_args(inline=True)
+    def else_expr(self, expr):
+        return expr
 
     # Logical operation handlers
     @v_args(inline=True)
@@ -165,27 +177,27 @@ class EquationTransformer(Transformer):
     # Comparison handlers
     @v_args(inline=True)
     def gt(self, left, right):
-        return left > right
+        return float(left) > float(right)
 
     @v_args(inline=True)
     def lt(self, left, right):
-        return left < right
+        return float(left) < float(right)
 
     @v_args(inline=True)
     def ge(self, left, right):
-        return left >= right
+        return float(left) >= float(right)
 
     @v_args(inline=True)
     def le(self, left, right):
-        return left <= right
+        return float(left) <= float(right)
 
     @v_args(inline=True)
     def eq(self, left, right):
-        return left == right
+        return float(left) == float(right)
 
     @v_args(inline=True)
     def ne(self, left, right):
-        return left != right
+        return float(left) != float(right)
 
     def start(self, expr):
         """

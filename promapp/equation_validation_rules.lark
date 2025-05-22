@@ -33,7 +33,12 @@
      | "(" expr ")"
      | if_expr
 
-?if_expr: "if" logic_expr "then" expr "else" expr -> if_expr
+?if_expr: if_then_else
+
+?if_then_else: "if" logic_expr "then" expr else_clause -> if_expr
+
+?else_clause: "else" expr -> else_expr
+           | "elif" logic_expr "then" expr else_clause -> elif_expr
 
 ?func: FUNCNAME "(" [expr ("," expr)*] ")" -> func
 
@@ -41,4 +46,5 @@ FUNCNAME: "abs" | "min" | "max" | "sum" | "round" | "sqrt"
 QUESTION_REF: /\{q\d+\}/
 NUMBER: /\d+(\.\d+)?/
 
-%ignore " "
+%import common.WS
+%ignore WS
