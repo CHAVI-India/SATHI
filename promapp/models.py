@@ -366,7 +366,7 @@ class QuestionnaireConstructScore(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     questionnaire_submission = models.ForeignKey(QuestionnaireSubmission, on_delete=models.CASCADE, help_text = "The submission to which the score belongs")
     construct = models.ForeignKey(ConstructScale, on_delete=models.CASCADE, help_text = "The construct to which the score belongs")
-    score = models.DecimalField(max_digits=10, decimal_places=2, help_text = "The score for the construct")
+    score = models.DecimalField(max_digits=10, decimal_places=2, help_text = "The score for the construct", null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
     class Meta:
@@ -702,17 +702,14 @@ def calculate_scores_for_submission(submission):
             
             score = transformer.transform(tree)
             
-            if score is not None:
-                logger.info(f"Calculated score for construct {construct.name}: {score}")
-                
-                # Store the result
-                QuestionnaireConstructScore.objects.create(
-                    questionnaire_submission=submission,
-                    construct=construct,
-                    score=score
-                )
-            else:
-                logger.warning(f"Calculation returned None for construct {construct.name}")
+            # Store the result even if the score is None
+            logger.info(f"Calculated score for construct {construct.name}: {score}")
+            
+            QuestionnaireConstructScore.objects.create(
+                questionnaire_submission=submission,
+                construct=construct,
+                score=score  # This will be stored as NULL in the database if score is None
+            )
         
         except ValidationError as e:
             logger.error(f"Equation validation error for construct {construct.name}: {str(e)}")
