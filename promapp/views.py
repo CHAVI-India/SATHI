@@ -30,6 +30,7 @@ from datetime import datetime, timedelta
 from django.utils.timesince import timeuntil
 from django.conf import settings
 from django.utils import translation
+import uuid
 
 # Create your views here.
 
@@ -908,132 +909,95 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
     template_name = 'promapp/questionnaire_response.html'
     context_object_name = 'patient_questionnaire'
     permission_required = ['promapp.view_patientquestionnaire', 'promapp.add_questionnaireitemresponse']
-    
+
     def get_queryset(self):
         # Only allow access to questionnaires assigned to the current patient
-        return PatientQuestionnaire.objects.filter(
-            patient__user=self.request.user,
-            display_questionnaire=True
-        )
-    
+        return PatientQuestionnaire.objects.filter(patient=self.request.user.patient)
+
     def check_interval(self, patient_questionnaire):
-        """Helper method to check if questionnaire can be answered"""
+        # Get the last response for this questionnaire by this patient
         last_response = QuestionnaireItemResponse.objects.filter(
             patient_questionnaire=patient_questionnaire
         ).order_by('-response_date').first()
-        
+
         if last_response:
-            interval_seconds = patient_questionnaire.questionnaire.questionnaire_answer_interval
-            next_available = last_response.response_date + timedelta(seconds=interval_seconds)
-            can_answer = timezone.now() >= next_available
-        else:
-            can_answer = True
-            next_available = None
-            
-        return can_answer, next_available
-    
+            # Calculate time since last response
+            time_since_last = timezone.now() - last_response.response_date
+            interval = patient_questionnaire.questionnaire.questionnaire_answer_interval
+
+            if time_since_last.total_seconds() < interval:
+                return False, last_response.response_date + timezone.timedelta(seconds=interval)
+
+        return True, None
+
     def dispatch(self, request, *args, **kwargs):
         # Check if the questionnaire can be answered before proceeding with any view logic
-        patient_questionnaire = self.get_object()
-        can_answer, next_available = self.check_interval(patient_questionnaire)
+        self.object = self.get_object()
+        can_answer, next_available = self.check_interval(self.object)
         
         if not can_answer:
-            messages.error(request, _('You cannot answer this questionnaire yet. You can answer it again in %(time)s.') % {
+            messages.warning(request, _('You cannot answer this questionnaire yet. You can answer it again in %(time)s.') % {
                 'time': timeuntil(next_available)
             })
-            return redirect('my_questionnaire_list')
-            
+            return self.render_to_response(self.get_context_data(can_answer=False, next_available=next_available))
+        
         return super().dispatch(request, *args, **kwargs)
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        patient_questionnaire = self.get_object()
+        questionnaire = self.object.questionnaire
         
-        # Get all questionnaire items ordered by question number
+        # Get all items for this questionnaire
         questionnaire_items = QuestionnaireItem.objects.filter(
-            questionnaire=patient_questionnaire.questionnaire
+            questionnaire=questionnaire
         ).order_by('question_number')
         
-        # Initialize the form with the questionnaire items
-        form = QuestionnaireResponseForm(
-            questionnaire_items=questionnaire_items
-        )
+        # Create the form with the questionnaire items
+        form = QuestionnaireResponseForm(questionnaire_items=questionnaire_items)
         
-        # Add can_answer flag to context
-        can_answer, next_available = self.check_interval(patient_questionnaire)
-        context['can_answer'] = can_answer
-        context['next_available'] = next_available
-        context['form'] = form
-        context['questionnaire_items'] = questionnaire_items
-        
+        context.update({
+            'form': form,
+            'questionnaire_items': questionnaire_items,
+            'can_answer': True
+        })
         return context
-    
+
     def post(self, request, *args, **kwargs):
         # Check if user has permission to add responses
         if not request.user.has_perm('promapp.add_questionnaireitemresponse'):
             messages.error(request, _('You do not have permission to submit responses.'))
-            return redirect('my_questionnaire_list')
-            
+            return self.render_to_response(self.get_context_data())
+
+        # Get the patient questionnaire
         patient_questionnaire = self.get_object()
         
-        # Check if the questionnaire can be answered
-        can_answer, next_available = self.check_interval(patient_questionnaire)
-        
-        if not can_answer:
-            messages.error(request, _('You cannot answer this questionnaire yet. You can answer it again in %(time)s.') % {
-                'time': timeuntil(next_available)
-            })
-            return redirect('my_questionnaire_list')
-        
+        # Get all items for this questionnaire
         questionnaire_items = QuestionnaireItem.objects.filter(
             questionnaire=patient_questionnaire.questionnaire
         ).order_by('question_number')
         
-        form = QuestionnaireResponseForm(
-            request.POST,
-            questionnaire_items=questionnaire_items
-        )
+        # Create the form with the questionnaire items
+        form = QuestionnaireResponseForm(request.POST, questionnaire_items=questionnaire_items)
         
         if form.is_valid():
-            try:
-                with transaction.atomic():
-                    # Create response objects for all questions, using empty string for unanswered ones
-                    for qi in questionnaire_items:
-                        response_value = form.cleaned_data.get(f'response_{qi.id}', '')
-                        QuestionnaireItemResponse.objects.create(
-                            patient_questionnaire=patient_questionnaire,
-                            questionnaire_item=qi,
-                            response_value=str(response_value) if response_value else ''
-                        )
-                
-                messages.success(request, _('Your responses have been saved successfully.'))
-                
-                # Check if there's a redirect questionnaire
-                redirect_questionnaire = patient_questionnaire.questionnaire.questionnaire_redirect
-                if redirect_questionnaire:
-                    # Check if the patient has this questionnaire assigned
-                    try:
-                        next_patient_questionnaire = PatientQuestionnaire.objects.get(
-                            patient=patient_questionnaire.patient,
-                            questionnaire=redirect_questionnaire,
-                            display_questionnaire=True
-                        )
-                        # Redirect to the next questionnaire
-                        return redirect('questionnaire_response', pk=next_patient_questionnaire.id)
-                    except PatientQuestionnaire.DoesNotExist:
-                        # If the patient doesn't have the redirect questionnaire assigned,
-                        # just redirect to the questionnaire list
-                        messages.info(request, _('The next questionnaire is not available for you at this time.'))
-                        return redirect('my_questionnaire_list')
-                
-                # If no redirect questionnaire, go to the questionnaire list
-                return redirect('my_questionnaire_list')
-                
-            except Exception as e:
-                messages.error(request, _('An error occurred while saving your responses. Please try again.'))
-                return self.render_to_response(self.get_context_data(form=form))
+            # Generate a new submission_id for this submission
+            submission_id = uuid.uuid4()
+            
+            # Create responses for each item
+            for qi in questionnaire_items:
+                response_value = form.cleaned_data.get(f'response_{qi.id}')
+                if response_value is not None:  # Only create response if there's a value
+                    QuestionnaireItemResponse.objects.create(
+                        patient_questionnaire=patient_questionnaire,
+                        questionnaire_item=qi,
+                        response_value=str(response_value),
+                        submission_id=submission_id  # Use the same submission_id for all responses
+                    )
+            
+            messages.success(request, _('Your responses have been saved successfully.'))
+            return redirect('my_questionnaire_list')
         else:
-            messages.error(request, _('Please correct the errors below.'))
+            messages.error(request, _('There was an error saving your responses. Please try again.'))
             return self.render_to_response(self.get_context_data(form=form))
 
 class PatientQuestionnaireManagementView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):

@@ -294,6 +294,10 @@ class QuestionnaireResponseForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
+        # Convert empty strings to None
+        for field_name, value in cleaned_data.items():
+            if value == '':
+                cleaned_data[field_name] = None
         return cleaned_data
 
 

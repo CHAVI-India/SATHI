@@ -79,9 +79,9 @@ class ItemAdmin(TranslatableAdmin):
 
 @admin.register(QuestionnaireItemResponse)
 class QuestionnaireItemResponseAdmin(admin.ModelAdmin):
-    list_display = ('questionnaire_item', 'patient_questionnaire', 'response_date', 'response_value')
-    search_fields = ('questionnaire_item', 'response_date', 'response_value')
-    list_filter = ('questionnaire_item', 'response_date', 'response_value')
+    list_display = ('questionnaire_item', 'submission_id', 'patient_questionnaire', 'response_date', 'response_value')
+    search_fields = ('questionnaire_item', 'submission_id', 'response_date', 'response_value')
+    list_filter = ('questionnaire_item',  'response_date', 'response_value')
     ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')
 

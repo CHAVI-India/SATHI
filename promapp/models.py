@@ -328,6 +328,7 @@ class QuestionnaireItemResponse(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     patient_questionnaire = models.ForeignKey(PatientQuestionnaire, on_delete=models.CASCADE, help_text = "The patient questionnaire to which the response belongs")
     questionnaire_item = models.ForeignKey(QuestionnaireItem, on_delete=models.CASCADE, help_text = "The item to which the response belongs")
+    submission_id = models.UUIDField(null=True, blank=True, help_text = "The submission id of the response", db_index=True)
     response_date = models.DateTimeField(help_text = "The date and time of the response",auto_now_add=True)
     response_value = models.CharField(max_length=255, help_text = "The response value",null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True,editable=False)
@@ -337,6 +338,10 @@ class QuestionnaireItemResponse(models.Model):
         ordering = ['-response_date']
         verbose_name = 'Questionnaire Response'
         verbose_name_plural = 'Questionnaire Responses'
+        indexes = [
+            models.Index(fields=['submission_id']),
+            models.Index(fields=['patient_questionnaire', 'submission_id']),
+        ]
     def __str__(self):
         return f"{self.patient_questionnaire.patient.name} - {self.questionnaire_item.item.name}"
 
