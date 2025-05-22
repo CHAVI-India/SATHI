@@ -983,16 +983,16 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
             # Generate a new submission_id for this submission
             submission_id = uuid.uuid4()
             
-            # Create responses for each item
+            # Create responses for all items, including unanswered ones
             for qi in questionnaire_items:
                 response_value = form.cleaned_data.get(f'response_{qi.id}')
-                if response_value is not None:  # Only create response if there's a value
-                    QuestionnaireItemResponse.objects.create(
-                        patient_questionnaire=patient_questionnaire,
-                        questionnaire_item=qi,
-                        response_value=str(response_value),
-                        submission_id=submission_id  # Use the same submission_id for all responses
-                    )
+                # Create record for every question, even if unanswered
+                QuestionnaireItemResponse.objects.create(
+                    patient_questionnaire=patient_questionnaire,
+                    questionnaire_item=qi,
+                    response_value=str(response_value) if response_value is not None else None,
+                    submission_id=submission_id
+                )
             
             messages.success(request, _('Your responses have been saved successfully.'))
             return redirect('my_questionnaire_list')
