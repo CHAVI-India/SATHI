@@ -2317,15 +2317,42 @@ class ConstructEquationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateV
 
     def form_valid(self, form):
         try:
-            # Validate the equation before saving
+            # Get the cleaned data
+            cleaned_data = form.cleaned_data
             construct_scale = form.save(commit=False)
-            construct_scale.validate_scale_equation()
-            construct_scale.save()
-            messages.success(self.request, _('Equation saved successfully.'))
-            return redirect('construct_scale_list')
-        except ValidationError as e:
+            
+            # Set the scale equation
+            construct_scale.scale_equation = cleaned_data.get('scale_equation')
+            
+            # Validate the equation
+            try:
+                construct_scale.validate_scale_equation()
+                construct_scale.save()
+                messages.success(self.request, _('Equation saved successfully.'))
+                return redirect('construct_scale_list')
+            except ValidationError as e:
+                # Format the validation error message
+                error_message = str(e)
+                if error_message.startswith('__all__:'):
+                    error_message = error_message.replace('__all__:', '').strip()
+                form.add_error('scale_equation', error_message)
+                messages.error(self.request, error_message)
+                return self.form_invalid(form)
+                
+        except Exception as e:
             messages.error(self.request, str(e))
             return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        # Format and display form errors
+        for field, errors in form.errors.items():
+            for error in errors:
+                # Remove any field prefix from the error message
+                error_message = error
+                if error_message.startswith(field + ':'):
+                    error_message = error_message.replace(field + ':', '').strip()
+                messages.error(self.request, error_message)
+        return super().form_invalid(form)
 
 class ConstructScaleUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
@@ -2356,5 +2383,39 @@ class ConstructScaleDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Dele
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('Construct scale deleted successfully.'))
         return super().delete(request, *args, **kwargs)
+
+def validate_equation(request):
+    """
+    HTMX endpoint to validate an equation in real-time.
+    """
+    equation = request.GET.get('value', '')
+    scale_id = request.GET.get('scale_id')
+    
+    try:
+        # Create a temporary ConstructScale instance
+        temp_scale = ConstructScale(scale_equation=equation)
+        
+        # If we have a scale_id, get the actual scale to validate against its items
+        if scale_id:
+            try:
+                actual_scale = ConstructScale.objects.get(id=scale_id)
+                # Copy the items from the actual scale to our temp scale
+                temp_scale.item_set = actual_scale.item_set
+            except ConstructScale.DoesNotExist:
+                pass
+        
+        temp_scale.validate_scale_equation()
+        return HttpResponse('<div class="text-green-600">✓ Valid equation</div>')
+    except ValidationError as e:
+        return HttpResponse(f'<div class="text-red-600">✗ {str(e)}</div>')
+
+def add_to_equation(request):
+    """
+    HTMX endpoint to add a question reference to the equation.
+    """
+    question = request.GET.get('question', '')
+    if not question:
+        return HttpResponse('')
+    return HttpResponse(question)
 
 

@@ -112,4 +112,6 @@ urlpatterns = [
     path('search-construct-scales/', views.search_construct_scales, name='search_construct_scales'),
 
     path('construct-scale/<uuid:pk>/equation/', views.ConstructEquationView.as_view(), name='construct_equation_edit'),
+    path('validate-equation/', views.validate_equation, name='validate_equation'),
+    path('add-to-equation/', views.add_to_equation, name='add_to_equation'),
 ] 

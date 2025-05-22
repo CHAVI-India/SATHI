@@ -1,0 +1,44 @@
+?start: expr
+
+?expr: logic_expr
+
+?logic_expr: logic_expr "and" logic_expr   -> and_op
+           | logic_expr "or" logic_expr    -> or_op
+           | logic_expr "xor" logic_expr   -> xor_op
+           | comparison_expr
+
+?comparison_expr: sum_expr ">" sum_expr    -> gt
+                | sum_expr "<" sum_expr    -> lt
+                | sum_expr ">=" sum_expr   -> ge
+                | sum_expr "<=" sum_expr   -> le
+                | sum_expr "==" sum_expr   -> eq
+                | sum_expr "!=" sum_expr   -> ne
+                | sum_expr
+
+?sum_expr: sum_expr "+" prod_expr   -> add
+         | sum_expr "-" prod_expr   -> sub
+         | prod_expr
+
+?prod_expr: prod_expr "*" pow_expr  -> mul
+          | prod_expr "/" pow_expr  -> div
+          | pow_expr
+
+?pow_expr: atom "^" pow_expr        -> pow
+         | atom
+
+?atom: "-" atom                     -> neg
+     | func
+     | QUESTION_REF
+     | NUMBER
+     | "(" expr ")"
+     | if_expr
+
+?if_expr: "if" logic_expr "then" expr "else" expr -> if_expr
+
+?func: FUNCNAME "(" [expr ("," expr)*] ")" -> func
+
+FUNCNAME: "abs" | "min" | "max" | "sum" | "round" | "sqrt"
+QUESTION_REF: /\{q\d+\}/
+NUMBER: /\d+(\.\d+)?/
+
+%ignore " "

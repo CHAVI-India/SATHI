@@ -9,6 +9,8 @@ from django.db.models import Q
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
+import re
+from .equation_parser import EquationValidator
 
 # Create your models here.
 
@@ -34,150 +36,39 @@ class ConstructScale(models.Model):
         return self.name
     
     def validate_scale_equation(self):
-        '''
-        Validates the scale equation for:
-        1. Allowed characters and numbers
-        2. Valid arithmetic operators
-        3. Valid if-else statements
-        4. Valid parentheses
-        5. Valid Python math library functions
-        '''
-        import re
-        from django.core.exceptions import ValidationError
-
+        """
+        Validates the scale equation using Lark grammar. Validation rules are in the file called equation_validation_rules.lark
+        """
         if not self.scale_equation:
             return
 
-        # 1. Check for allowed characters
-        allowed_chars = set('q0123456789+-*/%^(){}[].,:;=<>!&| \t\n')
-        if not all(c in allowed_chars for c in self.scale_equation):
-            raise ValidationError("Equation contains invalid characters. Only letters, numbers, and basic operators are allowed.")
+        # Get all valid question numbers for this scale
+        valid_question_numbers = set()
+        for item in self.item_set.all():
+            if item.response_type in ['Number', 'Likert', 'Range']:
+                questionnaire_item = QuestionnaireItem.objects.filter(item=item).first()
+                if questionnaire_item:
+                    valid_question_numbers.add(questionnaire_item.question_number)
 
-        # 2. Check for valid question references (q1, q2, etc.)
-        question_refs = re.findall(r'q\d+', self.scale_equation)
+        # Check for valid question references
+        question_refs = re.findall(r'\{q(\d+)\}', self.scale_equation)
         if not question_refs:
-            raise ValidationError("Equation must contain at least one question reference (e.g., q1, q2)")
-
-        # 3. Check for valid function calls
-        allowed_functions = {
-            'abs': {'min_args': 1, 'max_args': 1, 'arg_types': ['question', 'number']},
-            'round': {'min_args': 1, 'max_args': 2, 'arg_types': ['question', 'number']},
-            'min': {'min_args': 2, 'max_args': None, 'arg_types': ['question', 'number']},
-            'max': {'min_args': 2, 'max_args': None, 'arg_types': ['question', 'number']},
-            'sum': {'min_args': 1, 'max_args': None, 'arg_types': ['question', 'number']},
-            'pow': {'min_args': 2, 'max_args': 2, 'arg_types': ['question', 'number']},
-            'sqrt': {'min_args': 1, 'max_args': 1, 'arg_types': ['question', 'number']}
-        }
-
-        # Pattern for function calls
-        function_pattern = r'(?:' + '|'.join(allowed_functions.keys()) + r')\s*\(\s*(?:[^)]*)\s*\)'
+            raise ValidationError("Equation must contain at least one question reference in the form {qN} (e.g., {q1}, {q2})")
         
-        for func_call in re.finditer(function_pattern, self.scale_equation):
-            func_name = func_call.group(0).split('(')[0].strip()
-            args_str = func_call.group(0)[func_call.group(0).find('(')+1:-1].strip()
-            args = [arg.strip() for arg in args_str.split(',')]
-            
-            # Validate number of arguments
-            if allowed_functions[func_name]['min_args'] and len(args) < allowed_functions[func_name]['min_args']:
-                raise ValidationError(f"{func_name}() function requires at least {allowed_functions[func_name]['min_args']} arguments")
-            if allowed_functions[func_name]['max_args'] and len(args) > allowed_functions[func_name]['max_args']:
-                raise ValidationError(f"{func_name}() function accepts at most {allowed_functions[func_name]['max_args']} arguments")
-
-            # Validate argument types
-            for arg in args:
-                if not (re.match(r'q\d+', arg) or re.match(r'\d+(?:\.\d+)?', arg)):
-                    raise ValidationError(f"Invalid argument '{arg}' in {func_name}() function")
-
-        # 4. Check for valid operators and their usage
-        operator_pattern = r'[\+\-\*\/\%\^]'
-        if re.search(operator_pattern, self.scale_equation):
-            # Check for consecutive operators
-            if re.search(r'[\+\-\*\/\%\^]{2,}', self.scale_equation):
-                raise ValidationError("Consecutive operators are not allowed")
-            
-            # Check for invalid operator placement
-            # Split the equation into tokens
-            tokens = re.findall(r'q\d+|\d+(?:\.\d+)?|[\+\-\*\/\%\^]|\(|\)|\{|\[|\]|\}|if|then|else|and|or|not|>|<|>=|<=|==|!=', self.scale_equation)
-            
-            # Check each token's relationship with its neighbors
-            for i, token in enumerate(tokens):
-                if token in '+-*/%^':
-                    # Operator must be between two valid operands
-                    if i == 0 or i == len(tokens) - 1:
-                        raise ValidationError(f"Operator '{token}' cannot be at the start or end of the equation")
-                    prev_token = tokens[i-1]
-                    next_token = tokens[i+1]
-                    if not (re.match(r'q\d+', prev_token) or re.match(r'\d+(?:\.\d+)?', prev_token) or prev_token in ')]}'):
-                        raise ValidationError(f"Invalid expression before operator '{token}'")
-                    if not (re.match(r'q\d+', next_token) or re.match(r'\d+(?:\.\d+)?', next_token) or next_token in '([{'):
-                        raise ValidationError(f"Invalid expression after operator '{token}'")
-
-        # 5. Check for balanced parentheses
-        def check_balanced_parentheses(equation):
-            stack = []
-            for char in equation:
-                if char in '({[':
-                    stack.append(char)
-                elif char in ')}]':
-                    if not stack:
-                        return False
-                    if char == ')' and stack[-1] != '(':
-                        return False
-                    if char == '}' and stack[-1] != '{':
-                        return False
-                    if char == ']' and stack[-1] != '[':
-                        return False
-                    stack.pop()
-            return len(stack) == 0
-
-        if not check_balanced_parentheses(self.scale_equation):
-            raise ValidationError("Unbalanced parentheses in equation")
-
-        # 6. Check for valid if-else statements
-        if 'if' in self.scale_equation or 'then' in self.scale_equation or 'else' in self.scale_equation:
-            if not all(word in self.scale_equation for word in ['if', 'then', 'else']):
-                raise ValidationError("Incomplete if-then-else statement")
-            
-            # Check if-else syntax
-            if_pattern = r'if\s+(?:q\d+|\d+(?:\.\d+)?)\s*(?:>|<|>=|<=|==|!=)\s*(?:q\d+|\d+(?:\.\d+)?)\s+then\s+(?:q\d+|\d+(?:\.\d+)?)\s+else\s+(?:q\d+|\d+(?:\.\d+)?)'
-            if not re.search(if_pattern, self.scale_equation):
-                raise ValidationError("Invalid if-then-else statement syntax")
-
-        # 7. Check for valid comparison operators
-        comparison_pattern = r'(?:>|<|>=|<=|==|!=)'
-        if re.search(comparison_pattern, self.scale_equation):
-            # Ensure comparison operators are used only in if statements
-            if 'if' not in self.scale_equation:
-                raise ValidationError("Comparison operators can only be used in if statements")
-
-        # 8. Check for logical operators
-        logical_pattern = r'(?:and|or|not)'
-        if re.search(logical_pattern, self.scale_equation):
-            # Ensure logical operators are used only in if statements
-            if 'if' not in self.scale_equation:
-                raise ValidationError("Logical operators can only be used in if statements")
-
-        # 9. Check for valid numbers
-        number_pattern = r'\d+(?:\.\d+)?'
-        for num in re.finditer(number_pattern, self.scale_equation):
-            try:
-                float(num.group(0))
-            except ValueError:
-                raise ValidationError(f"Invalid number format: {num.group(0)}")
-
-        # 10. Check for valid question references format
+        invalid_refs = []
         for ref in question_refs:
-            if not re.match(r'q\d+', ref):
-                raise ValidationError(f"Invalid question reference format: {ref}")
+            question_number = int(ref)
+            if question_number not in valid_question_numbers:
+                invalid_refs.append(f"{{q{question_number}}}")
+        if invalid_refs:
+            raise ValidationError(f"Invalid question references: {', '.join(invalid_refs)}. Only questions {', '.join(f'{{q{n}}}' for n in sorted(valid_question_numbers))} are available for this scale.")
 
-        # 11. Check for valid expression structure
-        # Remove all valid tokens to see if anything remains
-        valid_tokens = re.findall(r'q\d+|\d+(?:\.\d+)?|[\+\-\*\/\%\^]|\(|\)|\{|\[|\]|\}|if|then|else|and|or|not|>|<|>=|<=|==|!=|\s', self.scale_equation)
-        remaining = re.sub(r'\s+', '', self.scale_equation)
-        for token in valid_tokens:
-            remaining = remaining.replace(token, '')
-        if remaining:
-            raise ValidationError(f"Invalid expression structure. Contains invalid tokens: {remaining}")
+        # Validate equation syntax using Lark
+        validator = EquationValidator()
+        try:
+            validator.validate(self.scale_equation)
+        except ValidationError as e:
+            raise ValidationError(f"Equation syntax error: {str(e)}")
 
         return True
 
