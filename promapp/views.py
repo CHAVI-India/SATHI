@@ -2391,6 +2391,10 @@ def validate_equation(request):
     scale_id = request.GET.get('scale_id')
     
     try:
+        # Normalize line endings and whitespace
+        equation = equation.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ')
+        equation = ' '.join(equation.split())  # Normalize whitespace
+        
         # Create a temporary ConstructScale instance
         temp_scale = ConstructScale(scale_equation=equation)
         

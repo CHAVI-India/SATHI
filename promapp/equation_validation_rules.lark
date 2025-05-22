@@ -48,3 +48,5 @@ NUMBER: /\d+(\.\d+)?/
 
 %import common.WS
 %ignore WS
+%ignore /\r?\n/
+%ignore /\s+/

@@ -700,9 +700,10 @@ class ConstructEquationForm(forms.ModelForm):
     """
     scale_equation = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={
+        widget=forms.Textarea(attrs={
             'class': 'w-full px-4 py-2 text-lg border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-            'placeholder': 'Enter equation (e.g., q1 + q2)'
+            'placeholder': 'Enter equation (e.g., q1 + q2)',
+            'rows': '6'
         })
     )
 
@@ -717,4 +718,12 @@ class ConstructEquationForm(forms.ModelForm):
             'Available functions: abs(), round(), min(), max(), sum(), pow(), sqrt(). '
             'Example: (q1 + q2) / 2 or if q1 > 5 then q2 else q3'
         )
+
+    def clean_scale_equation(self):
+        equation = self.cleaned_data.get('scale_equation', '')
+        if equation:
+            # Normalize line endings and whitespace
+            equation = equation.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ')
+            equation = ' '.join(equation.split())  # Normalize whitespace
+        return equation
 
