@@ -35,6 +35,24 @@ class ConstructScale(models.Model):
     def __str__(self):
         return self.name
     
+    def get_valid_items_with_numbers(self):
+        """
+        Returns a list of valid items (Number, Likert, or Range) with their generated question numbers.
+        The question numbers are generated based on the order of items in the construct scale.
+        """
+        valid_items = []
+        question_number = 1
+        
+        for item in self.item_set.all():
+            if item.response_type in ['Number', 'Likert', 'Range']:
+                valid_items.append({
+                    'item': item,
+                    'question_number': question_number
+                })
+                question_number += 1
+                
+        return valid_items
+    
     def validate_scale_equation(self):
         """
         Validates the scale equation using Lark grammar. Validation rules are in the file called equation_validation_rules.lark
@@ -44,11 +62,8 @@ class ConstructScale(models.Model):
 
         # Get all valid question numbers for this scale
         valid_question_numbers = set()
-        for item in self.item_set.all():
-            if item.response_type in ['Number', 'Likert', 'Range']:
-                questionnaire_item = QuestionnaireItem.objects.filter(item=item).first()
-                if questionnaire_item:
-                    valid_question_numbers.add(questionnaire_item.question_number)
+        for item_data in self.get_valid_items_with_numbers():
+            valid_question_numbers.add(item_data['question_number'])
 
         # Check for valid question references
         question_refs = re.findall(r'\{q(\d+)\}', self.scale_equation)

@@ -25,17 +25,47 @@
                         {% trans "Scale Equation" %}
                     </label>
                     <div class="mt-1">
-                        <textarea
-                            name="{{ form.scale_equation.name }}"
-                            id="{{ form.scale_equation.id_for_label }}"
-                            rows="6"
-                            class="block w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono bg-gray-50"
-                            placeholder="Enter your equation here..."
-                            hx-get="{% url 'validate_equation' %}"
-                            hx-trigger="keyup changed delay:500ms"
-                            hx-target="#equation-validation"
-                            hx-include="[name='scale_id']"
-                        >{{ form.scale_equation.value|default:'' }}</textarea>
+                        {% if valid_items %}
+                            <textarea
+                                name="{{ form.scale_equation.name }}"
+                                id="{{ form.scale_equation.id_for_label }}"
+                                rows="6"
+                                class="block w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono bg-gray-50"
+                                placeholder="Enter your equation here..."
+                                hx-get="{% url 'validate_equation' %}"
+                                hx-trigger="keyup changed delay:500ms"
+                                hx-target="#equation-validation"
+                                hx-include="[name='scale_id']"
+                            >{{ form.scale_equation.value|default:'' }}</textarea>
+                        {% else %}
+                            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-yellow-800">
+                                            {% trans "No Valid Questions Available" %}
+                                        </h3>
+                                        <div class="mt-2 text-sm text-yellow-700">
+                                            <p>
+                                                {% trans "There are no questions in this scale that can be used in equations. Please add questions to the scale before creating an equation." %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <textarea
+                                name="{{ form.scale_equation.name }}"
+                                id="{{ form.scale_equation.id_for_label }}"
+                                rows="6"
+                                class="block w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg shadow-sm bg-gray-100 font-mono cursor-not-allowed"
+                                placeholder="{% trans 'Add questions to the scale first' %}"
+                                disabled
+                            ></textarea>
+                        {% endif %}
                         {% if form.scale_equation.errors %}
                         <div class="mt-2 text-sm text-red-600">
                             {% for error in form.scale_equation.errors %}
@@ -45,9 +75,77 @@
                         {% endif %}
                     </div>
                     <div id="equation-validation" class="mt-2"></div>
-                    <p class="mt-2 text-sm text-gray-500">
-                        {% trans "Tip: Click or drag questions from below to add them to your equation. Use {qN} for question references (e.g., {q6})" %}
-                    </p>
+                    
+                    <!-- Help Section -->
+                    <div class="mt-4">
+                        <button type="button" 
+                                class="text-sm text-indigo-600 hover:text-indigo-800 focus:outline-none"
+                                onclick="toggleHelp()">
+                            {% trans "Show/Hide Equation Syntax Help" %}
+                        </button>
+                        
+                        <div id="equation-help" class="hidden mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h3 class="font-medium text-gray-900 mb-2">{% trans "Equation Syntax Guide" %}</h3>
+                            
+                            <div class="space-y-4">
+                                <!-- Basic Syntax -->
+                                <div>
+                                    <h4 class="font-medium text-gray-800">{% trans "Basic Syntax" %}</h4>
+                                    <ul class="list-disc pl-5 space-y-1 text-sm text-gray-600">
+                                        <li>{% trans "Use {qN} to reference questions (e.g., {q1}, {q2})" %}</li>
+                                        <li>{% trans "Basic arithmetic: +, -, *, /, ^ (power)" %}</li>
+                                        <li>{% trans "Parentheses () for grouping" %}</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Functions -->
+                                <div>
+                                    <h4 class="font-medium text-gray-800">{% trans "Available Functions" %}</h4>
+                                    <ul class="list-disc pl-5 space-y-1 text-sm text-gray-600">
+                                        <li><code>abs(x)</code> - {% trans "Absolute value" %}</li>
+                                        <li><code>min(x, y, ...)</code> - {% trans "Minimum value" %}</li>
+                                        <li><code>max(x, y, ...)</code> - {% trans "Maximum value" %}</li>
+                                        <li><code>sum(x, y, ...)</code> - {% trans "Sum of values" %}</li>
+                                        <li><code>round(x)</code> - {% trans "Round to nearest integer" %}</li>
+                                        <li><code>sqrt(x)</code> - {% trans "Square root" %}</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Conditional Logic -->
+                                <div>
+                                    <h4 class="font-medium text-gray-800">{% trans "Conditional Logic" %}</h4>
+                                    <ul class="list-disc pl-5 space-y-1 text-sm text-gray-600">
+                                        <li>{% trans "if-then-else: if condition then value1 else value2" %}</li>
+                                        <li>{% trans "Comparisons: >, <, >=, <=, ==, !=" %}</li>
+                                        <li>{% trans "Logical operators: and, or, xor" %}</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Examples -->
+                                <div>
+                                    <h4 class="font-medium text-gray-800">{% trans "Examples" %}</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="bg-white p-2 rounded border">
+                                            <code class="text-indigo-600">({q1} + {q2}) * {q3}</code>
+                                            <p class="text-gray-600 mt-1">{% trans "Basic arithmetic with grouping" %}</p>
+                                        </div>
+                                        <div class="bg-white p-2 rounded border">
+                                            <code class="text-indigo-600">min({q1}, {q2}) + max({q3}, {q4})</code>
+                                            <p class="text-gray-600 mt-1">{% trans "Using min and max functions" %}</p>
+                                        </div>
+                                        <div class="bg-white p-2 rounded border">
+                                            <code class="text-indigo-600">if {q1} > {q2} then {q3} else {q4}</code>
+                                            <p class="text-gray-600 mt-1">{% trans "Simple conditional" %}</p>
+                                        </div>
+                                        <div class="bg-white p-2 rounded border">
+                                            <code class="text-indigo-600">if {q1} > {q2} and {q3} < {q4} then min({q1}, {q5}) else max({q2}, {q3})</code>
+                                            <p class="text-gray-600 mt-1">{% trans "Complex conditional with functions" %}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -57,7 +155,9 @@
                 <a href="{% url 'construct_scale_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     {% trans "Cancel" %}
                 </a>
-                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <button type="submit" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white {% if valid_items %}bg-indigo-600 hover:bg-indigo-700{% else %}bg-gray-400 cursor-not-allowed{% endif %} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        {% if not valid_items %}disabled{% endif %}>
                     {% trans "Save Equation" %}
                 </button>
             </div>
@@ -66,17 +166,39 @@
 
     <div class="mt-8 bg-white shadow rounded-lg p-6">
         <h2 class="text-lg font-medium text-gray-900 mb-4">{% trans "Valid Items for Equation" %}</h2>
-        <div id="valid-items-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {% for item in valid_items %}
-            <div class="p-4 border rounded-lg bg-white shadow-sm cursor-move hover:bg-gray-50 transition-colors duration-150" 
-                 draggable="true" 
-                 data-question="q{{ item.questionnaireitem_set.first.question_number }}"
-                 onclick="addQuestionToEquation('q{{ item.questionnaireitem_set.first.question_number }}')">
-                <div class="font-medium text-gray-900">{% trans "Question" %} {{ item.questionnaireitem_set.first.question_number }}</div>
-                <div class="text-sm text-gray-500">{{ item.name }}</div>
+        {% if valid_items %}
+            <div id="valid-items-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for item_data in valid_items_with_numbers %}
+                <div class="p-4 border rounded-lg bg-white shadow-sm cursor-move hover:bg-gray-50 transition-colors duration-150" 
+                     draggable="true" 
+                     data-question="q{{ item_data.question_number }}"
+                     onclick="addQuestionToEquation('q{{ item_data.question_number }}')">
+                    <div class="font-medium text-gray-900">{% trans "Question" %} {{ item_data.question_number }}</div>
+                    <div class="text-sm text-gray-500">{{ item_data.item.name }}</div>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
+        {% else %}
+            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">
+                            {% trans "No Valid Questions Available" %}
+                        </h3>
+                        <div class="mt-2 text-sm text-yellow-700">
+                            <p>
+                                {% trans "There are no questions in this scale that can be used in equations. Please add questions to the scale before creating an equation." %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
 
         {% if invalid_items %}
         <h2 class="text-lg font-medium text-gray-900 mt-8 mb-4">{% trans "Invalid Items (Cannot be used in equation)" %}</h2>
@@ -94,8 +216,15 @@
 </div>
 
 <script>
+function toggleHelp() {
+    const helpSection = document.getElementById('equation-help');
+    helpSection.classList.toggle('hidden');
+}
+
 function addQuestionToEquation(question) {
     const textarea = document.querySelector('textarea[name="scale_equation"]');
+    if (textarea.disabled) return;
+    
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const text = textarea.value;
@@ -115,6 +244,7 @@ function addQuestionToEquation(question) {
 document.addEventListener('DOMContentLoaded', function() {
     const validItems = document.querySelectorAll('#valid-items-container > div');
     const textarea = document.querySelector('textarea[name="scale_equation"]');
+    if (!textarea) return;
 
     validItems.forEach(item => {
         item.addEventListener('dragstart', function(e) {

@@ -2301,16 +2301,15 @@ class ConstructEquationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateV
         # Get all items associated with this construct scale
         items = Item.objects.filter(construct_scale=construct_scale).order_by('id')
         
-        # Filter items that can be used in equations (Number, Likert, or Range)
-        valid_items = []
-        invalid_items = []
+        # Get valid items with their generated question numbers
+        valid_items_with_numbers = construct_scale.get_valid_items_with_numbers()
         
-        for item in items:
-            if item.response_type in ['Number', 'Likert', 'Range']:
-                valid_items.append(item)
-            else:
-                invalid_items.append(item)
+        # Separate valid and invalid items
+        valid_items = [item_data['item'] for item_data in valid_items_with_numbers]
+        invalid_items = [item for item in items if item.response_type not in ['Number', 'Likert', 'Range']]
         
+        # Add question numbers to the context for the template
+        context['valid_items_with_numbers'] = valid_items_with_numbers
         context['valid_items'] = valid_items
         context['invalid_items'] = invalid_items
         return context
