@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.conf import settings
 from django.utils import translation
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption, PatientQuestionnaire, QuestionnaireItemResponse, Patient, QuestionnaireItemRule, QuestionnaireItemRuleGroup
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption, PatientQuestionnaire, QuestionnaireItemResponse, Patient, QuestionnaireItemRule, QuestionnaireItemRuleGroup, QuestionnaireSubmission, QuestionnaireConstructScore
 from .forms import (
     QuestionnaireForm, ItemForm, QuestionnaireItemForm, 
     LikertScaleForm, LikertScaleResponseOptionFormSet,
@@ -908,25 +908,29 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
     model = PatientQuestionnaire
     template_name = 'promapp/questionnaire_response.html'
     context_object_name = 'patient_questionnaire'
-    permission_required = ['promapp.view_patientquestionnaire', 'promapp.add_questionnaireitemresponse']
+    permission_required = [
+        'promapp.view_patientquestionnaire', 
+        'promapp.add_questionnaireitemresponse', 
+        'promapp.add_questionnairesubmission'
+    ]
 
     def get_queryset(self):
         # Only allow access to questionnaires assigned to the current patient
         return PatientQuestionnaire.objects.filter(patient=self.request.user.patient)
 
     def check_interval(self, patient_questionnaire):
-        # Get the last response for this questionnaire by this patient
-        last_response = QuestionnaireItemResponse.objects.filter(
+        # Get the last submission for this questionnaire by this patient
+        last_submission = QuestionnaireSubmission.objects.filter(
             patient_questionnaire=patient_questionnaire
-        ).order_by('-response_date').first()
+        ).order_by('-submission_date').first()
 
-        if last_response:
+        if last_submission:
             # Calculate time since last response
-            time_since_last = timezone.now() - last_response.response_date
+            time_since_last = timezone.now() - last_submission.submission_date
             interval = patient_questionnaire.questionnaire.questionnaire_answer_interval
 
             if time_since_last.total_seconds() < interval:
-                return False, last_response.response_date + timezone.timedelta(seconds=interval)
+                return False, last_submission.submission_date + timezone.timedelta(seconds=interval)
 
         return True, None
 
@@ -980,25 +984,97 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
         form = QuestionnaireResponseForm(request.POST, questionnaire_items=questionnaire_items)
         
         if form.is_valid():
-            # Generate a new submission_id for this submission
-            submission_id = uuid.uuid4()
-            
-            # Create responses for all items, including unanswered ones
-            for qi in questionnaire_items:
-                response_value = form.cleaned_data.get(f'response_{qi.id}')
-                # Create record for every question, even if unanswered
-                QuestionnaireItemResponse.objects.create(
-                    patient_questionnaire=patient_questionnaire,
-                    questionnaire_item=qi,
-                    response_value=str(response_value) if response_value is not None else None,
-                    submission_id=submission_id
-                )
-            
-            messages.success(request, _('Your responses have been saved successfully.'))
-            return redirect('my_questionnaire_list')
+            try:
+                with transaction.atomic():
+                    # Create a new submission record
+                    submission = QuestionnaireSubmission.objects.create(
+                        patient=request.user.patient,
+                        patient_questionnaire=patient_questionnaire
+                    )
+                    
+                    # Create responses for all items, including unanswered ones
+                    for qi in questionnaire_items:
+                        response_value = form.cleaned_data.get(f'response_{qi.id}')
+                        # Create record for every question, even if unanswered
+                        QuestionnaireItemResponse.objects.create(
+                            questionnaire_submission=submission,
+                            questionnaire_item=qi,
+                            response_value=str(response_value) if response_value is not None else None
+                        )
+                    
+                    # If there are construct scales, calculate and store their scores
+                    self.calculate_construct_scores(submission)
+                    
+                    messages.success(request, _('Your responses have been saved successfully.'))
+                    return redirect('my_questionnaire_list')
+            except Exception as e:
+                messages.error(request, _('An error occurred while saving your responses: %s') % str(e))
+                return self.render_to_response(self.get_context_data(form=form))
         else:
             messages.error(request, _('There was an error saving your responses. Please try again.'))
             return self.render_to_response(self.get_context_data(form=form))
+            
+    def calculate_construct_scores(self, submission):
+        """
+        Calculate and store construct scores for a submission.
+        """
+        from .equation_parser import EquationTransformer
+        
+        # Get all items from this submission
+        responses = QuestionnaireItemResponse.objects.filter(
+            questionnaire_submission=submission
+        ).select_related('questionnaire_item__item__construct_scale')
+        
+        # Group responses by construct scale
+        responses_by_scale = {}
+        for response in responses:
+            construct_scale = response.questionnaire_item.item.construct_scale
+            if construct_scale and construct_scale.scale_equation:
+                if construct_scale.id not in responses_by_scale:
+                    responses_by_scale[construct_scale.id] = {
+                        'scale': construct_scale,
+                        'responses': []
+                    }
+                responses_by_scale[construct_scale.id]['responses'].append(response)
+        
+        # Calculate scores for each construct scale
+        for scale_data in responses_by_scale.values():
+            construct_scale = scale_data['scale']
+            responses = scale_data['responses']
+            
+            # Prepare data for equation evaluation
+            response_data = {}
+            for response in responses:
+                if response.response_value and response.questionnaire_item.item.item_number:
+                    try:
+                        # Only include numeric responses
+                        response_type = response.questionnaire_item.item.response_type
+                        if response_type in ['Number', 'Likert', 'Range']:
+                            response_data[response.questionnaire_item.item.item_number] = float(response.response_value)
+                    except (ValueError, TypeError):
+                        # Skip non-numeric responses
+                        pass
+            
+            # Only calculate if we have enough valid responses
+            if len(response_data) >= construct_scale.minimum_number_of_items:
+                try:
+                    # Use the equation transformer to calculate the score
+                    transformer = EquationTransformer(response_data, construct_scale.minimum_number_of_items)
+                    from lark import Lark
+                    parser = Lark.open('promapp/equation_validation_rules.lark', start='equation')
+                    tree = parser.parse(construct_scale.scale_equation)
+                    score = transformer.transform(tree)
+                    
+                    # Store the score
+                    QuestionnaireConstructScore.objects.create(
+                        questionnaire_submission=submission,
+                        construct=construct_scale,
+                        score=score
+                    )
+                except Exception as e:
+                    # Log the error but continue with other scales
+                    logger = logging.getLogger("promapp.equations")
+                    logger.error(f"Error calculating score for construct {construct_scale.name}: {str(e)}")
 
 class PatientQuestionnaireManagementView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     """
@@ -1191,22 +1267,22 @@ class MyQuestionnaireListView(LoginRequiredMixin, ListView):
         
         # Add information about when each questionnaire can be answered next
         for pq in context['patient_questionnaires']:
-            # Get the last response for this questionnaire
-            last_response = QuestionnaireItemResponse.objects.filter(
+            # Get the last submission for this questionnaire
+            last_submission = QuestionnaireSubmission.objects.filter(
                 patient_questionnaire=pq
-            ).order_by('-response_date').first()
+            ).order_by('-submission_date').first()
             
-            # Store the last response for display
-            pq.last_response = last_response
+            # Store the last submission for display
+            pq.last_submission = last_submission
             
-            if last_response:
+            if last_submission:
                 # Calculate when the questionnaire can be answered next
                 interval_seconds = pq.questionnaire.questionnaire_answer_interval
-                next_available = last_response.response_date + timedelta(seconds=interval_seconds)
+                next_available = last_submission.submission_date + timedelta(seconds=interval_seconds)
                 pq.next_available = next_available
                 pq.can_answer = timezone.now() >= next_available
             else:
-                # If no previous response, can answer immediately
+                # If no previous submission, can answer immediately
                 pq.next_available = None
                 pq.can_answer = True
         

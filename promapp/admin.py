@@ -77,10 +77,26 @@ class ItemAdmin(TranslatableAdmin):
     readonly_fields = ('created_date', 'modified_date')
 
 
+@admin.register(QuestionnaireSubmission)
+class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('patient', 'patient_questionnaire', 'submission_date')
+    search_fields = ('patient', 'patient_questionnaire', 'submission_date')
+    list_filter = ('patient', 'patient_questionnaire', 'submission_date')
+    ordering = ('-submission_date',)
+    readonly_fields = ('created_date', 'modified_date')
+
+@admin.register(QuestionnaireConstructScore)
+class QuestionnaireConstructScoreAdmin(admin.ModelAdmin):
+    list_display = ('questionnaire_submission', 'construct', 'score')
+    search_fields = ('questionnaire_submission', 'construct', 'score')
+    list_filter = ('questionnaire_submission', 'construct', 'score')
+    ordering = ('-created_date',)
+    readonly_fields = ('created_date', 'modified_date')
+
 @admin.register(QuestionnaireItemResponse)
 class QuestionnaireItemResponseAdmin(admin.ModelAdmin):
-    list_display = ('questionnaire_item', 'submission_id', 'patient_questionnaire', 'response_date', 'response_value')
-    search_fields = ('questionnaire_item', 'submission_id', 'response_date', 'response_value')
+    list_display = ('questionnaire_item', 'questionnaire_submission', 'response_date', 'response_value')
+    search_fields = ('questionnaire_item', 'questionnaire_submission', 'response_date', 'response_value')
     list_filter = ('questionnaire_item',  'response_date', 'response_value')
     ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')

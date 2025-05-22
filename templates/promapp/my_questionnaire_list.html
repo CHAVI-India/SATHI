@@ -38,8 +38,8 @@
             <div class="mb-4">
               <p class="text-gray-600">
                 {% blocktrans %}Last answered:{% endblocktrans %}
-                {% if pq.last_response %}
-                  <span class="font-semibold">{{ pq.last_response.response_date|date:"F j, Y, g:i a" }}</span>
+                {% if pq.last_submission %}
+                  <span class="font-semibold">{{ pq.last_submission.submission_date|date:"F j, Y, g:i a" }}</span>
                 {% else %}
                   <span class="font-semibold">{% translate "Never" %}</span>
                 {% endif %}
