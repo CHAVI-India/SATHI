@@ -6,13 +6,17 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from patientapp.models import Patient,Diagnosis,Treatment
 from parler.models import TranslatableModel, TranslatedFields
 from django.db.models import Q
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 import re
 from .equation_parser import EquationValidator, EquationTransformer
+import logging
 
 # Create your models here.
+
+# Setup logger for construct score calculations
+logger = logging.getLogger('promapp.construct_scores')
 
 class ConstructScale(models.Model):
     '''
@@ -541,3 +545,176 @@ def validate_question_number_change(sender, instance, **kwargs):
             # Join with HTML line breaks and mark as safe
             error_message = mark_safe('<br>'.join(rule_details))
             raise ValidationError(error_message)
+
+# Signal handler to calculate construct scores when a questionnaire submission is created
+@receiver(post_save, sender=QuestionnaireSubmission)
+def calculate_construct_scores(sender, instance, created, **kwargs):
+    """
+    Signal handler that calculates construct scores when a questionnaire is submitted.
+    
+    This function only registers the submission for later processing.
+    The actual calculation happens after all responses are saved.
+    """
+    if not created:
+        # Only register new submissions
+        return
+
+    # We'll log that we received a new submission but won't calculate scores yet
+    logger.info(f"New questionnaire submission registered: {instance.id} from patient {instance.patient.name}")
+    # The actual calculation will be done after responses are saved
+
+@receiver(post_save, sender=QuestionnaireItemResponse)
+def trigger_score_calculation_on_response(sender, instance, created, **kwargs):
+    """
+    When a response is saved, check if we need to calculate scores.
+    We'll do this after a slight delay to allow all responses to be saved.
+    """
+    if not created:
+        # Only trigger on new responses
+        return
+        
+    # Get the submission this response belongs to
+    submission = instance.questionnaire_submission
+    
+    # We'll use a simple approach - check if this appears to be the last response
+    # by comparing the current number of responses to the number of questions
+    questionnaire = submission.patient_questionnaire.questionnaire
+    total_questions = QuestionnaireItem.objects.filter(questionnaire=questionnaire).count()
+    current_responses = QuestionnaireItemResponse.objects.filter(questionnaire_submission=submission).count()
+    
+    logger.debug(f"Response {instance.id} saved for submission {submission.id}: {current_responses}/{total_questions} questions answered")
+    
+    if current_responses == total_questions:
+        # This appears to be the last response, calculate the scores
+        logger.info(f"All responses received for submission {submission.id}, calculating scores")
+        calculate_scores_for_submission(submission)
+
+# Move the actual calculation logic to a separate function that can be called
+# both automatically by the signal and manually if needed
+def calculate_scores_for_submission(submission):
+    """
+    Calculate construct scores for a completed questionnaire submission.
+    
+    This function contains the actual calculation logic and can be called
+    either automatically by the signal handler or manually.
+    """
+    logger.info(f"Calculating construct scores for submission {submission.id} from patient {submission.patient.name}")
+    
+    # Get the questionnaire related to this submission
+    questionnaire = submission.patient_questionnaire.questionnaire
+    
+    # Get all questionnaire items for this questionnaire
+    questionnaire_items = QuestionnaireItem.objects.filter(questionnaire=questionnaire)
+    logger.debug(f"Found {questionnaire_items.count()} questionnaire items")
+    
+    # Get responses for this submission - prefetch related questionnaire_item and item
+    responses = QuestionnaireItemResponse.objects.filter(
+        questionnaire_submission=submission
+    ).select_related('questionnaire_item', 'questionnaire_item__item')
+    logger.debug(f"Found {responses.count()} responses")
+    
+    # If no responses are found, we can't calculate any scores
+    if not responses.exists():
+        logger.warning(f"No responses found for submission {submission.id}, cannot calculate scores")
+        return
+    
+    # Debug: Log all responses with their values and item numbers
+    for response in responses:
+        qi = response.questionnaire_item
+        logger.debug(f"Response found - Q{qi.question_number}: item_number={qi.item.item_number}, "
+                    f"value={response.response_value}, type={qi.item.response_type}")
+    
+    # Find all construct scales used in this questionnaire
+    construct_scales = set()
+    item_to_construct_map = {}  # Map of item_id to construct_scale
+    
+    # Map items to their constructs and build set of unique constructs
+    for qi in questionnaire_items.select_related('item', 'item__construct_scale'):
+        if qi.item.construct_scale:
+            construct_scales.add(qi.item.construct_scale)
+            item_to_construct_map[qi.item.id] = qi.item.construct_scale
+    
+    logger.debug(f"Found {len(construct_scales)} construct scales")
+    
+    # Process each construct scale that has an equation
+    for construct in construct_scales:
+        if not construct.scale_equation:
+            logger.debug(f"Skipping construct {construct.name} - no equation defined")
+            continue
+        
+        logger.info(f"Processing construct {construct.name} with equation: {construct.scale_equation}")
+        
+        # Create a mapping of item numbers to response values for this construct
+        response_values = {}
+        valid_response_count = 0
+        
+        # Find all items in this questionnaire related to this construct
+        for response in responses:
+            qi = response.questionnaire_item
+            item = qi.item
+            
+            # Check if this item belongs to the current construct
+            if item.construct_scale != construct:
+                continue
+                
+            # Only use Number, Likert, and Range response types
+            if item.response_type in ['Number', 'Likert', 'Range']:
+                response_value = response.response_value
+                item_number = item.item_number
+                
+                logger.debug(f"For construct {construct.name}: item {item_number} has response '{response_value}'")
+                
+                # Only include non-empty responses as valid for minimum count
+                if response_value and response_value.strip():
+                    try:
+                        # Convert to float for calculation
+                        response_values[item_number] = float(response_value)
+                        valid_response_count += 1
+                        logger.debug(f"Valid response for item {item_number}: value = {response_value}")
+                    except (ValueError, TypeError):
+                        logger.warning(f"Could not convert response for item {item_number} to float: {response_value}")
+                        response_values[item_number] = None
+                else:
+                    logger.debug(f"Empty response for item {item_number}")
+                    response_values[item_number] = None
+        
+        # Debug: Log the final response values dictionary
+        logger.debug(f"Response values for construct {construct.name}: {response_values}")
+        
+        # Check if we have enough valid responses
+        min_required = construct.minimum_number_of_items
+        if valid_response_count < min_required:
+            logger.warning(f"Not enough valid responses for construct {construct.name}. " 
+                          f"Required: {min_required}, Found: {valid_response_count}")
+            continue
+        
+        # Calculate score using equation parser
+        try:
+            # Parse the equation
+            validator = EquationValidator()
+            tree = validator.parser.parse(construct.scale_equation)
+            
+            # Transform and evaluate the equation
+            transformer = EquationTransformer(
+                question_values=response_values,
+                minimum_required_items=min_required
+            )
+            
+            score = transformer.transform(tree)
+            
+            if score is not None:
+                logger.info(f"Calculated score for construct {construct.name}: {score}")
+                
+                # Store the result
+                QuestionnaireConstructScore.objects.create(
+                    questionnaire_submission=submission,
+                    construct=construct,
+                    score=score
+                )
+            else:
+                logger.warning(f"Calculation returned None for construct {construct.name}")
+        
+        except ValidationError as e:
+            logger.error(f"Equation validation error for construct {construct.name}: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error calculating score for construct {construct.name}: {str(e)}", exc_info=True)

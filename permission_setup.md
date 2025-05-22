@@ -17,6 +17,7 @@ This document will collate the permission setup required for the system to funct
 ## Group for Patients
 1. **View** permission for **PatientQuestionnaire** Model : So that patients can view patient questionnaires available to them.
 2. **Add** permission for **QuestionnaireItemResponse** Model : So that patients can add responses to questionnaires. 
+3. **Add** permission for **QuestionnaireSubmission** Model: So that patients can add a new submission for their questionnaires
 
 
 ## Group for Questionnaire creators  

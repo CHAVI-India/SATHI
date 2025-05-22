@@ -387,4 +387,104 @@ class EquationParserTest(TestCase):
                     self.assertIn("Not enough items answered", str(context.exception))
                 else:
                     result = transformer.transform(tree)
+                    self.assertEqual(result, expected)
+
+    def test_missing_values_with_min_zero(self):
+        """Test handling of missing values when minimum_required_items=0"""
+        # Sample questionnaire data with strategic missing values
+        questionnaire_data = {
+            1: 10,     # Present
+            2: 5,      # Present
+            3: None,   # Missing
+            4: 8,      # Present
+            5: None,   # Missing
+            6: None,   # Missing
+            7: None,   # Missing
+        }
+
+        # Test cases for different operations with missing values
+        # when minimum_required_items=0
+        test_cases = [
+            # Basic arithmetic with missing values
+            ("{q1} + {q3}", 10),           # Add: 10 + None = 10
+            ("{q3} + {q1}", 10),           # Add (commutative): None + 10 = 10
+            ("{q1} - {q3}", 10),           # Subtract: 10 - None = 10
+            ("{q3} - {q1}", None),         # Subtract: None - 10 = None (can't compute)
+            ("{q1} * {q3}", None),         # Multiply: 10 * None = None
+            ("{q3} * {q1}", None),         # Multiply: None * 10 = None
+            ("{q1} / {q3}", None),         # Divide: 10 / None = None
+            ("{q3} / {q1}", None),         # Divide: None / 10 = None
+            
+            # Multiple missing values
+            ("{q3} + {q5}", None),         # Add: None + None = None
+            ("{q3} - {q5}", None),         # Subtract: None - None = None
+            ("{q3} * {q5}", None),         # Multiply: None * None = None
+            ("{q3} / {q5}", None),         # Divide: None / None = None
+            
+            # Complex expressions with missing values
+            ("({q1} + {q3}) * {q2}", 50),  # (10 + None) * 5 = 10 * 5 = 50
+            ("({q3} + {q1}) / {q2}", 2),   # (None + 10) / 5 = 10 / 5 = 2
+            ("{q1} + ({q3} * {q2})", 10),  # 10 + (None * 5) = 10 + None = 10
+            
+            # Nested operations with multiple missing values
+            ("({q3} + {q5}) * {q1}", None), # (None + None) * 10 = None * 10 = None
+            ("{q1} - ({q3} * {q5})", 10),   # 10 - (None * None) = 10 - None = 10
+            
+            # If-then-else with missing values in condition
+            ("if {q3} > 0 then {q1} else {q2}", 5),  # if None > 0 then 10 else 5 = 5
+            ("if {q1} > 0 then {q3} else {q2}", None), # if 10 > 0 then None else 5 = None
+            ("if {q1} > 0 then {q2} else {q3}", 5),   # if 10 > 0 then 5 else None = 5
+            
+            # Nested if-then-else with missing values
+            ("if {q3} > 0 then if {q1} > 0 then {q2} else {q4} else {q2}", 5),
+            
+            # Logical operations with missing values
+            ("if {q1} > 0 and {q3} > 0 then {q2} else {q4}", 8),  # if 10 > 0 and None > 0 then 5 else 8 = 8
+            ("if {q1} > 0 or {q3} > 0 then {q2} else {q4}", 5),   # if 10 > 0 or None > 0 then 5 else 8 = 5
+            
+            # Complex logical operations with multiple missing values
+            ("if {q3} > 0 or {q5} > 0 then {q1} else {q2}", 5),   # if None > 0 or None > 0 then 10 else 5 = 5
+            ("if {q1} > 0 and {q3} > 0 or {q2} > 0 then {q1} else {q4}", 10), # Complex logic with missing values
+            
+            # Function calls with missing values
+            ("min({q1}, {q3})", 10),      # min(10, None) = 10
+            ("max({q3}, {q1})", 10),      # max(None, 10) = 10
+            ("min({q3}, {q5})", None),    # min(None, None) = None
+            ("max({q3}, {q5})", None),    # max(None, None) = None
+            ("sum({q1}, {q3}, {q2})", 15), # sum(10, None, 5) = 15
+            ("sum({q3}, {q5}, {q6})", None), # sum(None, None, None) = None
+            
+            # Count available function
+            ("count_available({q1}, {q2}, {q3}, {q4})", 3),  # Count available items
+            ("count_available({q3}, {q5}, {q6}, {q7})", 0),  # All items missing
+            
+            # Division by zero checks with missing values
+            ("if {q3} != null then {q1} / {q3} else {q2}", 5),  # Protection against division by None
+            ("if {q3} == null then {q1} else {q1} / {q3}", 10),   # Protection against division by zero
+            
+            # Formula with fallback for missing values
+            ("if {q3} == null then ({q1} + {q2}) / 2 else ({q1} + {q2} + {q3}) / 3", 7.5),  # Average with fallback
+
+            # Complex clinical formula with missing values
+            ("""
+            if count_available({q1}, {q2}, {q3}, {q4}) >= 3 then
+                (sum({q1}, {q2}, {q3}, {q4}) / count_available({q1}, {q2}, {q3}, {q4})) * 25
+            else if count_available({q1}, {q2}) == 2 then
+                (sum({q1}, {q2}) / 2) * 25
+            else
+                null
+            """, 191.6666666666667)  # (10 + 5 + 8) / 3 * 25 = 7.67 * 25 ≈ 191.67
+        ]
+        
+        # Initialize transformer with minimum_required_items=0
+        for equation, expected in test_cases:
+            with self.subTest(equation=equation):
+                tree = self.parser.parse(equation)
+                transformer = EquationTransformer(questionnaire_data, 0)  # Set min_items to 0
+                result = transformer.transform(tree)
+                
+                # Use assertAlmostEqual for floating point comparisons
+                if isinstance(expected, (int, float)) and result is not None:
+                    self.assertAlmostEqual(result, expected)
+                else:
                     self.assertEqual(result, expected) 
