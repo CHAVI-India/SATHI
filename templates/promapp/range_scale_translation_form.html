@@ -4,52 +4,345 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto">
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h1 class="text-2xl font-bold mb-6">{% translate "Translate Range Scale" %}</h1>
-            
-            <!-- Language Selector -->
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">{% translate "Select Language" %}</label>
-                <div class="flex space-x-2">
-                    {% for lang_code, lang_name in available_languages %}
-                    <a href="?language={{ lang_code }}" 
-                       class="px-4 py-2 rounded-md {% if lang_code == current_language %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">
-                        {{ lang_name }}
-                    </a>
-                    {% endfor %}
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-gray-900">{% translate "Translate Range Scale" %}</h1>
+        
+        <div class="flex gap-6">
+            <!-- Vertical Tab Navigation -->
+            <div class="w-72 flex-shrink-0">
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3">
+                        <h2 class="text-white font-semibold text-lg flex items-center">
+                            <i class="fas fa-language mr-2"></i>
+                            {% translate "Languages" %}
+                        </h2>
+                    </div>
+                    <div class="divide-y divide-gray-100">
+                        {% for lang_code, lang_name in available_languages %}
+                        <button type="button" 
+                                class="language-tab w-full px-6 py-4 text-left transition-all duration-200 flex items-center justify-between group hover:bg-gray-50 {% if lang_code == current_language %}bg-blue-50 border-r-4 border-blue-500{% else %}bg-white border-r-4 border-transparent{% endif %}"
+                                data-lang="{{ lang_code }}"
+                                data-url="?language={{ lang_code }}"
+                                {% if lang_code != current_language %}data-inactive="true"{% endif %}>
+                            <div class="flex items-center flex-1">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-3 {% if lang_code == current_language %}bg-blue-500 text-white{% else %}bg-gray-200 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600{% endif %}">
+                                    {% if lang_code == current_language %}
+                                        <i class="fas fa-edit text-sm"></i>
+                                    {% else %}
+                                        <i class="fas fa-globe text-sm"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-lg font-medium {% if lang_code == current_language %}text-blue-900{% else %}text-gray-900 group-hover:text-blue-700{% endif %}">
+                                        {{ lang_name }}
+                                    </div>
+                                    {% if lang_code == current_language %}
+                                        <div class="text-sm text-blue-600 font-medium">
+                                            <i class="fas fa-check-circle mr-1"></i>{% translate "Currently editing" %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-sm text-gray-500 group-hover:text-blue-600">
+                                            {% translate "Click to switch" %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 ml-2">
+                                <div id="unsaved-indicator-{{ lang_code }}" class="hidden">
+                                    <div class="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                                </div>
+                                {% if lang_code != current_language %}
+                                    <i class="fas fa-chevron-right text-gray-400 group-hover:text-blue-500"></i>
+                                {% endif %}
+                            </div>
+                        </button>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
 
-            <!-- Original Text Reference -->
-            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-                <h2 class="text-lg font-semibold mb-3">{% translate "Original Range Scale" %}</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">{% translate "Min Value Text" %}</label>
-                        <p class="mt-1 text-gray-900">{{ original_min_value_text }}</p>
+            <!-- Main Content Area -->
+            <div class="flex-1 min-w-0">
+                <div class="bg-white rounded-lg shadow-lg">
+                    <!-- Content Header -->
+                    <div class="border-b border-gray-200 px-6 py-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fas fa-edit text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-xl font-semibold text-gray-900">
+                                        {% translate "Editing Translation" %}
+                                    </h2>
+                                    <p class="text-sm text-gray-600">
+                                        {% blocktrans with lang=current_language_name %}Currently editing: {{ lang }}{% endblocktrans %}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div id="save-status" class="hidden flex items-center text-orange-600">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    <span class="font-medium">{% translate "Unsaved changes" %}</span>
+                                </div>
+                                <button type="button" id="quick-save" class="hidden px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium">
+                                    <i class="fas fa-save mr-2"></i>{% translate "Save Now" %}
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">{% translate "Max Value Text" %}</label>
-                        <p class="mt-1 text-gray-900">{{ original_max_value_text }}</p>
+
+                    <!-- Content Body -->
+                    <div class="p-6">
+                        <!-- Unsaved Changes Alert -->
+                        <div id="unsaved-alert" class="mb-6 p-4 bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-lg hidden">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-triangle text-orange-500 text-xl"></i>
+                                </div>
+                                <div class="ml-3 flex-1">
+                                    <h3 class="text-lg font-medium text-orange-900">{% translate "You have unsaved changes" %}</h3>
+                                    <p class="text-orange-700 mt-1">{% translate "Make sure to save your work before switching to another language." %}</p>
+                                </div>
+                                <div class="ml-4 flex-shrink-0">
+                                    <button type="button" id="alert-save-btn" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium">
+                                        <i class="fas fa-save mr-2"></i>{% translate "Save Changes" %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Original Text Reference -->
+                        <div class="mb-6 p-5 bg-gray-50 rounded-lg border border-gray-200">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-900 flex items-center">
+                                <i class="fas fa-file-text mr-2 text-gray-600"></i>
+                                {% translate "Original Range Scale Reference" %}
+                            </h3>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{% translate "Min Value Text" %}</label>
+                                    <p class="text-gray-900 bg-white p-3 rounded border">{{ original_min_value_text }}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{% translate "Max Value Text" %}</label>
+                                    <p class="text-gray-900 bg-white p-3 rounded border">{{ original_max_value_text }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Translation Form -->
+                        <form method="post" class="space-y-6" id="translation-form">
+                            {% csrf_token %}
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-5">
+                                <h3 class="text-lg font-semibold mb-4 text-blue-900 flex items-center">
+                                    <i class="fas fa-language mr-2"></i>
+                                    {% blocktrans with lang=current_language_name %}{{ lang }} Translation{% endblocktrans %}
+                                </h3>
+                                {{ form|crispy }}
+                            </div>
+                            
+                            <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                                <a href="{% url 'range_scale_translation_list' %}" class="cancel-link px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+                                    <i class="fas fa-arrow-left mr-2"></i>{% translate "Back to List" %}
+                                </a>
+                                <button type="submit" class="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-lg" id="save-btn">
+                                    <i class="fas fa-save mr-2"></i>{% translate "Save Translation" %}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
-
-            <!-- Translation Form -->
-            <form method="post" class="space-y-6">
-                {% csrf_token %}
-                {{ form|crispy }}
-                <div class="flex justify-end space-x-4">
-                    <a href="{% url 'range_scale_translation_list' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                        {% translate "Cancel" %}
-                    </a>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                        {% translate "Save Translation" %}
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
+
+<!-- Tab Switch Confirmation Modal -->
+<div id="tab-switch-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full">
+            <div class="p-6">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-exclamation-triangle text-orange-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900">{% translate "Unsaved Changes" %}</h3>
+                        <p class="text-gray-600">{% translate "You have unsaved changes in your translation" %}</p>
+                    </div>
+                </div>
+                
+                <p class="text-gray-700 mb-6 text-lg">
+                    {% translate "What would you like to do with your changes?" %}
+                </p>
+                
+                <div class="space-y-3">
+                    <button id="save-and-switch" class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-lg transition-colors">
+                        <i class="fas fa-save mr-3"></i>{% translate "Save Changes and Switch Language" %}
+                    </button>
+                    <button id="discard-and-switch" class="w-full px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-lg transition-colors">
+                        <i class="fas fa-trash mr-3"></i>{% translate "Discard Changes and Switch" %}
+                    </button>
+                    <button id="cancel-switch" class="w-full px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium text-lg transition-colors">
+                        <i class="fas fa-times mr-3"></i>{% translate "Cancel (Keep Editing)" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('translation-form');
+    const saveBtn = document.getElementById('save-btn');
+    const quickSave = document.getElementById('quick-save');
+    const alertSaveBtn = document.getElementById('alert-save-btn');
+    const saveStatus = document.getElementById('save-status');
+    const unsavedAlert = document.getElementById('unsaved-alert');
+    const languageTabs = document.querySelectorAll('.language-tab');
+    const cancelLink = document.querySelector('.cancel-link');
+    const modal = document.getElementById('tab-switch-modal');
+    const saveAndSwitch = document.getElementById('save-and-switch');
+    const discardAndSwitch = document.getElementById('discard-and-switch');
+    const cancelSwitch = document.getElementById('cancel-switch');
+    
+    let formChanged = false;
+    let isSubmitting = false;
+    let pendingTabSwitch = null;
+    let currentLang = "{{ current_language }}";
+
+    // Track form changes
+    function handleFormChange() {
+        if (!formChanged) {
+            formChanged = true;
+            unsavedAlert.classList.remove('hidden');
+            saveStatus.classList.remove('hidden');
+            quickSave.classList.remove('hidden');
+            
+            // Add indicator to current tab
+            const indicator = document.getElementById(`unsaved-indicator-${currentLang}`);
+            if (indicator) {
+                indicator.classList.remove('hidden');
+            }
+            
+            // Make save button more prominent
+            saveBtn.classList.add('animate-pulse');
+        }
+    }
+
+    // Reset form state
+    function resetFormState() {
+        formChanged = false;
+        unsavedAlert.classList.add('hidden');
+        saveStatus.classList.add('hidden');
+        quickSave.classList.add('hidden');
+        
+        // Remove indicator from current tab
+        const indicator = document.getElementById(`unsaved-indicator-${currentLang}`);
+        if (indicator) {
+            indicator.classList.add('hidden');
+        }
+        
+        saveBtn.classList.remove('animate-pulse');
+    }
+
+    // Add event listeners to form inputs
+    const inputs = form.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        input.addEventListener('input', handleFormChange);
+        input.addEventListener('change', handleFormChange);
+    });
+
+    // Handle form submission
+    function submitForm() {
+        isSubmitting = true;
+        resetFormState();
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>{% translate "Saving..." %}';
+        saveBtn.disabled = true;
+        form.submit();
+    }
+
+    // Save button handlers
+    [saveBtn, quickSave, alertSaveBtn].forEach(btn => {
+        if (btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                submitForm();
+            });
+        }
+    });
+
+    // Handle tab clicks
+    languageTabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Don't do anything if it's the current tab
+            if (!this.dataset.inactive) {
+                return;
+            }
+            
+            const targetUrl = this.dataset.url;
+            
+            if (formChanged && !isSubmitting) {
+                // Show modal for confirmation
+                pendingTabSwitch = targetUrl;
+                modal.classList.remove('hidden');
+            } else {
+                // No unsaved changes, switch directly
+                window.location.href = targetUrl;
+            }
+        });
+    });
+
+    // Modal button handlers
+    saveAndSwitch.addEventListener('click', function() {
+        modal.classList.add('hidden');
+        submitForm();
+    });
+
+    discardAndSwitch.addEventListener('click', function() {
+        modal.classList.add('hidden');
+        if (pendingTabSwitch) {
+            formChanged = false;
+            window.location.href = pendingTabSwitch;
+        }
+    });
+
+    cancelSwitch.addEventListener('click', function() {
+        modal.classList.add('hidden');
+        pendingTabSwitch = null;
+    });
+
+    // Handle navigation away from page
+    cancelLink.addEventListener('click', function(e) {
+        if (formChanged && !isSubmitting) {
+            e.preventDefault();
+            if (confirm('{% translate "You have unsaved changes. Are you sure you want to leave without saving?" %}')) {
+                formChanged = false;
+                window.location.href = this.href;
+            }
+        }
+    });
+
+    // Warn before leaving page
+    window.addEventListener('beforeunload', function(e) {
+        if (formChanged && !isSubmitting) {
+            e.preventDefault();
+            e.returnValue = '{% translate "You have unsaved changes. Are you sure you want to leave?" %}';
+            return e.returnValue;
+        }
+    });
+
+    // Close modal when clicking outside
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+            pendingTabSwitch = null;
+        }
+    });
+});
+</script>
 {% endblock %}
