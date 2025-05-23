@@ -1991,18 +1991,76 @@ class ItemTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListV
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(translations__name__icontains=search)
+        
+        # Apply language filter if provided
+        language_filter = self.request.GET.get('language_filter')
+        if language_filter:
+            if language_filter.endswith('_translated'):
+                # Filter for items that have translation in the specified language
+                lang_code = language_filter.replace('_translated', '')
+                queryset = queryset.filter(
+                    translations__language_code=lang_code
+                ).annotate(
+                    has_content=models.Case(
+                        models.When(
+                            models.Q(translations__name__isnull=False) & 
+                            ~models.Q(translations__name='') |
+                            models.Q(translations__media__isnull=False) & 
+                            ~models.Q(translations__media=''),
+                            then=models.Value(True)
+                        ),
+                        default=models.Value(False),
+                        output_field=models.BooleanField()
+                    )
+                ).filter(has_content=True)
+            elif language_filter.endswith('_untranslated'):
+                # Filter for items that don't have translation in the specified language
+                lang_code = language_filter.replace('_untranslated', '')
+                # Get items that either don't have translation or have empty translation
+                translated_item_ids = Item.objects.filter(
+                    translations__language_code=lang_code,
+                    translations__name__isnull=False,
+                ).exclude(
+                    translations__name=''
+                ).values_list('id', flat=True)
+                
+                translated_media_item_ids = Item.objects.filter(
+                    translations__language_code=lang_code,
+                    translations__media__isnull=False,
+                ).exclude(
+                    translations__media=''
+                ).values_list('id', flat=True)
+                
+                # Combine both lists to get all translated items
+                all_translated_ids = set(list(translated_item_ids) + list(translated_media_item_ids))
+                
+                queryset = queryset.exclude(id__in=all_translated_ids)
             
         # Prefetch translations for better performance
         queryset = queryset.prefetch_related('translations')
         
-        return queryset.order_by('id')
+        return queryset.distinct().order_by('id')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['available_languages'] = settings.LANGUAGES
         context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
-        context['search_form'] = TranslationSearchForm(initial={'search': self.request.GET.get('search', '')})
+        
+        # Create form with current values
+        form_initial = {
+            'search': self.request.GET.get('search', ''),
+            'language_filter': self.request.GET.get('language_filter', '')
+        }
+        context['search_form'] = TranslationSearchForm(initial=form_initial)
+        
+        # Set up HTMX attributes for both fields
         context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('item_translation_list')
+        context['search_form'].fields['language_filter'].widget.attrs['hx-get'] = reverse('item_translation_list')
+        
+        # Add current filter values for form state preservation
+        context['current_search'] = self.request.GET.get('search', '')
+        context['current_language_filter'] = self.request.GET.get('language_filter', '')
+        
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         
         # Add translation status data for each item
@@ -2278,6 +2336,40 @@ class LikertScaleResponseOptionTranslationListView(LoginRequiredMixin, Permissio
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(translations__option_text__icontains=search)
+        
+        # Apply language filter if provided
+        language_filter = self.request.GET.get('language_filter')
+        if language_filter:
+            if language_filter.endswith('_translated'):
+                # Filter for options that have translation in the specified language
+                lang_code = language_filter.replace('_translated', '')
+                queryset = LikertScaleResponseOption.objects.filter(
+                    translations__language_code=lang_code
+                ).annotate(
+                    has_content=models.Case(
+                        models.When(
+                            models.Q(translations__option_text__isnull=False) & 
+                            ~models.Q(translations__option_text=''),
+                            then=models.Value(True)
+                        ),
+                        default=models.Value(False),
+                        output_field=models.BooleanField()
+                    )
+                ).filter(has_content=True).distinct('id').order_by('id')
+            elif language_filter.endswith('_untranslated'):
+                # Filter for options that don't have translation in the specified language
+                lang_code = language_filter.replace('_untranslated', '')
+                # Get options that have meaningful translation content
+                translated_option_ids = LikertScaleResponseOption.objects.filter(
+                    translations__language_code=lang_code,
+                    translations__option_text__isnull=False,
+                ).exclude(
+                    translations__option_text=''
+                ).values_list('id', flat=True)
+                
+                queryset = LikertScaleResponseOption.objects.exclude(
+                    id__in=translated_option_ids
+                ).distinct('id').order_by('id')
             
         return queryset
 
@@ -2285,8 +2377,22 @@ class LikertScaleResponseOptionTranslationListView(LoginRequiredMixin, Permissio
         context = super().get_context_data(**kwargs)
         context['available_languages'] = settings.LANGUAGES
         context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
-        context['search_form'] = TranslationSearchForm(initial={'search': self.request.GET.get('search', '')})
+        
+        # Create form with current values
+        form_initial = {
+            'search': self.request.GET.get('search', ''),
+            'language_filter': self.request.GET.get('language_filter', '')
+        }
+        context['search_form'] = TranslationSearchForm(initial=form_initial)
+        
+        # Set up HTMX attributes for both fields
         context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('likert_scale_response_option_translation_list')
+        context['search_form'].fields['language_filter'].widget.attrs['hx-get'] = reverse('likert_scale_response_option_translation_list')
+        
+        # Add current filter values for form state preservation
+        context['current_search'] = self.request.GET.get('search', '')
+        context['current_language_filter'] = self.request.GET.get('language_filter', '')
+        
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         
         # Add translation status data for each option

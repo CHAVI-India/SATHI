@@ -688,14 +688,43 @@ class TranslationSearchForm(forms.Form):
         })
     )
     
+    language_filter = forms.ChoiceField(
+        required=False,
+        widget=forms.Select(attrs={
+            'class': 'w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+            'hx-get': '',  # Will be set in the view
+            'hx-trigger': 'change',
+            'hx-target': '#translation-table',
+            'hx-swap': 'innerHTML'
+        })
+    )
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Create choices for language filter
+        from django.conf import settings
+        language_choices = [('', _('All Languages'))]
+        for lang_code, lang_name in settings.LANGUAGES:
+            language_choices.extend([
+                (f'{lang_code}_translated', _(f'{lang_name} (Translated)')),
+                (f'{lang_code}_untranslated', _(f'{lang_name} (Not Translated)'))
+            ])
+        
+        self.fields['language_filter'].choices = language_choices
+        
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
-                Field('search'),
-                css_class='mb-4'
+                Div(
+                    Field('search'),
+                    css_class='w-full md:w-2/3'
+                ),
+                Div(
+                    Field('language_filter'),
+                    css_class='w-full md:w-1/3'
+                ),
+                css_class='flex flex-col md:flex-row gap-4 mb-4'
             )
         )
 
