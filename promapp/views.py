@@ -323,6 +323,9 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         # Add available languages to context
         context['available_languages'] = settings.LANGUAGES
         
+        # Add current language to context for translation links
+        context['current_language'] = get_language()
+        
         # Flag to determine if we're responding to an HTMX request
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         
