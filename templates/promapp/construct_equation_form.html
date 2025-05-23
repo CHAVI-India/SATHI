@@ -21,6 +21,33 @@
             
             <div class="space-y-4">
                 <div>
+                    <label for="{{ form.minimum_number_of_items.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {% trans "Minimum Number of Items Required" %}
+                    </label>
+                    <div class="mt-1">
+                        <input
+                            type="number"
+                            name="{{ form.minimum_number_of_items.name }}"
+                            id="{{ form.minimum_number_of_items.id_for_label }}"
+                            min="0"
+                            class="block w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="{% trans 'Enter minimum number of questions that must be answered' %}"
+                            value="{{ form.minimum_number_of_items.value|default:0 }}"
+                        />
+                        {% if form.minimum_number_of_items.errors %}
+                        <div class="mt-2 text-sm text-red-600">
+                            {% for error in form.minimum_number_of_items.errors %}
+                            <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <p class="mt-2 text-sm text-gray-500">
+                            {% trans "The minimum number of questions that must be answered to calculate the score for this construct scale. Set to 0 to require all questions to be answered." %}
+                        </p>
+                    </div>
+                </div>
+
+                <div>
                     <label for="{{ form.scale_equation.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                         {% trans "Scale Equation" %}
                     </label>
