@@ -2193,18 +2193,76 @@ class QuestionnaireTranslationListView(LoginRequiredMixin, PermissionRequiredMix
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(translations__name__icontains=search)
+        
+        # Apply language filter if provided
+        language_filter = self.request.GET.get('language_filter')
+        if language_filter:
+            if language_filter.endswith('_translated'):
+                # Filter for questionnaires that have translation in the specified language
+                lang_code = language_filter.replace('_translated', '')
+                queryset = queryset.filter(
+                    translations__language_code=lang_code
+                ).annotate(
+                    has_content=models.Case(
+                        models.When(
+                            models.Q(translations__name__isnull=False) & 
+                            ~models.Q(translations__name='') |
+                            models.Q(translations__description__isnull=False) & 
+                            ~models.Q(translations__description=''),
+                            then=models.Value(True)
+                        ),
+                        default=models.Value(False),
+                        output_field=models.BooleanField()
+                    )
+                ).filter(has_content=True)
+            elif language_filter.endswith('_untranslated'):
+                # Filter for questionnaires that don't have translation in the specified language
+                lang_code = language_filter.replace('_untranslated', '')
+                # Get questionnaires that have meaningful translation content
+                translated_name_ids = Questionnaire.objects.filter(
+                    translations__language_code=lang_code,
+                    translations__name__isnull=False,
+                ).exclude(
+                    translations__name=''
+                ).values_list('id', flat=True)
+                
+                translated_desc_ids = Questionnaire.objects.filter(
+                    translations__language_code=lang_code,
+                    translations__description__isnull=False,
+                ).exclude(
+                    translations__description=''
+                ).values_list('id', flat=True)
+                
+                # Combine both lists to get all translated questionnaires
+                all_translated_ids = set(list(translated_name_ids) + list(translated_desc_ids))
+                
+                queryset = queryset.exclude(id__in=all_translated_ids)
             
         # Prefetch translations for better performance
         queryset = queryset.prefetch_related('translations')
         
-        return queryset.order_by('id')
+        return queryset.distinct().order_by('id')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['available_languages'] = settings.LANGUAGES
         context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
-        context['search_form'] = TranslationSearchForm(initial={'search': self.request.GET.get('search', '')})
+        
+        # Create form with current values
+        form_initial = {
+            'search': self.request.GET.get('search', ''),
+            'language_filter': self.request.GET.get('language_filter', '')
+        }
+        context['search_form'] = TranslationSearchForm(initial=form_initial)
+        
+        # Set up HTMX attributes for both fields
         context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('questionnaire_translation_list')
+        context['search_form'].fields['language_filter'].widget.attrs['hx-get'] = reverse('questionnaire_translation_list')
+        
+        # Add current filter values for form state preservation
+        context['current_search'] = self.request.GET.get('search', '')
+        context['current_language_filter'] = self.request.GET.get('language_filter', '')
+        
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         
         # Add translation status data for each questionnaire
@@ -2510,6 +2568,52 @@ class RangeScaleTranslationListView(LoginRequiredMixin, PermissionRequiredMixin,
                 models.Q(translations__min_value_text__icontains=search) |
                 models.Q(translations__max_value_text__icontains=search)
             )
+        
+        # Apply language filter if provided
+        language_filter = self.request.GET.get('language_filter')
+        if language_filter:
+            if language_filter.endswith('_translated'):
+                # Filter for range scales that have translation in the specified language
+                lang_code = language_filter.replace('_translated', '')
+                queryset = RangeScale.objects.filter(
+                    translations__language_code=lang_code
+                ).annotate(
+                    has_content=models.Case(
+                        models.When(
+                            models.Q(translations__min_value_text__isnull=False) & 
+                            ~models.Q(translations__min_value_text='') |
+                            models.Q(translations__max_value_text__isnull=False) & 
+                            ~models.Q(translations__max_value_text=''),
+                            then=models.Value(True)
+                        ),
+                        default=models.Value(False),
+                        output_field=models.BooleanField()
+                    )
+                ).filter(has_content=True).distinct('id').order_by('id')
+            elif language_filter.endswith('_untranslated'):
+                # Filter for range scales that don't have translation in the specified language
+                lang_code = language_filter.replace('_untranslated', '')
+                # Get range scales that have meaningful translation content
+                translated_min_ids = RangeScale.objects.filter(
+                    translations__language_code=lang_code,
+                    translations__min_value_text__isnull=False,
+                ).exclude(
+                    translations__min_value_text=''
+                ).values_list('id', flat=True)
+                
+                translated_max_ids = RangeScale.objects.filter(
+                    translations__language_code=lang_code,
+                    translations__max_value_text__isnull=False,
+                ).exclude(
+                    translations__max_value_text=''
+                ).values_list('id', flat=True)
+                
+                # Combine both lists to get all translated range scales
+                all_translated_ids = set(list(translated_min_ids) + list(translated_max_ids))
+                
+                queryset = RangeScale.objects.exclude(
+                    id__in=all_translated_ids
+                ).distinct('id').order_by('id')
             
         return queryset
 
@@ -2517,8 +2621,22 @@ class RangeScaleTranslationListView(LoginRequiredMixin, PermissionRequiredMixin,
         context = super().get_context_data(**kwargs)
         context['available_languages'] = settings.LANGUAGES
         context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
-        context['search_form'] = TranslationSearchForm(initial={'search': self.request.GET.get('search', '')})
+        
+        # Create form with current values
+        form_initial = {
+            'search': self.request.GET.get('search', ''),
+            'language_filter': self.request.GET.get('language_filter', '')
+        }
+        context['search_form'] = TranslationSearchForm(initial=form_initial)
+        
+        # Set up HTMX attributes for both fields
         context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('range_scale_translation_list')
+        context['search_form'].fields['language_filter'].widget.attrs['hx-get'] = reverse('range_scale_translation_list')
+        
+        # Add current filter values for form state preservation
+        context['current_search'] = self.request.GET.get('search', '')
+        context['current_language_filter'] = self.request.GET.get('language_filter', '')
+        
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         
         # Add translation status data for each range scale
