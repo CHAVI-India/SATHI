@@ -2004,7 +2004,57 @@ class ItemTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListV
         context['search_form'] = TranslationSearchForm(initial={'search': self.request.GET.get('search', '')})
         context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('item_translation_list')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # Add translation status data for each item
+        items_with_translation_status = []
+        for item in context['items']:
+            # Get all existing translations for this item
+            existing_translations = set(
+                item.translations.values_list('language_code', flat=True)
+            )
+            
+            translation_status = []
+            for lang_code, lang_name in settings.LANGUAGES:
+                has_translation = lang_code in existing_translations
+                # Check if translation has content (not just empty strings)
+                if has_translation:
+                    try:
+                        translation = item.translations.get(language_code=lang_code)
+                        has_content = bool(
+                            (translation.name and translation.name.strip()) or 
+                            (translation.media and str(translation.media).strip())
+                        )
+                    except item.translations.model.DoesNotExist:
+                        has_content = False
+                else:
+                    has_content = False
+                    
+                translation_status.append({
+                    'language_code': lang_code,
+                    'language_name': lang_name,
+                    'has_translation': has_translation and has_content,
+                    'url': reverse('item_translation', args=[item.id]) + f'?language={lang_code}'
+                })
+            
+            items_with_translation_status.append({
+                'item': item,
+                'translation_status': translation_status
+            })
+        
+        context['items_with_translation_status'] = items_with_translation_status
         return context
+    
+    def get(self, request, *args, **kwargs):
+        # Check if this is an HTMX request
+        if request.META.get('HTTP_HX_REQUEST'):
+            # If it is an HTMX request, only return the table part
+            self.object_list = self.get_queryset()
+            context = self.get_context_data()
+            html = render_to_string('promapp/partials/item_translation_list_table.html', context)
+            return HttpResponse(html)
+        
+        # Otherwise, return the full page as usual
+        return super().get(request, *args, **kwargs)
 
 class QuestionnaireTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
@@ -2098,7 +2148,71 @@ class QuestionnaireTranslationListView(LoginRequiredMixin, PermissionRequiredMix
         context['search_form'] = TranslationSearchForm(initial={'search': self.request.GET.get('search', '')})
         context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('questionnaire_translation_list')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # Add translation status data for each questionnaire
+        questionnaires_with_translation_status = []
+        for questionnaire in context['questionnaires']:
+            # Get all existing translations for this questionnaire
+            existing_translations = set(
+                questionnaire.translations.values_list('language_code', flat=True)
+            )
+            
+            translation_status = []
+            available_translations = []
+            pending_translations = []
+            
+            for lang_code, lang_name in settings.LANGUAGES:
+                has_translation = lang_code in existing_translations
+                # Check if translation has content (not just empty strings)
+                if has_translation:
+                    try:
+                        translation = questionnaire.translations.get(language_code=lang_code)
+                        has_content = bool(
+                            (translation.name and translation.name.strip()) or 
+                            (translation.description and translation.description.strip())
+                        )
+                    except questionnaire.translations.model.DoesNotExist:
+                        has_content = False
+                else:
+                    has_content = False
+                    
+                status_item = {
+                    'language_code': lang_code,
+                    'language_name': lang_name,
+                    'has_translation': has_translation and has_content,
+                    'url': reverse('questionnaire_translation', args=[questionnaire.id]) + f'?language={lang_code}'
+                }
+                
+                translation_status.append(status_item)
+                
+                if has_translation and has_content:
+                    available_translations.append(status_item)
+                else:
+                    pending_translations.append(status_item)
+            
+            questionnaires_with_translation_status.append({
+                'questionnaire': questionnaire,
+                'translation_status': translation_status,
+                'available_translations': available_translations,
+                'pending_translations': pending_translations,
+                'has_available': len(available_translations) > 0,
+                'has_pending': len(pending_translations) > 0
+            })
+        
+        context['questionnaires_with_translation_status'] = questionnaires_with_translation_status
         return context
+    
+    def get(self, request, *args, **kwargs):
+        # Check if this is an HTMX request
+        if request.META.get('HTTP_HX_REQUEST'):
+            # If it is an HTMX request, only return the partial template
+            self.object_list = self.get_queryset()
+            context = self.get_context_data()
+            html = render_to_string('promapp/partials/questionnaire_translation_list_table.html', context)
+            return HttpResponse(html)
+        
+        # Otherwise, return the full page as usual
+        return super().get(request, *args, **kwargs)
 
 class LikertScaleResponseOptionTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
@@ -2146,7 +2260,7 @@ class LikertScaleResponseOptionTranslationView(LoginRequiredMixin, PermissionReq
         return redirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse('likert_scale_list')
+        return reverse('likert_scale_response_option_translation_list')
     
 class LikertScaleResponseOptionTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     """
@@ -2174,6 +2288,41 @@ class LikertScaleResponseOptionTranslationListView(LoginRequiredMixin, Permissio
         context['search_form'] = TranslationSearchForm(initial={'search': self.request.GET.get('search', '')})
         context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('likert_scale_response_option_translation_list')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # Add translation status data for each option
+        options_with_translation_status = []
+        for option in context['options']:
+            # Get all existing translations for this option
+            existing_translations = set(
+                option.translations.values_list('language_code', flat=True)
+            )
+            
+            translation_status = []
+            for lang_code, lang_name in settings.LANGUAGES:
+                has_translation = lang_code in existing_translations
+                # Check if translation has content (not just empty strings)
+                if has_translation:
+                    try:
+                        translation = option.translations.get(language_code=lang_code)
+                        has_content = bool(translation.option_text and translation.option_text.strip())
+                    except option.translations.model.DoesNotExist:
+                        has_content = False
+                else:
+                    has_content = False
+                    
+                translation_status.append({
+                    'language_code': lang_code,
+                    'language_name': lang_name,
+                    'has_translation': has_translation and has_content,
+                    'url': reverse('likert_scale_response_option_translation', args=[option.id]) + f'?language={lang_code}'
+                })
+            
+            options_with_translation_status.append({
+                'option': option,
+                'translation_status': translation_status
+            })
+        
+        context['options_with_translation_status'] = options_with_translation_status
         return context
 
     def get(self, request, *args, **kwargs):
@@ -2265,6 +2414,44 @@ class RangeScaleTranslationListView(LoginRequiredMixin, PermissionRequiredMixin,
         context['search_form'] = TranslationSearchForm(initial={'search': self.request.GET.get('search', '')})
         context['search_form'].fields['search'].widget.attrs['hx-get'] = reverse('range_scale_translation_list')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # Add translation status data for each range scale
+        range_scales_with_translation_status = []
+        for scale in context['range_scales']:
+            # Get all existing translations for this scale
+            existing_translations = set(
+                scale.translations.values_list('language_code', flat=True)
+            )
+            
+            translation_status = []
+            for lang_code, lang_name in settings.LANGUAGES:
+                has_translation = lang_code in existing_translations
+                # Check if translation has content (not just empty strings)
+                if has_translation:
+                    try:
+                        translation = scale.translations.get(language_code=lang_code)
+                        has_content = bool(
+                            (translation.min_value_text and translation.min_value_text.strip()) or 
+                            (translation.max_value_text and translation.max_value_text.strip())
+                        )
+                    except scale.translations.model.DoesNotExist:
+                        has_content = False
+                else:
+                    has_content = False
+                    
+                translation_status.append({
+                    'language_code': lang_code,
+                    'language_name': lang_name,
+                    'has_translation': has_translation and has_content,
+                    'url': reverse('range_scale_translate', args=[scale.id]) + f'?language={lang_code}'
+                })
+            
+            range_scales_with_translation_status.append({
+                'scale': scale,
+                'translation_status': translation_status
+            })
+        
+        context['range_scales_with_translation_status'] = range_scales_with_translation_status
         return context
 
     def get(self, request, *args, **kwargs):
