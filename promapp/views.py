@@ -55,6 +55,43 @@ class QuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search', '')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # Add translation status data for each questionnaire
+        questionnaires_with_translation_status = []
+        for questionnaire in context['questionnaires']:
+            # Get all existing translations for this questionnaire
+            existing_translations = set(
+                questionnaire.translations.values_list('language_code', flat=True)
+            )
+            
+            translation_status = []
+            for lang_code, lang_name in settings.LANGUAGES:
+                has_translation = lang_code in existing_translations
+                # Check if translation has content (not just empty strings)
+                if has_translation:
+                    try:
+                        translation = questionnaire.translations.get(language_code=lang_code)
+                        has_content = bool(
+                            (translation.name and translation.name.strip()) or 
+                            (translation.description and translation.description.strip())
+                        )
+                    except questionnaire.translations.model.DoesNotExist:
+                        has_content = False
+                else:
+                    has_content = False
+                    
+                translation_status.append({
+                    'language_code': lang_code,
+                    'language_name': lang_name,
+                    'has_translation': has_translation and has_content,
+                })
+            
+            questionnaires_with_translation_status.append({
+                'questionnaire': questionnaire,
+                'translation_status': translation_status,
+            })
+        
+        context['questionnaires_with_translation_status'] = questionnaires_with_translation_status
         return context
 
     def get(self, request, *args, **kwargs):
