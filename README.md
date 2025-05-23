@@ -37,6 +37,14 @@ For designers of questionnaires the following features are provided:
 12. Specify parameters like the time interval between successive responses to the questionnaire and redirection options. 
 13. Assigned questionnaires are immediately displayed to the patient.
 
+# Score calculation
+
+Each item in the system belongs to a construct which measures a latent trait. A construct can have a single or multiple items. Answers provided to these items (aside from text based answers), can be used to calculate scores for the contructs. These scores can then be tracked in the user interface. 
+
+# Translations
+
+A complete dashboard is provided for translating the questionnaires, items in the questionnaires as well as the responses to the items. This allows uses to add translations to these items in an intuitive manner.
+
 # Add Patient
 
 Users can add patients to the system using a single page form and assign the questionnaires forms avaialble for them using a simple interface. Appropriate privilges and permissions are provided for this.
