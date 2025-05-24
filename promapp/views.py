@@ -139,7 +139,26 @@ class QuestionnaireCreateView(LoginRequiredMixin, PermissionRequiredMixin, Creat
         context = super().get_context_data(**kwargs)
         context['item_selection_form'] = ItemSelectionForm()
         current_language = get_language()
-        context['available_items'] = Item.objects.language(current_language).all().order_by('construct_scale__name', 'translations__name')
+        
+        # Get items with translations, but don't rely on distinct() due to django-parler issues
+        all_items = Item.objects.language(current_language).select_related(
+            'construct_scale',
+            'likert_response', 
+            'range_response'
+        ).order_by('construct_scale__name', 'translations__name')
+        
+        # Manual deduplication by ID to ensure no duplicates
+        seen_ids = set()
+        unique_items = []
+        for item in all_items:
+            if item.id not in seen_ids:
+                seen_ids.add(item.id)
+                unique_items.append(item)
+        
+        # Sort the unique items by construct scale name for consistent grouping
+        unique_items.sort(key=lambda x: (x.construct_scale.name if x.construct_scale else '', x.name or ''))
+        
+        context['available_items'] = unique_items
         context['construct_scales'] = ConstructScale.objects.all().order_by('name')
         context['questionnaire_items'] = []  # Always empty for create view
         
@@ -221,15 +240,29 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
         item_to_question_number = {str(qi.item.id): qi.question_number for qi in raw_items}
         current_language = get_language()
         
-        # Get all items and order them by their question numbers
-        available_items = Item.objects.language(current_language).all()
+        # Get all items with translations, but don't rely on distinct() due to django-parler issues
+        all_items = Item.objects.language(current_language).select_related(
+            'construct_scale',
+            'likert_response',
+            'range_response'
+        ).order_by('construct_scale__name', 'translations__name')
+        
+        # Manual deduplication by ID to ensure no duplicates
+        seen_ids = set()
+        unique_items = []
+        
+        for item in all_items:
+            if item.id not in seen_ids:
+                seen_ids.add(item.id)
+                unique_items.append(item)
+        
         current_items = Item.objects.filter(
             id__in=raw_items.values_list('item', flat=True)
         )
         
         # Create a list of items with their question numbers
         items_with_numbers = []
-        for item in available_items:
+        for item in unique_items:
             item.question_number = item_to_question_number.get(str(item.id))
             items_with_numbers.append(item)
         
@@ -238,7 +271,7 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
         
         context['item_selection_form'] = ItemSelectionForm(initial={'items': current_items})
         context['available_items'] = items_with_numbers
-        context['construct_scales'] = ConstructScale.objects.all
+        context['construct_scales'] = ConstructScale.objects.all().order_by('name')
         context['rule_groups'] = QuestionnaireItemRuleGroup.objects.filter(
             questionnaire_item__in=raw_items
         ).order_by('group_order')

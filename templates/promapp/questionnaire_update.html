@@ -114,6 +114,7 @@
                     {% for construct_scale in construct_scales %}
                       <option value="{{ construct_scale.id }}">{{ construct_scale.name|default:"No name" }}</option>
                     {% endfor %}
+                    <option value="none">{% translate "No construct scale" %}</option>
                   </select>
                 </div>
               </div>
