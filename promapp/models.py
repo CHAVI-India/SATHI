@@ -221,6 +221,36 @@ class Item(TranslatableModel):
         verbose_name_plural = 'Items'
 
     def save(self, *args, **kwargs):
+        # Check if we're updating an existing item 
+        if self.pk:
+            try:
+                old_item = Item.objects.get(pk=self.pk)
+                
+                # Check if the item_number is changing
+                if (old_item.item_number != self.item_number and 
+                    old_item.item_number):
+                    # Check if the old item number is referenced in equations
+                    ref_check = old_item.is_referenced_in_equation()
+                    if ref_check['is_referenced']:
+                        raise ValidationError(
+                            f'Cannot change item number for "{old_item.name}" as it is referenced in the construct scale equation '
+                            f'"{ref_check["equation"]}" for scale "{ref_check["construct_name"]}". '
+                            f'Please update the equation first.'
+                        )
+                
+                # Check if the construct_scale is changing
+                if old_item.construct_scale != self.construct_scale and old_item.item_number:
+                    # Check if this item is referenced in the OLD construct scale's equation
+                    ref_check = old_item.is_referenced_in_equation()
+                    if ref_check['is_referenced']:
+                        raise ValidationError(
+                            f'Cannot move item "{old_item.name}" to a different construct scale as it is referenced in the equation '
+                            f'"{ref_check["equation"]}" for scale "{ref_check["construct_name"]}". '
+                            f'Please update the equation first or remove the reference to {{q{old_item.item_number}}}.'
+                        )
+            except Item.DoesNotExist:
+                pass
+        
         if not self.item_number and self.construct_scale:
             # Get the highest item number for this construct scale
             last_item = Item.objects.filter(construct_scale=self.construct_scale).order_by('-item_number').first()
@@ -248,6 +278,20 @@ class Item(TranslatableModel):
                 raise ValidationError({'likert_response': 'Likert Scale should not be selected for Text or Number response types'})
             if self.range_response:
                 raise ValidationError({'range_response': 'Range Scale should not be selected for Text or Number response types'})
+    
+    def delete(self, *args, **kwargs):
+        """
+        Override delete to check if this item is referenced in any construct scale equations.
+        """
+        ref_check = self.is_referenced_in_equation()
+        if ref_check['is_referenced']:
+            raise ValidationError(
+                f'Cannot delete item "{self.name}" as it is referenced in the construct scale equation '
+                f'"{ref_check["equation"]}" for scale "{ref_check["construct_name"]}". '
+                f'Please update the equation first.'
+            )
+        super().delete(*args, **kwargs)
+
     def __str__(self):
         # Use Parler's safe_translation_getter to get the translated name
         item_name = self.safe_translation_getter('name', any_language=True) if hasattr(self, 'safe_translation_getter') else None
@@ -259,6 +303,33 @@ class Item(TranslatableModel):
     def get_available_languages(self):
         """Return a list of language codes for which translations exist."""
         return list(self.translations.values_list('language_code', flat=True))
+    
+    def is_referenced_in_equation(self, check_item_number=None):
+        """
+        Check if this item (or a specific item number) is referenced in its construct scale equation.
+        
+        Args:
+            check_item_number: If provided, check this specific item number instead of self.item_number
+        
+        Returns:
+            dict with 'is_referenced': bool and 'equation': str if referenced
+        """
+        if not self.construct_scale or not self.construct_scale.scale_equation:
+            return {'is_referenced': False, 'equation': None}
+        
+        item_number_to_check = check_item_number if check_item_number is not None else self.item_number
+        if not item_number_to_check:
+            return {'is_referenced': False, 'equation': None}
+        
+        # Extract question references from the equation
+        question_refs = re.findall(r'\{q(\d+)\}', self.construct_scale.scale_equation)
+        is_referenced = str(item_number_to_check) in question_refs
+        
+        return {
+            'is_referenced': is_referenced,
+            'equation': self.construct_scale.scale_equation if is_referenced else None,
+            'construct_name': self.construct_scale.name if is_referenced else None
+        }
 
 class Questionnaire(TranslatableModel):
     '''

@@ -427,6 +427,27 @@ class ItemCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         context['range_scales'] = RangeScale.objects.all()
         return context
 
+    def form_valid(self, form):
+        try:
+            return super().form_valid(form)
+        except ValidationError as e:
+            # Convert ValidationError to form error
+            if hasattr(e, 'message_dict'):
+                # Multiple field errors
+                for field, errors in e.message_dict.items():
+                    for error in errors:
+                        form.add_error(field, error)
+            elif hasattr(e, 'messages'):
+                # Non-field errors (general errors)
+                for error in e.messages:
+                    form.add_error(None, error)
+            else:
+                # Single error message
+                form.add_error(None, str(e))
+            
+            messages.error(self.request, "There was an error creating the item. Please check the form for details.")
+            return self.form_invalid(form)
+
 
 class ItemUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Item
@@ -446,6 +467,27 @@ class ItemUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
             context['selected_range_scale'] = str(self.object.range_response.id) if self.object.range_response else None
         
         return context
+
+    def form_valid(self, form):
+        try:
+            return super().form_valid(form)
+        except ValidationError as e:
+            # Convert ValidationError to form error
+            if hasattr(e, 'message_dict'):
+                # Multiple field errors
+                for field, errors in e.message_dict.items():
+                    for error in errors:
+                        form.add_error(field, error)
+            elif hasattr(e, 'messages'):
+                # Non-field errors (general errors)
+                for error in e.messages:
+                    form.add_error(None, error)
+            else:
+                # Single error message
+                form.add_error(None, str(e))
+            
+            messages.error(self.request, "There was an error updating the item. Please check the form for details.")
+            return self.form_invalid(form)
 
 
 def get_response_fields(request):
@@ -1787,6 +1829,14 @@ def save_question_numbers(request, pk):
                             'success': False,
                             'error': f'Cannot change question number for "{qi.item.name}" as it would invalidate the following rules:\n' + '\n'.join(rule_details)
                         })
+                    
+                    # Check for construct scale equation conflicts
+                    ref_check = qi.item.is_referenced_in_equation()
+                    if ref_check['is_referenced']:
+                        return JsonResponse({
+                            'success': False,
+                            'error': f'Cannot change question number for "{qi.item.name}" as it is referenced in the construct scale equation "{ref_check["equation"]}" for scale "{ref_check["construct_name"]}". Please update the equation first.'
+                        })
         
         # Second pass: Apply all changes
         with transaction.atomic():
@@ -1830,8 +1880,14 @@ def save_question_numbers(request, pk):
                             'success': False,
                             'error': f'Cannot remove question "{qi.item.name}" as it has the following rules:\n' + '\n'.join(rule_details)
                         })
-                    # If no rules depend on this item and it has no rules, we can safely remove it
-                    qi.delete()
+                    
+                    # Check if this item is referenced in any construct scale equations
+                    ref_check = qi.item.is_referenced_in_equation()
+                    if ref_check['is_referenced']:
+                        return JsonResponse({
+                            'success': False,
+                            'error': f'Cannot remove question "{qi.item.name}" as it is referenced in the construct scale equation "{ref_check["equation"]}" for scale "{ref_check["construct_name"]}". Please update the equation first.'
+                        })
         
         return JsonResponse({
             'success': True,
