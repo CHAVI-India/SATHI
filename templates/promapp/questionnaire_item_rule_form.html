@@ -15,60 +15,111 @@
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-blue-700">
-          {% if form.instance.pk %}
-            {% translate "Edit Rule for" %} "{{ questionnaire_item.item.name }}"
+        <div>
+          <h1 class="text-2xl font-bold text-blue-700">
+            {% if form.instance.pk %}
+              {% translate "Edit Rule for" %} "{{ questionnaire_item.item.name }}"
+            {% else %}
+              {% translate "Create Rule for" %} "{{ questionnaire_item.item.name }}"
+            {% endif %}
+          </h1>
+          {% if is_required_item %}
+            <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+              </svg>
+              {% translate "Required for Scoring" %}
+            </div>
           {% else %}
-            {% translate "Create Rule for" %} "{{ questionnaire_item.item.name }}"
+            <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              {% translate "Optional Item" %}
+            </div>
           {% endif %}
-        </h1>
+        </div>
         <a href="{% url 'questionnaire_item_rules_list' questionnaire_item.id %}" 
            class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
           {% translate "Back to Rules" %}
         </a>
       </div>
 
-      <form method="post" class="space-y-6">
-        {% csrf_token %}
+      {% if is_required_item %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
+          <div class="flex">
+            <div class="py-1">
+              <svg class="w-6 h-6 mr-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <div>
+              <strong class="font-bold">{% translate "Rule Creation Not Allowed" %}</strong>
+              <p class="mt-1">
+                {% translate "This question is marked as required for scoring. Rules cannot be created for required items as they might prevent the item from being displayed, which would make score calculation impossible." %}
+              </p>
+              <p class="mt-2">
+                {% translate "To create rules for this question, you must first:" %}
+              </p>
+              <ul class="list-disc list-inside mt-2 ml-4">
+                <li>{% translate "Go to the item edit page" %}</li>
+                <li>{% translate "Uncheck the 'Required for scoring' option" %}</li>
+                <li>{% translate "Save the item" %}</li>
+                <li>{% translate "Return here to create visibility rules" %}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
         
-        <div class="bg-gray-50 p-4 rounded-md space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              {{ form.dependent_item|as_crispy_field }}
-            </div>
-            <div>
-              {{ form.operator|as_crispy_field }}
-            </div>
-          </div>
-          
-          <div>
-            {{ form.comparison_value|as_crispy_field }}
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              {{ form.logical_operator|as_crispy_field }}
-            </div>
-            <div>
-              {{ form.rule_order|as_crispy_field }}
-            </div>
-          </div>
-        </div>
-
-        <div class="flex justify-end space-x-3">
+        <div class="text-center">
           <a href="{% url 'questionnaire_item_rules_list' questionnaire_item.id %}" 
-             class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-            {% translate "Cancel" %}
+             class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+            {% translate "Back to Rules List" %}
           </a>
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-            {% if form.instance.pk %}
-              {% translate "Update Rule" %}
-            {% else %}
-              {% translate "Create Rule" %}
-            {% endif %}
-          </button>
         </div>
-      </form>
+      {% else %}
+        <form method="post" class="space-y-6">
+          {% csrf_token %}
+          
+          <div class="bg-gray-50 p-4 rounded-md space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                {{ form.dependent_item|as_crispy_field }}
+              </div>
+              <div>
+                {{ form.operator|as_crispy_field }}
+              </div>
+            </div>
+            
+            <div>
+              {{ form.comparison_value|as_crispy_field }}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                {{ form.logical_operator|as_crispy_field }}
+              </div>
+              <div>
+                {{ form.rule_order|as_crispy_field }}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3">
+            <a href="{% url 'questionnaire_item_rules_list' questionnaire_item.id %}" 
+               class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+              {% translate "Cancel" %}
+            </a>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+              {% if form.instance.pk %}
+                {% translate "Update Rule" %}
+              {% else %}
+                {% translate "Create Rule" %}
+              {% endif %}
+            </button>
+          </div>
+        </form>
+      {% endif %}
     </div>
   </div>
 </div>

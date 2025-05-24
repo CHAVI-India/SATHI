@@ -38,12 +38,14 @@ class LikertScaleAdmin(admin.ModelAdmin):
     group_fieldsets = True
 
 @admin.register(RangeScale)
-class RangeScaleAdmin(TranslatableAdmin):
-    list_display = ('range_scale_name',)
-    search_fields = ('range_scale_name',)
-    list_filter = ('range_scale_name',)
+class RangeScaleAdmin(admin.ModelAdmin):
+    list_display = ('range_scale_name', 'min_value', 'max_value', 'increment')
+    search_fields = ('range_scale_name', 'min_value', 'max_value', 'increment')
+    list_filter = ('range_scale_name', 'min_value', 'max_value', 'increment')
     ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')
+    group_fieldsets = True
+
 
 @admin.register(Questionnaire)
 class QuestionnaireAdmin(TranslatableAdmin):

@@ -174,13 +174,6 @@ class RangeScale(TranslatableModel):
         verbose_name = 'Range Scale'
         verbose_name_plural = 'Range Scales'
 
-    def __str__(self):
-        # Use Parler's safe_translation_getter to get the translated name
-        range_scale_name = self.safe_translation_getter('range_scale_name', any_language=True) if hasattr(self, 'safe_translation_getter') else None
-        if range_scale_name is None:
-            # Fallback to a default string representation if no translation is found
-            return f"Range Scale {self.id}"
-        return range_scale_name
 
     def validate_increment(self):
         if self.min_value and self.max_value and self.increment:
@@ -215,6 +208,10 @@ class Item(TranslatableModel):
     response_type = models.CharField(max_length=255, choices=ResponseTypeChoices.choices, db_index=True, help_text = "The type of response for the item")
     likert_response = models.ForeignKey(LikertScale, on_delete=models.CASCADE, null=True, blank=True)
     range_response = models.ForeignKey(RangeScale, on_delete=models.CASCADE, null=True, blank=True)
+    is_required = models.BooleanField(default=False, help_text = "If True, the item is required to be answered for the construct score to be calculated")
+    discrimination_parameter = models.FloatField(null=True, blank=True, help_text = "Also known as a index. The discrimination parameter for the item. This value will be obtained from a IRT model like a GPCM model")
+    difficulty_parameter = models.FloatField(null=True, blank=True, help_text = "Also known as b index. The difficulty parameter for the item. This value will be obtained from a IRT model like a GPCM model")
+    pseudo_guessing_parameter = models.FloatField(null=True, blank=True, help_text = "Also known as c index. The pseudo-guessing parameter for the item. This value will be obtained from a IRT model like a GPCM model")
     created_date = models.DateTimeField(auto_now_add=True, db_index=True)
     modified_date = models.DateTimeField(auto_now=True)
 
@@ -686,13 +683,42 @@ def calculate_scores_for_submission(submission):
         # Debug: Log the final response values dictionary
         logger.debug(f"Response values for construct {construct.name}: {response_values}")
         
+        # Check for required items that are missing valid responses
+        required_items_missing = []
+        for response in responses:
+            qi = response.questionnaire_item
+            item = qi.item
+            
+            # Check if this item belongs to the current construct and is required for scoring
+            if item.construct_scale == construct and item.is_required:
+                if item.response_type in ['Number', 'Likert', 'Range']:
+                    item_number = item.item_number
+                    # Check if this required item has a valid response
+                    if item_number not in response_values or response_values[item_number] is None:
+                        required_items_missing.append(item_number)
+                        logger.debug(f"Required item {item_number} ({item.name}) is missing a valid response")
+        
+        # If any required items are missing valid responses, skip score calculation
+        if required_items_missing:
+            logger.warning(f"Cannot calculate score for construct {construct.name}. " 
+                          f"Required items missing valid responses: items {required_items_missing}")
+            # Create a record but with no score to indicate required items were missing
+            QuestionnaireConstructScore.objects.create(
+                questionnaire_submission=submission,
+                construct=construct,
+                score=None,
+                items_answered=valid_response_count,
+                items_not_answered=total_construct_items - valid_response_count
+            )
+            continue
+        
         # Calculate items answered and not answered
         items_answered = valid_response_count
         items_not_answered = total_construct_items - valid_response_count
         
         logger.debug(f"For construct {construct.name}: {items_answered} items answered, {items_not_answered} items not answered, {total_construct_items} total items")
         
-        # Check if we have enough valid responses
+        # Check if we have enough valid responses (minimum_number_of_items logic)
         min_required = construct.minimum_number_of_items
         if valid_response_count < min_required:
             logger.warning(f"Not enough valid responses for construct {construct.name}. " 

@@ -112,6 +112,21 @@
               {% endif %}
             </div>
             
+            <div>
+              <div class="flex items-center">
+                <input type="checkbox" name="is_required" id="id_is_required" value="True" 
+                       {% if form.is_required.value %}checked{% endif %}
+                       class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
+                <label for="id_is_required" class="ml-2 text-sm font-medium text-gray-700">
+                  {% translate "Required for scoring" %}
+                </label>
+              </div>
+              {% if form.is_required.errors %}
+                <div class="text-red-500 text-sm mt-1">{{ form.is_required.errors }}</div>
+              {% endif %}
+              <p class="text-sm text-gray-500 mt-1">{% translate "Check this if the item must be answered for construct score calculation" %}</p>
+            </div>
+            
             <div id="response-fields" class="mt-4">
               {% if form.instance.response_type == 'Likert' %}
                 <div class="mt-2">

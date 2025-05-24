@@ -1362,10 +1362,12 @@ class QuestionnaireItemRuleListView(LoginRequiredMixin, PermissionRequiredMixin,
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['questionnaire_item'] = get_object_or_404(
+        questionnaire_item = get_object_or_404(
             QuestionnaireItem, 
             pk=self.kwargs['questionnaire_item_id']
         )
+        context['questionnaire_item'] = questionnaire_item
+        context['is_required_item'] = questionnaire_item.item.is_required
         return context
 
 class QuestionnaireItemRuleCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -1394,10 +1396,12 @@ class QuestionnaireItemRuleCreateView(LoginRequiredMixin, PermissionRequiredMixi
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['questionnaire_item'] = get_object_or_404(
+        questionnaire_item = get_object_or_404(
             QuestionnaireItem, 
             pk=self.kwargs['questionnaire_item_id']
         )
+        context['questionnaire_item'] = questionnaire_item
+        context['is_required_item'] = questionnaire_item.item.is_required
         return context
 
     def get_success_url(self):
@@ -1416,6 +1420,7 @@ class QuestionnaireItemRuleUpdateView(LoginRequiredMixin, PermissionRequiredMixi
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['questionnaire_item'] = self.object.questionnaire_item
+        context['is_required_item'] = self.object.questionnaire_item.item.is_required
         return context
 
     def get_success_url(self):
@@ -1450,10 +1455,12 @@ class QuestionnaireItemRuleGroupListView(LoginRequiredMixin, PermissionRequiredM
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['questionnaire_item'] = get_object_or_404(
+        questionnaire_item = get_object_or_404(
             QuestionnaireItem, 
             pk=self.kwargs['questionnaire_item_id']
         )
+        context['questionnaire_item'] = questionnaire_item
+        context['is_required_item'] = questionnaire_item.item.is_required
         return context
 
 class QuestionnaireItemRuleGroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -1487,6 +1494,7 @@ class QuestionnaireItemRuleGroupCreateView(LoginRequiredMixin, PermissionRequire
             pk=self.kwargs['questionnaire_item_id']
         )
         context['questionnaire_item'] = questionnaire_item
+        context['is_required_item'] = questionnaire_item.item.is_required
         context['available_rules'] = QuestionnaireItemRule.objects.filter(
             questionnaire_item=questionnaire_item
         ).order_by('rule_order')
@@ -1508,6 +1516,7 @@ class QuestionnaireItemRuleGroupUpdateView(LoginRequiredMixin, PermissionRequire
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['questionnaire_item'] = self.object.questionnaire_item
+        context['is_required_item'] = self.object.questionnaire_item.item.is_required
         context['available_rules'] = QuestionnaireItemRule.objects.filter(
             questionnaire_item=self.object.questionnaire_item
         ).order_by('rule_order')

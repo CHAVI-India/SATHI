@@ -119,13 +119,14 @@ class ItemForm(TranslatableModelForm):
     
     class Meta:
         model = Item
-        fields = ['construct_scale', 'name', 'response_type', 'likert_response', 'range_response']
+        fields = ['construct_scale', 'name', 'response_type', 'likert_response', 'range_response', 'is_required']
         widgets = {
             'response_type': forms.Select(attrs={'hx-get': '/promapp/get-response-fields/', 
                                                'hx-target': '#response-fields',
                                                'hx-trigger': 'change'}),
             'likert_response': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
             'range_response': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
+            'is_required': forms.CheckboxInput(attrs={'class': 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -137,6 +138,7 @@ class ItemForm(TranslatableModelForm):
             Field('name'),
             Field('media'),
             Field('response_type'),
+            Field('is_required'),
             Div(
                 Field('likert_response', css_class='w-full'),
                 Field('range_response', css_class='w-full'),
@@ -378,7 +380,8 @@ class QuestionnaireItemRuleForm(forms.ModelForm):
                     question_number__lt=questionnaire_item.question_number
                 )
             
-            self.fields['dependent_item'].queryset = base_queryset
+            # Order by question number for proper sorting in the dropdown
+            self.fields['dependent_item'].queryset = base_queryset.order_by('question_number')
         else:
             self.fields['dependent_item'].queryset = QuestionnaireItem.objects.none()
             
@@ -433,6 +436,14 @@ class QuestionnaireItemRuleForm(forms.ModelForm):
         questionnaire_item = self.initial.get('questionnaire_item')
         if self.instance.pk:
             questionnaire_item = getattr(self.instance, 'questionnaire_item', questionnaire_item)
+
+        # Check if the questionnaire item being targeted by this rule is required
+        if questionnaire_item and questionnaire_item.item.is_required:
+            raise forms.ValidationError(
+                f'Rule creation not allowed: The question "{questionnaire_item.item.name}" is marked as required for scoring. '
+                f'Rules cannot be created for required items as they might prevent the item from being displayed, '
+                f'which would make score calculation impossible. Please unmark this item as required first if you want to add visibility rules.'
+            )
 
         if dependent_item and questionnaire_item:
             # Ensure dependent item is from the same questionnaire
@@ -537,6 +548,14 @@ class QuestionnaireItemRuleGroupForm(forms.ModelForm):
         cleaned_data = super().clean()
         rules = cleaned_data.get('rules')
         questionnaire_item = self.instance.questionnaire_item if self.instance.pk else self.initial.get('questionnaire_item')
+
+        # Check if the questionnaire item being targeted by rule groups is required
+        if questionnaire_item and questionnaire_item.item.is_required:
+            raise forms.ValidationError(
+                f'Rule group creation not allowed: The question "{questionnaire_item.item.name}" is marked as required for scoring. '
+                f'Rule groups cannot be created for required items as they might prevent the item from being displayed, '
+                f'which would make score calculation impossible. Please unmark this item as required first if you want to add visibility rule groups.'
+            )
 
         if rules and questionnaire_item:
             # Ensure all selected rules belong to the same questionnaire item
