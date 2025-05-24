@@ -5,21 +5,33 @@
 {% block title %}{% translate "Patients" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header Section -->
-    <div class="mb-6 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-900">{% translate "Patients" %}</h1>
+<div class="max-w-6xl mx-auto">
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-blue-700">{% translate "Patients" %}</h1>
         {% if perms.patientapp.add_patient %}
-        <a href="{% url 'patient_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+        <a href="{% url 'patient_create' %}" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium leading-4 rounded hover:bg-blue-700 inline-flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
             {% translate "Add Patient" %}
         </a>
         {% endif %}
-    </div>
+      </div>
 
-    <!-- Search and Filters Section -->
-    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <form hx-get="{% url 'patient_list' %}" hx-target="#patientsTable" hx-trigger="change from:select, keyup[target.name=='search'] from:input delay:500ms" class="space-y-4">
+      {% if messages %}
+        <div class="mb-6">
+          {% for message in messages %}
+            <div class="{% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 mb-3 rounded border" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Search and Filters Section -->
+      <form hx-get="{% url 'patient_list' %}" hx-target="#patientsTable" hx-trigger="change from:select, keyup[target.name=='search'] from:input delay:500ms" class="mb-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Search Box -->
                     <div>
@@ -86,17 +98,15 @@
                             {% endfor %}
                         </select>
                     </div>
-                </div>
-            </form>
         </div>
-    </div>
+      </form>
 
-    <!-- Patients Table -->
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
-        <div id="patientsTable" hx-get="{% url 'patient_list' %}" hx-trigger="load">
-            <!-- Table content will be loaded here via HTMX -->
-        </div>
+      <!-- Patients Table -->
+      <div id="patientsTable" hx-get="{% url 'patient_list' %}" hx-trigger="load">
+        <!-- Table content will be loaded here via HTMX -->
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Table Template (will be loaded via HTMX) -->
