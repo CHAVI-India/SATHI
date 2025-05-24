@@ -2764,6 +2764,17 @@ class TranslationsDashboardView(LoginRequiredMixin, PermissionRequiredMixin, Tem
 def search_construct_scales(request):
     """Search construct scales and return matching results as JSON."""
     search_query = request.GET.get('q', '')
+    scale_id = request.GET.get('id', '')
+    
+    # If a specific ID is requested, return that scale
+    if scale_id:
+        try:
+            scale = ConstructScale.objects.get(id=scale_id)
+            return JsonResponse({'results': [{'id': scale.id, 'text': scale.name}]})
+        except ConstructScale.DoesNotExist:
+            return JsonResponse({'results': []})
+    
+    # Otherwise, search by query
     if not search_query:
         return JsonResponse({'results': []})
     

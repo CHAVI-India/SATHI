@@ -9,7 +9,7 @@
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">{% translate "Items" %}</h1>
-        <a href="{% url 'item_create' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center">
+        <a href="{% url 'item_create' %}" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium leading-4 rounded hover:bg-blue-700 inline-flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
           </svg>
@@ -29,10 +29,12 @@
       
       {% if items %}
         <!-- Search and Filter controls -->
-        <form hx-get="{% url 'item_list' %}" 
+        <form method="get"
+              hx-get="{% url 'item_list' %}" 
               hx-target="#items-container" 
               hx-indicator="#loading-indicator"
               hx-push-url="true"
+              hx-trigger="submit, change from:select, keyup changed delay:500ms from:input[name='search']"
               class="mb-6 w-full">
           <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
             <div class="flex-1">
@@ -43,21 +45,28 @@
                      value="{{ search_query }}"
                      class="w-full px-3 py-2 border rounded" 
                      placeholder="{% translate 'Search by name...' %}" 
-                     aria-label="{% translate 'Search items' %}"
-                     hx-trigger="keyup changed delay:500ms, search">
+                     aria-label="{% translate 'Search items' %}">
             </div>
             <div class="w-full md:w-64">
               <label for="construct_scale" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Filter by construct scale" %}</label>
               <div class="relative">
                 <input type="text" 
                        id="construct_scale_search" 
-                       class="w-full px-3 py-2 border rounded"
+                       class="w-full px-3 py-2 pr-8 border rounded"
                        placeholder="{% translate 'Search construct scales...' %}"
                        autocomplete="off">
                 <input type="hidden" 
                        id="construct_scale" 
                        name="construct_scale" 
                        value="{{ selected_construct_scale }}">
+                <!-- Clear button -->
+                <button type="button" 
+                        id="clear_construct_scale"
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
                 <div id="construct_scale_results" 
                      class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg hidden">
                 </div>
@@ -67,8 +76,7 @@
               <label for="response_type" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Filter by response type" %}</label>
               <select id="response_type" 
                       name="response_type" 
-                      class="w-full px-3 py-2 border rounded"
-                      hx-trigger="change">
+                      class="w-full px-3 py-2 border rounded">
                 <option value="all" {% if selected_response_type == 'all' %}selected{% endif %}>{% translate "All response types" %}</option>
                 {% for type in response_types %}
                   <option value="{{ type.value }}" {% if selected_response_type == type.value %}selected{% endif %}>
@@ -94,7 +102,7 @@
       {% else %}
         <div class="text-center py-8">
           <p class="text-gray-600 mb-4">{% translate "No items available yet." %}</p>
-          <a href="{% url 'item_create' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center">
+          <a href="{% url 'item_create' %}" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium leading-4 rounded hover:bg-blue-700 inline-flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
             </svg>
@@ -111,25 +119,55 @@
     const searchInput = document.getElementById('construct_scale_search');
     const hiddenInput = document.getElementById('construct_scale');
     const resultsDiv = document.getElementById('construct_scale_results');
+    const clearButton = document.getElementById('clear_construct_scale');
     let selectedScale = '{{ selected_construct_scale }}';
     let selectedScaleName = '';
 
+    // Function to show/hide clear button
+    function toggleClearButton() {
+      if (searchInput.value.trim()) {
+        clearButton.classList.remove('hidden');
+      } else {
+        clearButton.classList.add('hidden');
+      }
+    }
+
     // Set initial value if a scale is selected
-    if (selectedScale !== 'all') {
-      fetch(`/promapp/search-construct-scales/?q=${encodeURIComponent(selectedScaleName)}`)
+    if (selectedScale && selectedScale !== 'all' && selectedScale !== '') {
+      // Load the construct scale name for the selected ID
+      fetch(`/promapp/search-construct-scales/?id=${encodeURIComponent(selectedScale)}`)
         .then(response => response.json())
         .then(data => {
-          const scale = data.results.find(s => s.id === selectedScale);
-          if (scale) {
+          if (data.results && data.results.length > 0) {
+            const scale = data.results[0];
             searchInput.value = scale.text;
             selectedScaleName = scale.text;
+            toggleClearButton();
           }
+        })
+        .catch(error => {
+          console.error('Error loading construct scale:', error);
         });
     }
+
+    // Clear button functionality
+    clearButton.addEventListener('click', function() {
+      searchInput.value = '';
+      hiddenInput.value = 'all';
+      selectedScale = 'all';
+      selectedScaleName = '';
+      resultsDiv.classList.add('hidden');
+      toggleClearButton();
+      // Trigger form submission
+      const form = searchInput.closest('form');
+      htmx.trigger(form, 'submit');
+    });
 
     // Handle search input
     searchInput.addEventListener('input', function() {
       const query = this.value.trim();
+      toggleClearButton();
+      
       if (query.length < 2) {
         resultsDiv.classList.add('hidden');
         return;
@@ -150,8 +188,10 @@
                 selectedScale = scale.id;
                 selectedScaleName = scale.text;
                 resultsDiv.classList.add('hidden');
-                // Trigger form submission
-                searchInput.closest('form').dispatchEvent(new Event('submit'));
+                toggleClearButton();
+                // Trigger HTMX form submission
+                const form = searchInput.closest('form');
+                htmx.trigger(form, 'submit');
               });
               resultsDiv.appendChild(div);
             });
@@ -159,6 +199,9 @@
           } else {
             resultsDiv.classList.add('hidden');
           }
+        })
+        .catch(error => {
+          console.error('Error searching construct scales:', error);
         });
     });
 
