@@ -255,6 +255,9 @@ class QuestionnaireResponseForm(forms.Form):
         questionnaire_items = kwargs.pop('questionnaire_items', [])
         super().__init__(*args, **kwargs)
         
+        # Store questionnaire_items as an instance attribute for use in clean method
+        self.questionnaire_items = questionnaire_items
+        
         # Get the current language
         current_language = get_language()
         

@@ -90,7 +90,7 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
 
 @admin.register(QuestionnaireConstructScore)
 class QuestionnaireConstructScoreAdmin(admin.ModelAdmin):
-    list_display = ('questionnaire_submission', 'construct', 'score')
+    list_display = ('questionnaire_submission', 'construct', 'items_answered', 'items_not_answered', 'score')
     search_fields = ('questionnaire_submission', 'construct', 'score')
     list_filter = ('questionnaire_submission', 'construct', 'score')
     ordering = ('-created_date',)

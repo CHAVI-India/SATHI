@@ -368,6 +368,8 @@ class QuestionnaireConstructScore(models.Model):
     questionnaire_submission = models.ForeignKey(QuestionnaireSubmission, on_delete=models.CASCADE, help_text = "The submission to which the score belongs")
     construct = models.ForeignKey(ConstructScale, on_delete=models.CASCADE, help_text = "The construct to which the score belongs")
     score = models.DecimalField(max_digits=10, decimal_places=2, help_text = "The score for the construct", null=True, blank=True)
+    items_answered = models.IntegerField(help_text = "The number of items answered for the construct", null=True, blank=True)
+    items_not_answered = models.IntegerField(help_text = "The number of items not answered for the construct", null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
     class Meta:
@@ -648,6 +650,7 @@ def calculate_scores_for_submission(submission):
         # Create a mapping of item numbers to response values for this construct
         response_values = {}
         valid_response_count = 0
+        total_construct_items = 0
         
         # Find all items in this questionnaire related to this construct
         for response in responses:
@@ -658,8 +661,9 @@ def calculate_scores_for_submission(submission):
             if item.construct_scale != construct:
                 continue
                 
-            # Only use Number, Likert, and Range response types
+            # Only use Number, Likert, and Range response types for scoring
             if item.response_type in ['Number', 'Likert', 'Range']:
+                total_construct_items += 1
                 response_value = response.response_value
                 item_number = item.item_number
                 
@@ -682,11 +686,25 @@ def calculate_scores_for_submission(submission):
         # Debug: Log the final response values dictionary
         logger.debug(f"Response values for construct {construct.name}: {response_values}")
         
+        # Calculate items answered and not answered
+        items_answered = valid_response_count
+        items_not_answered = total_construct_items - valid_response_count
+        
+        logger.debug(f"For construct {construct.name}: {items_answered} items answered, {items_not_answered} items not answered, {total_construct_items} total items")
+        
         # Check if we have enough valid responses
         min_required = construct.minimum_number_of_items
         if valid_response_count < min_required:
             logger.warning(f"Not enough valid responses for construct {construct.name}. " 
                           f"Required: {min_required}, Found: {valid_response_count}")
+            # Still create a record but with no score, and include the count data
+            QuestionnaireConstructScore.objects.create(
+                questionnaire_submission=submission,
+                construct=construct,
+                score=None,
+                items_answered=items_answered,
+                items_not_answered=items_not_answered
+            )
             continue
         
         # Calculate score using equation parser
@@ -703,13 +721,15 @@ def calculate_scores_for_submission(submission):
             
             score = transformer.transform(tree)
             
-            # Store the result even if the score is None
+            # Store the result with items answered/not answered counts
             logger.info(f"Calculated score for construct {construct.name}: {score}")
             
             QuestionnaireConstructScore.objects.create(
                 questionnaire_submission=submission,
                 construct=construct,
-                score=score  # This will be stored as NULL in the database if score is None
+                score=score,
+                items_answered=items_answered,
+                items_not_answered=items_not_answered
             )
         
         except ValidationError as e:
