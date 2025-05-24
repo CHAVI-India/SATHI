@@ -57,10 +57,32 @@
               {{ qi.question_number }}
             </div>
             <div class="flex-1">
-              <h3 class="text-xl font-medium text-gray-900 mb-4">{{ qi.item.name }}</h3>
+              <h3 class="text-xl font-medium text-gray-900 mb-4">
+                {% with item_name=qi.item.name %}
+                  {% if item_name %}
+                    {{ item_name }}
+                  {% else %}
+                    {% with item=qi.item %}
+                      {% with item_translation=item.translations.language %}
+                        {% if item_translation %}
+                          {{ item_translation.name }}
+                        {% else %}
+                          {% with en_translation=item.translations.language %}
+                            {% if en_translation %}
+                              {{ en_translation.name }}
+                            {% else %}
+                              {{ item.translations.all.0.name }}
+                            {% endif %}
+                          {% endwith %}
+                        {% endif %}
+                      {% endwith %}
+                    {% endwith %}
+                  {% endif %}
+                {% endwith %}
+              </h3>
               {% if qi.item.media %}
                 <div class="mb-4">
-                  <img src="{{ qi.item.media.url }}" alt="{{ qi.item.name }}" class="max-w-full h-auto rounded">
+                  <img src="{{ qi.item.media.url }}" alt="{{ qi.item.name|default:qi.item.translations.all.0.name }}" class="max-w-full h-auto rounded">
                 </div>
               {% endif %}
             </div>
@@ -89,7 +111,7 @@
             {% elif qi.item.response_type == 'Likert' %}
               <div class="form-group">
                 {{ form.response_qi.id }}
-                {% with option_count=qi.item.likert_response.likertscaleresponseoption_set.all|length %}
+                {% with option_count=qi.item.likert_response.likertscaleresponseoption_set.language|default:qi.item.likert_response.likertscaleresponseoption_set.all|length %}
                   {% if option_count <= 6 %}
                     {% with col_count=option_count %}
                       <div class="likert-options grid 
@@ -98,7 +120,7 @@
                         md:grid-cols-3 
                         lg:grid-cols-{{ col_count }}
                         gap-4 items-stretch">
-                        {% for option in qi.item.likert_response.likertscaleresponseoption_set.all %}
+                        {% for option in qi.item.likert_response.likertscaleresponseoption_set.language|default:qi.item.likert_response.likertscaleresponseoption_set.all %}
                           <label class="likert-option relative">
                             <input type="radio" 
                                    name="response_{{ qi.id }}" 
@@ -106,13 +128,13 @@
                                    class="peer sr-only">
                             <div class="option-content p-2 min-w-[120px] h-full flex items-center justify-center text-center border-2 rounded-md cursor-pointer bg-blue-50 border-blue-200 text-blue-700 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white hover:bg-blue-100 peer-checked:hover:bg-green-700 transition-colors duration-200">
                               {% if option.option_media %}
-                                <img src="{{ option.option_media.url }}" alt="{{ option.option_text }}" class="w-12 h-12 mx-auto mb-2">
+                                <img src="{{ option.option_media.url }}" alt="{{ option.option_text|default:option.translations.all.0.option_text }}" class="w-12 h-12 mx-auto mb-2">
                               {% endif %}
                               <span class="text-2xl font-medium">
                                 {% if option.option_emoji %}
                                   <span class="mr-2">{{ option.option_emoji }}</span>
                                 {% endif %}
-                                {{ option.option_text }}
+                                {{ option.option_text|default:option.translations.all.0.option_text }}
                               </span>
                             </div>
                           </label>
@@ -127,7 +149,7 @@
                         md:grid-cols-3 
                         lg:grid-cols-{{ col_count }}
                         gap-4 items-stretch">
-                        {% for option in qi.item.likert_response.likertscaleresponseoption_set.all %}
+                        {% for option in qi.item.likert_response.likertscaleresponseoption_set.language|default:qi.item.likert_response.likertscaleresponseoption_set.all %}
                           <label class="likert-option relative">
                             <input type="radio" 
                                    name="response_{{ qi.id }}" 
@@ -135,13 +157,13 @@
                                    class="peer sr-only">
                             <div class="option-content p-2 min-w-[120px] h-full flex items-center justify-center text-center border-2 rounded-md cursor-pointer bg-blue-50 border-blue-200 text-blue-700 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white hover:bg-blue-100 peer-checked:hover:bg-green-700 transition-colors duration-200">
                               {% if option.option_media %}
-                                <img src="{{ option.option_media.url }}" alt="{{ option.option_text }}" class="w-12 h-12 mx-auto mb-2">
+                                <img src="{{ option.option_media.url }}" alt="{{ option.option_text|default:option.translations.all.0.option_text }}" class="w-12 h-12 mx-auto mb-2">
                               {% endif %}
                               <span class="text-2xl font-medium">
                                 {% if option.option_emoji %}
                                   <span class="mr-2">{{ option.option_emoji }}</span>
                                 {% endif %}
-                                {{ option.option_text }}
+                                {{ option.option_text|default:option.translations.all.0.option_text }}
                               </span>
                             </div>
                           </label>

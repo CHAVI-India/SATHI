@@ -994,9 +994,16 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
         context = super().get_context_data(**kwargs)
         questionnaire = self.object.questionnaire
         
-        # Get all items for this questionnaire
+        # Get all items for this questionnaire with translations
+        current_language = get_language()
         questionnaire_items = QuestionnaireItem.objects.filter(
             questionnaire=questionnaire
+        ).select_related(
+            'item',
+            'item__likert_response',
+            'item__range_response'
+        ).prefetch_related(
+            'item__likert_response__likertscaleresponseoption_set'
         ).order_by('question_number')
         
         # Create the form with the questionnaire items
@@ -1018,9 +1025,16 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
         # Get the patient questionnaire
         patient_questionnaire = self.get_object()
         
-        # Get all items for this questionnaire
+        # Get all items for this questionnaire with translations
+        current_language = get_language()
         questionnaire_items = QuestionnaireItem.objects.filter(
             questionnaire=patient_questionnaire.questionnaire
+        ).select_related(
+            'item',
+            'item__likert_response',
+            'item__range_response'
+        ).prefetch_related(
+            'item__likert_response__likertscaleresponseoption_set'
         ).order_by('question_number')
         
         # Create the form with the questionnaire items

@@ -19,11 +19,13 @@ DJANGO_SECURED_FIELDS_KEY=
 #See https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes for the correct list of language names and codes.
 DJANGO_LANGUAGE_CODE=en-gb
 DJANGO_TIME_ZONE=Asia/Kolkata
-DJANGO_LANGUAGES=en:English,bn:Bangla,hi:Hindi
+# Please ensure that the first language in the list should match the language code above
+DJANGO_LANGUAGES=en-gb:English,bn:Bangla,hi:Hindi
 
 
 # Parler Language settings. This should mimic the Django languages setting above.
 # See https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes for codes.
 PARLER_DEFAULT_LANGUAGE=en-gb
+# Ensure that the language code matches that provided above
 PARLER_LANGUAGES=en-gb,bn,hi
 PARLER_HIDE_UNTRANSLATED=False
