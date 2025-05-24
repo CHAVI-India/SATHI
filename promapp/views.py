@@ -511,6 +511,7 @@ def create_likert_scale(request):
             option_order = request.POST.get(f'form-{form_index}-option_order', '')
             option_value = request.POST.get(f'form-{form_index}-option_value', '')
             option_text = request.POST.get(f'form-{form_index}-option_text', '')
+            option_emoji = request.POST.get(f'form-{form_index}-option_emoji', '')
             likert_scale_id = request.POST.get(f'form-{form_index}-likert_scale', '')
             
             # Only add non-empty forms
@@ -520,6 +521,7 @@ def create_likert_scale(request):
                     'option_order': option_order.strip(),
                     'option_value': option_value.strip(),
                     'option_text': option_text.strip(),
+                    'option_emoji': option_emoji.strip(),
                     'likert_scale_id': likert_scale_id.strip()
                 })
         
@@ -617,6 +619,7 @@ def create_likert_scale(request):
                             option.option_value = 0
                         
                         option.option_text = dform['option_text']
+                        option.option_emoji = dform['option_emoji'] if dform['option_emoji'] else None
                         
                         # Check for duplicates before saving
                         try:

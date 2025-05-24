@@ -72,6 +72,9 @@
                 <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {% translate "OPTION TEXT" %}
                 </th>
+                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                  {% translate "EMOJI" %}
+                </th>
                 <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {% translate "OPTION MEDIA" %}
                 </th>
@@ -100,6 +103,12 @@
                     <input type="text" name="{{ form.option_text.html_name }}" id="{{ form.option_text.id_for_label }}" value="{{ form.option_text.value|default:'' }}" class="w-full px-3 py-2 border rounded">
                     {% if form.option_text.errors %}
                       <div class="text-red-500 text-xs mt-1">{{ form.option_text.errors }}</div>
+                    {% endif %}
+                  </td>
+                  <td class="px-4 py-2 w-20">
+                    <input type="text" name="{{ form.option_emoji.html_name }}" id="{{ form.option_emoji.id_for_label }}" value="{{ form.option_emoji.value|default:'' }}" class="w-full px-3 py-2 border rounded emoji-input text-center" placeholder="😊" maxlength="10" style="font-size: 1.2em;">
+                    {% if form.option_emoji.errors %}
+                      <div class="text-red-500 text-xs mt-1">{{ form.option_emoji.errors }}</div>
                     {% endif %}
                   </td>
                   <td class="px-4 py-2">
@@ -242,172 +251,122 @@
       const firstOptionOrder = document.querySelector('input[name="likertscaleresponseoption_set-0-option_order"]');
       const firstOptionValue = document.querySelector('input[name="likertscaleresponseoption_set-0-option_value"]');
       
-      // Set order to 1 if it's empty
-      if (!firstOptionOrder.value || firstOptionOrder.value.trim() === '') {
+      // Set default values if they're empty
+      if (firstOptionOrder && !firstOptionOrder.value) {
         firstOptionOrder.value = '1';
         console.log("Set first option order to 1");
       }
-      
-      // Set value to 0.00 if it's empty
-      if (!firstOptionValue.value || firstOptionValue.value.trim() === '') {
-        firstOptionValue.value = '0.00';
-        console.log("Set first option value to 0.00");
-      } else {
-        // If value exists, ensure it's properly formatted
-        try {
-          const numValue = parseFloat(firstOptionValue.value);
-          if (!isNaN(numValue)) {
-            firstOptionValue.value = numValue.toFixed(2);
-          }
-        } catch (e) {
-          console.error('Error formatting first option value:', e);
-        }
-      }
-      
-      // Make sure nextOptionOrder is greater than the first row
-      if (parseInt(firstOptionOrder.value) >= nextOptionOrder) {
-        nextOptionOrder = parseInt(firstOptionOrder.value) + 1;
-        nextOptionValue = parseInt(firstOptionOrder.value);
-        console.log(`Updated next option counters: order=${nextOptionOrder}, value=${nextOptionValue}`);
+      if (firstOptionValue && !firstOptionValue.value) {
+        firstOptionValue.value = '0';
+        console.log("Set first option value to 0");
       }
     }
     
-    // Format all option values
-    ensureDecimalFormat();
+    // Initialize emoji picker functionality
+    initEmojiPicker();
+  });
+  
+  // Emoji picker functionality
+  function initEmojiPicker() {
+    // Common emojis for rating scales
+    const commonEmojis = [
+      '😞', '😢', '😟', '😕', '😐', '😊', '😀', '😃', '😄', '😁',
+      '👎', '👍', '💯', '❤️', '💔', '😍', '😎', '🤔', '😤', '😭',
+      '🎉', '⭐', '✅', '❌', '🔥', '💪', '👏', '🙌', '✊', '🤗'
+    ];
     
-    // When editing, make sure all existing records are properly counted
-    const isEditing = "{{ is_edit|yesno:'true,false' }}";
-    if (isEditing === "true") {
-      updateFormsetManagement();
-      console.log("Updated management form counts for editing");
-    }
-    
-    // Function to ensure option_value is saved as decimal
-    function ensureDecimalFormat() {
-      document.querySelectorAll('input[name$="-option_value"]').forEach(input => {
-        // Ensure it's stored as a decimal number, even if it's 0
-        if (input.value === '' || input.value === null) {
-          input.value = '0.00';
-        } else {
-          // Parse as float and format
-          const numValue = parseFloat(input.value);
-          if (!isNaN(numValue)) {
-            input.value = numValue.toFixed(2);
-          } else {
-            input.value = '0.00';
-          }
-        }
-        console.log(`Formatted ${input.name} to ${input.value}`);
-      });
-    }
-    
-    // Add event listener for form submission
-    form.addEventListener('submit', function(e) {
-      // For debugging, not for production
-      console.log("Form is being submitted");
+    // Function to show emoji picker
+    function showEmojiPicker(input) {
+      // Remove any existing picker
+      const existingPicker = document.querySelector('.emoji-picker');
+      if (existingPicker) {
+        existingPicker.remove();
+      }
       
-      // Update the dynamic row count field
-      document.getElementById('dynamic_row_count').value = dynamicRowCount;
-      console.log(`Set dynamic_row_count to ${dynamicRowCount}`);
+      // Create picker element
+      const picker = document.createElement('div');
+      picker.className = 'emoji-picker absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-2 grid grid-cols-6 gap-1';
+      picker.style.top = input.offsetTop + input.offsetHeight + 5 + 'px';
+      picker.style.left = input.offsetLeft + 'px';
+      picker.style.width = '200px';
       
-      // Get current scale ID if editing
-      const scaleId = '{% if scale %}{{ scale.id }}{% else %}{% endif %}';
-      
-      // Process all rows (both formset and dynamically added)
-      const rows = document.querySelectorAll('tbody tr');
-      rows.forEach((row, index) => {
-        // Get the order input for this row
-        const orderInput = row.querySelector('input[name$="-option_order"]');
-        const valueInput = row.querySelector('input[name$="-option_value"]');
-        const scaleInput = row.querySelector('input[name$="-likert_scale"]');
-        
-        if (orderInput) {
-          // Set proper order value if empty
-          if (!orderInput.value || orderInput.value.trim() === '') {
-            orderInput.value = index + 1;
-            console.log(`Set option order for row ${index} to ${orderInput.value}`);
-          }
-          
-          // Make sure value is set even if it's 0
-          if (!valueInput.value || valueInput.value.trim() === '') {
-            valueInput.value = '0.00';
-            console.log(`Set option value for row ${index} to 0.00`);
-          }
-          
-          // Make sure scale ID is set for dynamic rows
-          if (scaleInput && scaleId && (!scaleInput.value || scaleInput.value.trim() === '')) {
-            scaleInput.value = scaleId;
-            console.log(`Set likert_scale for row ${index} to ${scaleInput.value}`);
-          }
-        }
+      // Add emojis to picker
+      commonEmojis.forEach(emoji => {
+        const emojiButton = document.createElement('button');
+        emojiButton.type = 'button';
+        emojiButton.textContent = emoji;
+        emojiButton.className = 'w-8 h-8 text-lg hover:bg-gray-100 rounded cursor-pointer flex items-center justify-center';
+        emojiButton.onclick = function() {
+          input.value = emoji;
+          picker.remove();
+          input.focus();
+        };
+        picker.appendChild(emojiButton);
       });
       
-      // Fix option_value format for all inputs
-      ensureDecimalFormat();
+      // Add close button
+      const closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.textContent = '✕';
+      closeButton.className = 'col-span-6 text-gray-500 hover:text-gray-700 text-center py-1';
+      closeButton.onclick = function() {
+        picker.remove();
+      };
+      picker.appendChild(closeButton);
       
-      // Update management form (for Django formset)
-      updateFormsetManagement();
-    });
-    
-    // Function to update management form after adding/removing rows
-    function updateFormsetManagement() {
-      const prefix = 'likertscaleresponseoption_set';
-      const totalFormsInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+      // Position relative to the input's parent
+      input.parentElement.style.position = 'relative';
+      input.parentElement.appendChild(picker);
       
-      // Only update Django formset management if it exists
-      if (totalFormsInput) {
-        // Count all formset rows (excluding empty ones that have neither order nor text)
-        const formRows = document.querySelectorAll('#likert-options tr');
-        let nonEmptyCount = 0;
-        
-        formRows.forEach(row => {
-          // Find inputs in this row with the formset prefix
-          const orderInput = row.querySelector(`input[name^="${prefix}-"][name$="-option_order"]`);
-          const textInput = row.querySelector(`input[name^="${prefix}-"][name$="-option_text"]`);
-          const deleteInput = row.querySelector(`input[name^="${prefix}-"][name$="-DELETE"]`);
-          const idInput = row.querySelector(`input[name^="${prefix}-"][name$="-id"]`);
-          
-          // Count this row if it has an ID (existing record) or has any data
-          if (idInput && idInput.value) {
-            // Existing record
-            nonEmptyCount++;
-            console.log(`Counting existing row with ID: ${idInput.value}`);
-          } else if (orderInput && textInput) {
-            // Check if this row has any data
-            const hasOrder = orderInput.value && orderInput.value.trim() !== '';
-            const hasText = textInput.value && textInput.value.trim() !== '';
-            
-            // If row has data and isn't marked for deletion
-            if ((hasOrder || hasText) && (!deleteInput || !deleteInput.checked)) {
-              nonEmptyCount++;
-              console.log(`Counting row with order: ${orderInput.value}, text: ${textInput.value}`);
-            }
+      // Close picker when clicking outside
+      setTimeout(() => {
+        document.addEventListener('click', function closePicker(e) {
+          if (!picker.contains(e.target) && e.target !== input) {
+            picker.remove();
+            document.removeEventListener('click', closePicker);
           }
         });
-        
-        // Update the management form
-        totalFormsInput.value = nonEmptyCount;
-        console.log(`Updated ${prefix}-TOTAL_FORMS to ${nonEmptyCount}`);
-      }
+      }, 100);
     }
     
-    // Handle removing options
-    document.addEventListener('click', function(e) {
-      const removeButton = e.target.closest('.remove-option, button[onclick*="delete-"]');
-      if (removeButton) {
-        // After HTMX removes the row, update the management form
-        setTimeout(updateFormsetManagement, 100);
-      }
-    });
-    
-    // Handle adding options
-    const addOptionButton = document.querySelector('button[hx-get*="add_likert_option"]');
-    if (addOptionButton) {
-      addOptionButton.addEventListener('click', function() {
-        // After HTMX adds the row, update the management form
-        setTimeout(updateFormsetManagement, 100);
+    // Add click handlers to existing emoji inputs
+    function addEmojiPickerToInputs() {
+      const emojiInputs = document.querySelectorAll('.emoji-input');
+      emojiInputs.forEach(input => {
+        input.onclick = function() {
+          showEmojiPicker(this);
+        };
+        input.readonly = true; // Make it readonly so users must use picker
+        input.style.cursor = 'pointer';
       });
     }
-  });
+    
+    addEmojiPickerToInputs();
+    
+    // Add mutation observer to handle dynamically added rows
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach(function(node) {
+            if (node.nodeType === 1) { // Element node
+              const newEmojiInputs = node.querySelectorAll ? node.querySelectorAll('.emoji-input') : [];
+              newEmojiInputs.forEach(input => {
+                input.onclick = function() {
+                  showEmojiPicker(this);
+                };
+                input.readonly = true;
+                input.style.cursor = 'pointer';
+              });
+            }
+          });
+        }
+      });
+    });
+    
+    observer.observe(document.getElementById('likert-options'), {
+      childList: true,
+      subtree: true
+    });
+  }
 </script>
 {% endblock %} 

@@ -188,7 +188,15 @@ class LikertScaleResponseOptionForm(TranslatableModelForm):
     
     class Meta:
         model = LikertScaleResponseOption
-        fields = ['option_order', 'option_text', 'option_value', 'option_media']
+        fields = ['option_order', 'option_text', 'option_value', 'option_emoji', 'option_media']
+        widgets = {
+            'option_emoji': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border rounded emoji-input',
+                'placeholder': '😊 Click to select emoji',
+                'data-emoji-picker': 'true',
+                'maxlength': '10'
+            }),
+        }
 
 
 
@@ -197,7 +205,7 @@ LikertScaleResponseOptionFormSet = inlineformset_factory(
     LikertScale, 
     LikertScaleResponseOption, 
     form=LikertScaleResponseOptionForm,
-    fields=('option_order', 'option_value', 'option_text', 'option_media'),
+    fields=('option_order', 'option_value', 'option_text', 'option_emoji', 'option_media'),
     extra=1,
     can_delete=True
 )

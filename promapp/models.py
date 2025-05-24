@@ -137,6 +137,7 @@ class LikertScaleResponseOption(TranslatableModel):
         option_text = models.CharField(max_length=255, null=True, blank=True, help_text = "The text to display for the option"),
         option_media = models.FileField(upload_to='likert_scale_response_options/', null=True, blank=True, help_text = "The media to display for the option. This will be an audio, video or image.")
     )
+    option_emoji = models.CharField(max_length=255, null=True, blank=True, help_text = "The emoji to display for the option. This will be a string of the emoji.")
     option_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The value to store for the option. This will be a number with upto 2 decimal places.")
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)

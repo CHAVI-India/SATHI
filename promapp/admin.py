@@ -11,6 +11,9 @@ class LikertScaleResponseOptionInline(TranslatableStackedInline):
         (None, {
             'fields': ( 'option_order', 'option_value')
         }),
+        ('Emoji', {
+            'fields': ('option_emoji',)
+        }),
         ('Translations', {
             'fields': ('option_text', 'option_media')
         }),

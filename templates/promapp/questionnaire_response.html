@@ -108,7 +108,12 @@
                               {% if option.option_media %}
                                 <img src="{{ option.option_media.url }}" alt="{{ option.option_text }}" class="w-12 h-12 mx-auto mb-2">
                               {% endif %}
-                              <span class="text-2xl font-medium">{{ option.option_text }}</span>
+                              <span class="text-2xl font-medium">
+                                {% if option.option_emoji %}
+                                  <span class="mr-2">{{ option.option_emoji }}</span>
+                                {% endif %}
+                                {{ option.option_text }}
+                              </span>
                             </div>
                           </label>
                         {% endfor %}
@@ -132,7 +137,12 @@
                               {% if option.option_media %}
                                 <img src="{{ option.option_media.url }}" alt="{{ option.option_text }}" class="w-12 h-12 mx-auto mb-2">
                               {% endif %}
-                              <span class="text-2xl font-medium">{{ option.option_text }}</span>
+                              <span class="text-2xl font-medium">
+                                {% if option.option_emoji %}
+                                  <span class="mr-2">{{ option.option_emoji }}</span>
+                                {% endif %}
+                                {{ option.option_text }}
+                              </span>
                             </div>
                           </label>
                         {% endfor %}
