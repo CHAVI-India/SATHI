@@ -13,13 +13,13 @@
           <div class="flex justify-between items-start mb-4">
             <h3 class="text-lg font-semibold text-gray-900 break-words">{{ item.name|default:"Untitled Item" }}</h3>
             <div class="flex space-x-3">
-              <a href="{% url 'item_update' item.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <a href="{% url 'item_update' item.id %}" class="inline-flex items-center px-4 py-2.5 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 {% translate "Edit" %}
               </a>
-              <a href="{% url 'item_translation' item.id %}?language={{ current_language }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              <a href="{% url 'item_translation' item.id %}?language={{ current_language }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-4 py-2.5 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
                 </svg>
@@ -113,11 +113,11 @@
           <a hx-get="{% url 'item_list' %}?page={{ page_obj.previous_page_number }}&search={{ search_query }}&construct_scale={{ selected_construct_scale }}&response_type={{ selected_response_type }}" 
              hx-target="#items-container" 
              hx-indicator="#loading-indicator"
-             class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+             class="relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
             {% translate "Previous" %}
           </a>
         {% else %}
-          <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-100 cursor-not-allowed">
+          <span class="relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-100 cursor-not-allowed">
             {% translate "Previous" %}
           </span>
         {% endif %}
@@ -126,11 +126,11 @@
           <a hx-get="{% url 'item_list' %}?page={{ page_obj.next_page_number }}&search={{ search_query }}&construct_scale={{ selected_construct_scale }}&response_type={{ selected_response_type }}" 
              hx-target="#items-container" 
              hx-indicator="#loading-indicator"
-             class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+             class="ml-3 relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
             {% translate "Next" %}
           </a>
         {% else %}
-          <span class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-100 cursor-not-allowed">
+          <span class="ml-3 relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-100 cursor-not-allowed">
             {% translate "Next" %}
           </span>
         {% endif %}
@@ -169,14 +169,14 @@
             <!-- Page numbers -->
             {% for i in paginator.page_range %}
               {% if page_obj.number == i %}
-                <span class="relative inline-flex items-center px-4 py-2 border border-indigo-500 bg-indigo-50 text-sm font-medium text-indigo-600">
+                <span class="relative inline-flex items-center px-3 py-2 border border-indigo-500 bg-indigo-50 text-sm font-medium text-indigo-600">
                   {{ i }}
                 </span>
               {% elif i > page_obj.number|add:"-3" and i < page_obj.number|add:"3" %}
                 <a hx-get="{% url 'item_list' %}?page={{ i }}&search={{ search_query }}&construct_scale={{ selected_construct_scale }}&response_type={{ selected_response_type }}" 
                    hx-target="#items-container" 
                    hx-indicator="#loading-indicator"
-                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                   class="relative inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
                   {{ i }}
                 </a>
               {% endif %}

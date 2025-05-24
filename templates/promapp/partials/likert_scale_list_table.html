@@ -47,7 +47,7 @@
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
             <div class="flex space-x-2">
-              <a href="{% url 'create_likert_scale' %}?edit={{ scale_data.scale.id }}" class="text-indigo-600 hover:text-indigo-900">
+              <a href="{% url 'create_likert_scale' %}?edit={{ scale_data.scale.id }}" class="inline-flex items-center px-4 py-2.5 border border-transparent text-sm font-medium leading-4 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 {% translate "Edit" %}
               </a>
               {% comment %}
@@ -73,7 +73,7 @@
     <nav class="inline-flex rounded-md shadow-sm -space-x-px" aria-label="{% translate 'Pagination' %}">
       {% if page_obj.has_previous %}
         <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
-           class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+           class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
           <span class="sr-only">{% translate "Previous" %}</span>
           <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -83,12 +83,12 @@
       
       {% for i in paginator.page_range %}
         {% if page_obj.number == i %}
-          <span class="relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-50 text-sm font-medium text-blue-700">
+          <span class="relative inline-flex items-center px-3 py-2 border border-blue-500 bg-blue-50 text-sm font-medium text-blue-700">
             {{ i }}
           </span>
         {% elif i > page_obj.number|add:"-3" and i < page_obj.number|add:"3" %}
           <a href="?page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}"
-             class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+             class="relative inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
             {{ i }}
           </a>
         {% endif %}
@@ -96,7 +96,7 @@
       
       {% if page_obj.has_next %}
         <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
-           class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+           class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
           <span class="sr-only">{% translate "Next" %}</span>
           <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
