@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load cotton %}
+{% load static %}
+
+{% block title %}HCP Results - {{ patient.name }}{% endblock %}
+
+{% block extra_head %}
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- HCP Result UI JavaScript -->
+    <script src="{% static 'js/hcp-result-ui.js' %}"></script>
+    <!-- Print-friendly CSS -->
+    <link rel="stylesheet" href="{% static 'css/hcp-result-print.css' %}" media="all">
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Patient Reported Outcomes</h1>
+            <p class="mt-2 text-gray-600">Healthcare Provider Results Dashboard</p>
+        </div>
+
+        <!-- Print Button -->
+        <button onclick="printResults()" class="print-button no-print">
+            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+            </svg>
+            Print Results
+        </button>
+
+        <!-- Top Row: Patient Info + Questionnaire Overview -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 print-single-col gap-6 mb-8">
+            <!-- Patient Info Card (1/3 width) -->
+            <div class="lg:col-span-1">
+                <c-hcp_results.patient_info_card 
+                    :patient="patient" 
+                    :diagnoses="diagnoses" 
+                    :treatments="treatments" 
+                />
+            </div>
+            
+            <!-- Questionnaire Overview Card (2/3 width) -->
+            <div class="lg:col-span-2">
+                <c-hcp_results.questionnaire_overview_card 
+                    :questionnaire_overview="questionnaire_overview"
+                    :submissions="submissions"
+                    :selected_submission="selected_submission"
+                    :selected_questionnaire_id="selected_questionnaire_id"
+                    :submission_count="submission_count"
+                    :patient="patient"
+                />
+            </div>
+        </div>
+
+        <!-- Results Container (HTMX Target) -->
+        <div id="results-container">
+            {% if selected_submission %}
+                <!-- Topline Results Section -->
+                <c-hcp_results.sections.topline_results 
+                    :important_constructs="important_constructs" 
+                    :submission_count="submission_count" 
+                    :patient="patient" 
+                />
+                
+                <!-- Item-wise Results Section -->
+                <c-hcp_results.sections.item_wise_results 
+                    :item_results="item_results" 
+                    :submission_count="submission_count" 
+                    :patient="patient" 
+                />
+            {% else %}
+                <!-- No Submission Selected -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12">
+                    <div class="text-center">
+                        <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">No Submission Selected</h3>
+                        <p class="text-gray-500 max-w-md mx-auto">
+                            Please select a submission date from the dropdown above to view patient reported outcome results.
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript functionality is handled by hcp-result-ui.js -->
+
+{% endblock %} 

@@ -1,0 +1,34 @@
+{% comment %}
+QuestionnaireFilter Widget
+Filter submissions by specific questionnaires
+Parameters:
+- patient_questionnaires: List of available questionnaires for the patient
+- selected_questionnaire_id: Currently selected questionnaire ID
+- patient_id: Patient ID for HTMX updates
+{% endcomment %}
+
+<div class="flex items-center space-x-2">
+    <label for="questionnaire-filter" class="text-sm font-medium text-gray-700">Filter by Questionnaire:</label>
+    <select 
+        id="questionnaire-filter" 
+        name="questionnaire_id"
+        class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-48"
+        hx-get="{% url 'hcp_update_submission_data' patient.id %}"
+        hx-target="#results-container"
+        hx-include="[name='submission_date'],[name='submission_count']"
+        hx-trigger="change"
+    >
+        <option value="">All Questionnaires</option>
+        {% for pq in patient_questionnaires %}
+            <option 
+                value="{{ pq.questionnaire.id }}"
+                {% if selected_questionnaire_id == pq.questionnaire.id|stringformat:"s" %}selected{% endif %}
+            >
+                {{ pq.questionnaire.name }}
+                {% if pq.submission_count %}
+                    ({{ pq.submission_count }} submission{{ pq.submission_count|pluralize }})
+                {% endif %}
+            </option>
+        {% endfor %}
+    </select>
+</div> 

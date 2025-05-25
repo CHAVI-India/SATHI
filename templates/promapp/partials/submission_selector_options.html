@@ -1,0 +1,18 @@
+{% comment %}
+Submission Selector Options Partial
+HTMX partial for updating submission dropdown options
+Parameters:
+- submissions: List of submission data dictionaries
+- patient: Patient object
+{% endcomment %}
+
+{% for submission in submissions %}
+    <option 
+        value="{{ submission.date }}"
+        data-submission-id="{{ submission.id }}"
+    >
+        {{ submission.datetime }} - {{ submission.questionnaire_name }}
+    </option>
+{% empty %}
+    <option value="">No submissions available</option>
+{% endfor %} 

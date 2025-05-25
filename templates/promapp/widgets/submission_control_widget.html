@@ -1,0 +1,26 @@
+{% comment %}
+SubmissionControlWidget
+Controls the number of submissions displayed in plots
+Parameters:
+- current_count: Currently selected submission count
+- patient_id: Patient ID for HTMX updates
+{% endcomment %}
+
+<div class="flex items-center space-x-2 text-sm">
+    <label for="submission-count" class="text-gray-700 font-medium">Show submissions:</label>
+    <select 
+        id="submission-count" 
+        name="submission_count"
+        class="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        hx-get="{% url 'hcp_update_submission_data' patient.id %}"
+        hx-target="#results-container"
+        hx-include="[name='submission_date'],[name='questionnaire_id']"
+        hx-trigger="change"
+    >
+        <option value="3" {% if current_count == 3 %}selected{% endif %}>Last 3</option>
+        <option value="5" {% if current_count == 5 %}selected{% endif %}>Last 5</option>
+        <option value="10" {% if current_count == 10 %}selected{% endif %}>Last 10</option>
+        <option value="15" {% if current_count == 15 %}selected{% endif %}>Last 15</option>
+        <option value="50" {% if current_count == 50 %}selected{% endif %}>All</option>
+    </select>
+</div> 

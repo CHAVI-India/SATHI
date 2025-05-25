@@ -1,0 +1,50 @@
+{% comment %}
+FieldsetToggle Widget
+Individual fieldset expand/collapse toggle
+Parameters:
+- construct: The construct scale object
+- is_expanded: Whether the fieldset is currently expanded
+- patient_id: Patient ID for HTMX updates
+{% endcomment %}
+
+<button 
+    type="button"
+    class="flex items-center justify-between w-full px-4 py-3 text-left text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t-lg border-b border-gray-200"
+    hx-post="{% url 'hcp_toggle_fieldset' patient.id %}"
+    hx-vals='{"construct_id": "{{ construct.id }}", "is_expanded": "{{ is_expanded|yesno:"false,true" }}"}'
+    hx-trigger="click"
+    hx-swap="none"
+    onclick="toggleFieldset('{{ construct.id }}')"
+>
+    <div class="flex items-center space-x-3">
+        <span class="font-semibold">{{ construct.name }}</span>
+        {% if construct_score %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                Score: {{ construct_score.score|floatformat:1 }}
+            </span>
+        {% endif %}
+    </div>
+    
+    <div class="flex items-center space-x-2">
+        <!-- Sparkline container -->
+        <div id="sparkline-{{ construct.id }}" class="w-16 h-8"></div>
+        
+        <!-- Toggle icon -->
+        <svg 
+            class="w-5 h-5 transform transition-transform duration-200 fieldset-toggle-icon"
+            data-construct="{{ construct.id }}"
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+        >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+    </div>
+</button>
+
+<script>
+// Initialize sparkline for this construct
+document.addEventListener('DOMContentLoaded', function() {
+    loadSparkline('{{ construct.id }}', '{{ patient.id }}');
+});
+</script> 

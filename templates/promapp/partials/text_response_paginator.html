@@ -1,0 +1,63 @@
+{% if page_obj %}
+    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        {% if page_obj.object_list %}
+            {% for response in page_obj.object_list %}
+                <div class="prose prose-sm max-w-none mb-3">
+                    <p class="text-gray-900 whitespace-pre-wrap">{{ response.response_value }}</p>
+                </div>
+                <div class="text-xs text-gray-500 mb-3">
+                    <span>Submitted: {{ response.questionnaire_submission.submission_date|date:"M d, Y H:i" }}</span>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-500 italic">No historical responses found</p>
+        {% endif %}
+    </div>
+    
+    <!-- Pagination Controls -->
+    {% if page_obj.has_other_pages %}
+        <div class="flex items-center justify-between mt-4">
+            <div class="text-sm text-gray-500">
+                Response {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                {% if page_obj.has_previous %}
+                    <button 
+                        type="button"
+                        class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        hx-get="{% url 'hcp_get_text_response_history' patient.id %}"
+                        hx-vals='{"questionnaire_item_id": "{{ questionnaire_item.id }}", "page": "{{ page_obj.previous_page_number }}"}'
+                        hx-target="#text-history-{{ questionnaire_item.id }}"
+                        hx-swap="innerHTML"
+                    >
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        Previous
+                    </button>
+                {% endif %}
+                
+                {% if page_obj.has_next %}
+                    <button 
+                        type="button"
+                        class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        hx-get="{% url 'hcp_get_text_response_history' patient.id %}"
+                        hx-vals='{"questionnaire_item_id": "{{ questionnaire_item.id }}", "page": "{{ page_obj.next_page_number }}"}'
+                        hx-target="#text-history-{{ questionnaire_item.id }}"
+                        hx-swap="innerHTML"
+                    >
+                        Next
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+{% else %}
+    <div class="text-center py-4 text-gray-500">
+        <p>No historical responses available</p>
+    </div>
+{% endif %} 

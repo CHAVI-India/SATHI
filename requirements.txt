@@ -10,6 +10,9 @@ django-parler==2.3
 django-secured-fields==0.4.4
 dotenv==0.9.9
 lark==1.2.2
+narwhals==1.40.0
+packaging==25.0
+plotly==6.1.1
 psycopg2-binary==2.9.10
 pycparser==2.22
 python-dotenv==1.1.0

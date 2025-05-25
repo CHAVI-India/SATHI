@@ -43,6 +43,9 @@
                     <c-view_button href="{% url 'patient_detail' patient.id %}" size="sm">
                         {% translate "View Patient" %}
                     </c-view_button>
+                    <c-view_results_button href="{% url 'hcp_patient_results' patient.id %}">
+                        {% translate "View Results" %}
+                    </c-view_results_button>
                     <c-link_button href="{% url 'patient_questionnaire_management' patient.id %}" variant="success" size="sm">
                         {% translate "Manage Questionnaires" %}
                     </c-link_button>

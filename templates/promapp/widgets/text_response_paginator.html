@@ -1,0 +1,52 @@
+{% comment %}
+TextResponsePaginator Widget
+Navigate through historical text responses
+Parameters:
+- page_obj: Paginated responses
+- questionnaire_item: The questionnaire item
+- patient_id: Patient ID for HTMX updates
+{% endcomment %}
+
+<div class="mt-4 flex items-center justify-between">
+    <div class="flex items-center space-x-2 text-sm text-gray-600">
+        <span>Response {{ page_obj.number }} of {{ page_obj.paginator.count }}</span>
+        {% if page_obj.object_list.0.questionnaire_submission %}
+            <span class="text-gray-400">•</span>
+            <span>{{ page_obj.object_list.0.questionnaire_submission.submission_date|date:"M d, Y H:i" }}</span>
+        {% endif %}
+    </div>
+    
+    <div class="flex items-center space-x-1">
+        {% if page_obj.has_previous %}
+            <button 
+                type="button"
+                class="inline-flex items-center px-2 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                hx-get="{% url 'hcp_text_response_history' patient.id %}"
+                hx-vals='{"questionnaire_item_id": "{{ questionnaire_item.id }}", "page": "{{ page_obj.previous_page_number }}"}'
+                hx-target="#text-response-{{ questionnaire_item.id }}"
+                hx-trigger="click"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Previous
+            </button>
+        {% endif %}
+        
+        {% if page_obj.has_next %}
+            <button 
+                type="button"
+                class="inline-flex items-center px-2 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                hx-get="{% url 'hcp_text_response_history' patient.id %}"
+                hx-vals='{"questionnaire_item_id": "{{ questionnaire_item.id }}", "page": "{{ page_obj.next_page_number }}"}'
+                hx-target="#text-response-{{ questionnaire_item.id }}"
+                hx-trigger="click"
+            >
+                Next
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+        {% endif %}
+    </div>
+</div> 

@@ -1,0 +1,56 @@
+<c-vars
+    important_constructs
+    submission_count
+    patient
+/>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6 print-card">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+            <svg class="w-6 h-6 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            Important Results
+            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                {{ important_constructs|length }} construct{{ important_constructs|length|pluralize }}
+            </span>
+        </h2>
+    </div>
+
+    {% if important_constructs %}
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 print-single-col gap-6">
+            {% for construct_score in important_constructs %}
+                <c-hcp_results.important_construct_card 
+                    :construct_score="construct_score" 
+                    :submission_count="submission_count" 
+                    :patient="patient" 
+                />
+            {% endfor %}
+        </div>
+        
+        <div class="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+            <div class="flex items-start">
+                <svg class="w-5 h-5 text-orange-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                    <h3 class="text-sm font-medium text-orange-800 mb-1">Clinical Attention Required</h3>
+                    <p class="text-sm text-orange-700">
+                        These constructs have scores that fall outside normal ranges or exceed clinical thresholds. 
+                        Review the detailed item responses below for more context.
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <svg class="w-16 h-16 mx-auto text-green-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">All Results Within Normal Range</h3>
+            <p class="text-gray-500 max-w-md mx-auto">
+                No construct scores require immediate clinical attention based on threshold and normative criteria.
+            </p>
+        </div>
+    {% endif %}
+</div> 

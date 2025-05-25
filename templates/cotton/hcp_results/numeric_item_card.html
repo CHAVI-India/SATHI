@@ -1,0 +1,111 @@
+<c-vars
+    item_data
+    submission_count
+    patient
+/>
+
+<div class="bg-white border border-gray-200 rounded-lg p-4">
+    <!-- Item Header -->
+    <div class="flex items-start justify-between mb-4">
+        <div class="flex-1">
+            <h4 class="font-medium text-gray-900 mb-1">{{ item_data.item.name }}</h4>
+            {% if item_data.questionnaire_item.question_text %}
+                <p class="text-sm text-gray-600 mb-2">{{ item_data.questionnaire_item.question_text }}</p>
+            {% endif %}
+            <div class="flex items-center space-x-2 text-xs text-gray-500">
+                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full">Numeric</span>
+                <span>Question {{ item_data.questionnaire_item.question_number }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 print-single-col gap-4">
+        <!-- Score Display (Left Half) -->
+        <div class="flex flex-col justify-center">
+            <div class="text-center">
+                <div class="text-3xl font-bold text-gray-900 mb-1">
+                    {% if item_data.response.response_value %}
+                        {{ item_data.response.response_value|floatformat:1 }}
+                    {% else %}
+                        <span class="text-gray-400">-NA-</span>
+                    {% endif %}
+                </div>
+                <div class="text-xs text-gray-500 mb-2">
+                    Current Value
+                </div>
+                
+                <!-- Change Indicator -->
+                {% if item_data.response.response_value and item_data.previous_response %}
+                    <c-hcp_results.widgets.change_indicator 
+                        :current_score="item_data.response.response_value" 
+                        :previous_score="item_data.previous_response" 
+                        :direction="item_data.item.item_better_score_direction" 
+                    />
+                {% elif item_data.previous_response %}
+                    <div class="flex items-center justify-center text-gray-400 text-sm">
+                        <span>Previous: -NA-</span>
+                    </div>
+                {% else %}
+                    <div class="flex items-center justify-center text-gray-400 text-sm">
+                        <span>First submission</span>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Reference Values -->
+            <div class="mt-4 space-y-1 text-xs">
+                {% if item_data.item.item_threshold_score %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Threshold:</span>
+                        <span class="font-medium text-orange-600">{{ item_data.item.item_threshold_score|floatformat:1 }}</span>
+                    </div>
+                {% endif %}
+                {% if item_data.item.item_normative_score_mean %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Normative:</span>
+                        <span class="font-medium text-blue-600">{{ item_data.item.item_normative_score_mean|floatformat:1 }}</span>
+                    </div>
+                {% endif %}
+                {% if item_data.item.number_response_min_value or item_data.item.number_response_max_value %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Range:</span>
+                        <span class="font-medium text-gray-600">
+                            {{ item_data.item.number_response_min_value|default:"∞" }} - {{ item_data.item.number_response_max_value|default:"∞" }}
+                        </span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Plot Display (Right Half) -->
+        <div class="flex flex-col">
+            <div id="numeric-plot-{{ item_data.questionnaire_item.id }}" class="w-full h-48"></div>
+            <div class="text-xs text-gray-500 text-center mt-2">
+                Last {{ item_data.historical_data|length }} submission{{ item_data.historical_data|length|pluralize }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Plot data for JavaScript initialization -->
+<script type="application/json" id="numeric-plot-data-{{ item_data.questionnaire_item.id }}">
+{
+    "plotId": "numeric-plot-{{ item_data.questionnaire_item.id }}",
+    "itemName": "{{ item_data.item.name|escapejs }}",
+    "responseType": "Number",
+    "historicalData": [
+        {% for response in item_data.historical_data %}
+        {
+            "date": "{{ response.questionnaire_submission.submission_date|date:'Y-m-d' }}",
+            "value": {% if response.response_value %}{{ response.response_value }}{% else %}null{% endif %},
+            "submissionDate": "{{ response.questionnaire_submission.submission_date|date:'M d, Y H:i'|escapejs }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    "thresholdScore": {% if item_data.item.item_threshold_score %}{{ item_data.item.item_threshold_score }}{% else %}null{% endif %},
+    "normativeMean": {% if item_data.item.item_normative_score_mean %}{{ item_data.item.item_normative_score_mean }}{% else %}null{% endif %},
+    "normativeSD": {% if item_data.item.item_normative_score_standard_deviation %}{{ item_data.item.item_normative_score_standard_deviation }}{% else %}null{% endif %},
+    "minValue": {% if item_data.item.number_response_min_value %}{{ item_data.item.number_response_min_value }}{% else %}null{% endif %},
+    "maxValue": {% if item_data.item.number_response_max_value %}{{ item_data.item.number_response_max_value }}{% else %}null{% endif %}
+}
+</script> 

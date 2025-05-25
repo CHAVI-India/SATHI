@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from .views import MyQuestionnaireListView
+from . import patient_reponses_view
 
 urlpatterns = [
     # Questionnaire URLs
@@ -114,4 +115,46 @@ urlpatterns = [
     path('construct-scale/<uuid:pk>/equation/', views.ConstructEquationView.as_view(), name='construct_equation_edit'),
     path('validate-equation/', views.validate_equation, name='validate_equation'),
     path('add-to-equation/', views.add_to_equation, name='add_to_equation'),
+
+    # HCP Result UI URLs
+    path('hcp/patient/<uuid:patient_id>/results/', 
+         patient_reponses_view.HCPResultView.as_view(), 
+         name='hcp_patient_results'),
+    
+    # HTMX URLs for HCP Result UI - Data Updates
+    path('hcp/patient/<uuid:patient_id>/update-submission-data/', 
+         patient_reponses_view.update_submission_data, 
+         name='hcp_update_submission_data'),
+    path('hcp/patient/<uuid:patient_id>/update-plot-data/', 
+         patient_reponses_view.update_plot_data, 
+         name='hcp_update_plot_data'),
+    
+    # HTMX URLs for HCP Result UI - Item Level Data
+    path('hcp/patient/<uuid:patient_id>/item-plot-data/', 
+         patient_reponses_view.get_item_plot_data, 
+         name='hcp_item_plot_data'),
+    path('hcp/patient/<uuid:patient_id>/text-response-history/', 
+         patient_reponses_view.get_text_response_history, 
+         name='hcp_text_response_history'),
+    path('hcp/patient/<uuid:patient_id>/color-palette-data/', 
+         patient_reponses_view.get_color_palette_data, 
+         name='hcp_color_palette_data'),
+    
+    # HTMX URLs for HCP Result UI - Construct Level Data
+    path('hcp/patient/<uuid:patient_id>/construct-sparkline-data/', 
+         patient_reponses_view.get_construct_sparkline_data, 
+         name='hcp_construct_sparkline_data'),
+    
+    # HTMX URLs for HCP Result UI - Navigation & Selection
+    path('hcp/patient/<uuid:patient_id>/questionnaire-submissions/', 
+         patient_reponses_view.get_questionnaire_submissions, 
+         name='hcp_questionnaire_submissions'),
+    
+    # HTMX URLs for HCP Result UI - UI State Management
+    path('hcp/patient/<uuid:patient_id>/toggle-fieldset/', 
+         patient_reponses_view.toggle_fieldset, 
+         name='hcp_toggle_fieldset'),
+    path('hcp/patient/<uuid:patient_id>/toggle-all-fieldsets/', 
+         patient_reponses_view.toggle_all_fieldsets, 
+         name='hcp_toggle_all_fieldsets'),
 ] 
