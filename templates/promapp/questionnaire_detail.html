@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load cotton %}
 
 {% block title %}{{ questionnaire.name|default:"Questionnaire Details" }}{% endblock %}
 
@@ -9,27 +10,20 @@
     <div class="p-6">
       <div class="flex justify-end mb-4">
         <div class="flex space-x-2">
-          <a href="{% url 'questionnaire_update' questionnaire.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
+          <c-edit_button href="{% url 'questionnaire_update' questionnaire.id %}">
             {% translate "Edit" %}
-          </a>
-          <a href="{% url 'questionnaire_translation' questionnaire.id %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-            </svg>
+          </c-edit_button>
+          <c-create_translations_button href="{% url 'questionnaire_translation' questionnaire.id %}">
             {% translate "Manage Translations" %}
-          </a>
-          <a href="{% url 'questionnaire_rules' questionnaire.id %}" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-            </svg>
+          </c-create_translations_button>
+          <c-link_button href="{% url 'questionnaire_rules' questionnaire.id %}" variant="purple"
+                         icon_left="<path fill-rule='evenodd' d='M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z' clip-rule='evenodd'/>">
             {% translate "Manage Rules" %}
-          </a>
-          <a href="{% url 'questionnaire_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          </c-link_button>
+          <c-link_button href="{% url 'questionnaire_list' %}" variant="secondary"
+                         icon_left="<path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M10 19l-7-7m0 0l7-7m-7 7h18'/>">
             {% translate "Back to List" %}
-          </a>
+          </c-link_button>
         </div>
       </div>
 
@@ -73,18 +67,17 @@
             <div class="flex flex-wrap gap-2">
               {% for lang_code, lang_name in available_languages %}
                 {% with available_langs=questionnaire.get_available_languages %}
-                  <div class="px-3 py-1 rounded-full text-sm {% if lang_code in available_langs %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
-                    {{ lang_name }}
-                    {% if lang_code in available_langs %}
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                    {% else %}
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    {% endif %}
-                  </div>
+                  {% if lang_code in available_langs %}
+                    <c-translation_indicator 
+                      language_code="{{ lang_code }}"
+                      language_name="{{ lang_name }}"
+                      has_translation="true" />
+                  {% else %}
+                    <c-translation_indicator 
+                      language_code="{{ lang_code }}"
+                      language_name="{{ lang_name }}"
+                      has_translation="false" />
+                  {% endif %}
                 {% endwith %}
               {% endfor %}
             </div>
@@ -129,33 +122,30 @@
                     <div class="mt-2 flex flex-wrap gap-2">
                       {% for lang_code, lang_name in available_languages %}
                         {% with available_langs=qi.item.get_available_languages %}
-                          <div class="px-2 py-0.5 rounded-full text-xs {% if lang_code in available_langs %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
-                            {{ lang_name }}
-                            {% if lang_code in available_langs %}
-                              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline-block ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                              </svg>
-                            {% else %}
-                              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline-block ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            {% endif %}
-                          </div>
+                          {% if lang_code in available_langs %}
+                            <c-translation_indicator 
+                              language_code="{{ lang_code }}"
+                              language_name="{{ lang_name }}"
+                              has_translation="true"
+                              size="sm" />
+                          {% else %}
+                            <c-translation_indicator 
+                              language_code="{{ lang_code }}"
+                              language_name="{{ lang_name }}"
+                              has_translation="false"
+                              size="sm" />
+                          {% endif %}
                         {% endwith %}
                       {% endfor %}
                     </div>
                   </div>
                   <div class="flex items-center space-x-2 ml-4">
-                    <a href="{% url 'item_update' qi.item.id %}" class="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded" title="{% translate 'Edit Item' %}">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </a>
-                    <a href="{% url 'item_translation' qi.item.id %}" class="p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded" title="{% translate 'Translate Item' %}">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                      </svg>
-                    </a>
+                    <c-edit_button href="{% url 'item_update' qi.item.id %}" size="sm" variant="icon"
+                                   title="{% translate 'Edit Item' %}">
+                    </c-edit_button>
+                    <c-create_translations_button href="{% url 'item_translation' qi.item.id %}" size="sm" variant="icon"
+                                                  title="{% translate 'Translate Item' %}">
+                    </c-create_translations_button>
                   </div>
                 </div>
               {% endfor %}
@@ -165,9 +155,9 @@
           <div class="text-center py-8 bg-gray-50 rounded-md">
             <p class="text-gray-600">{% translate "No items in this questionnaire." %}</p>
             <p class="mt-2">
-              <a href="{% url 'questionnaire_update' questionnaire.id %}" class="text-blue-600 hover:underline">
+              <c-link_button href="{% url 'questionnaire_update' questionnaire.id %}" variant="link">
                 {% translate "Add items to this questionnaire" %}
-              </a>
+              </c-link_button>
             </p>
           </div>
         {% endif %}
@@ -175,27 +165,20 @@
       
       <div class="flex justify-end mt-6">
         <div class="flex space-x-2">
-          <a href="{% url 'questionnaire_update' questionnaire.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
+          <c-edit_button href="{% url 'questionnaire_update' questionnaire.id %}">
             {% translate "Edit" %}
-          </a>
-          <a href="{% url 'questionnaire_translation' questionnaire.id %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-            </svg>
+          </c-edit_button>
+          <c-create_translations_button href="{% url 'questionnaire_translation' questionnaire.id %}">
             {% translate "Manage Translations" %}
-          </a>
-          <a href="{% url 'questionnaire_rules' questionnaire.id %}" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-            </svg>
+          </c-create_translations_button>
+          <c-link_button href="{% url 'questionnaire_rules' questionnaire.id %}" variant="purple"
+                         icon_left="<path fill-rule='evenodd' d='M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z' clip-rule='evenodd'/>">
             {% translate "Manage Rules" %}
-          </a>
-          <a href="{% url 'questionnaire_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          </c-link_button>
+          <c-link_button href="{% url 'questionnaire_list' %}" variant="secondary"
+                         icon_left="<path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M10 19l-7-7m0 0l7-7m-7 7h18'/>">
             {% translate "Back to List" %}
-          </a>
+          </c-link_button>
         </div>
       </div>
     </div>
