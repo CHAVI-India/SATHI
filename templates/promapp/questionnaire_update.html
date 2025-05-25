@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load cotton %}
 
 {% block title %}{% translate "Update Questionnaire" %}{% endblock %}
 
@@ -40,9 +41,10 @@
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">{% translate "Update Questionnaire" %}</h1>
-        <a href="{% url 'questionnaire_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+        <c-link_button href="{% url 'questionnaire_list' %}" variant="secondary"
+                       icon_left="<path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M10 19l-7-7m0 0l7-7m-7 7h18'/>">
           {% translate "Back to Questionnaires" %}
-        </a>
+        </c-link_button>
       </div>
       
       {% if messages %}
@@ -90,12 +92,9 @@
         <div class="bg-gray-50 p-4 rounded-md">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-800">{% translate "Manage Items" %}</h2>
-            <a href="{% url 'item_create' %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
+            <c-create_button href="{% url 'item_create' %}">
               {% translate "Create New Item" %}
-            </a>
+            </c-create_button>
           </div>
           
           <div class="flex flex-col lg:flex-row gap-4">
@@ -174,12 +173,9 @@
               {% else %}
                 <div class="text-center py-8">
                   <p class="text-gray-600 mb-4">{% translate "No items available. Please create items first." %}</p>
-                  <a href="{% url 'item_create' %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
+                  <c-create_button href="{% url 'item_create' %}">
                     {% translate "Create First Item" %}
-                  </a>
+                  </c-create_button>
                 </div>
               {% endif %}
             </div>
@@ -189,9 +185,9 @@
               <div class="border rounded p-4 bg-blue-50">
                 <div class="flex justify-between items-center mb-3">
                   <h3 class="font-medium text-gray-700">{% translate "Selected Items" %} (<span id="selected-count">0</span>)</h3>
-                  <button type="button" id="clear-all-btn" class="text-sm text-red-600 hover:text-red-800">
+                  <c-button id="clear-all-btn" variant="danger" size="sm">
                     {% translate "Clear All" %}
-                  </button>
+                  </c-button>
                 </div>
                 
                 <p class="text-sm text-gray-600 mb-3">
@@ -212,22 +208,20 @@
         </div>
         
         <div class="flex justify-between items-center">
-          <a href="{% url 'questionnaire_detail' questionnaire.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+          <c-view_button href="{% url 'questionnaire_detail' questionnaire.id %}">
             {% translate "View Questionnaire" %}
-          </a>
+          </c-view_button>
           <div class="flex space-x-3">
-            <a href="{% url 'questionnaire_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            <c-link_button href="{% url 'questionnaire_list' %}" variant="secondary">
               {% translate "Cancel" %}
-            </a>
-            <a href="{% url 'questionnaire_rules' questionnaire.id %}" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-              </svg>
+            </c-link_button>
+            <c-link_button href="{% url 'questionnaire_rules' questionnaire.id %}" variant="purple"
+                           icon_left="<path fill-rule='evenodd' d='M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z' clip-rule='evenodd'/>">
               {% translate "Manage Rules" %}
-            </a>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            </c-link_button>
+            <c-save_button type="submit">
               {% translate "Update Questionnaire" %}
-            </button>
+            </c-save_button>
           </div>
         </div>
       </form>

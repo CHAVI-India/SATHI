@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load cotton %}
 
 {% block title %}{% translate "Create Questionnaire" %}{% endblock %}
 
@@ -75,12 +76,9 @@
         <div class="bg-gray-50 p-4 rounded-md">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-800">{% translate "Select Items" %}</h2>
-            <a href="{% url 'item_create' %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
+            <c-create_button href="{% url 'item_create' %}">
               {% translate "Create New Item" %}
-            </a>
+            </c-create_button>
           </div>
           
           <div class="flex flex-col lg:flex-row gap-4">
@@ -156,12 +154,9 @@
               {% else %}
                 <div class="text-center py-8">
                   <p class="text-gray-600 mb-4">{% translate "No items available. Please create items first." %}</p>
-                  <a href="{% url 'item_create' %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
+                  <c-create_button href="{% url 'item_create' %}">
                     {% translate "Create First Item" %}
-                  </a>
+                  </c-create_button>
                 </div>
               {% endif %}
             </div>
@@ -171,9 +166,9 @@
               <div class="border rounded p-4 bg-blue-50">
                 <div class="flex justify-between items-center mb-3">
                   <h3 class="font-medium text-gray-700">{% translate "Selected Items" %} (<span id="selected-count">0</span>)</h3>
-                  <button type="button" id="clear-all-btn" class="text-sm text-red-600 hover:text-red-800">
+                  <c-button id="clear-all-btn" variant="danger" size="sm">
                     {% translate "Clear All" %}
-                  </button>
+                  </c-button>
                 </div>
                 
                 <p class="text-sm text-gray-600 mb-3">
@@ -194,12 +189,12 @@
         </div>
         
         <div class="flex justify-end space-x-3">
-          <a href="{% url 'questionnaire_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          <c-link_button href="{% url 'questionnaire_list' %}" variant="secondary">
             {% translate "Cancel" %}
-          </a>
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          </c-link_button>
+          <c-save_button type="submit">
             {% translate "Create Questionnaire" %}
-          </button>
+          </c-save_button>
         </div>
       </form>
     </div>
