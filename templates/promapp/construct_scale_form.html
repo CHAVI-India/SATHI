@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load cotton %}
 
 {% block title %}{% translate "Create Construct Scale" %}{% endblock %}
 
@@ -11,13 +12,13 @@
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">{% translate "Create New Construct Scale" %}</h1>
         {% if referrer %}
-          <a href="{{ referrer }}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          <c-link_button href="{{ referrer }}" variant="secondary">
             {% translate "Back" %}
-          </a>
+          </c-link_button>
         {% else %}
-          <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          <c-link_button href="{% url 'item_create' %}" variant="secondary">
             {% translate "Back to Item Creation" %}
-          </a>
+          </c-link_button>
         {% endif %}
       </div>
       
@@ -68,17 +69,17 @@
         
         <div class="flex justify-end space-x-3">
           {% if referrer %}
-            <a href="{{ referrer }}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            <c-link_button href="{{ referrer }}" variant="secondary">
               {% translate "Cancel" %}
-            </a>
+            </c-link_button>
           {% else %}
-            <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            <c-link_button href="{% url 'item_create' %}" variant="secondary">
               {% translate "Cancel" %}
-            </a>
+            </c-link_button>
           {% endif %}
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          <c-button type="submit" variant="primary">
             {% translate "Create Construct Scale" %}
-          </button>
+          </c-button>
         </div>
       </form>
     </div>

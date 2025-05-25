@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load cotton %}
 
 {% block title %}{% translate "Construct Scales" %}{% endblock %}
 
@@ -10,12 +11,9 @@
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">{% trans "Construct Scales" %}</h1>
         {% if perms.promapp.add_constructscale %}
-            <a href="{% url 'create_construct_scale' %}" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium leading-4 rounded hover:bg-blue-700 inline-flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                </svg>
-                {% trans "Create New Construct Scale" %}
-            </a>
+          <c-create_button href="{% url 'create_construct_scale' %}">
+            {% trans "Create New Construct Scale" %}
+          </c-create_button>
         {% endif %}
       </div>
 
@@ -48,12 +46,9 @@
         <div class="text-center py-8">
           <p class="text-gray-600 mb-4">{% translate "No construct scales available yet." %}</p>
           {% if perms.promapp.add_constructscale %}
-            <a href="{% url 'create_construct_scale' %}" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium leading-4 rounded hover:bg-blue-700 inline-flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
+            <c-create_button href="{% url 'create_construct_scale' %}">
               {% trans "Create First Construct Scale" %}
-            </a>
+            </c-create_button>
           {% endif %}
         </div>
       {% endif %}

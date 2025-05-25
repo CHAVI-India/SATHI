@@ -9,7 +9,16 @@
 <div class="max-w-6xl mx-auto">
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
-      <h1 class="text-2xl font-bold text-blue-700 mb-6">{% translate "Patient Details" %}</h1>
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-blue-700">{% translate "Patient Details" %}</h1>
+        <div class="flex space-x-3">
+          {% if perms.promapp.add_patientquestionnaire %}
+          <c-link_button href="{% url 'patient_questionnaire_management' patient.id %}" variant="success">
+            {% translate "Manage Questionnaires" %}
+          </c-link_button>
+          {% endif %}
+        </div>
+      </div>
 
       {% if messages %}
         <div class="mb-6">

@@ -1375,6 +1375,23 @@ class PatientQuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, 
                 ).values_list('translations__name', flat=True)
             )
             
+        # Add dropdown options for filter components
+        from django.utils.translation import gettext as _
+        
+        context['questionnaire_count_choices'] = [
+            ('0', _('None')),
+            ('1-5', _('1-5')),
+            ('6-10', _('6-10')),
+            ('10+', _('10+')),
+        ]
+        
+        context['sort_choices'] = [
+            ('name', _('Name')),
+            ('-name', _('Name (Z-A)')),
+            ('questionnaire_count', _('Questionnaire Count')),
+            ('-questionnaire_count', _('Questionnaire Count (High-Low)')),
+        ]
+            
         # Add current filter values to context
         context['current_search'] = self.request.GET.get('search', '')
         context['current_questionnaire_count'] = self.request.GET.get('questionnaire_count', '')
