@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load cotton %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -18,25 +19,21 @@
                                 {{ field.label }}
                             </label>
                             {% if field.name == 'treatment_type' and perms.patientapp.add_treatmenttype %}
-                                <a href="{% url 'treatment_type_create' %}" 
-                                   target="_blank"
-                                   class="text-sm text-blue-600 hover:text-blue-900">
+                                <c-link_button href="{% url 'treatment_type_create' %}" target="_blank" size="sm">
                                     {% translate "Add New Treatment Type" %}
-                                </a>
+                                </c-link_button>
                             {% endif %}
                         </div>
                         {{ field|as_crispy_field }}
                     </div>
                 {% endfor %}
                 <div class="mt-6 flex justify-end space-x-3">
-                    <a href="{% url 'patient_detail' diagnosis.patient.id %}" 
-                       class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm">
+                    <c-link_button href="{% url 'patient_detail' diagnosis.patient.id %}" variant="secondary">
                         {% translate "Cancel" %}
-                    </a>
-                    <button type="submit" 
-                            class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm">
+                    </c-link_button>
+                    <c-save_button>
                         {% if object %}{% translate "Update" %}{% else %}{% translate "Add" %}{% endif %}
-                    </button>
+                    </c-save_button>
                 </div>
             </form>
         </div>

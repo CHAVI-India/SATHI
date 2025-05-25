@@ -1,0 +1,41 @@
+{% comment %}
+Language Selector Component
+Used for language switching in navbar with auto-submit
+
+Props:
+- name: The name attribute for the select element (default: "language")
+- id: The id attribute for the select element (defaults to name)
+- languages: List of language options with code and name
+- current_language: Currently selected language code
+- variant: "navbar" (default) or "mobile" for different styling
+- class: Additional CSS classes
+- auto_submit: Whether to auto-submit on change (default: true)
+{% endcomment %}
+
+{% load i18n %}
+
+<select 
+    name="{{ name|default:'language' }}" 
+    id="{{ id|default:name|default:'language' }}"
+    {% if auto_submit|default:true %}onchange="this.form.submit()"{% endif %}
+    class="{% if variant == 'mobile' %}bg-blue-700 text-white px-2 py-1 rounded w-full{% else %}bg-blue-700 text-white px-2 py-1 rounded text-sm{% endif %} {{ class }}"
+>
+    {% get_available_languages as available_languages %}
+    {% get_current_language as current_lang %}
+    
+    {% if languages %}
+        {# Custom language list provided #}
+        {% for lang in languages %}
+            <option value="{{ lang.code }}" {% if current_language == lang.code or current_lang == lang.code %}selected{% endif %}>
+                {{ lang.name }}
+            </option>
+        {% endfor %}
+    {% else %}
+        {# Use Django's available languages #}
+        {% for code, name in available_languages %}
+            <option value="{{ code }}" {% if current_language == code or current_lang == code %}selected{% endif %}>
+                {{ name }}
+            </option>
+        {% endfor %}
+    {% endif %}
+</select> 

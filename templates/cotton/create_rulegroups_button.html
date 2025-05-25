@@ -1,0 +1,14 @@
+{% load i18n %}
+
+{# Create Rule Groups Button Component #}
+<a href="{{ href|default:'#' }}"
+   class="inline-flex items-center px-4 py-2 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-300 rounded-md hover:bg-teal-100 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors duration-200 {{ class }}"
+   {% if target %}target="{{ target }}"{% endif %}
+   {% if id %}id="{{ id }}"{% endif %}
+   {% if title %}title="{{ title }}"{% endif %}
+   {{ attrs }}>
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+    </svg>
+    {% if slot %}{{ slot }}{% else %}{% translate "Create Rule Groups" %}{% endif %}
+</a> 

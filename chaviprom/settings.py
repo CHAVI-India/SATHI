@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'secured_fields',
     'crispy_forms',
     'crispy_tailwind',
+    'django_cotton',
     'promapp',
     'patientapp',
 ]

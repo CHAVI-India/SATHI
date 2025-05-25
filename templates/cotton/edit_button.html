@@ -1,0 +1,14 @@
+{% load i18n %}
+
+{# Edit Button Component #}
+<a href="{{ href|default:'#' }}"
+   class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-yellow-700 bg-yellow-50 border border-yellow-300 rounded-md hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-colors duration-200 {{ class }}"
+   {% if target %}target="{{ target }}"{% endif %}
+   {% if id %}id="{{ id }}"{% endif %}
+   {% if title %}title="{{ title }}"{% endif %}
+   {{ attrs }}>
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.828-2.828z"/>
+    </svg>
+    {% if slot %}{{ slot }}{% else %}{% translate "Edit" %}{% endif %}
+</a> 

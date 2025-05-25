@@ -1,0 +1,14 @@
+{% load i18n %}
+
+{# Create Button Component #}
+<a href="{{ href|default:'#' }}"
+   class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 {{ class }}"
+   {% if target %}target="{{ target }}"{% endif %}
+   {% if id %}id="{{ id }}"{% endif %}
+   {% if title %}title="{{ title }}"{% endif %}
+   {{ attrs }}>
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+    </svg>
+    {% if slot %}{{ slot }}{% else %}{% translate "Create" %}{% endif %}
+</a> 

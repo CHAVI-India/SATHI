@@ -1,0 +1,67 @@
+{% comment %}
+Filter Dropdown Component
+Used for search/filter forms with HTMX integration
+
+Props:
+- name: The name attribute for the select element (required)
+- id: The id attribute for the select element (defaults to name)
+- label: The label text (required)
+- placeholder: The default option text (e.g., "All Institutions")
+- options: List of options - can be objects with id/name or simple values
+- selected: Currently selected value
+- required: Whether the field is required (default: false)
+- help_text: Optional help text below the dropdown
+- class: Additional CSS classes
+- hx_get: HTMX get URL for dynamic updates
+- hx_target: HTMX target element
+- hx_trigger: HTMX trigger event (default: "change")
+{% endcomment %}
+
+<div>
+    <label for="{{ id|default:name }}" class="block text-sm font-medium text-gray-700">
+        {{ label }}
+        {% if required %}<span class="text-red-500">*</span>{% endif %}
+    </label>
+    <select 
+        name="{{ name }}" 
+        id="{{ id|default:name }}"
+        class="mt-1 block w-full rounded-md border-2 border-gray-400 shadow-md focus:border-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 sm:text-sm px-3 py-2 text-gray-900 bg-white hover:border-gray-500 transition-colors duration-200 {{ class }}"
+        {% if required %}required{% endif %}
+        {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+        {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+        {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}{% if hx_get %}hx-trigger="change"{% endif %}{% endif %}
+    >
+        {% if placeholder %}
+        <option value="" class="text-gray-600 bg-gray-50">{{ placeholder }}</option>
+        {% endif %}
+        
+        {% for option in options %}
+            {% if option.id %}
+                {# Object with id/name attributes #}
+                <option value="{{ option.id }}" 
+                    class="text-gray-900 bg-white hover:bg-blue-50"
+                    {% if selected == option.id|stringformat:"s" or selected == option.id %}selected{% endif %}>
+                    {{ option.name|default:option }}
+                </option>
+            {% elif option|length == 2 and option.0 and option.1 %}
+                {# Tuple/list with value, label (like Django choices) #}
+                <option value="{{ option.0 }}" 
+                    class="text-gray-900 bg-white hover:bg-blue-50"
+                    {% if selected == option.0 %}selected{% endif %}>
+                    {{ option.1 }}
+                </option>
+            {% else %}
+                {# Simple string value #}
+                <option value="{{ option }}" 
+                    class="text-gray-900 bg-white hover:bg-blue-50"
+                    {% if selected == option %}selected{% endif %}>
+                    {{ option }}
+                </option>
+            {% endif %}
+        {% endfor %}
+    </select>
+    
+    {% if help_text %}
+    <p class="mt-1 text-sm text-gray-500">{{ help_text }}</p>
+    {% endif %}
+</div> 

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load static %}
+{% load cotton %}
 
 {% block title %}{% translate "Patients" %}{% endblock %}
 
@@ -11,12 +12,9 @@
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">{% translate "Patients" %}</h1>
         {% if perms.patientapp.add_patient %}
-        <a href="{% url 'patient_create' %}" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium leading-4 rounded hover:bg-blue-700 inline-flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-            </svg>
+        <c-create_button href="{% url 'patient_create' %}">
             {% translate "Add Patient" %}
-        </a>
+        </c-create_button>
         {% endif %}
       </div>
 
@@ -44,60 +42,36 @@
                     </div>
 
                     <!-- Institution Filter -->
-                    <div>
-                        <label for="institution" class="block text-sm font-medium text-gray-700">{% translate "Institution" %}</label>
-                        <select name="institution" id="institution" 
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3">
-                            <option value="">{% translate "All Institutions" %}</option>
-                            {% for institution in institutions %}
-                            <option value="{{ institution.id }}" {% if request.GET.institution == institution.id|stringformat:"s" %}selected{% endif %}>
-                                {{ institution.name }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    <c-filter_dropdown 
+                        name="institution" 
+                        label="{% translate 'Institution' %}"
+                        placeholder="{% translate 'All Institutions' %}"
+                        :options="institutions"
+                        :selected="request.GET.institution" />
 
                     <!-- Gender Filter -->
-                    <div>
-                        <label for="gender" class="block text-sm font-medium text-gray-700">{% translate "Gender" %}</label>
-                        <select name="gender" id="gender" 
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3">
-                            <option value="">{% translate "All Genders" %}</option>
-                            {% for value, label in gender_choices %}
-                            <option value="{{ value }}" {% if request.GET.gender == value %}selected{% endif %}>
-                                {{ label }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    <c-filter_dropdown 
+                        name="gender" 
+                        label="{% translate 'Gender' %}"
+                        placeholder="{% translate 'All Genders' %}"
+                        :options="gender_choices"
+                        :selected="request.GET.gender" />
 
                     <!-- Diagnosis Filter -->
-                    <div>
-                        <label for="diagnosis" class="block text-sm font-medium text-gray-700">{% translate "Diagnosis" %}</label>
-                        <select name="diagnosis" id="diagnosis" 
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3">
-                            <option value="">{% translate "All Diagnoses" %}</option>
-                            {% for diagnosis in diagnoses %}
-                            <option value="{{ diagnosis }}" {% if request.GET.diagnosis == diagnosis %}selected{% endif %}>
-                                {{ diagnosis }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    <c-filter_dropdown 
+                        name="diagnosis" 
+                        label="{% translate 'Diagnosis' %}"
+                        placeholder="{% translate 'All Diagnoses' %}"
+                        :options="diagnoses"
+                        :selected="request.GET.diagnosis" />
 
                     <!-- Treatment Type Filter -->
-                    <div>
-                        <label for="treatment_type" class="block text-sm font-medium text-gray-700">{% translate "Treatment Type" %}</label>
-                        <select name="treatment_type" id="treatment_type" 
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3">
-                            <option value="">{% translate "All Treatment Types" %}</option>
-                            {% for treatment_type in treatment_types %}
-                            <option value="{{ treatment_type }}" {% if request.GET.treatment_type == treatment_type %}selected{% endif %}>
-                                {{ treatment_type }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    <c-filter_dropdown 
+                        name="treatment_type" 
+                        label="{% translate 'Treatment Type' %}"
+                        placeholder="{% translate 'All Treatment Types' %}"
+                        :options="treatment_types"
+                        :selected="request.GET.treatment_type" />
         </div>
       </form>
 
@@ -187,12 +161,12 @@
                     </td>
                     <td class="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">
                         <div class="flex justify-end space-x-2">
-                            <a href="{% url 'patient_detail' patient.id %}" class="text-blue-600 hover:text-blue-900">
+                            <c-view_button href="{% url 'patient_detail' patient.id %}">
                                 {% translate "View" %}
-                            </a>
-                            <a href="{% url 'patient_questionnaire_management' patient.id %}" class="text-green-600 hover:text-green-900">
+                            </c-view_button>
+                            <c-link_button href="{% url 'patient_questionnaire_management' patient.id %}" variant="success">
                                 {% translate "Manage" %}
-                            </a>
+                            </c-link_button>
                         </div>
                     </td>
                 </tr>

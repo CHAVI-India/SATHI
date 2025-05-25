@@ -1,0 +1,52 @@
+{% load i18n %}
+
+{# Link Button Component - renders as <a> tag but styled as button #}
+<a 
+    href="{{ href|default:'#' }}"
+    class="inline-flex items-center justify-center font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 no-underline
+    {% if variant == 'secondary' %}
+        bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-blue-500
+    {% elif variant == 'danger' %}
+        bg-red-600 text-white hover:bg-red-700 focus:ring-red-500
+    {% elif variant == 'success' %}
+        bg-green-600 text-white hover:bg-green-700 focus:ring-green-500
+    {% elif variant == 'outline' %}
+        bg-transparent text-blue-600 border border-blue-600 hover:bg-blue-50 focus:ring-blue-500
+    {% elif variant == 'ghost' %}
+        bg-transparent text-gray-600 hover:bg-gray-100 focus:ring-gray-500
+    {% else %}
+        bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500
+    {% endif %}
+    {% if size == 'sm' %}
+        px-3 py-1.5 text-sm
+    {% elif size == 'lg' %}
+        px-6 py-3 text-lg
+    {% elif size == 'xl' %}
+        px-8 py-4 text-xl
+    {% else %}
+        px-4 py-2 text-base
+    {% endif %}
+    {% if full_width %}
+        w-full
+    {% endif %}
+    {{ class }}"
+    {% if target %}target="{{ target }}"{% endif %}
+    {% if id %}id="{{ id }}"{% endif %}
+    {{ attrs }}
+>
+    {% if icon_left %}
+        <svg xmlns="http://www.w3.org/2000/svg" class="{% if size == 'sm' %}h-4 w-4{% elif size == 'lg' %}h-6 w-6{% elif size == 'xl' %}h-7 w-7{% else %}h-5 w-5{% endif %} {% if slot %}mr-2{% endif %}" viewBox="0 0 20 20" fill="currentColor">
+            {{ icon_left|safe }}
+        </svg>
+    {% endif %}
+    
+    {% if slot %}
+        {{ slot }}
+    {% endif %}
+    
+    {% if icon_right %}
+        <svg xmlns="http://www.w3.org/2000/svg" class="{% if size == 'sm' %}h-4 w-4{% elif size == 'lg' %}h-6 w-6{% elif size == 'xl' %}h-7 w-7{% else %}h-5 w-5{% endif %} {% if slot %}ml-2{% endif %}" viewBox="0 0 20 20" fill="currentColor">
+            {{ icon_right|safe }}
+        </svg>
+    {% endif %}
+</a> 

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load cotton %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -21,14 +22,12 @@
             <form method="post">
                 {% csrf_token %}
                 <div class="flex justify-end space-x-3">
-                    <a href="{% url 'patient_detail' object.patient.id %}" 
-                       class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm">
+                    <c-link_button href="{% url 'patient_detail' object.patient.id %}" variant="secondary">
                         {% translate "Cancel" %}
-                    </a>
-                    <button type="submit" 
-                            class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm">
+                    </c-link_button>
+                    <c-delete_button type="submit">
                         {% translate "Delete" %}
-                    </button>
+                    </c-delete_button>
                 </div>
             </form>
         </div>

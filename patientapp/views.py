@@ -51,10 +51,10 @@ def patient_list(request):
     gender_choices = GenderChoices.choices
     
     # Get unique diagnoses for the filter dropdown
-    diagnoses = Diagnosis.objects.values_list('diagnosis', flat=True).distinct()
+    diagnoses = list(Diagnosis.objects.values_list('diagnosis', flat=True).distinct().exclude(diagnosis__isnull=True).exclude(diagnosis=''))
     
     # Get unique treatment types for the filter dropdown
-    treatment_types = TreatmentType.objects.values_list('treatment_type', flat=True).distinct()
+    treatment_types = list(TreatmentType.objects.values_list('treatment_type', flat=True).distinct().exclude(treatment_type__isnull=True).exclude(treatment_type=''))
     
     # Pagination
     page = request.GET.get('page', 1)

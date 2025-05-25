@@ -3,6 +3,7 @@ cffi==1.17.1
 crispy-tailwind==1.0.3
 cryptography==44.0.3
 Django==5.2.1
+django-cotton==2.1.2
 django-crispy-forms==2.4
 django-htmx==1.23.0
 django-parler==2.3
