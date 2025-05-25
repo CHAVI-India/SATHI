@@ -2815,7 +2815,7 @@ class LikertScaleResponseOptionTranslationView(LoginRequiredMixin, PermissionReq
         return redirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse('likert_scale_response_option_translation_list')
+        return reverse('likert_scale_list')
     
 class LikertScaleResponseOptionTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     """
