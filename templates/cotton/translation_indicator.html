@@ -1,0 +1,46 @@
+
+{% load i18n %}
+
+{# Translation Indicator Component #}
+{# Props: language_code, language_name, has_translation, url, size (sm|md|lg) #}
+
+{% with size=size|default:"md" %}
+<a href="{{ url }}" 
+   class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 hover:shadow-sm
+          {% if has_translation == 'true' or has_translation == True %}
+            bg-green-100 text-green-800 border border-green-200 hover:bg-green-200
+          {% else %}
+            bg-red-100 text-red-800 border border-red-200 hover:bg-red-200
+          {% endif %}
+          {% if size == 'sm' %}
+            text-xs px-2 py-0.5
+          {% elif size == 'lg' %}
+            text-sm px-3 py-1.5
+          {% else %}
+            text-xs px-2 py-1
+          {% endif %}"
+   title="{% if has_translation == 'true' or has_translation == True %}{% translate 'Translation available - click to edit' %}{% else %}{% translate 'No translation - click to add' %}{% endif %}">
+  
+  <!-- Language code/name -->
+  <span class="{% if size == 'sm' %}text-xs{% elif size == 'lg' %}text-sm{% else %}text-xs{% endif %}">
+    {{ language_name|default:language_code }}
+  </span>
+  
+  <!-- Status icon -->
+  <span class="ml-1 flex-shrink-0">
+    {% if has_translation == 'true' or has_translation == True %}
+      <!-- Green checkmark -->
+      <svg class="{% if size == 'sm' %}h-3 w-3{% elif size == 'lg' %}h-4 w-4{% else %}h-3 w-3{% endif %} text-green-600" 
+           fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+    {% else %}
+      <!-- Red X -->
+      <svg class="{% if size == 'sm' %}h-3 w-3{% elif size == 'lg' %}h-4 w-4{% else %}h-3 w-3{% endif %} text-red-600" 
+           fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    {% endif %}
+  </span>
+</a>
+{% endwith %} 

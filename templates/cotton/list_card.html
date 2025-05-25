@@ -36,17 +36,108 @@ Usage:
 {% endfor %}
 {% endcomment %}
 
-<!-- Container for cards with empty state handling -->
-{% if not items %}
-    <!-- Empty state -->
-    <div class="w-full bg-white rounded-md border border-gray-200 p-8 {{ class }}">
-        <div class="text-center">
-            <div class="text-gray-400 mb-2">
-                <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-            </div>
-            <p class="text-gray-500">{{ empty_message|default:"No items found" }}</p>
+{% load i18n %}
+
+{# List Card Component #}
+{# Props: title, subtitle, items, empty_message, show_count, class, item_class, shadow, border, padding, item_padding, layout, columns, gap, header_actions #}
+
+{% with shadow=shadow|default:"md" %}
+{% with border=border|default:"light" %}
+{% with padding=padding|default:"md" %}
+{% with item_padding=item_padding|default:"sm" %}
+{% with layout=layout|default:"grid" %}
+{% with columns=columns|default:"2" %}
+{% with gap=gap|default:"md" %}
+{% with show_count=show_count|default:True %}
+
+<div class="w-full bg-white rounded-lg 
+           {% if shadow == 'sm' %}shadow-sm
+           {% elif shadow == 'md' %}shadow-md
+           {% elif shadow == 'lg' %}shadow-lg
+           {% elif shadow == 'xl' %}shadow-xl
+           {% endif %}
+           {% if border == 'light' %}border border-gray-200
+           {% elif border == 'medium' %}border-2 border-gray-300
+           {% elif border == 'strong' %}border-2 border-gray-400
+           {% endif %}
+           {{ class }}">
+  
+  <!-- Header -->
+  {% if title or header_actions %}
+    <div class="{% if padding == 'sm' %}p-4{% elif padding == 'md' %}p-6{% elif padding == 'lg' %}p-8{% elif padding == 'xl' %}p-10{% endif %} border-b border-gray-200">
+      <div class="flex justify-between items-center">
+        <div>
+          {% if title %}
+            <h2 class="text-xl font-semibold text-gray-900">{{ title }}</h2>
+          {% endif %}
+          {% if subtitle %}
+            <p class="mt-1 text-sm text-gray-500">{{ subtitle }}</p>
+          {% endif %}
+          {% if show_count and items %}
+            <p class="mt-1 text-xs text-gray-400">
+              {% blocktrans count counter=items|length %}
+                {{ counter }} item
+              {% plural %}
+                {{ counter }} items
+              {% endblocktrans %}
+            </p>
+          {% endif %}
         </div>
+        {% if header_actions %}
+          <div class="flex space-x-2">
+            {{ header_actions|safe }}
+          </div>
+        {% endif %}
+      </div>
     </div>
-{% endif %} 
+  {% endif %}
+
+  <!-- Content -->
+  <div class="{% if padding == 'sm' %}p-4{% elif padding == 'md' %}p-6{% elif padding == 'lg' %}p-8{% elif padding == 'xl' %}p-10{% endif %}">
+    {% if items %}
+      <!-- Items Container -->
+      <div class="{% if layout == 'list' %}space-y-{% if gap == 'sm' %}2{% elif gap == 'md' %}4{% elif gap == 'lg' %}6{% endif %}
+                 {% else %}grid 
+                   {% if columns == '1' %}grid-cols-1
+                   {% elif columns == '2' %}grid-cols-1 md:grid-cols-2
+                   {% elif columns == '3' %}grid-cols-1 md:grid-cols-2 lg:grid-cols-3
+                   {% elif columns == '4' %}grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4
+                   {% elif columns == 'auto' %}grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4
+                   {% endif %}
+                   {% if gap == 'sm' %}gap-2{% elif gap == 'md' %}gap-4{% elif gap == 'lg' %}gap-6{% endif %}
+                 {% endif %}">
+        
+        {% for item in items %}
+          <div class="{% if layout == 'list' %}w-full{% endif %}
+                     {% if item_padding == 'sm' %}p-3
+                     {% elif item_padding == 'md' %}p-4
+                     {% elif item_padding == 'lg' %}p-6
+                     {% endif %}
+                     {% if layout == 'grid' %}bg-gray-50 rounded-lg border border-gray-100{% endif %}
+                     hover:bg-gray-50 transition-colors duration-200
+                     {{ item_class }}">
+            {{ slot }}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <!-- Empty State -->
+      <div class="text-center py-8">
+        <div class="text-gray-400 mb-3">
+          <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <p class="text-gray-500 text-sm">{{ empty_message|default:"No items found" }}</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endwith %}
+{% endwith %}
+{% endwith %}
+{% endwith %}
+{% endwith %}
+{% endwith %}
+{% endwith %} 

@@ -36,7 +36,14 @@ Props:
         {% endif %}
         
         {% for option in options %}
-            {% if option.id %}
+            {% if option.value and option.display %}
+                {# Object with value/display attributes (like Django choice objects) #}
+                <option value="{{ option.value }}" 
+                    class="text-gray-900 bg-white hover:bg-blue-50"
+                    {% if selected == option.value %}selected{% endif %}>
+                    {{ option.display }}
+                </option>
+            {% elif option.id %}
                 {# Object with id/name attributes #}
                 <option value="{{ option.id }}" 
                     class="text-gray-900 bg-white hover:bg-blue-50"
