@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load cotton %}
 
 {% block title %}{% if is_edit %}{% translate "Edit Range Scale" %}{% else %}{% translate "Create Range Scale" %}{% endif %}{% endblock %}
 
@@ -17,13 +18,19 @@
           {% endif %}
         </h1>
         {% if perms.promapp.view_rangescale %}
-          <a href="{% url 'range_scale_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          <c-link_button 
+            href="{% url 'range_scale_list' %}" 
+            variant="secondary"
+            icon_left="<path fill-rule='evenodd' d='M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z' clip-rule='evenodd'/>">
             {% translate "Back to Range Scales" %}
-          </a>
+          </c-link_button>
         {% else %}
-          <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          <c-link_button 
+            href="{% url 'item_create' %}" 
+            variant="secondary"
+            icon_left="<path fill-rule='evenodd' d='M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z' clip-rule='evenodd'/>">
             {% translate "Back to Item Creation" %}
-          </a>
+          </c-link_button>
         {% endif %}
       </div>
       
@@ -100,21 +107,28 @@
         
         <div class="flex justify-end space-x-3">
           {% if perms.promapp.view_rangescale %}
-            <a href="{% url 'range_scale_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            <c-link_button 
+              href="{% url 'range_scale_list' %}" 
+              variant="secondary">
               {% translate "Cancel" %}
-            </a>
+            </c-link_button>
           {% else %}
-            <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            <c-link_button 
+              href="{% url 'item_create' %}" 
+              variant="secondary">
               {% translate "Cancel" %}
-            </a>
+            </c-link_button>
           {% endif %}
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          <c-button 
+            type="submit" 
+            variant="primary"
+            icon_left="{% if is_edit %}<path d='M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.828-2.828z'/>{% else %}<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd'/>{% endif %}">
             {% if is_edit %}
               {% translate "Update Range Scale" %}
             {% else %}
               {% translate "Create Range Scale" %}
             {% endif %}
-          </button>
+          </c-button>
         </div>
       </form>
     </div>

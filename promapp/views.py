@@ -1018,6 +1018,13 @@ class RangeScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search', '')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # Add available languages to context
+        context['available_languages'] = settings.LANGUAGES
+        
+        # Add current language to context for translation links
+        context['current_language'] = get_language()
+        
         return context
     
     def get(self, request, *args, **kwargs):

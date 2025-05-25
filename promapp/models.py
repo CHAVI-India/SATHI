@@ -184,6 +184,10 @@ class RangeScale(TranslatableModel):
             if (self.max_value - self.min_value) % self.increment != 0:
                 raise ValueError("Maximum value minus minimum value must be divisible by increment")
 
+    def get_available_languages(self):
+        """Return a list of language codes for which translations exist."""
+        return list(self.translations.values_list('language_code', flat=True))
+
 
 
 class ResponseTypeChoices(models.TextChoices):

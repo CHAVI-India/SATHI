@@ -1,106 +1,89 @@
 {% load i18n %}
+{% load cotton %}
 
-<div class="overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200">
-    <thead class="bg-gray-50">
-      <tr>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          {% translate "Scale Name" %}
-        </th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          {% translate "Range" %}
-        </th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          {% translate "Increment" %}
-        </th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          {% translate "Created" %}
-        </th>
-        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-          {% translate "Actions" %}
-        </th>
-      </tr>
-    </thead>
-    <tbody class="bg-white divide-y divide-gray-200">
-      {% if range_scales %}
-        {% for scale in range_scales %}
-          <tr>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm font-medium text-gray-900">{{ scale.range_scale_name }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">
-                {{ scale.min_value }} - {{ scale.max_value }}
-                {% if scale.min_value_text or scale.max_value_text %}
-                  <div class="text-xs text-gray-500">
-                    {% if scale.min_value_text %}{{ scale.min_value_text }}{% endif %}
-                    {% if scale.min_value_text and scale.max_value_text %} - {% endif %}
-                    {% if scale.max_value_text %}{{ scale.max_value_text }}{% endif %}
-                  </div>
-                {% endif %}
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">{{ scale.increment }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">{{ scale.created_date|date:"Y-m-d H:i" }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              {% if perms.promapp.change_rangescale %}
-                <a href="{% url 'create_range_scale' %}?edit={{ scale.id }}" class="inline-flex items-center px-4 py-2.5 border border-transparent text-sm font-medium leading-4 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-4">
-                  {% translate "Edit" %}
-                </a>
-              {% endif %}
-            </td>
-          </tr>
+<!-- Empty state handling -->
+<c-list_card :items="range_scales" empty_message="{% translate 'No range scales found.' %}" />
+
+<!-- Range scale cards -->
+<div class="space-y-4">
+  {% for scale in range_scales %}
+  <c-card shadow="md" border="light" padding="md" class="w-full hover:shadow-lg transition-shadow duration-200">
+    
+    <!-- Header with name and actions -->
+    <div class="flex justify-between items-start mb-4">
+      <h3 class="text-lg font-semibold text-gray-900 break-words">{{ scale.range_scale_name }}</h3>
+      <div class="flex space-x-2">
+        {% if perms.promapp.change_rangescale %}
+          <c-edit_button href="{% url 'create_range_scale' %}?edit={{ scale.id }}" size="sm">
+            {% translate "Edit" %}
+          </c-edit_button>
+        {% endif %}
+        <c-create_translations_button href="{% url 'range_scale_translate' scale.id %}?language={{ current_language }}" target="_blank" rel="noopener noreferrer" size="sm">
+          {% translate "Translate" %}
+        </c-create_translations_button>
+      </div>
+    </div>
+
+    <!-- Range Scale Details -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-500 mb-4">
+      <!-- Range -->
+      <div>
+        <span class="font-medium text-gray-700">{% translate "Range:" %}</span>
+        <div class="text-gray-900">{{ scale.min_value }} - {{ scale.max_value }}</div>
+      </div>
+
+      <!-- Increment -->
+      <div>
+        <span class="font-medium text-gray-700">{% translate "Increment:" %}</span>
+        <div class="text-gray-900">{{ scale.increment|default:"—" }}</div>
+      </div>
+
+      <!-- Min Value Text -->
+      <div>
+        <span class="font-medium text-gray-700">{% translate "Min Value Text:" %}</span>
+        <div class="text-gray-900">{{ scale.min_value_text|default:"—" }}</div>
+      </div>
+
+      <!-- Max Value Text -->
+      <div>
+        <span class="font-medium text-gray-700">{% translate "Max Value Text:" %}</span>
+        <div class="text-gray-900">{{ scale.max_value_text|default:"—" }}</div>
+      </div>
+    </div>
+
+    <!-- Additional Details -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500 mb-4">
+      <!-- Created Date -->
+      <div>
+        <span class="font-medium text-gray-700">{% translate "Created:" %}</span>
+        <div class="text-gray-900">{{ scale.created_date|date:"SHORT_DATE_FORMAT" }}</div>
+      </div>
+    </div>
+
+    <!-- Translation Status -->
+    <div class="mt-4">
+      <h4 class="text-sm font-medium text-gray-700 mb-2">{% translate "Translation Status" %}</h4>
+      <div class="flex flex-wrap gap-2">
+        {% for lang_code, lang_name in available_languages %}
+          {% with available_langs=scale.get_available_languages %}
+            <c-translation_indicator 
+              language_code="{{ lang_code }}"
+              language_name="{{ lang_name }}"
+              has_translation="{% if lang_code in available_langs %}true{% else %}false{% endif %}"
+              url="{% url 'range_scale_translate' scale.id %}?language={{ lang_code }}"
+              size="sm">
+            </c-translation_indicator>
+          {% endwith %}
         {% endfor %}
-      {% else %}
-        <tr>
-          <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
-            {% translate "No range scales found." %}
-          </td>
-        </tr>
-      {% endif %}
-    </tbody>
-  </table>
+      </div>
+    </div>
+  </c-card>
+  {% endfor %}
 </div>
 
-{% if is_paginated %}
-  <div class="mt-4 flex justify-center">
-    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-      {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-           class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-          <span class="sr-only">{% translate "Previous" %}</span>
-          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-          </svg>
-        </a>
-      {% endif %}
-      
-      {% for num in page_obj.paginator.page_range %}
-        {% if page_obj.number == num %}
-          <span class="relative inline-flex items-center px-3 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
-            {{ num }}
-          </span>
-        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-          <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-             class="relative inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-            {{ num }}
-          </a>
-        {% endif %}
-      {% endfor %}
-      
-      {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-           class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-          <span class="sr-only">{% translate "Next" %}</span>
-          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-          </svg>
-        </a>
-      {% endif %}
-    </nav>
-  </div>
-{% endif %} 
+<!-- Pagination -->
+<c-paginator 
+  :page_obj="page_obj" 
+  :is_paginated="is_paginated" 
+  preserve_params="true"
+  class="mt-6" /> 

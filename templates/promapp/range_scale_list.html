@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load cotton %}
 
 {% block title %}{% translate "Range Scales" %}{% endblock %}
 
@@ -10,12 +11,11 @@
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">{% translate "Range Scales" %}</h1>
         {% if perms.promapp.add_rangescale %}
-          <a href="{% url 'create_range_scale' %}" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium leading-4 rounded hover:bg-blue-700 inline-flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-            </svg>
+          <c-link_button 
+            href="{% url 'create_range_scale' %}" 
+            icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd' />">
             {% translate "Create New Range Scale" %}
-          </a>
+          </c-link_button>
         {% endif %}
       </div>
       
@@ -34,9 +34,9 @@
           <div class="flex-1">
             <input type="text" name="search" value="{{ search_query }}" placeholder="{% translate 'Search range scales...' %}" class="w-full px-3 py-2 border rounded">
           </div>
-          <button type="submit" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          <c-button type="submit" variant="secondary">
             {% translate "Search" %}
-          </button>
+          </c-button>
         </form>
       </div>
       

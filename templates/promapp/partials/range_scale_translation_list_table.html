@@ -1,87 +1,99 @@
 {% load i18n %}
+{% load cotton %}
 
-<div class="bg-white rounded-lg shadow overflow-hidden">
-    <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-            <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {% translate "Range Scale Name" %}
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {% translate "Min Value Text" %}
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {% translate "Max Value Text" %}
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {% translate "Translations Available" %}
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {% translate "Translations Pending" %}
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {% translate "Actions" %}
-                </th>
-            </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-            {% for scale_data in range_scales_with_translation_status %}
-            <tr>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    {{ scale_data.scale.range_scale_name }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    {{ scale_data.scale.min_value_text }}
-                </td>
-                <td class="px-6 py-4">
-                    {{ scale_data.scale.max_value_text }}
-                </td>
-                <td class="px-6 py-4">
+<!-- Empty state handling -->
+<c-list_card :items="range_scales_with_translation_status" empty_message="{% translate 'No range scales found.' %}" />
+
+<!-- Range scale translation cards -->
+<div class="space-y-4">
+    {% for scale_data in range_scales_with_translation_status %}
+    <c-card shadow="sm" border="light" padding="md" class="w-full hover:shadow-md transition-shadow duration-200">
+        <div class="space-y-4">
+            <!-- Top row: Scale info and actions -->
+            <div class="flex justify-between items-start">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-lg font-medium text-gray-900 truncate">{{ scale_data.scale.range_scale_name }}</h3>
+                            <div class="flex flex-wrap gap-2 mt-1">
+                                {% if scale_data.scale.min_value_text %}
+                                <span class="text-sm text-gray-600">
+                                    {% translate "Min:" %} {{ scale_data.scale.min_value_text }}
+                                </span>
+                                {% endif %}
+                                {% if scale_data.scale.max_value_text %}
+                                <span class="text-sm text-gray-600">
+                                    {% translate "Max:" %} {{ scale_data.scale.max_value_text }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-2 ml-4">
+                    <c-link_button 
+                        href="{% url 'range_scale_translate' scale_data.scale.id %}?language={{ current_language }}" 
+                        variant="success" 
+                        size="sm">
+                        {% translate "Add/Edit Translation" %}
+                    </c-link_button>
+                </div>
+            </div>
+            
+            <!-- Translation status section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-gray-100">
+                <!-- Available translations -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">{% translate "Translations Available" %}</h4>
                     <div class="flex flex-wrap gap-1">
                         {% for status in scale_data.translation_status %}
                         {% if status.has_translation %}
-                        <a href="{{ status.url }}" 
-                           class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 transition-colors duration-200"
-                           title="{% translate 'Edit translation for' %} {{ status.language_name }}">
+                        <c-link_button 
+                            href="{{ status.url }}" 
+                            variant="outline"
+                            size="sm"
+                            class="bg-green-100 text-green-800 hover:bg-green-200 border-green-300"
+                            title="{% translate 'Edit translation for' %} {{ status.language_name }}">
                             <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                             </svg>
                             {{ status.language_code|upper }}
-                        </a>
+                        </c-link_button>
                         {% endif %}
                         {% endfor %}
+                        {% if not scale_data.translation_status|length %}
+                        <p class="text-sm text-gray-500 italic">{% translate "No translations available" %}</p>
+                        {% endif %}
                     </div>
-                </td>
-                <td class="px-6 py-4">
+                </div>
+                
+                <!-- Pending translations -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">{% translate "Translations Pending" %}</h4>
                     <div class="flex flex-wrap gap-1">
                         {% for status in scale_data.translation_status %}
                         {% if not status.has_translation %}
-                        <a href="{{ status.url }}" 
-                           class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 transition-colors duration-200"
-                           title="{% translate 'Add translation for' %} {{ status.language_name }}">
+                        <c-link_button 
+                            href="{{ status.url }}" 
+                            variant="outline"
+                            size="sm"
+                            class="bg-red-100 text-red-800 hover:bg-red-200 border-red-300"
+                            title="{% translate 'Add translation for' %} {{ status.language_name }}">
                             <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                             </svg>
                             {{ status.language_code|upper }}
-                        </a>
+                        </c-link_button>
                         {% endif %}
                         {% endfor %}
+                        {% if not scale_data.translation_status|length %}
+                        <p class="text-sm text-gray-500 italic">{% translate "No pending translations" %}</p>
+                        {% endif %}
                     </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <a href="{% url 'range_scale_translate' scale_data.scale.id %}?language={{ current_language }}" 
-                       class="inline-flex items-center px-4 py-2.5 border border-transparent text-sm font-medium leading-4 rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                        {% translate "Add/Edit Translation" %}
-                    </a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                    {% translate "No range scales found." %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                </div>
+            </div>
+        </div>
+    </c-card>
+    {% endfor %}
 </div> 
