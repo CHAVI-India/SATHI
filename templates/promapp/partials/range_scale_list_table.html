@@ -1,10 +1,8 @@
 {% load i18n %}
 {% load cotton %}
 
-<!-- Empty state handling -->
-<c-list_card :items="range_scales" empty_message="{% translate 'No range scales found.' %}" />
-
 <!-- Range scale cards -->
+{% if range_scales %}
 <div class="space-y-4">
   {% for scale in range_scales %}
   <c-card shadow="md" border="light" padding="md" class="w-full hover:shadow-lg transition-shadow duration-200">
@@ -80,10 +78,26 @@
   </c-card>
   {% endfor %}
 </div>
+{% else %}
+<!-- Empty state -->
+<div class="text-center py-12">
+  <div class="text-gray-500 text-lg mb-2">{% translate 'No range scales found.' %}</div>
+  {% if perms.promapp.add_rangescale %}
+    <c-link_button 
+      href="{% url 'create_range_scale' %}" 
+      variant="primary"
+      icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd' />">
+      {% translate "Create Your First Range Scale" %}
+    </c-link_button>
+  {% endif %}
+</div>
+{% endif %}
 
 <!-- Pagination -->
+{% if range_scales %}
 <c-paginator 
   :page_obj="page_obj" 
   :is_paginated="is_paginated" 
   preserve_params="true"
-  class="mt-6" /> 
+  class="mt-6" />
+{% endif %} 

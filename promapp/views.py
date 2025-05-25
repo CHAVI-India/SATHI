@@ -23,7 +23,7 @@ from .forms import (
 from django.utils.translation import get_language
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 import json
 import logging
 from datetime import datetime, timedelta
@@ -49,6 +49,22 @@ class QuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(translations__name__icontains=search)
+        
+        # Apply has items filter if provided
+        has_items = self.request.GET.get('has_items')
+        if has_items and has_items != 'all':
+            if has_items == 'yes':
+                queryset = queryset.filter(questionnaireitem__isnull=False)
+            elif has_items == 'no':
+                queryset = queryset.filter(questionnaireitem__isnull=True)
+        
+        # Apply answer interval filter if provided
+        answer_interval = self.request.GET.get('answer_interval')
+        if answer_interval and answer_interval != 'all':
+            if answer_interval == 'none':
+                queryset = queryset.filter(questionnaire_answer_interval=0)
+            elif answer_interval == 'has_interval':
+                queryset = queryset.filter(questionnaire_answer_interval__gt=0)
             
         return queryset.distinct('id').order_by('id', 'translations__name')
 
@@ -56,6 +72,32 @@ class QuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search', '')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # Create filters for the search component
+        context['questionnaire_filters'] = [
+            {
+                'type': 'select',
+                'name': 'has_items',
+                'label': 'Has items',
+                'selected': self.request.GET.get('has_items', 'all'),
+                'options': [
+                    {'value': 'yes', 'label': 'Has items'},
+                    {'value': 'no', 'label': 'No items'}
+                ],
+                'trigger': 'hx-trigger="change"'
+            },
+            {
+                'type': 'select',
+                'name': 'answer_interval',
+                'label': 'Answer interval',
+                'selected': self.request.GET.get('answer_interval', 'all'),
+                'options': [
+                    {'value': 'none', 'label': 'No interval'},
+                    {'value': 'has_interval', 'label': 'Has interval'}
+                ],
+                'trigger': 'hx-trigger="change"'
+            }
+        ]
         
         # Add translation status data for each questionnaire
         questionnaires_with_translation_status = []
@@ -858,6 +900,46 @@ class LikertScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(likert_scale_name__icontains=search)
+        
+        # Apply option count filter if provided
+        option_count = self.request.GET.get('option_count')
+        if option_count and option_count != 'all':
+            # Annotate with option count first
+            queryset = queryset.annotate(
+                num_options=models.Count('likertscaleresponseoption', distinct=True)
+            )
+            
+            if option_count == 'few':
+                # 2-3 options
+                queryset = queryset.filter(num_options__gte=2, num_options__lte=3)
+            elif option_count == 'medium':
+                # 4-5 options
+                queryset = queryset.filter(num_options__gte=4, num_options__lte=5)
+            elif option_count == 'many':
+                # 6+ options
+                queryset = queryset.filter(num_options__gte=6)
+            elif option_count == 'none':
+                # No options
+                queryset = queryset.filter(num_options=0)
+        
+        # Apply creation date filter if provided
+        created_filter = self.request.GET.get('created_filter')
+        if created_filter and created_filter != 'all':
+            from datetime import datetime, timedelta
+            from django.utils import timezone
+            
+            now = timezone.now()
+            if created_filter == 'today':
+                queryset = queryset.filter(created_date__date=now.date())
+            elif created_filter == 'week':
+                week_ago = now - timedelta(days=7)
+                queryset = queryset.filter(created_date__gte=week_ago)
+            elif created_filter == 'month':
+                month_ago = now - timedelta(days=30)
+                queryset = queryset.filter(created_date__gte=month_ago)
+            elif created_filter == 'older':
+                month_ago = now - timedelta(days=30)
+                queryset = queryset.filter(created_date__lt=month_ago)
             
         return queryset.order_by('-created_date')
     
@@ -930,6 +1012,34 @@ class LikertScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
         context['available_languages'] = settings.LANGUAGES
         context['search_query'] = self.request.GET.get('search', '')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # Create filters for the search component
+        context['likert_scale_filters'] = [
+            {
+                'type': 'select',
+                'name': 'option_count',
+                'label': 'Number of options',
+                'selected': self.request.GET.get('option_count', 'all'),
+                'options': [
+                    {'value': 'none', 'label': 'No options'},
+                    {'value': 'few', 'label': 'Few (2-3)'},
+                    {'value': 'medium', 'label': 'Medium (4-5)'},
+                    {'value': 'many', 'label': 'Many (6+)'}
+                ]
+            },
+            {
+                'type': 'select',
+                'name': 'created_filter',
+                'label': 'Created',
+                'selected': self.request.GET.get('created_filter', 'all'),
+                'options': [
+                    {'value': 'today', 'label': 'Today'},
+                    {'value': 'week', 'label': 'This week'},
+                    {'value': 'month', 'label': 'This month'},
+                    {'value': 'older', 'label': 'Older than 30 days'}
+                ]
+            }
+        ]
         
         return context
     
@@ -1011,6 +1121,36 @@ class RangeScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(range_scale_name__icontains=search)
+        
+        # Apply range size filter if provided
+        range_size = self.request.GET.get('range_size')
+        if range_size and range_size != 'all':
+            if range_size == 'small':
+                # Range of 10 or less
+                queryset = queryset.filter(
+                    max_value__isnull=False,
+                    min_value__isnull=False
+                ).extra(where=["max_value - min_value <= 10"])
+            elif range_size == 'medium':
+                # Range between 11 and 100
+                queryset = queryset.filter(
+                    max_value__isnull=False,
+                    min_value__isnull=False
+                ).extra(where=["max_value - min_value > 10 AND max_value - min_value <= 100"])
+            elif range_size == 'large':
+                # Range greater than 100
+                queryset = queryset.filter(
+                    max_value__isnull=False,
+                    min_value__isnull=False
+                ).extra(where=["max_value - min_value > 100"])
+        
+        # Apply has increment filter if provided
+        has_increment = self.request.GET.get('has_increment')
+        if has_increment and has_increment != 'all':
+            if has_increment == 'yes':
+                queryset = queryset.exclude(increment__isnull=True)
+            elif has_increment == 'no':
+                queryset = queryset.filter(increment__isnull=True)
             
         return queryset.order_by('-created_date')
     
@@ -1024,6 +1164,33 @@ class RangeScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         
         # Add current language to context for translation links
         context['current_language'] = get_language()
+        
+        # Create filters for the search component
+        context['range_scale_filters'] = [
+            {
+                'type': 'select',
+                'name': 'range_size',
+                'label': 'Range size',
+                'selected': self.request.GET.get('range_size', 'all'),
+                'options': [
+                    {'value': 'small', 'label': 'Small (≤10)'},
+                    {'value': 'medium', 'label': 'Medium (11-100)'},
+                    {'value': 'large', 'label': 'Large (>100)'}
+                ],
+                'trigger': 'hx-trigger="change"'
+            },
+            {
+                'type': 'select',
+                'name': 'has_increment',
+                'label': 'Has increment',
+                'selected': self.request.GET.get('has_increment', 'all'),
+                'options': [
+                    {'value': 'yes', 'label': 'Has increment'},
+                    {'value': 'no', 'label': 'No increment'}
+                ],
+                'trigger': 'hx-trigger="change"'
+            }
+        ]
         
         return context
     
@@ -1053,6 +1220,19 @@ class ConstructScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListVi
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(name__icontains=search)
+        
+        # Apply instrument name filter if provided
+        instrument_name = self.request.GET.get('instrument_name')
+        if instrument_name and instrument_name != 'all':
+            queryset = queryset.filter(instrument_name__icontains=instrument_name)
+        
+        # Apply has equation filter if provided
+        has_equation = self.request.GET.get('has_equation')
+        if has_equation and has_equation != 'all':
+            if has_equation == 'yes':
+                queryset = queryset.exclude(scale_equation__isnull=True).exclude(scale_equation='')
+            elif has_equation == 'no':
+                queryset = queryset.filter(Q(scale_equation__isnull=True) | Q(scale_equation=''))
             
         return queryset.order_by('name')
     
@@ -1060,6 +1240,37 @@ class ConstructScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListVi
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search', '')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # Get unique instrument names for filter
+        instrument_names = ConstructScale.objects.exclude(
+            instrument_name__isnull=True
+        ).exclude(
+            instrument_name=''
+        ).values_list('instrument_name', flat=True).distinct().order_by('instrument_name')
+        
+        # Create filters for the search component
+        context['construct_scale_filters'] = [
+            {
+                'type': 'select',
+                'name': 'instrument_name',
+                'label': 'Filter by instrument',
+                'selected': self.request.GET.get('instrument_name', 'all'),
+                'options': [{'value': name, 'label': name} for name in instrument_names],
+                'trigger': 'hx-trigger="change"'
+            },
+            {
+                'type': 'select',
+                'name': 'has_equation',
+                'label': 'Has equation',
+                'selected': self.request.GET.get('has_equation', 'all'),
+                'options': [
+                    {'value': 'yes', 'label': 'Has equation'},
+                    {'value': 'no', 'label': 'No equation'}
+                ],
+                'trigger': 'hx-trigger="change"'
+            }
+        ]
+        
         return context
     
     def get(self, request, *args, **kwargs):

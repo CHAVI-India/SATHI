@@ -1,0 +1,111 @@
+{% load i18n %}
+{% load cotton %}
+
+<!-- Reusable Search Form Component -->
+<div class="mb-6">
+  <form method="get" 
+        class="space-y-4"
+        {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+        {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+        {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% endif %}
+        {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}
+        {% if hx_push_url %}hx-push-url="{{ hx_push_url }}"{% endif %}>
+    
+    <!-- Main search row -->
+    <div class="flex flex-col md:flex-row gap-4">
+      <!-- Search input -->
+      <div class="flex-1">
+        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ search_label|default:"Search" }}
+        </label>
+        <div class="flex gap-2">
+          <input type="text" 
+                 id="search" 
+                 name="search" 
+                 value="{{ search_query }}"
+                 class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                 placeholder="{{ search_placeholder|default:'Search...' }}"
+                 {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+                 {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+                 {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}
+                 {% if hx_push_url %}hx-push-url="{{ hx_push_url }}"{% endif %}
+                 {% if search_trigger %}{{ search_trigger }}{% else %}hx-trigger="keyup changed delay:500ms"{% endif %}>
+          {% if show_search_button %}
+            <c-button type="submit" variant="secondary" class="px-4">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              <span class="sr-only">{% translate "Search" %}</span>
+            </c-button>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Additional filters slot -->
+      {% if filters %}
+        {% for filter in filters %}
+          <div class="w-full md:w-64">
+            {% if filter.type == 'select' %}
+              <label for="{{ filter.name }}" class="block text-sm font-medium text-gray-700 mb-1">
+                {{ filter.label }}
+              </label>
+              <select id="{{ filter.name }}" 
+                      name="{{ filter.name }}" 
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+                      {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+                      {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}
+                      {% if hx_push_url %}hx-push-url="{{ hx_push_url }}"{% endif %}
+                      hx-trigger="change"
+                      {% if filter.trigger %}{{ filter.trigger }}{% endif %}>
+                <option value="{{ filter.all_value|default:'all' }}">{{ filter.all_label|default:'All' }}</option>
+                {% for option in filter.options %}
+                  <option value="{{ option.value }}" {% if option.value == filter.selected %}selected{% endif %}>
+                    {{ option.label }}
+                  </option>
+                {% endfor %}
+              </select>
+            {% elif filter.type == 'autocomplete' %}
+              <label for="{{ filter.name }}_search" class="block text-sm font-medium text-gray-700 mb-1">
+                {{ filter.label }}
+              </label>
+              <div class="relative">
+                <input type="text" 
+                       id="{{ filter.name }}_search" 
+                       class="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="{{ filter.placeholder }}"
+                       autocomplete="off">
+                <input type="hidden" 
+                       id="{{ filter.name }}" 
+                       name="{{ filter.name }}" 
+                       value="{{ filter.selected }}">
+                <!-- Clear button -->
+                <button type="button" 
+                        id="clear_{{ filter.name }}"
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+                <div id="{{ filter.name }}_results" 
+                     class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg hidden">
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <!-- Loading indicator -->
+    {% if show_loading %}
+      <div id="{{ loading_id|default:'loading-indicator' }}" class="htmx-indicator flex justify-center my-4">
+        <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="ml-2">{% translate "Loading..." %}</span>
+      </div>
+    {% endif %}
+  </form>
+</div> 

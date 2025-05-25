@@ -29,15 +29,10 @@
 
       {% if construct_scales %}
         <!-- Search controls -->
-        <form method="get" hx-get="{% url 'construct_scale_list' %}" hx-target="#construct-scales-container" hx-trigger="keyup changed delay:500ms from:input[name='search']" class="mb-6">
-          <div class="flex gap-4">
-            <div class="flex-1">
-              <input type="text" name="search" value="{{ search_query }}" 
-                     class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                     placeholder="{% trans 'Search construct scales...' %}">
-            </div>
-          </div>
-        </form>
+        {% url 'construct_scale_list' as search_url %}
+        {% with filters=construct_scale_filters %}
+          {% include 'promapp/components/search_form.html' with search_label="Search construct scales" search_placeholder="Search construct scales..." show_search_button=True hx_get=search_url hx_target="#construct-scales-container" hx_trigger="submit" search_trigger='hx-trigger="keyup changed delay:500ms, submit"' filters=filters %}
+        {% endwith %}
 
         <div id="construct-scales-container" class="w-full overflow-hidden">
           {% include 'promapp/partials/construct_scale_list_table.html' %}
