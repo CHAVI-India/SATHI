@@ -41,7 +41,10 @@
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">{% translate "Edit Item" %}</h1>
-        <c-link_button href="{% url 'item_list' %}" variant="secondary">
+        <c-link_button 
+          href="{% url 'item_list' %}" 
+          variant="secondary"
+          icon_left="<path fill-rule='evenodd' d='M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z' clip-rule='evenodd'/>">
           {% translate "Back to Items" %}
         </c-link_button>
       </div>
@@ -101,9 +104,12 @@
                 <div class="text-red-500 text-sm mt-1">{{ form.construct_scale.errors }}</div>
               {% endif %}
               <div class="mt-2">
-                <a href="{% url 'create_construct_scale' %}" class="text-sm text-blue-600 hover:underline">
+                <c-link_button 
+                  href="{% url 'create_construct_scale' %}" 
+                  variant="link" 
+                  size="sm">
                   {% translate "Create new Construct Scale" %}
-                </a>
+                </c-link_button>
               </div>
             </div>
             
@@ -128,7 +134,13 @@
                     {% elif '.mp3' in media_url or '.wav' in media_url %}
                       <audio src="{{ form.instance.media.url }}" controls class="mt-2"></audio>
                     {% else %}
-                      <a href="{{ form.instance.media.url }}" class="text-blue-600 hover:underline" target="_blank">{% translate "View current media" %}</a>
+                      <c-link_button 
+                        href="{{ form.instance.media.url }}" 
+                        variant="link" 
+                        size="sm" 
+                        target="_blank">
+                        {% translate "View current media" %}
+                      </c-link_button>
                     {% endif %}
                   {% endwith %}
                 </div>
@@ -173,9 +185,12 @@
                   <label for="id_likert_response" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Likert Scale" %}</label>
                   {{ form.likert_response }}
                   <div class="mt-2">
-                    <a href="{% url 'create_likert_scale' %}" class="text-sm text-blue-600 hover:underline">
+                    <c-link_button 
+                      href="{% url 'create_likert_scale' %}" 
+                      variant="link" 
+                      size="sm">
                       {% translate "Create new Likert scale" %}
-                    </a>
+                    </c-link_button>
                   </div>
                 </div>
               {% elif form.instance.response_type == 'Range' %}
@@ -183,9 +198,12 @@
                   <label for="id_range_response" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Range Scale" %}</label>
                   {{ form.range_response }}
                   <div class="mt-2">
-                    <a href="{% url 'create_range_scale' %}" class="text-sm text-blue-600 hover:underline">
+                    <c-link_button 
+                      href="{% url 'create_range_scale' %}" 
+                      variant="link" 
+                      size="sm">
                       {% translate "Create new Range scale" %}
-                    </a>
+                    </c-link_button>
                   </div>
                 </div>
               {% endif %}
@@ -194,10 +212,14 @@
         </div>
         
         <div class="flex justify-end space-x-3">
-          <c-link_button href="{% url 'item_list' %}" variant="secondary">
+          <c-link_button 
+            href="{% url 'item_list' %}" 
+            variant="secondary">
             {% translate "Cancel" %}
           </c-link_button>
-          <c-save_button type="submit">
+          <c-save_button 
+            type="submit"
+            icon_left="<path d='M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.828-2.828z'/>">
             {% translate "Update Item" %}
           </c-save_button>
         </div>

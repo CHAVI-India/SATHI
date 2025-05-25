@@ -76,9 +76,12 @@
         <div class="bg-gray-50 p-4 rounded-md">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-800">{% translate "Select Items" %}</h2>
-            <c-create_button href="{% url 'item_create' %}">
+            <c-link_button 
+              href="{% url 'item_create' %}"
+              variant="success"
+              icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd'/>">
               {% translate "Create New Item" %}
-            </c-create_button>
+            </c-link_button>
           </div>
           
           <div class="flex flex-col lg:flex-row gap-4">
@@ -154,9 +157,12 @@
               {% else %}
                 <div class="text-center py-8">
                   <p class="text-gray-600 mb-4">{% translate "No items available. Please create items first." %}</p>
-                  <c-create_button href="{% url 'item_create' %}">
+                  <c-link_button 
+                    href="{% url 'item_create' %}"
+                    variant="success"
+                    icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd'/>">
                     {% translate "Create First Item" %}
-                  </c-create_button>
+                  </c-link_button>
                 </div>
               {% endif %}
             </div>
@@ -166,7 +172,11 @@
               <div class="border rounded p-4 bg-blue-50">
                 <div class="flex justify-between items-center mb-3">
                   <h3 class="font-medium text-gray-700">{% translate "Selected Items" %} (<span id="selected-count">0</span>)</h3>
-                  <c-button id="clear-all-btn" variant="danger" size="sm">
+                  <c-button 
+                    id="clear-all-btn" 
+                    variant="danger" 
+                    size="sm"
+                    icon_left="<path fill-rule='evenodd' d='M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z' clip-rule='evenodd'/>">
                     {% translate "Clear All" %}
                   </c-button>
                 </div>
@@ -189,10 +199,14 @@
         </div>
         
         <div class="flex justify-end space-x-3">
-          <c-link_button href="{% url 'questionnaire_list' %}" variant="secondary">
+          <c-link_button 
+            href="{% url 'questionnaire_list' %}" 
+            variant="secondary">
             {% translate "Cancel" %}
           </c-link_button>
-          <c-save_button type="submit">
+          <c-save_button 
+            type="submit"
+            icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd'/>">
             {% translate "Create Questionnaire" %}
           </c-save_button>
         </div>
