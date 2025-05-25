@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load cotton %}
 
 {% block title %}{% if is_edit %}{% translate "Edit Likert Scale" %}{% else %}{% translate "Create Likert Scale" %}{% endif %}{% endblock %}
 
@@ -17,13 +18,13 @@
           {% endif %}
         </h1>
         {% if perms.promapp.view_likertscale %}
-          <a href="{% url 'likert_scale_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          <c-link_button href="{% url 'likert_scale_list' %}" variant="secondary">
             {% translate "Back to Likert Scales" %}
-          </a>
+          </c-link_button>
         {% else %}
-          <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          <c-link_button href="{% url 'item_create' %}" variant="secondary">
             {% translate "Back to Item Creation" %}
-          </a>
+          </c-link_button>
         {% endif %}
       </div>
       
@@ -129,11 +130,18 @@
                         <label for="{{ form.DELETE.id_for_label }}" class="ml-2 text-sm text-red-600">{% translate "Delete" %}</label>
                       </div>
                     {% else %}
-                      <button type="button" class="remove-option text-red-500 hover:text-red-700" hx-get="{% url 'remove_likert_option' %}" hx-target="closest tr" hx-swap="outerHTML" hx-trigger="click">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                        </svg>
-                      </button>
+                      <c-icon_button 
+                        icon="<path fill-rule='evenodd' d='M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z' clip-rule='evenodd' />"
+                        variant="danger"
+                        size="sm"
+                        aria_label="{% translate 'Remove option' %}"
+                        title="{% translate 'Remove option' %}"
+                        class="remove-option"
+                        hx_get="{% url 'remove_likert_option' %}"
+                        hx_target="closest tr"
+                        hx_swap="outerHTML"
+                        hx_trigger="click">
+                      </c-icon_button>
                     {% endif %}
                   </td>
                 </tr>
@@ -142,39 +150,38 @@
           </table>
           
           <div class="mt-4">
-            <button type="button" 
-                    id="add-option-button"
-                    data-form-index="{{ formset|length|add:dynamic_row_count|default:1 }}"
-                    data-next-order="2"
-                    data-next-value="1"
-                    data-scale-id="{% if scale %}{{ scale.id }}{% endif %}"
-                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center"
-                    onclick="addNewOptionRow(this)">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
+            <c-button 
+              type="button"
+              id="add-option-button"
+              data-form-index="{{ formset|length|add:dynamic_row_count|default:1 }}"
+              data-next-order="2"
+              data-next-value="1"
+              data-scale-id="{% if scale %}{{ scale.id }}{% endif %}"
+              variant="success"
+              icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd' />"
+              onclick="addNewOptionRow(this)">
               {% translate "Add Option" %}
-            </button>
+            </c-button>
           </div>
         </div>
         
         <div class="flex justify-end space-x-3">
           {% if perms.promapp.view_likertscale %}
-            <a href="{% url 'likert_scale_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            <c-link_button href="{% url 'likert_scale_list' %}" variant="secondary">
               {% translate "Cancel" %}
-            </a>
+            </c-link_button>
           {% else %}
-            <a href="{% url 'item_create' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            <c-link_button href="{% url 'item_create' %}" variant="secondary">
               {% translate "Cancel" %}
-            </a>
+            </c-link_button>
           {% endif %}
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          <c-button type="submit" variant="primary">
             {% if is_edit %}
               {% translate "Update Likert Scale" %}
             {% else %}
               {% translate "Create Likert Scale" %}
             {% endif %}
-          </button>
+          </c-button>
         </div>
       </form>
     </div>

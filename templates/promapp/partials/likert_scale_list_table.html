@@ -44,13 +44,28 @@
           <h4 class="text-sm font-medium text-gray-700 mb-1">{% translate "Response Options" %}</h4>
           {% if scale_data.options %}
             <div class="bg-gray-50 rounded p-2">
-              <div class="flex flex-wrap gap-1">
-                {% for option in scale_data.options %}
-                  <span class="inline-flex items-center text-xs bg-white px-2 py-1 rounded border">
-                    <span class="font-medium text-gray-900">{{ option.option_order }}.</span>
-                    <span class="ml-1 text-gray-700">{{ option.option_text }}</span>
-                    <span class="ml-1 text-gray-500">({{ option.option_value|default:"0" }})</span>
-                  </span>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {% for option_data in scale_data.options_with_translation_status %}
+                  <div class="bg-white px-3 py-2 rounded border">
+                    <!-- Option text -->
+                    <div class="text-xs mb-2">
+                      <span class="font-medium text-gray-900">{{ option_data.option.option_order }}.</span>
+                      <span class="ml-1 text-gray-700">{{ option_data.option.option_text }}</span>
+                      <span class="ml-1 text-gray-500">({{ option_data.option.option_value|default:"0" }})</span>
+                    </div>
+                    <!-- Translation indicators -->
+                    <div class="flex flex-wrap gap-1">
+                      {% for status in option_data.translation_status %}
+                        <c-translation_indicator 
+                          language_code="{{ status.language_code }}"
+                          language_name="{{ status.language_name }}"
+                          has_translation="{% if status.has_translation %}true{% else %}false{% endif %}"
+                          url="{{ status.url }}"
+                          size="sm">
+                        </c-translation_indicator>
+                      {% endfor %}
+                    </div>
+                  </div>
                 {% endfor %}
               </div>
             </div>

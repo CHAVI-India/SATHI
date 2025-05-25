@@ -873,13 +873,61 @@ class LikertScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
                 likert_scale=scale
             ).order_by('option_order')
             
+            # Add translation status for each option
+            options_with_translation_status = []
+            for option in options:
+                # Get all existing translations for this option
+                existing_translations = set(
+                    option.translations.values_list('language_code', flat=True)
+                )
+                
+                translation_status = []
+                for lang_code, lang_name in settings.LANGUAGES:
+                    has_translation = lang_code in existing_translations
+                    # Check if translation has content (not just empty strings)
+                    if has_translation:
+                        try:
+                            translation = option.translations.get(language_code=lang_code)
+                            has_content = bool(translation.option_text and translation.option_text.strip())
+                        except option.translations.model.DoesNotExist:
+                            has_content = False
+                    else:
+                        has_content = False
+                        
+                    translation_status.append({
+                        'language_code': lang_code,
+                        'language_name': lang_name,
+                        'has_translation': has_translation and has_content,
+                        'url': reverse('likert_scale_response_option_translation', args=[option.id]) + f'?language={lang_code}'
+                    })
+                
+                options_with_translation_status.append({
+                    'option': option,
+                    'translation_status': translation_status
+                })
+            
+            # Calculate translation counts for each language
+            translation_counts = {}
+            for lang_code, lang_name in settings.LANGUAGES:
+                count = sum(1 for option_data in options_with_translation_status 
+                           for status in option_data['translation_status'] 
+                           if status['language_code'] == lang_code and status['has_translation'])
+                translation_counts[lang_code] = {
+                    'count': count,
+                    'total': options.count(),
+                    'language_name': lang_name
+                }
+            
             likert_scales_with_options.append({
                 'scale': scale,
                 'options': options,
-                'option_count': options.count()
+                'options_with_translation_status': options_with_translation_status,
+                'option_count': options.count(),
+                'translation_counts': translation_counts
             })
         
         context['likert_scales_with_options'] = likert_scales_with_options
+        context['available_languages'] = settings.LANGUAGES
         context['search_query'] = self.request.GET.get('search', '')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         
