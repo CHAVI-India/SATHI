@@ -40,6 +40,7 @@ class QuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
     context_object_name = 'questionnaires'
     ordering = ['-created_date']
     permission_required = 'promapp.view_questionnaire'
+    paginate_by = 10  # Show 10 questionnaires per page
 
     def get_queryset(self):
         queryset = super().get_queryset()
