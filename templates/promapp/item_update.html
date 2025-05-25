@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load cotton %}
 
 {% block title %}{% translate "Edit Item" %}{% endblock %}
 
@@ -40,9 +41,9 @@
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-blue-700">{% translate "Edit Item" %}</h1>
-        <a href="{% url 'item_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+        <c-link_button href="{% url 'item_list' %}" variant="secondary">
           {% translate "Back to Items" %}
-        </a>
+        </c-link_button>
       </div>
       
       {% if messages %}
@@ -193,12 +194,12 @@
         </div>
         
         <div class="flex justify-end space-x-3">
-          <a href="{% url 'item_list' %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          <c-link_button href="{% url 'item_list' %}" variant="secondary">
             {% translate "Cancel" %}
-          </a>
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          </c-link_button>
+          <c-save_button type="submit">
             {% translate "Update Item" %}
-          </button>
+          </c-save_button>
         </div>
       </form>
     </div>

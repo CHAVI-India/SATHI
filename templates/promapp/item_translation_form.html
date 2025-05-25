@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load cotton %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
@@ -85,9 +86,9 @@
                                     <i class="fas fa-exclamation-triangle mr-2"></i>
                                     <span class="font-medium">{% translate "Unsaved changes" %}</span>
                                 </div>
-                                <button type="button" id="quick-save" class="hidden px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium">
-                                    <i class="fas fa-save mr-2"></i>{% translate "Save Now" %}
-                                </button>
+                                <c-save_button id="quick-save" class="hidden" size="sm">
+                                    {% translate "Save Now" %}
+                                </c-save_button>
                             </div>
                         </div>
                     </div>
@@ -105,9 +106,9 @@
                                     <p class="text-orange-700 mt-1">{% translate "Make sure to save your work before switching to another language." %}</p>
                                 </div>
                                 <div class="ml-4 flex-shrink-0">
-                                    <button type="button" id="alert-save-btn" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium">
-                                        <i class="fas fa-save mr-2"></i>{% translate "Save Changes" %}
-                                    </button>
+                                    <c-save_button id="alert-save-btn" size="sm">
+                                        {% translate "Save Changes" %}
+                                    </c-save_button>
                                 </div>
                             </div>
                         </div>
@@ -142,12 +143,12 @@
                             </div>
                             
                             <div class="flex justify-between items-center pt-6 border-t border-gray-200">
-                                <a href="{% url 'item_translation_list' %}" class="cancel-link px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+                                <c-link_button href="{% url 'item_translation_list' %}" variant="secondary" class="cancel-link" size="lg">
                                     <i class="fas fa-arrow-left mr-2"></i>{% translate "Back to List" %}
-                                </a>
-                                <button type="submit" class="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-lg" id="save-btn">
-                                    <i class="fas fa-save mr-2"></i>{% translate "Save Translation" %}
-                                </button>
+                                </c-link_button>
+                                <c-save_button type="submit" id="save-btn" size="lg">
+                                    {% translate "Save Translation" %}
+                                </c-save_button>
                             </div>
                         </form>
                     </div>
@@ -177,15 +178,15 @@
                 </p>
                 
                 <div class="space-y-3">
-                    <button id="save-and-switch" class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-lg transition-colors">
+                    <c-save_button id="save-and-switch" class="w-full" size="lg">
                         <i class="fas fa-save mr-3"></i>{% translate "Save Changes and Switch Language" %}
-                    </button>
-                    <button id="discard-and-switch" class="w-full px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-lg transition-colors">
+                    </c-save_button>
+                    <c-button id="discard-and-switch" variant="danger" class="w-full" size="lg">
                         <i class="fas fa-trash mr-3"></i>{% translate "Discard Changes and Switch" %}
-                    </button>
-                    <button id="cancel-switch" class="w-full px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium text-lg transition-colors">
+                    </c-button>
+                    <c-button id="cancel-switch" variant="secondary" class="w-full" size="lg">
                         <i class="fas fa-times mr-3"></i>{% translate "Cancel (Keep Editing)" %}
-                    </button>
+                    </c-button>
                 </div>
             </div>
         </div>
