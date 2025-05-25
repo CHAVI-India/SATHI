@@ -1,0 +1,66 @@
+{% comment %}
+Field Display Component
+For displaying label-value pairs in cards or other layouts
+
+Props:
+- label: The field label/name
+- value: The field value to display
+- type: Display type - "text" (default), "badge", "date", "number", "email", "link"
+- layout: Layout style - "vertical" (default), "horizontal", "inline"
+- label_class: Additional CSS classes for the label
+- value_class: Additional CSS classes for the value
+- badge_color: Badge color for type="badge" - "blue", "green", "red", "yellow", "purple", "gray"
+- href: URL for type="link"
+- target: Link target for type="link"
+- format: Date format for type="date" (default: "F j, Y")
+- empty_text: Text to show when value is empty (default: "—")
+{% endcomment %}
+
+
+
+<div class="{% if layout == 'horizontal' %}flex items-center gap-2 py-1{% elif layout == 'inline' %}inline-flex items-center space-x-2{% else %}{% endif %}">
+    <!-- Label -->
+    <dt class="
+        {% if layout == 'horizontal' %}text-xs font-medium text-gray-500 min-w-0 flex-shrink-0{% elif layout == 'inline' %}text-xs font-medium text-gray-500{% else %}text-xs font-medium text-gray-500 mb-1{% endif %}
+        {{ label_class }}
+    ">
+        {{ label }}{% if layout == 'inline' %}:{% endif %}
+    </dt>
+    
+    <!-- Value -->
+    <dd class="
+        {% if layout == 'horizontal' %}text-sm text-gray-900 text-left min-w-0 truncate{% elif layout == 'inline' %}text-sm text-gray-900{% else %}text-base text-gray-900{% endif %}
+        {{ value_class }}
+    ">
+        {% if value %}
+            {% if type == 'badge' %}
+                <span class="inline-flex items-center {% if layout == 'horizontal' %}px-2 py-0.5 text-xs{% else %}px-2.5 py-0.5 text-xs{% endif %} rounded-full font-medium
+                    {% if badge_color == 'green' %}bg-green-100 text-green-800
+                    {% elif badge_color == 'red' %}bg-red-100 text-red-800
+                    {% elif badge_color == 'yellow' %}bg-yellow-100 text-yellow-800
+                    {% elif badge_color == 'purple' %}bg-purple-100 text-purple-800
+                    {% elif badge_color == 'gray' %}bg-gray-100 text-gray-800
+                    {% else %}bg-blue-100 text-blue-800{% endif %}
+                ">
+                    {{ value }}
+                </span>
+            {% elif type == 'date' %}
+                {% if format %}
+                    {{ value|date:format }}
+                {% else %}
+                    {{ value|date:"F j, Y" }}
+                {% endif %}
+            {% elif type == 'email' %}
+                <a href="mailto:{{ value }}" class="text-blue-600 hover:text-blue-800 hover:underline">{{ value }}</a>
+            {% elif type == 'link' %}
+                <a href="{{ href|default:value }}" {% if target %}target="{{ target }}"{% endif %} class="text-blue-600 hover:text-blue-800 hover:underline">{{ value }}</a>
+            {% elif type == 'number' %}
+                <span class="font-mono">{{ value }}</span>
+            {% else %}
+                {{ value }}
+            {% endif %}
+        {% else %}
+            <span class="text-gray-400 italic">{{ empty_text|default:"—" }}</span>
+        {% endif %}
+    </dd>
+</div> 

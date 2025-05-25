@@ -23,55 +23,77 @@
 
       <!-- Patient Basic Information -->
       <div class="mb-8">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">{% translate "Patient Information" %}</h2>
-        <div class="bg-gray-50 rounded-lg p-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <p class="text-sm font-medium text-gray-500">{% translate "Patient ID" %}</p>
-                    <p class="mt-1 text-lg text-gray-900">{{ patient.patient_id }}</p>
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-gray-500">{% translate "Name" %}</p>
-                    <p class="mt-1 text-lg text-gray-900">{{ patient.name }}</p>
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-gray-500">{% translate "Age" %}</p>
-                    <p class="mt-1 text-lg text-gray-900">{{ patient.age }}</p>
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-gray-500">{% translate "Gender" %}</p>
-                    <p class="mt-1 text-lg text-gray-900">{{ patient.gender }}</p>
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-gray-500">{% translate "Institution" %}</p>
-                    <p class="mt-1 text-lg text-gray-900">{{ patient.institution.name }}</p>
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-gray-500">{% translate "Created Date" %}</p>
-                    <p class="mt-1 text-lg text-gray-900">{{ patient.created_date|date:"F j, Y" }}</p>
-                </div>
-          </div>
-        </div>
+        <c-card 
+            title="{% translate 'Patient Information' %}"
+            shadow="lg"
+            border="medium"
+            padding="sm"
+            class="mb-8">
+            <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <c-field_display 
+                    label="{% translate 'Patient ID' %}"
+                    value="{{ patient.patient_id }}"
+                    type="number"
+                    layout="horizontal" />
+                
+                <c-field_display 
+                    label="{% translate 'Name' %}"
+                    value="{{ patient.name }}"
+                    layout="horizontal" />
+                
+                <c-field_display 
+                    label="{% translate 'Age' %}"
+                    value="{{ patient.age }}"
+                    type="number"
+                    layout="horizontal" />
+                
+                <c-field_display 
+                    label="{% translate 'Gender' %}"
+                    value="{{ patient.gender }}"
+                    type="badge"
+                    badge_color="blue"
+                    layout="horizontal" />
+                
+                <c-field_display 
+                    label="{% translate 'Institution' %}"
+                    value="{{ patient.institution.name }}"
+                    layout="horizontal" />
+                
+                <c-field_display 
+                    label="{% translate 'Created Date' %}"
+                    value="{{ patient.created_date }}"
+                    type="date"
+                    layout="horizontal" />
+            </dl>
+        </c-card>
       </div>
 
       <!-- Diagnoses Section -->
       <div class="mb-8">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold text-gray-900">{% translate "Diagnoses" %}</h2>
+          <div></div>
           {% if perms.patientapp.add_diagnosis %}
           <c-create_button href="{% url 'diagnosis_create' patient.id %}" target="_blank">
-              {% translate "Add Diagnosis" %}
+            {% translate "Add Diagnosis" %}
           </c-create_button>
           {% endif %}
         </div>
-        <div class="bg-gray-50 rounded-lg p-4">
+        
+        <c-card 
+            title="{% translate 'Diagnoses' %}"
+            shadow="lg"
+            border="medium"
+            padding="sm">
             <div class="space-y-4">
                 {% for diagnosis in diagnoses %}
-                <div class="border rounded-lg p-4">
-                    <div class="flex justify-between items-start">
+                <c-card 
+                    shadow="lg"
+                    border="medium"
+                    padding="sm">
+                    <div class="flex justify-between items-start mb-3">
                         <div>
-                            <p class="text-lg font-medium text-gray-900">{{ diagnosis.diagnosis }}</p>
-                            <p class="text-sm text-gray-500">{{ diagnosis.created_date|date:"F j, Y" }}</p>
+                            <h4 class="text-lg font-medium text-gray-900">{{ diagnosis.diagnosis }}</h4>
+                            <p class="text-xs text-gray-500">{{ diagnosis.created_date|date:"F j, Y" }}</p>
                         </div>
                         <div class="flex space-x-2">
                             {% if perms.patientapp.change_diagnosis %}
@@ -89,57 +111,63 @@
                     
                     <!-- Treatments for this diagnosis -->
                     <div class="mt-4">
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">{% translate "Treatments" %}</h3>
-                        <div class="space-y-2">
-                            {% for treatment in diagnosis.treatment_set.all %}
-                            <div class="bg-gray-50 rounded p-3">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <p class="font-medium">{{ treatment.treatment_intent }}</p>
-                                        <p class="text-sm text-gray-500">
-                                            {% for type in treatment.treatment_type.all %}
-                                            {{ type.treatment_type }}{% if not forloop.last %}, {% endif %}
-                                            {% endfor %}
-                                        </p>
-                                        {% if treatment.date_of_start_of_treatment %}
-                                        <p class="text-sm text-gray-500">
-                                            {% translate "Started" %}: {{ treatment.date_of_start_of_treatment|date:"F j, Y" }}
-                                        </p>
-                                        {% endif %}
-                                    </div>
-                                    <div class="flex space-x-2">
-                                        {% if perms.patientapp.change_treatment %}
-                                        <c-edit_button href="{% url 'treatment_update' treatment.id %}" target="_blank">
-                                            {% translate "Edit" %}
-                                        </c-edit_button>
-                                        {% endif %}
-                                        {% if perms.patientapp.delete_treatment %}
-                                        <c-link_button href="{% url 'treatment_delete' treatment.id %}" target="_blank" variant="danger">
-                                            {% translate "Delete" %}
-                                        </c-link_button>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% empty %}
-                            <p class="text-gray-500">{% translate "No treatments recorded" %}</p>
-                            {% endfor %}
-                            
+                        <div class="flex justify-between items-center mb-3">
+                            <div></div>
                             {% if perms.patientapp.add_treatment %}
-                            <c-link_button href="{% url 'treatment_create' diagnosis.id %}" target="_blank" class="mt-2">
+                            <c-create_button href="{% url 'treatment_create' diagnosis.id %}" target="_blank" size="sm">
                                 {% translate "Add Treatment" %}
-                            </c-link_button>
+                            </c-create_button>
                             {% endif %}
                         </div>
+                        
+                        <c-card 
+                            title="{% translate 'Treatments' %}"
+                            shadow="sm"
+                            border="light"
+                            padding="sm">
+                            <div class="space-y-2">
+                                {% for treatment in diagnosis.treatment_set.all %}
+                                <div class="bg-gray-50 border border-gray-200 rounded p-3">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <p class="font-medium text-sm">{{ treatment.treatment_intent }}</p>
+                                            <p class="text-xs text-gray-500">
+                                                {% for type in treatment.treatment_type.all %}
+                                                {{ type.treatment_type }}{% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </p>
+                                            {% if treatment.date_of_start_of_treatment %}
+                                            <p class="text-xs text-gray-500">
+                                                {% translate "Started" %}: {{ treatment.date_of_start_of_treatment|date:"F j, Y" }}
+                                            </p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            {% if perms.patientapp.change_treatment %}
+                                            <c-edit_button href="{% url 'treatment_update' treatment.id %}" target="_blank">
+                                                {% translate "Edit" %}
+                                            </c-edit_button>
+                                            {% endif %}
+                                            {% if perms.patientapp.delete_treatment %}
+                                            <c-link_button href="{% url 'treatment_delete' treatment.id %}" target="_blank" variant="danger">
+                                                {% translate "Delete" %}
+                                            </c-link_button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-gray-500">{% translate "No treatments recorded" %}</p>
+                                {% endfor %}
+                            </div>
+                        </c-card>
                     </div>
-                </div>
+                </c-card>
                 {% empty %}
                 <p class="text-gray-500">{% translate "No diagnoses recorded" %}</p>
                 {% endfor %}
-              </div>
             </div>
-          </div>
-        </div>
+        </c-card>
       </div>
     </div>
   </div>

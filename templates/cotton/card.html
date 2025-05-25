@@ -1,0 +1,71 @@
+{% comment %}
+Dynamic Card Component
+A flexible card component that can display various types of content
+
+Props:
+- title: Card title/header text
+- subtitle: Optional subtitle below the title
+- class: Additional CSS classes for the card container
+- header_class: Additional CSS classes for the header section
+- body_class: Additional CSS classes for the body section
+- footer_class: Additional CSS classes for the footer section
+- shadow: Shadow level - "sm", "md" (default), "lg", "xl", "none"
+- rounded: Border radius - "sm", "md" (default), "lg", "xl", "none"
+- border: Border style - "none", "light" (default), "medium", "strong"
+- padding: Padding level - "sm", "md" (default), "lg", "xl", "none"
+- header_bg: Header background color class
+- body_bg: Body background color class
+- footer_bg: Footer background color class
+{% endcomment %}
+
+<div class="
+    {% if shadow == 'none' %}{% elif shadow == 'sm' %}shadow-sm{% elif shadow == 'lg' %}shadow-lg{% elif shadow == 'xl' %}shadow-xl{% else %}shadow-md{% endif %}
+    {% if rounded == 'none' %}{% elif rounded == 'sm' %}rounded-sm{% elif rounded == 'lg' %}rounded-lg{% elif rounded == 'xl' %}rounded-xl{% else %}rounded-md{% endif %}
+    {% if border == 'none' %}{% elif border == 'medium' %}border-2 border-gray-300{% elif border == 'strong' %}border-2 border-gray-400{% else %}border border-gray-200{% endif %}
+    bg-white overflow-hidden {{ class }}
+">
+    {% if title or subtitle or header_actions %}
+    <!-- Card Header -->
+    <div class="
+        {% if padding == 'none' %}{% elif padding == 'sm' %}px-3 py-2{% elif padding == 'lg' %}px-8 py-6{% elif padding == 'xl' %}px-10 py-8{% else %}px-6 py-4{% endif %}
+        {% if header_bg %}{{ header_bg }}{% else %}bg-gray-50{% endif %}
+        border-b border-gray-200 {{ header_class }}
+    ">
+        <div class="flex justify-between items-center">
+            <div>
+                {% if title %}
+                <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
+                {% endif %}
+                {% if subtitle %}
+                <p class="mt-1 text-sm text-gray-600">{{ subtitle }}</p>
+                {% endif %}
+            </div>
+            {% if header_actions %}
+            <div class="flex space-x-2">
+                {{ header_actions }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Card Body -->
+    <div class="
+        {% if padding == 'none' %}{% elif padding == 'sm' %}p-3{% elif padding == 'lg' %}p-8{% elif padding == 'xl' %}p-10{% else %}p-6{% endif %}
+        {% if body_bg %}{{ body_bg }}{% else %}bg-white{% endif %}
+        {{ body_class }}
+    ">
+        {{ slot }}
+    </div>
+
+    {% if footer %}
+    <!-- Card Footer -->
+    <div class="
+        {% if padding == 'none' %}{% elif padding == 'sm' %}px-3 py-2{% elif padding == 'lg' %}px-8 py-6{% elif padding == 'xl' %}px-10 py-8{% else %}px-6 py-4{% endif %}
+        {% if footer_bg %}{{ footer_bg }}{% else %}bg-gray-50{% endif %}
+        border-t border-gray-200 {{ footer_class }}
+    ">
+        {{ footer }}
+    </div>
+    {% endif %}
+</div> 
