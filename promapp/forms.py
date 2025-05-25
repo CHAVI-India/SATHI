@@ -115,11 +115,23 @@ class ItemSelectionForm(forms.Form):
 
 class ItemForm(TranslatableModelForm):
     name = TranslatedField()
-    media = TranslatedField(required=False)
     
     class Meta:
         model = Item
-        fields = ['construct_scale', 'name', 'response_type', 'likert_response', 'range_response', 'is_required']
+        fields = [
+            'construct_scale', 
+            'name', 
+            'media',
+            'response_type', 
+            'likert_response', 
+            'range_response', 
+            'is_required',
+            'item_better_score_direction',
+            'item_threshold_score',
+            'item_minimum_clinical_important_difference',
+            'item_normative_score_mean',
+            'item_normative_score_standard_deviation'
+        ]
         widgets = {
             'response_type': forms.Select(attrs={'hx-get': '/promapp/get-response-fields/', 
                                                'hx-target': '#response-fields',
@@ -127,23 +139,62 @@ class ItemForm(TranslatableModelForm):
             'likert_response': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
             'range_response': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
             'is_required': forms.CheckboxInput(attrs={'class': 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'}),
+            'item_threshold_score': forms.NumberInput(attrs={'step': '0.01'}),
+            'item_minimum_clinical_important_difference': forms.NumberInput(attrs={'step': '0.01'}),
+            'item_normative_score_mean': forms.NumberInput(attrs={'step': '0.01'}),
+            'item_normative_score_standard_deviation': forms.NumberInput(attrs={'step': '0.01'}),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
+        self.helper.render_unmentioned_fields = False
         self.helper.layout = Layout(
-            Field('construct_scale'),
-            Field('name'),
-            Field('media'),
-            Field('response_type'),
-            Field('is_required'),
+            # Basic Information Section
             Div(
-                Field('likert_response', css_class='w-full'),
-                Field('range_response', css_class='w-full'),
-                id='response-fields',
-                css_class='mt-3'
+                HTML(f'<h3 class="text-lg font-semibold text-gray-800 mb-4">{_("Item Details")}</h3>'),
+                Field('construct_scale'),
+                Field('name'),
+                Field('media'),
+                Field('is_required'),
+                Field('response_type'),
+                Div(
+                    Field('likert_response', css_class='w-full'),
+                    Field('range_response', css_class='w-full'),
+                    id='response-fields',
+                    css_class='mt-3'
+                ),
+                css_class='bg-gray-50 p-4 rounded-md mb-6'
+            ),
+            # Advanced Clinical Settings Section (Collapsible)
+            Div(
+                HTML(f'''
+                    <div class="border border-gray-200 rounded-md">
+                        <button type="button" 
+                                class="w-full px-4 py-3 text-left bg-gray-100 hover:bg-gray-200 rounded-t-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                onclick="toggleAdvancedSettings()"
+                                id="advanced-settings-toggle">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800">{_("Advanced Clinical Settings")}</h3>
+                                <svg id="chevron-icon" class="w-5 h-5 text-gray-600 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">{_("Configure scoring direction, thresholds, and normative values for this item")}</p>
+                        </button>
+                        <div id="advanced-settings-content" class="hidden p-4 space-y-4">
+                '''),
+                
+                # Advanced fields with proper spacing
+                Field('item_better_score_direction', css_class='w-full px-3 py-2 border rounded mb-4'),
+                Field('item_threshold_score', css_class='w-full px-3 py-2 border rounded mb-4'),
+                Field('item_minimum_clinical_important_difference', css_class='w-full px-3 py-2 border rounded mb-4'),
+                Field('item_normative_score_mean', css_class='w-full px-3 py-2 border rounded mb-4'),
+                Field('item_normative_score_standard_deviation', css_class='w-full px-3 py-2 border rounded mb-4'),
+                
+                HTML('</div></div>'),
+                css_class='mb-6'
             )
         )
         
@@ -165,16 +216,65 @@ class ItemForm(TranslatableModelForm):
 class ConstructScaleForm(forms.ModelForm):
     class Meta:
         model = ConstructScale
-        fields = ['name', 'instrument_name', 'instrument_version']
+        fields = [
+            'name', 
+            'instrument_name', 
+            'instrument_version',
+            'scale_better_score_direction',
+            'scale_threshold_score',
+            'scale_minimum_clinical_important_difference',
+            'scale_normative_score_mean',
+            'scale_normative_score_standard_deviation'
+        ]
+        widgets = {
+            'scale_threshold_score': forms.NumberInput(attrs={'step': '0.01'}),
+            'scale_minimum_clinical_important_difference': forms.NumberInput(attrs={'step': '0.01'}),
+            'scale_normative_score_mean': forms.NumberInput(attrs={'step': '0.01'}),
+            'scale_normative_score_standard_deviation': forms.NumberInput(attrs={'step': '0.01'}),
+        }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            Field('name', css_class='w-full px-3 py-2 border rounded'),
-            Field('instrument_name', css_class='w-full px-3 py-2 border rounded'),
-            Field('instrument_version', css_class='w-full px-3 py-2 border rounded'),
+            # Basic Information Section
+            Div(
+                HTML(f'<h3 class="text-lg font-semibold text-gray-800 mb-4">{_("Basic Information")}</h3>'),
+                Field('name', css_class='w-full px-3 py-2 border rounded'),
+                Field('instrument_name', css_class='w-full px-3 py-2 border rounded'),
+                Field('instrument_version', css_class='w-full px-3 py-2 border rounded'),
+                css_class='bg-gray-50 p-4 rounded-md mb-6'
+            ),
+            # Advanced Settings Section (Collapsible)
+            Div(
+                HTML(f'''
+                    <div class="border border-gray-200 rounded-md">
+                        <button type="button" 
+                                class="w-full px-4 py-3 text-left bg-gray-100 hover:bg-gray-200 rounded-t-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                onclick="toggleAdvancedSettings()"
+                                id="advanced-settings-toggle">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800">{_("Advanced Clinical Settings")}</h3>
+                                <svg id="chevron-icon" class="w-5 h-5 text-gray-600 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">{_("Configure scoring direction, thresholds, and normative values")}</p>
+                        </button>
+                        <div id="advanced-settings-content" class="hidden p-4 space-y-4">
+                '''),
+                
+                # Advanced fields with proper spacing
+                Field('scale_better_score_direction', css_class='w-full px-3 py-2 border rounded mb-4'),
+                Field('scale_threshold_score', css_class='w-full px-3 py-2 border rounded mb-4'),
+                Field('scale_minimum_clinical_important_difference', css_class='w-full px-3 py-2 border rounded mb-4'),
+                Field('scale_normative_score_mean', css_class='w-full px-3 py-2 border rounded mb-4'),
+                Field('scale_normative_score_standard_deviation', css_class='w-full px-3 py-2 border rounded mb-4'),
+                
+                HTML('</div></div>'),
+                css_class='mb-6'
+            )
         )
 
 

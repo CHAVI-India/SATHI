@@ -798,6 +798,9 @@ def create_likert_scale(request):
 
 
 def create_construct_scale(request):
+    """
+    Function-based view for creating construct scales
+    """
     if request.method == 'POST':
         form = ConstructScaleForm(request.POST)
         if form.is_valid():

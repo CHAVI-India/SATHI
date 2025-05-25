@@ -18,6 +18,13 @@ import logging
 # Setup logger for construct score calculations
 logger = logging.getLogger('promapp.construct_scores')
 
+
+class DirectionChoices(models.TextChoices):
+    HIGHER_IS_BETTER = 'Higher is Better', 'Higher is Better'
+    LOWER_IS_BETTER = 'Lower is Better', 'Lower is Better'
+    MIDDLE_IS_BETTER = 'Middle is Better', 'Middle is Better'
+    NO_DIRECTION = 'No Direction', 'No Direction'
+
 class ConstructScale(models.Model):
     '''
     Construct Scale model. Construct Scale refers to the collection of items that are used to measure a construct.
@@ -28,6 +35,11 @@ class ConstructScale(models.Model):
     instrument_version = models.CharField(max_length=255,null=True, blank=True,help_text = "The version of the instrument that the construct scale belongs to")
     scale_equation = models.CharField(max_length=255,null=True,blank=True,help_text = "The equation to calculate the score for the construct scale from the items in the scale")
     minimum_number_of_items = models.IntegerField(default=0,help_text = "The minimum number of items that must be answered to calculate the score for the construct scale")
+    scale_better_score_direction = models.CharField(max_length=255, choices=DirectionChoices.choices, null=True, blank=True, verbose_name="Score Direction", help_text = "Indicates whether higher or lower scores are better for this construct")
+    scale_threshold_score = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Threshold Score", help_text = "The score which is considered clinically important. Scores above or below this threshold (depending on direction) will be considered clinically actionable.")
+    scale_minimum_clinical_important_difference = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Minimum Clinical Important Difference", help_text = "The minimum difference between two scores that would be considered clinically important. Changes exceeding this magnitude will result in clinically significant impact on patient lives.")
+    scale_normative_score_mean = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Normative Score Mean", help_text = "The mean of the normative score for the construct scale. Used to display the normative score reference.")
+    scale_normative_score_standard_deviation = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Normative Score Standard Deviation", help_text = "The standard deviation of the normative score for the construct scale. Used to display the normative score reference.")
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
@@ -213,6 +225,11 @@ class Item(TranslatableModel):
     likert_response = models.ForeignKey(LikertScale, on_delete=models.CASCADE, null=True, blank=True)
     range_response = models.ForeignKey(RangeScale, on_delete=models.CASCADE, null=True, blank=True)
     is_required = models.BooleanField(default=False, help_text = "If True, the item is required to be answered for the construct score to be calculated")
+    item_better_score_direction = models.CharField(max_length=255, choices=DirectionChoices.choices, null=True, blank=True, verbose_name="Score Direction", help_text = "Indicates whether higher or lower scores are better for this item")
+    item_threshold_score = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Threshold Score", help_text = "The score which is considered clinically important. Scores above or below this threshold (depending on direction) will be considered clinically actionable.")
+    item_minimum_clinical_important_difference = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Minimum Clinical Important Difference", help_text = "The minimum difference between two scores that would be considered clinically important. Changes exceeding this magnitude will result in clinically significant impact on patient lives.")
+    item_normative_score_mean = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Normative Score Mean", help_text = "The mean of the normative score for the item. Used to display the normative score reference.")
+    item_normative_score_standard_deviation = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Normative Score Standard Deviation", help_text = "The standard deviation of the normative score for the item. Used to display the normative score reference.")
     discrimination_parameter = models.FloatField(null=True, blank=True, help_text = "Also known as a index. The discrimination parameter for the item. This value will be obtained from a IRT model like a GPCM model")
     difficulty_parameter = models.FloatField(null=True, blank=True, help_text = "Also known as b index. The difficulty parameter for the item. This value will be obtained from a IRT model like a GPCM model")
     pseudo_guessing_parameter = models.FloatField(null=True, blank=True, help_text = "Also known as c index. The pseudo-guessing parameter for the item. This value will be obtained from a IRT model like a GPCM model")
