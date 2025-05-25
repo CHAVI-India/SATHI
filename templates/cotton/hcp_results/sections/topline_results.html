@@ -2,6 +2,7 @@
     important_constructs
     submission_count
     patient
+    construct_scores
 />
 
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6 print-card">
@@ -43,14 +44,45 @@
             </div>
         </div>
     {% else %}
-        <div class="text-center py-12">
-            <svg class="w-16 h-16 mx-auto text-green-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Debug: Show why no important constructs -->
+        <div class="text-center py-8">
+            <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">All Results Within Normal Range</h3>
-            <p class="text-gray-500 max-w-md mx-auto">
-                No construct scores require immediate clinical attention based on threshold and normative criteria.
+            <h3 class="text-lg font-medium text-gray-900 mb-2">All Constructs Within Normal Range</h3>
+            <p class="text-gray-500 max-w-md mx-auto mb-4">
+                No construct scores require immediate clinical attention based on configured thresholds and normative values.
             </p>
+            
+            <!-- Debug Information: Show all construct scores -->
+            {% if construct_scores %}
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-left max-w-4xl mx-auto">
+                    <h4 class="text-sm font-medium text-blue-700 mb-3">All Construct Scores for This Submission:</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {% for score in construct_scores %}
+                            <div class="bg-white p-3 rounded border text-xs">
+                                <div class="font-medium text-gray-900">{{ score.construct.name }}</div>
+                                <div class="text-gray-600 mt-1">
+                                    <div>Score: <span class="font-medium">{{ score.score|floatformat:1 }}</span></div>
+                                    <div>Threshold: {{ score.construct.scale_threshold_score|default:"Not set" }}</div>
+                                    <div>Normative: {{ score.construct.scale_normative_score_mean|default:"Not set" }}</div>
+                                    <div>Direction: {{ score.construct.scale_better_score_direction|default:"Not set" }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg text-left max-w-2xl mx-auto">
+                    <h4 class="text-sm font-medium text-red-700 mb-2">No Construct Scores Found</h4>
+                    <div class="text-xs text-red-600 space-y-1">
+                        <p>• No construct scores have been calculated for this submission</p>
+                        <p>• Check if constructs have equations configured</p>
+                        <p>• Verify that responses were submitted for construct items</p>
+                        <p>• Ensure minimum item requirements are met</p>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     {% endif %}
 </div> 

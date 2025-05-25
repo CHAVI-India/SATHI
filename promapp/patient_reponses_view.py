@@ -223,6 +223,8 @@ class HCPResultView(DetailView):
             score__isnull=False
         ).select_related('construct')
         
+        logger.debug(f"Found {construct_scores.count()} construct scores for submission {submission.id}")
+        
         important_constructs = []
         
         for score in construct_scores:
@@ -230,6 +232,12 @@ class HCPResultView(DetailView):
             current_score = score.score
             is_important = False
             importance_reason = ""
+            
+            logger.debug(f"Evaluating construct '{construct.name}': score={current_score}, "
+                        f"threshold={construct.scale_threshold_score}, "
+                        f"normative_mean={construct.scale_normative_score_mean}, "
+                        f"normative_sd={construct.scale_normative_score_standard_deviation}, "
+                        f"direction={construct.scale_better_score_direction}")
             
             # Check threshold score criteria
             if construct.scale_threshold_score is not None:
@@ -247,6 +255,8 @@ class HCPResultView(DetailView):
                             importance_reason = f"At threshold ({construct.scale_threshold_score})"
                         else:
                             importance_reason = f"Above threshold ({construct.scale_threshold_score})"
+                
+                logger.debug(f"Threshold check for '{construct.name}': is_important={is_important}, reason='{importance_reason}'")
             
             # Check normative score criteria if no threshold or as additional check
             elif construct.scale_normative_score_mean is not None:
@@ -274,6 +284,10 @@ class HCPResultView(DetailView):
                         if current_score >= normative_mean:
                             is_important = True
                             importance_reason = f"Above normative mean ({normative_mean})"
+                
+                logger.debug(f"Normative check for '{construct.name}': is_important={is_important}, reason='{importance_reason}'")
+            else:
+                logger.debug(f"No threshold or normative criteria configured for '{construct.name}'")
             
             if is_important:
                 # Add historical data and previous score
@@ -289,7 +303,9 @@ class HCPResultView(DetailView):
                 )
                 score.importance_reason = importance_reason
                 important_constructs.append(score)
+                logger.debug(f"Added '{construct.name}' to important constructs")
         
+        logger.debug(f"Total important constructs: {len(important_constructs)}")
         return important_constructs
     
     def _get_construct_historical_data(self, patient, construct, submission_count):

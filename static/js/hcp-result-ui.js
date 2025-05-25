@@ -446,10 +446,58 @@ function showNotification(message, type = 'info') {
 }
 
 /**
- * Print functionality
+ * Print the results page
  */
 function printResults() {
     window.print();
+}
+
+/**
+ * Handle questionnaire filter change - update results after submission dropdown is updated
+ */
+function updateResultsAfterQuestionnaireFilter(selectElement) {
+    const questionnaireId = selectElement.value;
+    
+    // Listen for the submission dropdown update to complete
+    const handleSubmissionDropdownUpdate = function(evt) {
+        if (evt.detail.target.id === 'submission-date') {
+            // Remove this event listener since we only want it to fire once
+            document.body.removeEventListener('htmx:afterSwap', handleSubmissionDropdownUpdate);
+            
+            // Now update the results with the filtered questionnaire
+            const submissionSelect = document.getElementById('submission-date');
+            const submissionCountSelect = document.getElementById('submission-count');
+            
+            if (submissionSelect && submissionCountSelect) {
+                const submissionCount = submissionCountSelect.value;
+                
+                // Get the first submission date from the updated dropdown
+                let submissionDate = '';
+                if (submissionSelect.options.length > 0 && submissionSelect.options[0].value) {
+                    submissionDate = submissionSelect.options[0].value;
+                    submissionSelect.selectedIndex = 0; // Select the first option
+                }
+                
+                // Build the URL with parameters
+                const patientId = selectElement.getAttribute('hx-get').match(/patient\/([^\/]+)\//)[1];
+                const url = `/promapp/hcp/patient/${patientId}/update-submission-data/`;
+                const params = new URLSearchParams();
+                
+                if (questionnaireId) params.append('questionnaire_id', questionnaireId);
+                if (submissionDate) params.append('submission_date', submissionDate);
+                if (submissionCount) params.append('submission_count', submissionCount);
+                
+                // Make HTMX request to update results
+                htmx.ajax('GET', `${url}?${params.toString()}`, {
+                    target: '#results-container',
+                    swap: 'innerHTML'
+                });
+            }
+        }
+    };
+    
+    // Add the event listener for this specific update
+    document.body.addEventListener('htmx:afterSwap', handleSubmissionDropdownUpdate);
 }
 
 // Export functions for global access
