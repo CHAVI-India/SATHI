@@ -4,9 +4,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.urls import reverse_lazy, reverse
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, get_language
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
 from .models import Patient, Diagnosis, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
@@ -21,9 +21,11 @@ def patient_list(request):
     gender = request.GET.get('gender', '')
     diagnosis = request.GET.get('diagnosis', '')
     treatment_type = request.GET.get('treatment_type', '')
+    questionnaire_count = request.GET.get('questionnaire_count', '')
+    sort_by = request.GET.get('sort', 'name')
     
     # Start with base queryset
-    patients = Patient.objects.all()
+    patients = Patient.objects.select_related('user').all()
     
     # Apply filters
     if search_query:
@@ -44,6 +46,41 @@ def patient_list(request):
     if treatment_type:
         patients = patients.filter(diagnosis__treatment__treatment_type__treatment_type__icontains=treatment_type).distinct()
     
+    # Apply questionnaire count filter
+    if questionnaire_count:
+        if questionnaire_count == '0':
+            patients = patients.annotate(
+                q_count=Count('patientquestionnaire', distinct=True)
+            ).filter(q_count=0)
+        elif questionnaire_count == '1-5':
+            patients = patients.annotate(
+                q_count=Count('patientquestionnaire', distinct=True)
+            ).filter(q_count__gte=1, q_count__lte=5)
+        elif questionnaire_count == '6-10':
+            patients = patients.annotate(
+                q_count=Count('patientquestionnaire', distinct=True)
+            ).filter(q_count__gte=6, q_count__lte=10)
+        elif questionnaire_count == '10+':
+            patients = patients.annotate(
+                q_count=Count('patientquestionnaire', distinct=True)
+            ).filter(q_count__gt=10)
+    
+    # Apply sorting
+    if sort_by == 'name':
+        patients = patients.order_by('name')
+    elif sort_by == '-name':
+        patients = patients.order_by('-name')
+    elif sort_by == 'questionnaire_count':
+        patients = patients.annotate(
+            q_count=Count('patientquestionnaire', distinct=True)
+        ).order_by('q_count')
+    elif sort_by == '-questionnaire_count':
+        patients = patients.annotate(
+            q_count=Count('patientquestionnaire', distinct=True)
+        ).order_by('-q_count')
+    else:
+        patients = patients.order_by('name')
+    
     # Get all institutions for the filter dropdown
     institutions = Institution.objects.all()
     
@@ -58,7 +95,7 @@ def patient_list(request):
     
     # Pagination
     page = request.GET.get('page', 1)
-    paginator = Paginator(patients, 10)  # Show 10 patients per page
+    paginator = Paginator(patients, 25)  # Show 25 patients per page to match questionnaire list
     
     try:
         patients = paginator.page(page)
@@ -67,12 +104,52 @@ def patient_list(request):
     except EmptyPage:
         patients = paginator.page(paginator.num_pages)
     
+    # Add questionnaire data to each patient
+    current_language = get_language()
+    for patient in patients:
+        # Import here to avoid circular imports
+        from promapp.models import PatientQuestionnaire, Questionnaire
+        
+        # Count only unique questionnaire assignments
+        patient.questionnaire_count = PatientQuestionnaire.objects.filter(
+            patient=patient
+        ).values('questionnaire').distinct().count()
+        
+        # Get unique questionnaire names in current language using a subquery
+        questionnaire_ids = PatientQuestionnaire.objects.filter(
+            patient=patient
+        ).values_list('questionnaire_id', flat=True).distinct()
+        
+        patient.questionnaire_names = list(
+            Questionnaire.objects.filter(
+                id__in=questionnaire_ids,
+                translations__language_code=current_language
+            ).values_list('translations__name', flat=True)
+        )
+    
+    # Add dropdown options for filter components
+    questionnaire_count_choices = [
+        ('0', _('None')),
+        ('1-5', _('1-5')),
+        ('6-10', _('6-10')),
+        ('10+', _('10+')),
+    ]
+    
+    sort_choices = [
+        ('name', _('Name')),
+        ('-name', _('Name (Z-A)')),
+        ('questionnaire_count', _('Questionnaire Count')),
+        ('-questionnaire_count', _('Questionnaire Count (High-Low)')),
+    ]
+    
     context = {
         'patients': patients,
         'institutions': institutions,
         'gender_choices': gender_choices,
         'diagnoses': diagnoses,
         'treatment_types': treatment_types,
+        'questionnaire_count_choices': questionnaire_count_choices,
+        'sort_choices': sort_choices,
         'is_paginated': patients.has_other_pages(),
         'page_obj': patients,
     }
