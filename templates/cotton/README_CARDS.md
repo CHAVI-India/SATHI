@@ -33,6 +33,51 @@ A flexible card component that can display various types of content with customi
 | `body_bg` | string | ❌ | `"bg-white"` | Body background color class |
 | `footer_bg` | string | ❌ | `"bg-gray-50"` | Footer background color class |
 
+### Mobile Responsiveness
+
+The card component is designed to be mobile-first and responsive:
+
+#### Responsive Padding
+- **Mobile**: Smaller padding for better space utilization
+- **Desktop**: Larger padding for better visual hierarchy
+- **Automatic**: Padding scales based on screen size using Tailwind's responsive prefixes
+
+#### Header Layout
+- **Mobile**: Title/subtitle and actions stack vertically with gap spacing
+- **Desktop**: Horizontal layout with space-between alignment
+- **Text Handling**: Automatic truncation prevents overflow on small screens
+
+#### Responsive Padding Levels
+| Level | Mobile | Desktop |
+|-------|--------|---------|
+| `sm` | `p-2` | `p-3` |
+| `md` | `p-4` | `p-6` |
+| `lg` | `p-4` | `p-8` |
+| `xl` | `p-6` | `p-10` |
+
+#### Best Practices for Mobile
+```html
+<!-- Good: Responsive content inside cards -->
+<c-card title="Patient Info" padding="md">
+    <div class="flex flex-col sm:flex-row sm:justify-between gap-3">
+        <div class="flex-1 min-w-0">
+            <h3 class="truncate">{{ patient.name }}</h3>
+            <p class="text-sm text-gray-600">{{ patient.id }}</p>
+        </div>
+        <div class="flex space-x-2 sm:flex-shrink-0">
+            <!-- Action buttons -->
+        </div>
+    </div>
+</c-card>
+
+<!-- Good: Stack elements vertically on mobile -->
+<c-card title="Details">
+    <div class="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6">
+        <!-- Field displays -->
+    </div>
+</c-card>
+```
+
 ### Usage Examples
 
 #### Basic Card

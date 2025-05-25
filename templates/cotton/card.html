@@ -1,6 +1,6 @@
 {% comment %}
 Dynamic Card Component
-A flexible card component that can display various types of content
+A flexible, mobile-responsive card component that can display various types of content
 
 Props:
 - title: Card title/header text
@@ -16,6 +16,12 @@ Props:
 - header_bg: Header background color class
 - body_bg: Body background color class
 - footer_bg: Footer background color class
+
+Mobile Responsiveness:
+- Responsive padding (smaller on mobile, larger on desktop)
+- Header layout stacks vertically on mobile, horizontal on desktop
+- Text truncation to prevent overflow
+- Flexible action button placement
 {% endcomment %}
 
 <div class="
@@ -27,21 +33,21 @@ Props:
     {% if title or subtitle or header_actions %}
     <!-- Card Header -->
     <div class="
-        {% if padding == 'none' %}{% elif padding == 'sm' %}px-3 py-2{% elif padding == 'lg' %}px-8 py-6{% elif padding == 'xl' %}px-10 py-8{% else %}px-6 py-4{% endif %}
+        {% if padding == 'none' %}{% elif padding == 'sm' %}px-2 py-2 sm:px-3{% elif padding == 'lg' %}px-4 py-4 sm:px-8 sm:py-6{% elif padding == 'xl' %}px-6 py-6 sm:px-10 sm:py-8{% else %}px-4 py-3 sm:px-6 sm:py-4{% endif %}
         {% if header_bg %}{{ header_bg }}{% else %}bg-gray-50{% endif %}
         border-b border-gray-200 {{ header_class }}
     ">
-        <div class="flex justify-between items-center">
-            <div>
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+            <div class="flex-1 min-w-0">
                 {% if title %}
-                <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
+                <h3 class="text-base sm:text-lg font-semibold text-gray-900 truncate">{{ title }}</h3>
                 {% endif %}
                 {% if subtitle %}
-                <p class="mt-1 text-sm text-gray-600">{{ subtitle }}</p>
+                <p class="mt-1 text-sm text-gray-600 truncate">{{ subtitle }}</p>
                 {% endif %}
             </div>
             {% if header_actions %}
-            <div class="flex space-x-2">
+            <div class="flex space-x-2 sm:flex-shrink-0">
                 {{ header_actions }}
             </div>
             {% endif %}
@@ -51,7 +57,7 @@ Props:
 
     <!-- Card Body -->
     <div class="
-        {% if padding == 'none' %}{% elif padding == 'sm' %}p-3{% elif padding == 'lg' %}p-8{% elif padding == 'xl' %}p-10{% else %}p-6{% endif %}
+        {% if padding == 'none' %}{% elif padding == 'sm' %}p-2 sm:p-3{% elif padding == 'lg' %}p-4 sm:p-8{% elif padding == 'xl' %}p-6 sm:p-10{% else %}p-4 sm:p-6{% endif %}
         {% if body_bg %}{{ body_bg }}{% else %}bg-white{% endif %}
         {{ body_class }}
     ">
@@ -61,7 +67,7 @@ Props:
     {% if footer %}
     <!-- Card Footer -->
     <div class="
-        {% if padding == 'none' %}{% elif padding == 'sm' %}px-3 py-2{% elif padding == 'lg' %}px-8 py-6{% elif padding == 'xl' %}px-10 py-8{% else %}px-6 py-4{% endif %}
+        {% if padding == 'none' %}{% elif padding == 'sm' %}px-2 py-2 sm:px-3{% elif padding == 'lg' %}px-4 py-4 sm:px-8 sm:py-6{% elif padding == 'xl' %}px-6 py-6 sm:px-10 sm:py-8{% else %}px-4 py-3 sm:px-6 sm:py-4{% endif %}
         {% if footer_bg %}{{ footer_bg }}{% else %}bg-gray-50{% endif %}
         border-t border-gray-200 {{ footer_class }}
     ">
