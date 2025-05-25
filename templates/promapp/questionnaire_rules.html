@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load cotton %}
 
 {% block title %}{% translate "Manage Questionnaire Rules" %}{% endblock %}
 
@@ -27,144 +28,69 @@
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
-  <div class="bg-white shadow-md rounded-lg overflow-hidden">
-    <div class="p-6">
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-blue-700">{% translate "Manage Questionnaire Rules" %}</h1>
-        <a href="{% url 'questionnaire_update' questionnaire.id %}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
-          {% translate "Back to Questionnaire" %}
-        </a>
-      </div>
+  <!-- Header with title and back button -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-blue-700">{% translate "Manage Questionnaire Rules" %}</h1>
+    <c-link_button href="{% url 'questionnaire_update' questionnaire.id %}" variant="secondary">
+      {% translate "Back to Questionnaire" %}
+    </c-link_button>
+  </div>
 
-      <div class="mb-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-2">{{ questionnaire.name }}</h2>
-        <p class="text-gray-600">{{ questionnaire.description|default:"No description provided" }}</p>
+  <c-card 
+    shadow="md"
+    border="light"
+    padding="md">
+    
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-2">{{ questionnaire.name }}</h2>
+      <p class="text-gray-600">{{ questionnaire.description|default:"No description provided" }}</p>
+      
+      <!-- Information about required items -->
+      <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+        <div class="flex items-center">
+          <svg class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+          </svg>
+          <div class="text-sm text-blue-800">
+            <span class="font-medium">{% translate "Note:" %}</span>
+            {% translate "Questions marked as 'Required for Scoring' cannot have rules created as they must always be visible for score calculation." %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Questions List -->
+      <c-card 
+        title="{% translate 'Questions' %}"
+        shadow="sm"
+        border="light"
+        padding="md"
+        body_bg="bg-gray-50">
         
-        <!-- Information about required items -->
-        <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-          <div class="flex items-center">
-            <svg class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-            </svg>
-            <div class="text-sm text-blue-800">
-              <span class="font-medium">{% translate "Note:" %}</span>
-              {% translate "Questions marked as 'Required for Scoring' cannot have rules created as they must always be visible for score calculation." %}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Questions List -->
-        <div class="bg-gray-50 p-4 rounded-md">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">{% translate "Questions" %}</h3>
-          <div class="space-y-4">
-            {% for item in questionnaire_items_structured %}
-              <div class="question-card bg-white p-4 rounded-md border">
-                <div class="flex justify-between items-start">
-                  <div class="flex-1">
-                    <div class="font-medium">
-                      Q{{ item.item.question_number }}: {{ item.item.item.name }}
-                    </div>
-                    <div class="text-sm text-gray-600 mt-1">
-                      {{ item.item.item.get_response_type_display }}
-                      {% if item.item.item.response_type == 'Likert' and item.item.item.likert_response %}
-                        - {{ item.item.item.likert_response.likert_scale_name }}
-                      {% elif item.item.item.response_type == 'Range' and item.item.item.range_response %}
-                        - {{ item.item.item.range_response.range_scale_name }}
-                      {% endif %}
-                    </div>
-                    <!-- Status Badge -->
-                    <div class="mt-2">
-                      {% if item.item.item.is_required %}
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                          </svg>
-                          {% translate "Required for Scoring" %}
-                        </span>
-                      {% else %}
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                          </svg>
-                          {% translate "Optional" %}
-                        </span>
-                      {% endif %}
-                    </div>
-                  </div>
-                  <div class="flex space-x-2 ml-4">
-                    {% if item.item.item.is_required %}
-                      <button class="px-3 py-1 bg-gray-400 text-gray-600 text-sm rounded cursor-not-allowed" 
-                              disabled
-                              title="{% translate 'Cannot create rules for required items' %}">
-                        {% translate "Manage Rules" %}
-                      </button>
-                    {% else %}
-                      <a href="{% url 'questionnaire_item_rules_list' item.item.id %}" 
-                         class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
-                        {% translate "Manage Rules" %}
-                      </a>
-                    {% endif %}
-                  </div>
-                </div>
-                
-                {% if item.rules or item.rule_groups %}
-                  <div class="mt-3 pt-3 border-t">
-                    <div class="text-sm text-gray-600">
-                      {% if item.rules %}
-                        <div class="mb-2">
-                          <span class="font-medium">{% translate "Individual Rules" %}:</span>
-                          <ul class="list-disc list-inside">
-                            {% for rule in item.rules %}
-                              <li>
-                                {% translate "If" %} Q{{ rule.dependent_item.question_number }} 
-                                {{ rule.get_operator_display }} 
-                                "{{ rule.comparison_value }}"
-                              </li>
-                            {% endfor %}
-                          </ul>
-                        </div>
-                      {% endif %}
-                      
-                      {% if item.rule_groups %}
-                        <div>
-                          <span class="font-medium">{% translate "Rule Groups" %}:</span>
-                          <ul class="list-disc list-inside">
-                            {% for group in item.rule_groups %}
-                              <li>
-                                {% translate "Group" %} {{ group.group_order }}:
-                                {% for rule in group.rules.all %}
-                                  {% if not forloop.first %}{{ rule.logical_operator }} {% endif %}
-                                  Q{{ rule.dependent_item.question_number }}
-                                  {{ rule.get_operator_display }}
-                                  "{{ rule.comparison_value }}"
-                                {% endfor %}
-                              </li>
-                            {% endfor %}
-                          </ul>
-                        </div>
-                      {% endif %}
-                    </div>
-                  </div>
-                {% endif %}
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-
-        <!-- Rules Summary -->
-        <div class="bg-gray-50 p-4 rounded-md">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">{% translate "Rules Summary" %}</h3>
-          <div class="rule-list space-y-4">
-            {% for item in questionnaire_items_structured %}
-              {% if item.rules or item.rule_groups %}
-                <div class="rule-card bg-white p-4 rounded-md border">
-                  <div class="font-medium mb-2">
+        <div class="space-y-4">
+          {% for item in questionnaire_items_structured %}
+            <c-card 
+              shadow="sm"
+              border="light"
+              padding="sm"
+              class="question-card">
+              
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <div class="font-medium">
                     Q{{ item.item.question_number }}: {{ item.item.item.name }}
                   </div>
-                  <!-- Status Badge in Summary -->
-                  <div class="mb-3">
+                  <div class="text-sm text-gray-600 mt-1">
+                    {{ item.item.item.get_response_type_display }}
+                    {% if item.item.item.response_type == 'Likert' and item.item.item.likert_response %}
+                      - {{ item.item.item.likert_response.likert_scale_name }}
+                    {% elif item.item.item.response_type == 'Range' and item.item.item.range_response %}
+                      - {{ item.item.item.range_response.range_scale_name }}
+                    {% endif %}
+                  </div>
+                  <!-- Status Badge -->
+                  <div class="mt-2">
                     {% if item.item.item.is_required %}
                       <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                         <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -181,6 +107,29 @@
                       </span>
                     {% endif %}
                   </div>
+                </div>
+                <div class="flex space-x-2 ml-4">
+                  {% if item.item.item.is_required %}
+                    <c-button 
+                      variant="ghost" 
+                      size="sm"
+                      disabled="true"
+                      title="{% translate 'Cannot create rules for required items' %}">
+                      {% translate "Manage Rules" %}
+                    </c-button>
+                  {% else %}
+                    <c-link_button 
+                      href="{% url 'questionnaire_item_rules_list' item.item.id %}"
+                      variant="primary"
+                      size="sm">
+                      {% translate "Manage Rules" %}
+                    </c-link_button>
+                  {% endif %}
+                </div>
+              </div>
+              
+              {% if item.rules or item.rule_groups %}
+                <div class="mt-3 pt-3 border-t">
                   <div class="text-sm text-gray-600">
                     {% if item.rules %}
                       <div class="mb-2">
@@ -218,11 +167,90 @@
                   </div>
                 </div>
               {% endif %}
-            {% endfor %}
-          </div>
+            </c-card>
+          {% endfor %}
         </div>
-      </div>
+      </c-card>
+
+      <!-- Rules Summary -->
+      <c-card 
+        title="{% translate 'Rules Summary' %}"
+        shadow="sm"
+        border="light"
+        padding="md"
+        body_bg="bg-gray-50">
+        
+        <div class="rule-list space-y-4">
+          {% for item in questionnaire_items_structured %}
+            {% if item.rules or item.rule_groups %}
+              <c-card 
+                shadow="sm"
+                border="light"
+                padding="sm"
+                class="rule-card">
+                
+                <div class="font-medium mb-2">
+                  Q{{ item.item.question_number }}: {{ item.item.item.name }}
+                </div>
+                <!-- Status Badge in Summary -->
+                <div class="mb-3">
+                  {% if item.item.item.is_required %}
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                      </svg>
+                      {% translate "Required for Scoring" %}
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                      </svg>
+                      {% translate "Optional" %}
+                    </span>
+                  {% endif %}
+                </div>
+                <div class="text-sm text-gray-600">
+                  {% if item.rules %}
+                    <div class="mb-2">
+                      <span class="font-medium">{% translate "Individual Rules" %}:</span>
+                      <ul class="list-disc list-inside">
+                        {% for rule in item.rules %}
+                          <li>
+                            {% translate "If" %} Q{{ rule.dependent_item.question_number }} 
+                            {{ rule.get_operator_display }} 
+                            "{{ rule.comparison_value }}"
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  {% endif %}
+                  
+                  {% if item.rule_groups %}
+                    <div>
+                      <span class="font-medium">{% translate "Rule Groups" %}:</span>
+                      <ul class="list-disc list-inside">
+                        {% for group in item.rule_groups %}
+                          <li>
+                            {% translate "Group" %} {{ group.group_order }}:
+                            {% for rule in group.rules.all %}
+                              {% if not forloop.first %}{{ rule.logical_operator }} {% endif %}
+                              Q{{ rule.dependent_item.question_number }}
+                              {{ rule.get_operator_display }}
+                              "{{ rule.comparison_value }}"
+                            {% endfor %}
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  {% endif %}
+                </div>
+              </c-card>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </c-card>
     </div>
-  </div>
+  </c-card>
 </div>
 {% endblock %}

@@ -1,157 +1,157 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load cotton %}
 
 {% block title %}{% translate "Questionnaire Item Rule Groups" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
-  <div class="bg-white shadow-md rounded-lg overflow-hidden">
-    <div class="p-6">
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h1 class="text-2xl font-bold text-blue-700">
-            {% translate "Rule Groups for" %} "{{ questionnaire_item.item.name }}"
-          </h1>
-          {% if is_required_item %}
-            <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-              </svg>
-              {% translate "Required for Scoring" %}
-            </div>
-          {% else %}
-            <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-              </svg>
-              {% translate "Optional Item" %}
-            </div>
-          {% endif %}
-        </div>
-        <div class="flex flex-wrap gap-3">
-          <a href="{% url 'questionnaire_rules' questionnaire_item.questionnaire.id %}" 
-             class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 inline-flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-            </svg>
-            {% translate "Back to Questionnaire Rules" %}
-          </a>
-          {% if is_required_item %}
-            <button class="px-4 py-2 bg-gray-400 text-gray-600 rounded cursor-not-allowed inline-flex items-center" 
-                    disabled
-                    title="Cannot create rule groups for required items">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-              {% translate "Add Rule Group" %}
-            </button>
-          {% else %}
-            <a href="{% url 'questionnaire_item_rule_group_create' questionnaire_item.id %}" 
-               class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-              {% translate "Add Rule Group" %}
-            </a>
-          {% endif %}
-          <a href="{% url 'questionnaire_item_rules_list' questionnaire_item.id %}" 
-             class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M7 2a1 1 0 00-1 1v1H5a1 1 0 00-1 1v1H3a1 1 0 00-1 1v1H1a1 1 0 000 2h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1h-1V8a1 1 0 00-1-1h-1V6a1 1 0 00-1-1h-1V4a1 1 0 00-1-1h-1V2a1 1 0 00-1-1H7z" clip-rule="evenodd" />
-            </svg>
-            {% translate "Manage Rules" %}
-          </a>
-        </div>
-      </div>
-
+  <!-- Header with title and action buttons -->
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-blue-700">
+        {% translate "Rule Groups for" %} "{{ questionnaire_item.item.name }}"
+      </h1>
       {% if is_required_item %}
-        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-6" role="alert">
-          <div class="flex">
-            <div class="py-1">
-              <svg class="w-6 h-6 mr-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-              </svg>
-            </div>
-            <div>
-              <strong class="font-bold">{% translate "Rule Groups Disabled for Required Item" %}</strong>
-              <p class="mt-1">
-                {% translate "This question is marked as required for scoring. Rule groups cannot be created for required items because they might prevent the item from being displayed, making score calculation impossible." %}
-              </p>
-              <p class="mt-2">
-                {% translate "To enable rule group creation:" %} <strong>{% translate "Edit the item" %}</strong> → <strong>{% translate "Uncheck Required for scoring" %}</strong> → <strong>{% translate "Save" %}</strong>
-              </p>
-            </div>
-          </div>
-        </div>
-      {% endif %}
-
-      {% if rule_groups %}
-        <div class="space-y-6">
-          {% for group in rule_groups %}
-            <div class="border rounded-lg overflow-hidden">
-              <div class="bg-gray-50 px-6 py-4 flex justify-between items-center">
-                <h3 class="text-lg font-medium text-gray-900">
-                  {% translate "Group" %} #{{ group.group_order }}
-                </h3>
-                <div class="space-x-3">
-                  <a href="{% url 'questionnaire_item_rule_group_update' group.id %}" 
-                     class="text-blue-600 hover:text-blue-900">
-                    {% translate "Edit" %}
-                  </a>
-                  <a href="{% url 'questionnaire_item_rule_group_delete' group.id %}" 
-                     class="text-red-600 hover:text-red-900">
-                    {% translate "Delete" %}
-                  </a>
-                </div>
-              </div>
-              
-              <div class="px-6 py-4">
-                <h4 class="text-sm font-medium text-gray-700 mb-3">{% translate "Rules in this group:" %}</h4>
-                <div class="space-y-2">
-                  {% for rule in group.rules.all %}
-                    <div class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded">
-                      <div class="text-sm">
-                        <span class="font-medium">{{ rule.dependent_item.item.name }}</span>
-                        <span class="text-gray-600 mx-2">{{ rule.get_operator_display }}</span>
-                        <span class="text-gray-900">{{ rule.comparison_value }}</span>
-                      </div>
-                      <div class="text-sm text-gray-500">
-                        {% if not forloop.last %}
-                          {{ rule.get_logical_operator_display }}
-                        {% endif %}
-                      </div>
-                    </div>
-                  {% endfor %}
-                </div>
-              </div>
-            </div>
-          {% endfor %}
+        <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+          <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+          </svg>
+          {% translate "Required for Scoring" %}
         </div>
       {% else %}
-        <div class="text-center py-8">
-          <p class="text-gray-600 mb-4">{% translate "No rule groups defined for this question yet." %}</p>
-          {% if not is_required_item %}
-            <a href="{% url 'questionnaire_item_rule_group_create' questionnaire_item.id %}" 
-               class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-              {% translate "Add First Rule Group" %}
-            </a>
-          {% else %}
-            <button class="px-4 py-2 bg-gray-400 text-gray-600 rounded cursor-not-allowed inline-flex items-center" 
-                    disabled
-                    title="Cannot create rule groups for required items">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-              {% translate "Add First Rule Group" %}
-            </button>
-          {% endif %}
+        <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+          <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          {% translate "Optional Item" %}
         </div>
       {% endif %}
     </div>
+    <div class="flex flex-wrap gap-3">
+      <c-link_button 
+        href="{% url 'questionnaire_rules' questionnaire_item.questionnaire.id %}"
+        variant="secondary"
+        icon_left="<path fill-rule='evenodd' d='M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z' clip-rule='evenodd' />">
+        {% translate "Back to Questionnaire Rules" %}
+      </c-link_button>
+      {% if is_required_item %}
+        <c-button 
+          variant="ghost" 
+          disabled="true"
+          title="Cannot create rule groups for required items"
+          icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd' />">
+          {% translate "Add Rule Group" %}
+        </c-button>
+      {% else %}
+        <c-link_button 
+          href="{% url 'questionnaire_item_rule_group_create' questionnaire_item.id %}"
+          variant="success"
+          icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd' />">
+          {% translate "Add Rule Group" %}
+        </c-link_button>
+      {% endif %}
+      <c-link_button 
+        href="{% url 'questionnaire_item_rules_list' questionnaire_item.id %}"
+        variant="primary"
+        icon_left="<path fill-rule='evenodd' d='M7 2a1 1 0 00-1 1v1H5a1 1 0 00-1 1v1H3a1 1 0 00-1 1v1H1a1 1 0 000 2h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1h-1V8a1 1 0 00-1-1h-1V6a1 1 0 00-1-1h-1V4a1 1 0 00-1-1h-1V2a1 1 0 00-1-1H7z' clip-rule='evenodd' />">
+        {% translate "Manage Rules" %}
+      </c-link_button>
+    </div>
   </div>
+
+  <c-card 
+    shadow="md"
+    border="light"
+    padding="md">
+
+    {% if is_required_item %}
+      <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-6" role="alert">
+        <div class="flex">
+          <div class="py-1">
+            <svg class="w-6 h-6 mr-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          <div>
+            <strong class="font-bold">{% translate "Rule Groups Disabled for Required Item" %}</strong>
+            <p class="mt-1">
+              {% translate "This question is marked as required for scoring. Rule groups cannot be created for required items because they might prevent the item from being displayed, making score calculation impossible." %}
+            </p>
+            <p class="mt-2">
+              {% translate "To enable rule group creation:" %} <strong>{% translate "Edit the item" %}</strong> → <strong>{% translate "Uncheck Required for scoring" %}</strong> → <strong>{% translate "Save" %}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if rule_groups %}
+      <div class="space-y-6">
+        {% for group in rule_groups %}
+          <c-card 
+            shadow="sm"
+            border="light"
+            padding="sm">
+            
+            <div class="bg-gray-50 px-6 py-4 flex justify-between items-center -mx-4 -mt-4 mb-4">
+              <h3 class="text-lg font-medium text-gray-900">
+                {% translate "Group" %} #{{ group.group_order }}
+              </h3>
+              <div class="flex space-x-2">
+                <c-edit_button href="{% url 'questionnaire_item_rule_group_update' group.id %}">
+                  {% translate "Edit" %}
+                </c-edit_button>
+                <c-delete_button href="{% url 'questionnaire_item_rule_group_delete' group.id %}">
+                  {% translate "Delete" %}
+                </c-delete_button>
+              </div>
+            </div>
+            
+            <div>
+              <h4 class="text-sm font-medium text-gray-700 mb-3">{% translate "Rules in this group:" %}</h4>
+              <div class="space-y-2">
+                {% for rule in group.rules.all %}
+                  <div class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded">
+                    <div class="text-sm">
+                      <span class="font-medium">{{ rule.dependent_item.item.name }}</span>
+                      <span class="text-gray-600 mx-2">{{ rule.get_operator_display }}</span>
+                      <span class="text-gray-900">{{ rule.comparison_value }}</span>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      {% if not forloop.last %}
+                        {{ rule.get_logical_operator_display }}
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </c-card>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-8">
+        <p class="text-gray-600 mb-4">{% translate "No rule groups defined for this question yet." %}</p>
+        {% if not is_required_item %}
+          <c-link_button 
+            href="{% url 'questionnaire_item_rule_group_create' questionnaire_item.id %}"
+            variant="success"
+            icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd' />">
+            {% translate "Add First Rule Group" %}
+          </c-link_button>
+        {% else %}
+          <c-button 
+            variant="ghost" 
+            disabled="true"
+            title="Cannot create rule groups for required items"
+            icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd' />">
+            {% translate "Add First Rule Group" %}
+          </c-button>
+        {% endif %}
+      </div>
+    {% endif %}
+  </c-card>
 </div>
 {% endblock %} 

@@ -1,190 +1,183 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load cotton %}
 
 {% block title %}{% translate "Questionnaire Item Rules" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
-  <div class="bg-white shadow-md rounded-lg overflow-hidden">
-    <div class="p-6">
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h1 class="text-2xl font-bold text-blue-700">
-            {% translate "Rules for" %} "{{ questionnaire_item.item.name }}"
-          </h1>
-          {% if is_required_item %}
-            <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-              </svg>
-              {% translate "Required for Scoring" %}
-            </div>
-          {% else %}
-            <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-              </svg>
-              {% translate "Optional Item" %}
-            </div>
-          {% endif %}
-        </div>
-        <div class="flex flex-wrap gap-3">
-          <a href="{% url 'questionnaire_rules' questionnaire_item.questionnaire.id %}" 
-             class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 inline-flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-            </svg>
-            {% translate "Back to Questionnaire Rules" %}
-          </a>
-          {% if is_required_item %}
-            <div class="relative">
-              <button class="px-4 py-2 bg-gray-400 text-gray-600 rounded cursor-not-allowed inline-flex items-center" 
-                      disabled
-                      title="Cannot create rules for required items">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                </svg>
-                {% translate "Add Rule" %}
-              </button>
-            </div>
-            <div class="relative">
-              <button class="px-4 py-2 bg-gray-400 text-gray-600 rounded cursor-not-allowed inline-flex items-center" 
-                      disabled
-                      title="Cannot create rule groups for required items">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M7 2a1 1 0 00-1 1v1H5a1 1 0 00-1 1v1H3a1 1 0 00-1 1v1H1a1 1 0 000 2h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1h-1V8a1 1 0 00-1-1h-1V6a1 1 0 00-1-1h-1V4a1 1 0 00-1-1h-1V2a1 1 0 00-1-1H7z" clip-rule="evenodd" />
-                </svg>
-                {% translate "Manage Rule Groups" %}
-              </button>
-            </div>
-          {% else %}
-            <a href="{% url 'questionnaire_item_rule_create' questionnaire_item.id %}" 
-               class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-              {% translate "Add Rule" %}
-            </a>
-            <a href="{% url 'questionnaire_item_rule_groups_list' questionnaire_item.id %}" 
-               class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M7 2a1 1 0 00-1 1v1H5a1 1 0 00-1 1v1H3a1 1 0 00-1 1v1H1a1 1 0 000 2h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1h-1V8a1 1 0 00-1-1h-1V6a1 1 0 00-1-1h-1V4a1 1 0 00-1-1h-1V2a1 1 0 00-1-1H7z" clip-rule="evenodd" />
-              </svg>
-              {% translate "Manage Rule Groups" %}
-            </a>
-          {% endif %}
-        </div>
-      </div>
-
+  <!-- Header with title and action buttons -->
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-blue-700">
+        {% translate "Rules for" %} "{{ questionnaire_item.item.name }}"
+      </h1>
       {% if is_required_item %}
-        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-6" role="alert">
-          <div class="flex">
-            <div class="py-1">
-              <svg class="w-6 h-6 mr-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-              </svg>
-            </div>
-            <div>
-              <strong class="font-bold">{% translate "Rules Disabled for Required Item" %}</strong>
-              <p class="mt-1">
-                {% translate "This question is marked as required for scoring. Rules cannot be created for required items because they might prevent the item from being displayed, making score calculation impossible." %}
-              </p>
-              <p class="mt-2">
-                {% translate "To enable rule creation:" %} <strong>{% translate "Edit the item" %}</strong> → <strong>{% translate "Uncheck 'Required for scoring'" %}</strong> → <strong>{% translate "Save" %}</strong>
-              </p>
-            </div>
-          </div>
-        </div>
-      {% endif %}
-
-      {% if rules %}
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% translate "Dependent Question" %}
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% translate "Operator" %}
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% translate "Comparison Value" %}
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% translate "Logical Operator" %}
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% translate "Order" %}
-                </th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {% translate "Actions" %}
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              {% for rule in rules %}
-                <tr>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">
-                      {{ rule.dependent_item.item.name }}
-                    </div>
-                    <div class="text-sm text-gray-500">
-                      {% translate "Question" %} #{{ rule.dependent_item.question_number }}
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ rule.get_operator_display }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ rule.comparison_value }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ rule.get_logical_operator_display }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ rule.rule_order }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <a href="{% url 'questionnaire_item_rule_update' rule.id %}" 
-                       class="text-blue-600 hover:text-blue-900 mr-3">
-                      {% translate "Edit" %}
-                    </a>
-                    <a href="{% url 'questionnaire_item_rule_delete' rule.id %}" 
-                       class="text-red-600 hover:text-red-900">
-                      {% translate "Delete" %}
-                    </a>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+          <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+          </svg>
+          {% translate "Required for Scoring" %}
         </div>
       {% else %}
-        <div class="text-center py-8">
-          <p class="text-gray-600 mb-4">{% translate "No rules defined for this question yet." %}</p>
-          {% if not is_required_item %}
-            <a href="{% url 'questionnaire_item_rule_create' questionnaire_item.id %}" 
-               class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 inline-flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-              {% translate "Add First Rule" %}
-            </a>
-          {% else %}
-            <button class="px-4 py-2 bg-gray-400 text-gray-600 rounded cursor-not-allowed inline-flex items-center" 
-                    disabled
-                    title="Cannot create rules for required items">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-              {% translate "Add First Rule" %}
-            </button>
-          {% endif %}
+        <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+          <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          {% translate "Optional Item" %}
         </div>
       {% endif %}
     </div>
+    <div class="flex flex-wrap gap-3">
+      <c-link_button 
+        href="{% url 'questionnaire_rules' questionnaire_item.questionnaire.id %}"
+        variant="secondary"
+        icon_left="<path fill-rule='evenodd' d='M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z' clip-rule='evenodd' />">
+        {% translate "Back to Questionnaire Rules" %}
+      </c-link_button>
+      {% if is_required_item %}
+        <c-button 
+          variant="ghost" 
+          disabled="true"
+          title="Cannot create rules for required items"
+          icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd' />">
+          {% translate "Add Rule" %}
+        </c-button>
+        <c-button 
+          variant="ghost" 
+          disabled="true"
+          title="Cannot create rule groups for required items"
+          icon_left="<path fill-rule='evenodd' d='M7 2a1 1 0 00-1 1v1H5a1 1 0 00-1 1v1H3a1 1 0 00-1 1v1H1a1 1 0 000 2h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1h-1V8a1 1 0 00-1-1h-1V6a1 1 0 00-1-1h-1V4a1 1 0 00-1-1h-1V2a1 1 0 00-1-1H7z' clip-rule='evenodd' />">
+          {% translate "Manage Rule Groups" %}
+        </c-button>
+      {% else %}
+        <c-link_button 
+          href="{% url 'questionnaire_item_rule_create' questionnaire_item.id %}"
+          variant="success"
+          icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd' />">
+          {% translate "Add Rule" %}
+        </c-link_button>
+        <c-link_button 
+          href="{% url 'questionnaire_item_rule_groups_list' questionnaire_item.id %}"
+          variant="primary"
+          icon_left="<path fill-rule='evenodd' d='M7 2a1 1 0 00-1 1v1H5a1 1 0 00-1 1v1H3a1 1 0 00-1 1v1H1a1 1 0 000 2h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1v1a1 1 0 001 1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1v-1h1a1 1 0 001-1h-1V8a1 1 0 00-1-1h-1V6a1 1 0 00-1-1h-1V4a1 1 0 00-1-1h-1V2a1 1 0 00-1-1H7z' clip-rule='evenodd' />">
+          {% translate "Manage Rule Groups" %}
+        </c-link_button>
+      {% endif %}
+    </div>
   </div>
+
+  <c-card 
+    shadow="md"
+    border="light"
+    padding="md">
+
+    {% if is_required_item %}
+      <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-6" role="alert">
+        <div class="flex">
+          <div class="py-1">
+            <svg class="w-6 h-6 mr-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          <div>
+            <strong class="font-bold">{% translate "Rules Disabled for Required Item" %}</strong>
+            <p class="mt-1">
+              {% translate "This question is marked as required for scoring. Rules cannot be created for required items because they might prevent the item from being displayed, making score calculation impossible." %}
+            </p>
+            <p class="mt-2">
+              {% translate "To enable rule creation:" %} <strong>{% translate "Edit the item" %}</strong> → <strong>{% translate "Uncheck 'Required for scoring'" %}</strong> → <strong>{% translate "Save" %}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if rules %}
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {% translate "Dependent Question" %}
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {% translate "Operator" %}
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {% translate "Comparison Value" %}
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {% translate "Logical Operator" %}
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {% translate "Order" %}
+              </th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {% translate "Actions" %}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for rule in rules %}
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">
+                    {{ rule.dependent_item.item.name }}
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    {% translate "Question" %} #{{ rule.dependent_item.question_number }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ rule.get_operator_display }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ rule.comparison_value }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ rule.get_logical_operator_display }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ rule.rule_order }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex justify-end space-x-2">
+                    <c-edit_button href="{% url 'questionnaire_item_rule_update' rule.id %}">
+                      {% translate "Edit" %}
+                    </c-edit_button>
+                    <c-delete_button href="{% url 'questionnaire_item_rule_delete' rule.id %}">
+                      {% translate "Delete" %}
+                    </c-delete_button>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-8">
+        <p class="text-gray-600 mb-4">{% translate "No rules defined for this question yet." %}</p>
+        {% if not is_required_item %}
+          <c-link_button 
+            href="{% url 'questionnaire_item_rule_create' questionnaire_item.id %}"
+            variant="success"
+            icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd' />">
+            {% translate "Add First Rule" %}
+          </c-link_button>
+        {% else %}
+          <c-button 
+            variant="ghost" 
+            disabled="true"
+            title="Cannot create rules for required items"
+            icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd' />">
+            {% translate "Add First Rule" %}
+          </c-button>
+        {% endif %}
+      </div>
+    {% endif %}
+  </c-card>
 </div>
 {% endblock %} 
