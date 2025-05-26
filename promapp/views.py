@@ -31,6 +31,7 @@ from django.utils.timesince import timeuntil
 from django.conf import settings
 from django.utils import translation
 import uuid
+from patientapp.models import Patient
 
 # Create your views here.
 
@@ -3461,5 +3462,45 @@ class CompositeConstructScaleScoringDeleteView(LoginRequiredMixin, PermissionReq
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('Composite construct scale scoring deleted successfully.'))
         return super().delete(request, *args, **kwargs)
+
+def prom_review(request, pk):
+    """
+    View for displaying patient questionnaire responses for healthcare providers.
+    """
+    patient = get_object_or_404(Patient, pk=pk)
+    
+    # Get all questionnaire submissions for this patient
+    submissions = QuestionnaireSubmission.objects.filter(
+        patient=patient
+    ).select_related(
+        'questionnaire'
+    ).order_by('-submission_date')
+    
+    # Get the latest submission for each questionnaire
+    latest_submissions = {}
+    for submission in submissions:
+        if submission.questionnaire_id not in latest_submissions:
+            latest_submissions[submission.questionnaire_id] = submission
+    
+    # Get all item responses for the latest submissions
+    item_responses = QuestionnaireItemResponse.objects.filter(
+        submission__in=latest_submissions.values()
+    ).select_related(
+        'questionnaire_item',
+        'questionnaire_item__item',
+        'questionnaire_item__questionnaire'
+    ).order_by(
+        'questionnaire_item__questionnaire__name',
+        'questionnaire_item__order'
+    )
+    
+    context = {
+        'patient': patient,
+        'submissions': submissions,
+        'latest_submissions': latest_submissions,
+        'item_responses': item_responses,
+    }
+    
+    return render(request, 'promapp/prom_review.html', context)
 
 

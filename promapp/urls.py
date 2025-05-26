@@ -4,6 +4,9 @@ from .views import MyQuestionnaireListView
 
 
 urlpatterns = [
+    # PRO Review URL
+    path('prom-review/<uuid:pk>/', views.prom_review, name='prom_review'),
+
     # Questionnaire URLs
     path('questionnaires/', views.QuestionnaireListView.as_view(), name='questionnaire_list'),
     path('questionnaires/create/', views.QuestionnaireCreateView.as_view(), name='questionnaire_create'),
@@ -121,6 +124,4 @@ urlpatterns = [
     path('construct-scale/<uuid:pk>/equation/', views.ConstructEquationView.as_view(), name='construct_equation_update'),
     path('validate-equation/', views.validate_equation, name='validate_equation'),
     path('add-to-equation/', views.add_to_equation, name='add_to_equation'),
-
- 
 ] 
