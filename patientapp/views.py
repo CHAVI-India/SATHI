@@ -98,9 +98,12 @@ def prom_review(request, pk):
         'questionnaire_item__item',
         'questionnaire_item__item__likert_response',
         'questionnaire_item__item__range_response'
+    ).prefetch_related(
+        'questionnaire_item__item__likert_response__likertscaleresponseoption_set',
+        'questionnaire_item__item__likert_response__likertscaleresponseoption_set__translations'
     )
     
-    # Calculate percentages for item responses
+    # Calculate percentages and add option text for item responses
     for response in item_responses:
         if response.questionnaire_item.item.response_type == 'Numeric' and response.questionnaire_item.item.range_response:
             try:
@@ -119,6 +122,12 @@ def prom_review(request, pk):
                     max_value=Max('option_value')
                 )['max_value']
                 response.percentage = calculate_percentage(likert_value, max_value)
+                
+                # Add the option text to the response
+                for option in response.questionnaire_item.item.likert_response.likertscaleresponseoption_set.all():
+                    if str(option.option_value) == response.response_value:
+                        response.option_text = option.option_text
+                        break
             except (ValueError, TypeError):
                 response.likert_response = None
                 response.percentage = 0
