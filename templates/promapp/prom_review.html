@@ -48,19 +48,4 @@
 
 {% block extra_js %}
 {{ bokeh_js|safe }}
-<script src="{% static 'js/construct-plots.js' %}"></script>
-<script>
-    // Handle HTMX after swap to update plots
-    document.body.addEventListener('htmx:afterSwap', function(evt) {
-        if (evt.detail.target.id === 'results-container') {
-            // Reinitialize plots after content update
-            initializePlots();
-        }
-    });
-
-    // Initialize all plots
-    function initializePlots() {
-        // Plot initialization code will go here
-    }
-</script>
 {% endblock %}

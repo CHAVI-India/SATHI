@@ -124,7 +124,7 @@ class ConstructScoreData:
         
         # Get the plot components
         script, div = components(p)
-        return div
+        return script + div
 
     @staticmethod
     def is_important_construct(construct: ConstructScale, current_score: Optional[Decimal]) -> bool:
