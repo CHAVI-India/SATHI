@@ -10,6 +10,8 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 import re
+import statistics
+from decimal import Decimal
 from .equation_parser import EquationValidator, EquationTransformer
 import logging
 
@@ -901,3 +903,129 @@ def calculate_scores_for_submission(submission):
             logger.error(f"Equation validation error for construct {construct.name}: {str(e)}")
         except Exception as e:
             logger.error(f"Error calculating score for construct {construct.name}: {str(e)}", exc_info=True)
+    
+    # After calculating all individual construct scores, calculate composite scores
+    calculate_composite_scores_for_submission(submission)
+
+
+def calculate_composite_scores_for_submission(submission):
+    """
+    Calculate composite construct scores for a questionnaire submission.
+    
+    This function calculates composite scores based on CompositeConstructScaleScoring
+    definitions. Missing construct scores are treated as 0 for the computation.
+    """
+    
+    logger.info(f"Calculating composite construct scores for submission {submission.id}")
+    
+    # Get all composite construct scale scoring definitions
+    composite_scales = CompositeConstructScaleScoring.objects.all().prefetch_related('construct_scales')
+    
+    if not composite_scales.exists():
+        logger.debug("No composite construct scale scoring definitions found")
+        return
+    
+    # Get all construct scores for this submission
+    construct_scores = QuestionnaireConstructScore.objects.filter(
+        questionnaire_submission=submission
+    ).select_related('construct')
+    
+    # Create a mapping of construct_id to score for quick lookup
+    construct_score_map = {}
+    for cs in construct_scores:
+        # Only include scores that were successfully calculated (not None)
+        if cs.score is not None:
+            construct_score_map[cs.construct.id] = float(cs.score)
+    
+    logger.debug(f"Found {len(construct_score_map)} valid construct scores for composite calculation")
+    
+    # Process each composite construct scale
+    for composite_scale in composite_scales:
+        logger.info(f"Processing composite scale: {composite_scale.composite_construct_scale_name}")
+        
+        # Get the construct scales that make up this composite
+        component_constructs = composite_scale.construct_scales.all()
+        
+        if not component_constructs.exists():
+            logger.warning(f"No component constructs found for composite scale {composite_scale.composite_construct_scale_name}")
+            continue
+        
+        # Collect scores for the component constructs
+        component_scores = []
+        missing_constructs = []
+        
+        for construct in component_constructs:
+            if construct.id in construct_score_map:
+                score = construct_score_map[construct.id]
+                component_scores.append(score)
+                logger.debug(f"Found score {score} for construct {construct.name}")
+            else:
+                # Missing scores are treated as 0
+                component_scores.append(0.0)
+                missing_constructs.append(construct.name)
+                logger.debug(f"Missing score for construct {construct.name}, using 0")
+        
+        if missing_constructs:
+            logger.info(f"Composite scale {composite_scale.composite_construct_scale_name}: "
+                       f"Missing scores for constructs {missing_constructs}, treating as 0")
+        
+        # Calculate the composite score based on scoring type
+        try:
+            composite_score = None
+            scoring_type = composite_scale.scoring_type
+            
+            if scoring_type == ScoringTypeChoices.AVERAGE:
+                if component_scores:
+                    composite_score = sum(component_scores) / len(component_scores)
+                    logger.debug(f"Average calculation: {component_scores} = {composite_score}")
+            
+            elif scoring_type == ScoringTypeChoices.SUM:
+                composite_score = sum(component_scores)
+                logger.debug(f"Sum calculation: {component_scores} = {composite_score}")
+            
+            elif scoring_type == ScoringTypeChoices.MEDIAN:
+                if component_scores:
+                    composite_score = statistics.median(component_scores)
+                    logger.debug(f"Median calculation: {component_scores} = {composite_score}")
+            
+            elif scoring_type == ScoringTypeChoices.MODE:
+                if component_scores:
+                    try:
+                        composite_score = statistics.mode(component_scores)
+                        logger.debug(f"Mode calculation: {component_scores} = {composite_score}")
+                    except statistics.StatisticsError:
+                        # No unique mode found, use the first value as fallback
+                        composite_score = component_scores[0] if component_scores else 0
+                        logger.warning(f"No unique mode found for {component_scores}, using first value: {composite_score}")
+            
+            elif scoring_type == ScoringTypeChoices.MIN:
+                if component_scores:
+                    composite_score = min(component_scores)
+                    logger.debug(f"Min calculation: {component_scores} = {composite_score}")
+            
+            elif scoring_type == ScoringTypeChoices.MAX:
+                if component_scores:
+                    composite_score = max(component_scores)
+                    logger.debug(f"Max calculation: {component_scores} = {composite_score}")
+            
+            else:
+                logger.error(f"Unknown scoring type: {scoring_type}")
+                continue
+            
+            if composite_score is not None:
+                # Convert to Decimal for storage
+                composite_score_decimal = Decimal(str(composite_score))
+                
+                # Store the composite score
+                QuestionnaireConstructScoreComposite.objects.create(
+                    questionnaire_submission=submission,
+                    composite_construct_scale=composite_scale,
+                    score=composite_score_decimal
+                )
+                
+                logger.info(f"Calculated composite score for {composite_scale.composite_construct_scale_name}: {composite_score}")
+            else:
+                logger.warning(f"Could not calculate composite score for {composite_scale.composite_construct_scale_name}")
+        
+        except Exception as e:
+            logger.error(f"Error calculating composite score for {composite_scale.composite_construct_scale_name}: {str(e)}", exc_info=True)
