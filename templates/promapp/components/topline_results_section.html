@@ -1,0 +1,32 @@
+{% load i18n %}
+{% load static %}
+
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">{% trans "Topline Results" %}</h2>
+        <div class="flex items-center space-x-2">
+            <label for="submission-count" class="text-sm text-gray-600">{% trans "Show last" %}</label>
+            <select id="submission-count" name="submission_count" class="form-select text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                    hx-get="{% url 'prom_review' patient.id %}"
+                    hx-target="#topline-results"
+                    hx-swap="innerHTML">
+                <option value="3">3</option>
+                <option value="5" selected>5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="all">{% trans "All" %}</option>
+            </select>
+            <span class="text-sm text-gray-600">{% trans "submissions" %}</span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for score_data in important_construct_scores %}
+            {% include "promapp/components/important_construct_card.html" with score_data=score_data %}
+        {% empty %}
+            <div class="col-span-full text-center py-8">
+                <p class="text-gray-500">{% trans "No important construct scores available" %}</p>
+            </div>
+        {% endfor %}
+    </div>
+</div> 

@@ -5,6 +5,10 @@
 
 {% block title %}{% translate "PRO Review" %}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/prom_review.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="max-w-7xl mx-auto">
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
@@ -31,10 +35,12 @@
                     </div>
                 </div>
 
-                <!-- Results Container -->
-                <div id="results-container">
-                    {% include "promapp/components/results_container.html" %}
+                <!-- Topline Results -->
+                <div id="topline-results">
+                    {% include "promapp/components/topline_results_section.html" %}
                 </div>
+
+
             </div>
         </div>
     </div>
@@ -43,6 +49,7 @@
 
 {% block extra_js %}
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="{% static 'js/construct-plots.js' %}"></script>
 <script>
     // Handle HTMX after swap to update plots
     document.body.addEventListener('htmx:afterSwap', function(evt) {

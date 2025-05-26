@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from .models import Patient, Diagnosis, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
 from .forms import PatientForm, TreatmentForm
 from promapp.models import *
+from .utils import ConstructScoreData
 import logging
 
 logger = logging.getLogger(__name__)
@@ -82,6 +83,60 @@ def prom_review(request, pk):
     )
     
     logger.info(f"Found {construct_scores.count()} construct scores")
+
+    # Get submission count from request or default to 5
+    submission_count = request.GET.get('submission_count', '5')
+    if submission_count == 'all':
+        submission_count = submissions.count()
+    else:
+        submission_count = int(submission_count)
+    
+    logger.info(f"Using submission count: {submission_count}")
+
+    # Get important construct scores
+    important_construct_scores = []
+    logger.info("Processing construct scores to find important ones...")
+    
+    for construct_score in construct_scores:
+        construct = construct_score.construct
+        logger.info(f"Processing construct: {construct.name}")
+        logger.debug(f"Construct details - direction: {construct.scale_better_score_direction}, "
+                    f"threshold: {construct.scale_threshold_score}, "
+                    f"normative mean: {construct.scale_normative_score_mean}, "
+                    f"normative sd: {construct.scale_normative_score_standard_deviation}")
+        
+        # Get historical scores for this construct
+        historical_scores = QuestionnaireConstructScore.objects.filter(
+            questionnaire_submission__patient=patient,
+            construct=construct
+        ).select_related(
+            'questionnaire_submission'
+        ).order_by('-questionnaire_submission__submission_date')[:submission_count]
+
+        logger.debug(f"Found {historical_scores.count()} historical scores for {construct.name}")
+
+        # Get previous score for change calculation
+        previous_score = None
+        if historical_scores.count() > 1:
+            previous_score = historical_scores[1].score
+            logger.debug(f"Previous score for {construct.name}: {previous_score}")
+
+        # Create construct score data object
+        score_data = ConstructScoreData(
+            construct=construct,
+            current_score=construct_score.score,
+            previous_score=previous_score,
+            historical_scores=historical_scores
+        )
+
+        # Only include if it's an important construct
+        if ConstructScoreData.is_important_construct(construct, construct_score.score):
+            logger.info(f"Adding {construct.name} to important constructs")
+            important_construct_scores.append(score_data)
+        else:
+            logger.info(f"{construct.name} not marked as important")
+    
+    logger.info(f"Found {len(important_construct_scores)} important construct scores")
     
     context = {
         'patient': patient,
@@ -91,6 +146,7 @@ def prom_review(request, pk):
         'item_responses': item_responses,
         'construct_scores': construct_scores,
         'questionnaire_submission_counts': questionnaire_submission_counts,
+        'important_construct_scores': important_construct_scores,
     }
     
     return render(request, 'promapp/prom_review.html', context)
