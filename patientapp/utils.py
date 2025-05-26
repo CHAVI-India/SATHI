@@ -7,6 +7,8 @@ from bokeh.models import ColumnDataSource, HoverTool, Span, BoxAnnotation
 from bokeh.embed import components
 from bokeh.palettes import Category10
 from datetime import datetime
+from bokeh.models.formatters import DatetimeTickFormatter
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +41,8 @@ class ConstructScoreData:
             height=200,
             tools="hover,pan,box_zoom,reset",
             toolbar_location=None,
-            sizing_mode="scale_width"
+            sizing_mode="scale_width",
+            x_axis_type="datetime"  # Set x-axis type to datetime
         )
         
         # Style the plot
@@ -50,6 +53,15 @@ class ConstructScoreData:
         p.axis.axis_line_color = None
         p.axis.major_tick_line_color = None
         p.axis.minor_tick_line_color = None
+        
+        # Format x-axis
+        p.xaxis.formatter = DatetimeTickFormatter(
+            hours="%d %b %Y",
+            days="%d %b %Y",
+            months="%d %b %Y",
+            years="%d %b %Y"
+        )
+        p.xaxis.major_label_orientation = math.pi/2  # Rotate labels 90 degrees
         
         # Add main line
         source = ColumnDataSource(data=dict(
@@ -113,7 +125,7 @@ class ConstructScoreData:
         # Configure hover tool
         hover = HoverTool(
             tooltips=[
-                ('Date', '@dates{%F}'),
+                ('Date', '@dates{%d %b %Y}'),
                 ('Score', '@scores{0.0}')
             ],
             formatters={
