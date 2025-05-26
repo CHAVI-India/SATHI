@@ -5,43 +5,18 @@
         <h3 class="text-xl font-extrabold text-gray-900">{% translate "Item-wise Results" %}</h3>
     </div>
 
-    <div class="space-y-8">
-        {% for submission in latest_submissions.values %}
-            {% with questionnaire=submission.patient_questionnaire.questionnaire %}
-                <div class="border rounded-lg p-6 bg-gray-50">
-                    <h4 class="text-lg font-bold text-gray-900 mb-6">{{ questionnaire.name }}</h4>
-                    
-                    {% for construct_score in construct_scores %}
-                        {% if construct_score.questionnaire_submission == submission %}
-                            <fieldset class="border rounded-lg p-0 mb-6">
-                                <legend class="flex justify-between items-center gap-x-12 px-6 py-4 bg-white rounded-t-lg border-b">
-                                    <span class="text-lg font-bold text-gray-900">{{ construct_score.construct.name }}</span>
-                                    <span class="text-lg font-bold text-gray-900">{{ construct_score.score|floatformat:1 }}</span>
-                                </legend>
-                                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 px-6 pb-6">
-                                    {% for item_response in item_responses %}
-                                        {% if item_response.questionnaire_submission == submission and item_response.questionnaire_item.item.construct == construct_score.construct %}
-                                            <div class="bg-white rounded-lg shadow p-4">
-                                                <div class="flex justify-between items-start">
-                                                    <div>
-                                                        <h6 class="text-base font-semibold text-gray-900">{{ item_response.questionnaire_item.item.name }}</h6>
-                                                        <p class="text-sm text-gray-500">
-                                                            {{ item_response.response_value }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </fieldset>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            {% endwith %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for item_response in item_responses %}
+            {% if item_response.questionnaire_item.item.response_type == 'Text' %}
+                {% include "promapp/components/text_item_card.html" %}
+            {% elif item_response.questionnaire_item.item.response_type == 'Likert' %}
+                {% include "promapp/components/likert_item_card.html" %}
+            {% elif item_response.questionnaire_item.item.response_type in 'Number,Range' %}
+                {% include "promapp/components/numeric_item_card.html" %}
+            {% endif %}
         {% empty %}
-            <div class="text-center py-4">
-                <p class="text-gray-500">{% translate "No submissions available." %}</p>
+            <div class="col-span-2 text-center py-4">
+                <p class="text-gray-500">{% translate "No items available." %}</p>
             </div>
         {% endfor %}
     </div>

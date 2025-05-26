@@ -1,0 +1,32 @@
+{% load i18n %}
+
+<div class="bg-white rounded-lg shadow p-4">
+    <div class="flex justify-between items-start">
+        <div class="flex-1">
+            <h6 class="text-base font-semibold text-gray-900">{{ item_response.questionnaire_item.item.name }}</h6>
+            {% if item_response.questionnaire_item.item.item_better_score_direction %}
+                <p class="text-xs text-gray-500">
+                    {% if item_response.questionnaire_item.item.item_better_score_direction == 'Higher is Better' %}
+                        {% trans "Higher is better" %}
+                    {% else %}
+                        {% trans "Lower is better" %}
+                    {% endif %}
+                </p>
+            {% endif %}
+        </div>
+        <div class="text-right">
+            {% block item_value %}{% endblock %}
+            {% if item_response.questionnaire_item.item.item_threshold_score or item_response.questionnaire_item.item.item_normative_score_mean %}
+                <div class="flex gap-x-2 text-[11px] text-gray-500 mt-1">
+                    {% if item_response.questionnaire_item.item.item_threshold_score %}
+                        <span>{% trans "Threshold:" %} {{ item_response.questionnaire_item.item.item_threshold_score }}</span>
+                    {% endif %}
+                    {% if item_response.questionnaire_item.item.item_normative_score_mean %}
+                        <span>{% trans "Normative:" %} {{ item_response.questionnaire_item.item.item_normative_score_mean }}</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% block item_plot %}{% endblock %}
+</div> 

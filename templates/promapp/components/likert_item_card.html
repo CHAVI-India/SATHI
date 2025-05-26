@@ -1,0 +1,41 @@
+{% extends "promapp/components/item_card_base.html" %}
+{% load i18n %}
+
+{% block item_value %}
+<div class="flex items-baseline">
+    {% with likert_scale=item_response.questionnaire_item.item.likert_response %}
+        {% for option in likert_scale.likertscaleresponseoption_set.all %}
+            {% if option.option_value == item_response.response_value %}
+                <span class="text-xl font-bold text-gray-900" style="color: {{ option.color }}">{{ option.option_text }}</span>
+            {% endif %}
+        {% endfor %}
+    {% endwith %}
+    {% if item_response.previous_value is not None %}
+        {% if item_response.value_change > 0 %}
+            {% if item_response.questionnaire_item.item.item_better_score_direction == 'Higher is Better' %}
+                <span class="text-green-500 text-xs">↑</span>
+                <span class="text-green-500 ml-1 text-xs">+{{ item_response.value_change|floatformat:1 }}</span>
+            {% else %}
+                <span class="text-orange-500 text-xs">↑</span>
+                <span class="text-orange-500 ml-1 text-xs">+{{ item_response.value_change|floatformat:1 }}</span>
+            {% endif %}
+        {% elif item_response.value_change < 0 %}
+            {% if item_response.questionnaire_item.item.item_better_score_direction == 'Higher is Better' %}
+                <span class="text-orange-500 text-xs">↓</span>
+                <span class="text-orange-500 ml-1 text-xs">{{ item_response.value_change|floatformat:1 }}</span>
+            {% else %}
+                <span class="text-green-500 text-xs">↓</span>
+                <span class="text-green-500 ml-1 text-xs">{{ item_response.value_change|floatformat:1 }}</span>
+            {% endif %}
+        {% endif %}
+    {% else %}
+        <span class="ml-2 text-gray-500">-NA-</span>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block item_plot %}
+<div class="mt-4 plot-container" id="plot-item-{{ item_response.questionnaire_item.item.id }}">
+    {{ item_response.bokeh_plot|safe }}
+</div>
+{% endblock %} 

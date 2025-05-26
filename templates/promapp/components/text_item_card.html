@@ -1,0 +1,42 @@
+{% extends "promapp/components/item_card_base.html" %}
+{% load i18n %}
+
+{% block item_value %}
+<div class="flex items-baseline">
+    <span class="text-xl font-bold text-gray-900">{{ item_response.response_value }}</span>
+</div>
+{% endblock %}
+
+{% block item_plot %}
+<div class="mt-4">
+    <div class="flex justify-between items-center mb-2">
+        <h6 class="text-sm font-medium text-gray-700">{% trans "Previous Responses" %}</h6>
+        <div class="flex gap-2">
+            <button class="text-sm text-blue-600 hover:text-blue-800" 
+                    hx-get="{% url 'get_previous_response' item_response.id %}"
+                    hx-target="#previous-responses-{{ item_response.id }}"
+                    hx-swap="innerHTML">
+                {% trans "Previous" %}
+            </button>
+            <button class="text-sm text-blue-600 hover:text-blue-800"
+                    hx-get="{% url 'get_next_response' item_response.id %}"
+                    hx-target="#previous-responses-{{ item_response.id }}"
+                    hx-swap="innerHTML">
+                {% trans "Next" %}
+            </button>
+        </div>
+    </div>
+    <div id="previous-responses-{{ item_response.id }}" class="text-sm text-gray-600">
+        {% if item_response.previous_responses %}
+            {% for response in item_response.previous_responses %}
+                <div class="mb-2">
+                    <p class="text-gray-500 text-xs">{{ response.response_date|date:"d M Y" }}</p>
+                    <p>{{ response.response_value }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-500">{% trans "No previous responses" %}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 
