@@ -126,6 +126,7 @@ class ItemForm(TranslatableModelForm):
             'likert_response', 
             'range_response', 
             'is_required',
+            'item_missing_value',
             'item_better_score_direction',
             'item_threshold_score',
             'item_minimum_clinical_important_difference',
@@ -139,6 +140,7 @@ class ItemForm(TranslatableModelForm):
             'likert_response': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
             'range_response': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
             'is_required': forms.CheckboxInput(attrs={'class': 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'}),
+            'item_missing_value': forms.NumberInput(attrs={'step': '0.01', 'placeholder': 'Leave blank to use null for missing values'}),
             'item_threshold_score': forms.NumberInput(attrs={'step': '0.01'}),
             'item_minimum_clinical_important_difference': forms.NumberInput(attrs={'step': '0.01'}),
             'item_normative_score_mean': forms.NumberInput(attrs={'step': '0.01'}),
@@ -165,6 +167,7 @@ class ItemForm(TranslatableModelForm):
                     id='response-fields',
                     css_class='mt-3'
                 ),
+                Field('item_missing_value'),
                 css_class='bg-gray-50 p-4 rounded-md mb-6'
             ),
             # Advanced Clinical Settings Section (Collapsible)
