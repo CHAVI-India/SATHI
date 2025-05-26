@@ -9,6 +9,8 @@ from bokeh.palettes import Category10
 from datetime import datetime
 from bokeh.models.formatters import DatetimeTickFormatter
 import math
+from django.utils import timezone
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +50,13 @@ class ConstructScoreData:
         return None
 
     def _create_bokeh_plot(self, historical_scores: List[QuestionnaireConstructScore]) -> str:
-        # Prepare data
-        dates = [score.questionnaire_submission.submission_date for score in reversed(historical_scores)]
+        # Prepare data with timezone conversion
+        dates = []
+        for score in reversed(historical_scores):
+            # Convert UTC time to local timezone
+            local_time = timezone.localtime(score.questionnaire_submission.submission_date)
+            dates.append(local_time)
+        
         scores = [float(score.score) if score.score is not None else None for score in reversed(historical_scores)]
         
         # Create figure
@@ -71,9 +78,9 @@ class ConstructScoreData:
         p.axis.major_tick_line_color = None
         p.axis.minor_tick_line_color = None
         
-        # Format x-axis
+        # Format x-axis with timezone-aware formatting
         p.xaxis.formatter = DatetimeTickFormatter(
-            hours="%d %b %Y",
+            hours="%d %b %Y %H:%M",
             days="%d %b %Y",
             months="%d %b %Y",
             years="%d %b %Y"
