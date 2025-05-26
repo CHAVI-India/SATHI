@@ -213,10 +213,13 @@
         </div>
       {% endfor %}
 
-      <!-- Submit Button -->
-      <div class="flex justify-end mt-8">
-        <button type="submit" id="submit-btn" class="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 hidden">
+      <!-- Submit Button and Back to Questionnaire Button -->
+      <div class="flex flex-col items-end mt-8" id="submission-controls" style="display: none;">
+        <button type="submit" id="submit-btn" class="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 mb-4">
           {% translate "Submit Responses" %}
+        </button>
+        <button type="button" id="back-to-questionnaire-btn" class="bg-gray-300 text-gray-800 px-6 py-2 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+          {% translate "Back to Questionnaire" %}
         </button>
       </div>
     </form>
@@ -234,6 +237,8 @@
   document.addEventListener('DOMContentLoaded', function() {
     const questions = document.querySelectorAll('.question-item');
     const submitButton = document.getElementById('submit-btn');
+    const submissionControls = document.getElementById('submission-controls');
+    const backToQuestionnaireBtn = document.getElementById('back-to-questionnaire-btn');
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('current-question-number');
     let currentQuestionIndex = 0;
@@ -241,6 +246,8 @@
 
     // Function to show a specific question with fade effect
     async function showQuestion(index) {
+      // Hide submission controls if visible
+      submissionControls.style.display = 'none';
       // Fade out current question
       const currentQuestion = questions[currentQuestionIndex];
       if (currentQuestion) {
@@ -248,33 +255,47 @@
         await new Promise(resolve => setTimeout(resolve, 300)); // Wait for fade out
         currentQuestion.style.display = 'none';
       }
-      
       // Show and fade in new question
       const newQuestion = questions[index];
       newQuestion.style.display = 'block';
       // Force a reflow
       newQuestion.offsetHeight;
       newQuestion.style.opacity = '1';
-      
       // Update current index
       currentQuestionIndex = index;
-      
       // Update progress bar
       const progress = ((index + 1) / questions.length) * 100;
       progressBar.style.width = progress + '%';
       progressText.textContent = `${index + 1} of ${questions.length}`;
-      
       // Update button visibility for current question
       const prevBtn = newQuestion.querySelector('.prev-btn');
       const nextBtn = newQuestion.querySelector('.next-btn');
-      
       // Enable/disable Previous button based on index
       prevBtn.disabled = index === 0;
       prevBtn.style.display = 'flex';  // Always show Previous button
-      
       // Show/hide Next button based on index
-      nextBtn.style.display = index === questions.length - 1 ? 'none' : 'flex';
-      submitButton.style.display = index === questions.length - 1 ? 'block' : 'none';
+      if (index === questions.length - 1) {
+        nextBtn.textContent = "{% translate 'Proceed to Submission' %}";
+        nextBtn.style.display = 'flex';
+      } else {
+        nextBtn.textContent = "{% translate 'Next Question' %}";
+        nextBtn.style.display = 'flex';
+      }
+    }
+
+    // Function to show submission controls
+    function showSubmissionControls() {
+      questions.forEach(q => {
+        q.style.opacity = '0';
+        q.style.display = 'none';
+      });
+      submissionControls.style.display = 'flex';
+    }
+
+    // Function to return to questionnaire (first question)
+    function backToQuestionnaire() {
+      submissionControls.style.display = 'none';
+      showQuestion(0);
     }
 
     // Function to evaluate rules for a question
@@ -334,9 +355,15 @@
       nextBtn.addEventListener('click', () => {
         if (currentQuestionIndex < questions.length - 1) {
           showQuestion(currentQuestionIndex + 1);
+        } else {
+          // Last question: show submission controls
+          showSubmissionControls();
         }
       });
     });
+
+    // Handle Back to Questionnaire button
+    backToQuestionnaireBtn.addEventListener('click', backToQuestionnaire);
 
     // Handle form submission
     document.getElementById('questionnaire-form').addEventListener('submit', function(e) {
