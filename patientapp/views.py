@@ -14,6 +14,7 @@ from .forms import PatientForm, TreatmentForm
 from promapp.models import *
 from .utils import ConstructScoreData
 import logging
+from bokeh.resources import CDN
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +139,10 @@ def prom_review(request, pk):
     
     logger.info(f"Found {len(important_construct_scores)} important construct scores")
     
+    # Get Bokeh resources
+    bokeh_css = CDN.render_css()
+    bokeh_js = CDN.render_js()
+    
     context = {
         'patient': patient,
         'submissions': submissions,
@@ -147,6 +152,8 @@ def prom_review(request, pk):
         'construct_scores': construct_scores,
         'questionnaire_submission_counts': questionnaire_submission_counts,
         'important_construct_scores': important_construct_scores,
+        'bokeh_css': bokeh_css,
+        'bokeh_js': bokeh_js,
     }
     
     return render(request, 'promapp/prom_review.html', context)

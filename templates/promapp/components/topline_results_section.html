@@ -23,7 +23,40 @@
     <div class="w-full md:w-1/2">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
             {% for score_data in important_construct_scores %}
-                {% include "promapp/components/important_construct_card.html" with score_data=score_data %}
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ score_data.construct.name }}</h3>
+                            <div class="flex items-center mt-2">
+                                <span class="text-2xl font-bold text-gray-900">{{ score_data.score|floatformat:1 }}</span>
+                                {% if score_data.score_change is not None %}
+                                    <div class="ml-2">
+                                        {% if score_data.score_change > 0 %}
+                                            {% if score_data.construct.scale_better_score_direction == 'Higher' %}
+                                                <span class="text-orange-500">↑</span>
+                                            {% else %}
+                                                <span class="text-green-500">↑</span>
+                                            {% endif %}
+                                        {% elif score_data.score_change < 0 %}
+                                            {% if score_data.construct.scale_better_score_direction == 'Higher' %}
+                                                <span class="text-green-500">↓</span>
+                                            {% else %}
+                                                <span class="text-orange-500">↓</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-gray-500">→</span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span class="ml-2 text-gray-500">-NA-</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="plot-container" id="plot-{{ score_data.construct.id }}">
+                        {{ score_data.bokeh_plot|safe }}
+                    </div>
+                </div>
             {% empty %}
                 <div class="col-span-full text-center py-4">
                     <p class="text-gray-500">{% trans "No important construct scores available" %}</p>

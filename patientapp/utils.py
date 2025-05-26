@@ -2,6 +2,11 @@ from decimal import Decimal
 from typing import Dict, List, Optional, Union
 from promapp.models import ConstructScale, QuestionnaireConstructScore
 import logging
+from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource, HoverTool, Span, BoxAnnotation
+from bokeh.embed import components
+from bokeh.palettes import Category10
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +17,7 @@ class ConstructScoreData:
         self.score = current_score
         self.previous_score = previous_score
         self.score_change = self._calculate_score_change()
-        self.plot_data = self._prepare_plot_data(historical_scores)
+        self.bokeh_plot = self._create_bokeh_plot(historical_scores)
         logger.info(f"Created ConstructScoreData for {construct.name}: score={current_score}, previous={previous_score}")
 
     def _calculate_score_change(self) -> Optional[float]:
@@ -23,21 +28,103 @@ class ConstructScoreData:
         logger.debug(f"No score change calculated for {self.construct.name} - missing current or previous score")
         return None
 
-    def _prepare_plot_data(self, historical_scores: List[QuestionnaireConstructScore]) -> Dict:
-        plot_data = {
-            'dates': [score.questionnaire_submission.submission_date.strftime('%Y-%m-%d') 
-                     for score in reversed(historical_scores)],
-            'scores': [float(score.score) if score.score is not None else None 
-                      for score in reversed(historical_scores)],
-            'threshold': float(self.construct.scale_threshold_score) 
-                        if self.construct.scale_threshold_score else None,
-            'normative': float(self.construct.scale_normative_score_mean) 
-                        if self.construct.scale_normative_score_mean else None,
-            'normative_sd': float(self.construct.scale_normative_score_standard_deviation) 
-                           if self.construct.scale_normative_score_standard_deviation else None
-        }
-        logger.debug(f"Prepared plot data for {self.construct.name}: {plot_data}")
-        return plot_data
+    def _create_bokeh_plot(self, historical_scores: List[QuestionnaireConstructScore]) -> str:
+        # Prepare data
+        dates = [score.questionnaire_submission.submission_date for score in reversed(historical_scores)]
+        scores = [float(score.score) if score.score is not None else None for score in reversed(historical_scores)]
+        
+        # Create figure
+        p = figure(
+            width=400,
+            height=200,
+            tools="hover,pan,box_zoom,reset",
+            toolbar_location=None,
+            sizing_mode="scale_width"
+        )
+        
+        # Style the plot
+        p.background_fill_color = "#ffffff"
+        p.border_fill_color = "#ffffff"
+        p.grid.grid_line_color = "#e5e7eb"
+        p.grid.grid_line_width = 1
+        p.axis.axis_line_color = None
+        p.axis.major_tick_line_color = None
+        p.axis.minor_tick_line_color = None
+        
+        # Add main line
+        source = ColumnDataSource(data=dict(
+            dates=dates,
+            scores=scores
+        ))
+        
+        p.line(
+            x='dates',
+            y='scores',
+            source=source,
+            line_width=2,
+            line_color='#000000'
+        )
+        
+        # Add scatter points
+        p.scatter(
+            x='dates',
+            y='scores',
+            source=source,
+            size=6,
+            fill_color='#000000',
+            line_color='#000000'
+        )
+        
+        # Add threshold line if available
+        if self.construct.scale_threshold_score:
+            threshold = Span(
+                location=float(self.construct.scale_threshold_score),
+                dimension='width',
+                line_color='#f97316',
+                line_dash='dashed',
+                line_width=1
+            )
+            p.add_layout(threshold)
+        
+        # Add normative line and band if available
+        if self.construct.scale_normative_score_mean:
+            normative = Span(
+                location=float(self.construct.scale_normative_score_mean),
+                dimension='width',
+                line_color='#1e3a8a',
+                line_dash='dotted',
+                line_width=1
+            )
+            p.add_layout(normative)
+            
+            # Add standard deviation band if available
+            if self.construct.scale_normative_score_standard_deviation:
+                sd = float(self.construct.scale_normative_score_standard_deviation)
+                mean = float(self.construct.scale_normative_score_mean)
+                band = BoxAnnotation(
+                    bottom=mean - sd,
+                    top=mean + sd,
+                    fill_color='#1e3a8a',
+                    fill_alpha=0.1,
+                    line_width=0
+                )
+                p.add_layout(band)
+        
+        # Configure hover tool
+        hover = HoverTool(
+            tooltips=[
+                ('Date', '@dates{%F}'),
+                ('Score', '@scores{0.0}')
+            ],
+            formatters={
+                '@dates': 'datetime'
+            }
+        )
+        p.add_tools(hover)
+        
+        # Get the plot components
+        script, div = components(p)
+        return div
 
     @staticmethod
     def is_important_construct(construct: ConstructScale, current_score: Optional[Decimal]) -> bool:
