@@ -1,11 +1,11 @@
 {% load i18n %}
 {% load static %}
 
-<div class="bg-white rounded-lg shadow p-4">
-    <div class="flex justify-between items-start mb-4">
+<div class="bg-white rounded-lg shadow p-3">
+    <div class="flex justify-between items-start">
         <div>
-            <h3 class="text-lg font-semibold text-gray-900">{{ score_data.construct.name }}</h3>
-            <p class="text-sm text-gray-500">
+            <h3 class="text-sm font-semibold text-gray-900">{{ score_data.construct.name }}</h3>
+            <p class="text-xs text-gray-500">
                 {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
                     {% trans "Higher is better" %}
                 {% else %}
@@ -13,45 +13,41 @@
                 {% endif %}
             </p>
         </div>
-    </div>
-
-    <div class="mb-4">
-        <div class="flex items-baseline">
-            <span class="text-3xl font-bold text-gray-900">{{ score_data.score }}</span>
-            {% if score_data.score_change is not None %}
-                <div class="ml-2 flex items-center">
-                    {% if score_data.score_change > 0 %}
-                        {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
-                            <span class="text-green-500">↑</span>
-                            <span class="text-green-500 ml-1">+{{ score_data.score_change|floatformat:1 }}</span>
-                        {% else %}
-                            <span class="text-orange-500">↑</span>
-                            <span class="text-orange-500 ml-1">+{{ score_data.score_change|floatformat:1 }}</span>
+        <div class="text-right">
+            <div class="flex items-baseline">
+                <span class="text-xl font-bold text-gray-900">{{ score_data.score }}</span>
+                {% if score_data.score_change is not None %}
+                    <div class="ml-2 flex items-center">
+                        {% if score_data.score_change > 0 %}
+                            {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
+                                <span class="text-green-500 text-xs">↑</span>
+                                <span class="text-green-500 ml-1 text-xs">+{{ score_data.score_change|floatformat:1 }}</span>
+                            {% else %}
+                                <span class="text-orange-500 text-xs">↑</span>
+                                <span class="text-orange-500 ml-1 text-xs">+{{ score_data.score_change|floatformat:1 }}</span>
+                            {% endif %}
+                        {% elif score_data.score_change < 0 %}
+                            {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
+                                <span class="text-orange-500 text-xs">↓</span>
+                                <span class="text-orange-500 ml-1 text-xs">{{ score_data.score_change|floatformat:1 }}</span>
+                            {% else %}
+                                <span class="text-green-500 text-xs">↓</span>
+                                <span class="text-green-500 ml-1 text-xs">{{ score_data.score_change|floatformat:1 }}</span>
+                            {% endif %}
                         {% endif %}
-                    {% elif score_data.score_change < 0 %}
-                        {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
-                            <span class="text-orange-500">↓</span>
-                            <span class="text-orange-500 ml-1">{{ score_data.score_change|floatformat:1 }}</span>
-                        {% else %}
-                            <span class="text-green-500">↓</span>
-                            <span class="text-green-500 ml-1">{{ score_data.score_change|floatformat:1 }}</span>
-                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            {% if score_data.construct.scale_threshold_score or score_data.construct.scale_normative_score_mean %}
+                <div class="flex gap-x-2 text-[11px] text-gray-500 mt-1">
+                    {% if score_data.construct.scale_threshold_score %}
+                        <span>{% trans "Threshold:" %} {{ score_data.construct.scale_threshold_score }}</span>
+                    {% endif %}
+                    {% if score_data.construct.scale_normative_score_mean %}
+                        <span>{% trans "Normative:" %} {{ score_data.construct.scale_normative_score_mean }}</span>
                     {% endif %}
                 </div>
             {% endif %}
         </div>
     </div>
-
-    <div class="h-48 mb-4" id="plot-{{ score_data.construct.id }}" data-plot-data="{{ score_data.plot_data|safe }}"></div>
-
-    {% if score_data.construct.scale_threshold_score or score_data.construct.scale_normative_score_mean %}
-        <div class="text-sm text-gray-500">
-            {% if score_data.construct.scale_threshold_score %}
-                <p>{% trans "Threshold:" %} {{ score_data.construct.scale_threshold_score }}</p>
-            {% endif %}
-            {% if score_data.construct.scale_normative_score_mean %}
-                <p>{% trans "Normative:" %} {{ score_data.construct.scale_normative_score_mean }}</p>
-            {% endif %}
-        </div>
-    {% endif %}
 </div> 
