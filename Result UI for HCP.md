@@ -16,7 +16,7 @@ The page will be called PRO Review
 
 Access the page will be accessed through a button called "View Responses" placed on the Patient Table component which is used in the Patient List template. Clicking this button will provide the necessary context in form of the patient's primary key. 
 
-**Technology Stack**: Django Templates + Tailwind CSS + HTMX + Plotly.js + Django Crispy Forms
+**Technology Stack**: Django Templates + Tailwind CSS + HTMX + Bokeh + Django Crispy Forms
 
 Top right card (1/3rd of the width in wide display):
  - Patient Name, Patient ID, 
@@ -56,7 +56,7 @@ The scores will be shown in a card component where the score of the latest submi
 
 The remaining 2/3rd of half of the space will be occupied by an interactive line plot showing the threshold score value as a line (orange), normative population score as a blue line (with SD bands 1 standard deviation if available with light semitransparent blue). The Y axis will comprise of the score and the X axis will have the last 5 submissions arranged such that the latest submission value is at the left. However a widget will be provided which allows the user to customize the number of submissions they wish to see. 
 
-**Plotting**: Plotly.js line plots with threshold (orange) and normative (navy blue) reference lines
+**Plotting**: Bokeh line plots with threshold (orange) and normative (navy blue) reference lines
 **Widget**: `SubmissionControlWidget` (controls: 3, 5, 10, 15, All submissions - default: 5)
 **HTMX**: Updates all plots when submission count changes
 
@@ -78,7 +78,7 @@ For each fieldset we will have the construct score for the latest submission and
 **Widgets**: 
 - `FieldsetToggle` (individual expand/collapse)
 - `GlobalFieldsetToggle` (expand/collapse all)
-**Plotting**: Mini Plotly.js sparklines for construct score trends 
+**Plotting**: Mini Bokeh sparklines for construct score trends 
 
 The display for the item will be different based on the type of response:
 
@@ -116,7 +116,7 @@ If the previous submission had a missing score for the item same will be shown a
 
 The remaining half of the space will be occupied by interactive line plots for each item arranged in the same order as the cards. Again 2 plots for each row in wide displays. Plots will have Y axis as the value and x axis as the submission date. To save space the submission date will be common for all plots here. Number of submissions for visualization will be controlled by the widget noted in the topline results section for all plots. Threshold scores and normatives scores will be depicted using the orange and blue lines respectively. If standard deviation of the normaitve score is present for the item then a semi-transparent lighter hue of blue will be used to depict this.
 
-**Plotting**: Plotly.js line plots with threshold/normative reference lines, controlled by `SubmissionControlWidget` 
+**Plotting**: Bokeh line plots with threshold/normative reference lines, controlled by `SubmissionControlWidget` 
 
 
 ## Likert Response
@@ -130,7 +130,7 @@ For likert responses, the display will include a card component on the left occu
 
 The right half will be occupied by interactive line plots. Line plots will have the Y axis values as the values for the likert response (option_text). The same control for submission date will apply. The background of the plot will be coloorange with a transparent version of the hue corresponding to the option value as used in the card component. 
 
-**Plotting**: Plotly.js line plots with Y-axis showing option_text, transparent viridis palette background, controlled by `SubmissionControlWidget`
+**Plotting**: Bokeh line plots with Y-axis showing option_text, transparent viridis palette background, controlled by `SubmissionControlWidget`
 
 If threshold and normative values are provided for the item then they will be displayed with orange and blue lines. Standard deviation will be ignoorange. 
 
@@ -146,10 +146,10 @@ All line plots will have similiar color convention
 7. For likert scale plots the background hues will be built using the viridis palette but will have a transaprecy such that the line is visible at all times.  
 
 **Shared Components**:
-- `PlotContainer` (wrapper for all Plotly.js plots with consistent styling)
+- `PlotContainer` (wrapper for all Bokeh plots with consistent styling)
 - `ChangeIndicator` (reusable arrow logic for all score changes)
 
-**Standard Plotly.js Features**:
+**Standard Bokeh plot Features**:
 - Responsive design
 - Print-friendly rendering
 - Hover tooltips with exact values
@@ -169,7 +169,6 @@ Interactivity:
 - Main template: `templates/promapp/hcp_result_ui.html`
 - Components: `templates/promapp/components/[component_name].html`
 - HTMX partials: `templates/promapp/partials/[partial_name].html`
-- JavaScript: `static/js/hcp-result-ui.js`, `plotly-config.js`, `color-utils.js`
 
 Finally the page can be printed out without loosing any information
 
