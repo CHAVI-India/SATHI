@@ -7,7 +7,7 @@
         <div class="flex items-center space-x-2">
             <label for="submission-count" class="text-sm text-gray-600">{% trans "Show last" %}</label>
             <select id="submission-count" name="submission_count" class="form-select text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                    hx-get="{% url 'prom_review' patient.id %}"
+                    hx-get="{% url 'prom_review' patient.id %}?partial=topline_results"
                     hx-target="#topline-results"
                     hx-swap="innerHTML">
                 <option value="3">3</option>
@@ -23,33 +23,31 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {% for score_data in important_construct_scores %}
             <div class="bg-white rounded-lg shadow p-4">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900">{{ score_data.construct.name }}</h3>
-                        <div class="flex items-center mt-2">
-                            <span class="text-2xl font-bold text-gray-900">{{ score_data.score|floatformat:1 }}</span>
-                            {% if score_data.score_change is not None %}
-                                <div class="ml-2">
-                                    {% if score_data.score_change > 0 %}
-                                        {% if score_data.construct.scale_better_score_direction == 'Higher' %}
-                                            <span class="text-orange-500">↑</span>
-                                        {% else %}
-                                            <span class="text-green-500">↑</span>
-                                        {% endif %}
-                                    {% elif score_data.score_change < 0 %}
-                                        {% if score_data.construct.scale_better_score_direction == 'Higher' %}
-                                            <span class="text-green-500">↓</span>
-                                        {% else %}
-                                            <span class="text-orange-500">↓</span>
-                                        {% endif %}
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">{{ score_data.construct.name }}</h3>
+                    <div class="flex items-center">
+                        <span class="text-2xl font-bold text-gray-900">{{ score_data.score|floatformat:1 }}</span>
+                        {% if score_data.score_change is not None %}
+                            <div class="ml-2">
+                                {% if score_data.score_change > 0 %}
+                                    {% if score_data.construct.scale_better_score_direction == 'Higher' %}
+                                        <span class="text-orange-500">↑</span>
                                     {% else %}
-                                        <span class="text-gray-500">→</span>
+                                        <span class="text-green-500">↑</span>
                                     {% endif %}
-                                </div>
-                            {% else %}
-                                <span class="ml-2 text-gray-500">-NA-</span>
-                            {% endif %}
-                        </div>
+                                {% elif score_data.score_change < 0 %}
+                                    {% if score_data.construct.scale_better_score_direction == 'Higher' %}
+                                        <span class="text-green-500">↓</span>
+                                    {% else %}
+                                        <span class="text-orange-500">↓</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-gray-500">→</span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <span class="ml-2 text-gray-500">-NA-</span>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="plot-container" id="plot-{{ score_data.construct.id }}">

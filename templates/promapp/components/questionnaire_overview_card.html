@@ -9,8 +9,8 @@
             <div class="relative">
                 <select 
                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    hx-get="{% url 'prom_review' patient.id %}"
-                    hx-target="#results-container"
+                    hx-get="{% url 'prom_review' patient.id %}?partial=questionnaire_overview"
+                    hx-target="#questionnaire-overview-container"
                     hx-trigger="change"
                     name="submission_date"
                 >
@@ -31,8 +31,8 @@
             <div class="relative">
                 <select 
                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    hx-get="{% url 'prom_review' patient.id %}"
-                    hx-target="#results-container"
+                    hx-get="{% url 'prom_review' patient.id %}?partial=questionnaire_overview"
+                    hx-target="#questionnaire-overview-container"
                     hx-trigger="change"
                     name="questionnaire_filter"
                 >

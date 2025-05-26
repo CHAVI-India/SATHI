@@ -22,7 +22,9 @@ logger = logging.getLogger(__name__)
 
 
 def prom_review(request, pk):
-    """View for the PRO Review page that shows patient questionnaire responses."""
+    """View for the PRO Review page that shows patient questionnaire responses.
+    Supports HTMX partial rendering for topline results and questionnaire overview sections.
+    """
     logger.info(f"PRO Review view called for patient ID: {pk}")
     
     patient = get_object_or_404(Patient, pk=pk)
@@ -155,6 +157,19 @@ def prom_review(request, pk):
         'bokeh_css': bokeh_css,
         'bokeh_js': bokeh_js,
     }
+    
+    # --- HTMX partial rendering logic ---
+    if request.headers.get('HX-Request'):
+        partial = request.GET.get('partial')
+        if partial == 'topline_results':
+            # Only render the topline results section
+            return render(request, 'promapp/components/topline_results_section.html', context)
+        elif partial == 'questionnaire_overview':
+            # Only render the questionnaire overview card
+            return render(request, 'promapp/components/questionnaire_overview_card.html', context)
+        # Default fallback: render topline results section
+        return render(request, 'promapp/components/topline_results_section.html', context)
+    # --- End HTMX logic ---
     
     return render(request, 'promapp/prom_review.html', context)
 

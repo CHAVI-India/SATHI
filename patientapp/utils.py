@@ -69,6 +69,41 @@ class ConstructScoreData:
             scores=scores
         ))
         
+
+        # Add threshold line if available
+        if self.construct.scale_threshold_score:
+            threshold = Span(
+                location=float(self.construct.scale_threshold_score),
+                dimension='width',
+                line_color='#f97316',
+                line_dash='solid',
+                line_width=1
+            )
+            p.add_layout(threshold)
+        
+        # Add normative line and band if available
+        if self.construct.scale_normative_score_mean:
+            normative = Span(
+                location=float(self.construct.scale_normative_score_mean),
+                dimension='width',
+                line_color='#1e3a8a',
+                line_dash='solid',
+                line_width=1
+            )
+            p.add_layout(normative)
+            
+            # Add standard deviation band if available
+            if self.construct.scale_normative_score_standard_deviation:
+                sd = float(self.construct.scale_normative_score_standard_deviation)
+                mean = float(self.construct.scale_normative_score_mean)
+                band = BoxAnnotation(
+                    bottom=mean - sd,
+                    top=mean + sd,
+                    fill_color='#1e3a8a',
+                    fill_alpha=0.1,
+                    line_width=0
+                )
+                p.add_layout(band)
         p.line(
             x='dates',
             y='scores',
@@ -87,41 +122,7 @@ class ConstructScoreData:
             line_color='#000000'
         )
         
-        # Add threshold line if available
-        if self.construct.scale_threshold_score:
-            threshold = Span(
-                location=float(self.construct.scale_threshold_score),
-                dimension='width',
-                line_color='#f97316',
-                line_dash='dashed',
-                line_width=1
-            )
-            p.add_layout(threshold)
-        
-        # Add normative line and band if available
-        if self.construct.scale_normative_score_mean:
-            normative = Span(
-                location=float(self.construct.scale_normative_score_mean),
-                dimension='width',
-                line_color='#1e3a8a',
-                line_dash='dotted',
-                line_width=1
-            )
-            p.add_layout(normative)
-            
-            # Add standard deviation band if available
-            if self.construct.scale_normative_score_standard_deviation:
-                sd = float(self.construct.scale_normative_score_standard_deviation)
-                mean = float(self.construct.scale_normative_score_mean)
-                band = BoxAnnotation(
-                    bottom=mean - sd,
-                    top=mean + sd,
-                    fill_color='#1e3a8a',
-                    fill_alpha=0.1,
-                    line_width=0
-                )
-                p.add_layout(band)
-        
+
         # Configure hover tool
         hover = HoverTool(
             tooltips=[
