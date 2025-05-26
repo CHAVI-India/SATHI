@@ -259,6 +259,7 @@ class Item(TranslatableModel):
     likert_response = models.ForeignKey(LikertScale, on_delete=models.CASCADE, null=True, blank=True)
     range_response = models.ForeignKey(RangeScale, on_delete=models.CASCADE, null=True, blank=True)
     is_required = models.BooleanField(default=False, help_text = "If True, the item is required to be answered for the construct score to be calculated")
+    item_missing_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text = "The value to store for the item when it is not answered. This will be a number with upto 2 decimal places.")
     item_better_score_direction = models.CharField(max_length=255, choices=DirectionChoices.choices, null=True, blank=True, verbose_name="Score Direction", help_text = "Indicates whether higher or lower scores are better for this item")
     item_threshold_score = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Threshold Score", help_text = "The score which is considered clinically important. Scores above or below this threshold (depending on direction) will be considered clinically actionable.")
     item_minimum_clinical_important_difference = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Minimum Clinical Important Difference", help_text = "The minimum difference between two scores that would be considered clinically important. Changes exceeding this magnitude will result in clinically significant impact on patient lives.")
@@ -333,6 +334,14 @@ class Item(TranslatableModel):
                 raise ValidationError({'likert_response': 'Likert Scale should not be selected for Text or Number response types'})
             if self.range_response:
                 raise ValidationError({'range_response': 'Range Scale should not be selected for Text or Number response types'})
+        
+        # Validate item_missing_value can only be set for numeric response types
+        if self.item_missing_value is not None:
+            if self.response_type not in [ResponseTypeChoices.LIKERT, ResponseTypeChoices.NUMBER, ResponseTypeChoices.RANGE]:
+                raise ValidationError({
+                    'item_missing_value': 'Missing value can only be specified for Likert, Number, or Range response types. '
+                                        f'Current response type is {self.get_response_type_display()}.'
+                })
     
     def delete(self, *args, **kwargs):
         """
