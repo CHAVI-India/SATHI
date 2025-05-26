@@ -46,6 +46,9 @@
                     <c-link_button href="{% url 'patient_questionnaire_management' patient.id %}" variant="success" size="sm">
                         {% translate "Manage Questionnaires" %}
                     </c-link_button>
+                    <c-link_button href="{% url 'prom_review' patient.id %}" variant="info" size="sm">
+                        {% translate "View Responses" %}
+                    </c-link_button>
                     {% else %}
                     <span class="text-sm text-gray-500">No ID available</span>
                     {% endif %}

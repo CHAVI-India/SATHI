@@ -5,6 +5,7 @@ urlpatterns = [
     path('patients/', views.patient_list, name='patient_list'),
     path('patients/<uuid:pk>/', views.patient_detail, name='patient_detail'),
     path('patients/create/', views.PatientCreateView.as_view(), name='patient_create'),
+    path('patients/<uuid:pk>/prom-review/', views.prom_review, name='prom_review'),
     
     # Diagnosis URLs
     path('patients/<uuid:patient_pk>/diagnoses/create/', views.DiagnosisCreateView.as_view(), name='diagnosis_create'),

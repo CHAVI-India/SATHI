@@ -14,6 +14,14 @@ from .forms import PatientForm, TreatmentForm
 
 # Create your views here.
 
+def prom_review(request, pk):
+    """View for the PRO Review page that shows patient questionnaire responses."""
+    patient = get_object_or_404(Patient, pk=pk)
+    context = {
+        'patient': patient,
+    }
+    return render(request, 'promapp/prom_review.html', context)
+
 def patient_list(request):
     # Get filter parameters
     search_query = request.GET.get('search', '')
@@ -25,7 +33,7 @@ def patient_list(request):
     sort_by = request.GET.get('sort', 'name')
     
     # Start with base queryset
-    patients = Patient.objects.select_related('user').all()
+    patients = Patient.objects.select_related('user', 'institution').all()
     
     # Apply filters
     if search_query:

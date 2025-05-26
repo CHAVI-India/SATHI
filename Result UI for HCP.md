@@ -11,6 +11,10 @@ Key models for the page:
 
 
 Page display:
+The page will be called PRO Review
+**Template**: `templates/promapp/prom_review.html`
+
+Access the page will be accessed through a button called "View Responses" placed on the Patient Table component which is used in the Patient List template. Clicking this button will provide the necessary context in form of the patient's primary key. 
 
 **Technology Stack**: Django Templates + Tailwind CSS + HTMX + Plotly.js + Django Crispy Forms
 
@@ -24,6 +28,7 @@ Top right card (1/3rd of the width in wide display):
 
 Top Left card (2/3rd of the width in wide display):
  - Questionnaires available for the patient, number of submissions for the questionnaire, last date of submission
+ - The latest submitted questionnaire(s) will be shown in the page together. That is if the patient submits response to two questionnaires then the responses from the latest submission of both these questionnaires is to be shown by default. The responses will be used in the sections below (Topline results and Item wise reuslts).
  - Option to navigate to a specific submission (by date and submission). Note if a different submission date is selected then the display will change accordingly below.
 
 **Component**: `QuestionnaireOverviewCard`
