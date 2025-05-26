@@ -1,0 +1,53 @@
+{% load i18n %}
+
+<div class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">{% translate "Item-wise Results" %}</h3>
+    </div>
+
+    <div class="space-y-6">
+        {% for submission in latest_submissions.values %}
+            {% with questionnaire=submission.patient_questionnaire.questionnaire %}
+                <div class="border rounded-lg p-4">
+                    <h4 class="text-base font-medium text-gray-900 mb-4">{{ questionnaire.name }}</h4>
+                    
+                    {% for construct_score in construct_scores %}
+                        {% if construct_score.questionnaire_submission == submission %}
+                            <fieldset class="border rounded-lg p-4 mb-4">
+                                <legend class="flex justify-between items-center px-2">
+                                    <div>
+                                        <h5 class="text-sm font-semibold text-gray-900">{{ construct_score.construct.name }}</h5>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xl font-bold text-gray-900">{{ construct_score.score|floatformat:1 }}</span>
+                                    </div>
+                                </legend>
+                                
+                                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {% for item_response in item_responses %}
+                                        {% if item_response.questionnaire_submission == submission and item_response.questionnaire_item.item.construct == construct_score.construct %}
+                                            <div class="bg-white rounded-lg shadow p-4">
+                                                <div class="flex justify-between items-start">
+                                                    <div>
+                                                        <h6 class="text-sm font-medium text-gray-900">{{ item_response.questionnaire_item.item.name }}</h6>
+                                                        <p class="text-xs text-gray-500">
+                                                            {{ item_response.response_value }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </fieldset>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endwith %}
+        {% empty %}
+            <div class="text-center py-4">
+                <p class="text-gray-500">{% translate "No submissions available." %}</p>
+            </div>
+        {% endfor %}
+    </div>
+</div> 
