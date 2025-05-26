@@ -21,8 +21,76 @@
                 </div>
             </div>
 
+            <!-- Global Filters -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Submission Date Filter -->
+                    <div>
+                        <label for="submission-date" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Submission Date" %}</label>
+                        <select 
+                            id="submission-date"
+                            name="submission_date"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            hx-get="{% url 'prom_review' patient.id %}"
+                            hx-target="#main-content"
+                            hx-trigger="change"
+                        >
+                            <option value="">{% translate "Latest Submissions" %}</option>
+                            {% for pq in assigned_questionnaires %}
+                                {% with submission=latest_submissions|get_item:pq.questionnaire.id %}
+                                    {% if submission and submission.submission_date %}
+                                        <option value="{{ submission.submission_date|date:'Y-m-d' }}">
+                                            {{ pq.questionnaire.name }} - {{ submission.submission_date|date:"d M Y" }}
+                                        </option>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Questionnaire Filter -->
+                    <div>
+                        <label for="questionnaire-filter" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Questionnaire" %}</label>
+                        <select 
+                            id="questionnaire-filter"
+                            name="questionnaire_filter"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            hx-get="{% url 'prom_review' patient.id %}"
+                            hx-target="#main-content"
+                            hx-trigger="change"
+                        >
+                            <option value="">{% translate "All Questionnaires" %}</option>
+                            {% for pq in assigned_questionnaires %}
+                                <option value="{{ pq.questionnaire.id }}">
+                                    {{ pq.questionnaire.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Time Range Filter -->
+                    <div>
+                        <label for="time-range" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Show Last" %}</label>
+                        <select 
+                            id="time-range"
+                            name="time_range"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            hx-get="{% url 'prom_review' patient.id %}"
+                            hx-target="#main-content"
+                            hx-trigger="change"
+                        >
+                            <option value="3">3 {% translate "submissions" %}</option>
+                            <option value="5" selected>5 {% translate "submissions" %}</option>
+                            <option value="10">10 {% translate "submissions" %}</option>
+                            <option value="15">15 {% translate "submissions" %}</option>
+                            <option value="all">{% translate "All submissions" %}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <!-- Main Content -->
-            <div class="space-y-6">
+            <div id="main-content" class="space-y-6">
                 <!-- Top Row -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Left Section -->
@@ -30,18 +98,14 @@
                         {% include "promapp/components/patient_info_card.html" %}
                     </div>
                     
-                    <!-- Right Section: Wrapped for HTMX targeting -->
+                    <!-- Right Section -->
                     <div class="lg:col-span-2">
-                        <div id="questionnaire-overview-container"><!-- HTMX target for questionnaire overview -->
-                            {% include "promapp/components/questionnaire_overview_card.html" %}
-                        </div>
+                        {% include "promapp/components/questionnaire_overview_card.html" %}
                     </div>
                 </div>
 
-                <!-- Topline Results: Wrapped for HTMX targeting -->
-                <div id="topline-results">
-                    {% include "promapp/components/topline_results_section.html" %}
-                </div>
+                <!-- Topline Results -->
+                {% include "promapp/components/topline_results_section.html" %}
             </div>
         </div>
     </div>

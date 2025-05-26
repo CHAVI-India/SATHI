@@ -1,0 +1,18 @@
+{% load i18n %}
+{% load static %}
+
+<!-- Top Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Section -->
+    <div class="lg:col-span-1">
+        {% include "promapp/components/patient_info_card.html" %}
+    </div>
+    
+    <!-- Right Section -->
+    <div class="lg:col-span-2">
+        {% include "promapp/components/questionnaire_overview_card.html" %}
+    </div>
+</div>
+
+<!-- Topline Results -->
+{% include "promapp/components/topline_results_section.html" %} 

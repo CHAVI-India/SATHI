@@ -4,47 +4,6 @@
 <div class="bg-white rounded-lg shadow p-6">
     <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-semibold text-gray-900">{% translate "Questionnaire Overview" %}</h3>
-        <div class="flex space-x-2">
-            <!-- Submission Date Selector -->
-            <div class="relative">
-                <select 
-                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    hx-get="{% url 'prom_review' patient.id %}?partial=questionnaire_overview"
-                    hx-target="#questionnaire-overview-container"
-                    hx-trigger="change"
-                    name="submission_date"
-                >
-                    <option value="">{% translate "Latest Submissions" %}</option>
-                    {% for pq in assigned_questionnaires %}
-                        {% with submission=latest_submissions|get_item:pq.questionnaire.id %}
-                            {% if submission and submission.submission_date %}
-                                <option value="{{ submission.submission_date|date:'Y-m-d' }}">
-                                    {{ pq.questionnaire.name }} - {{ submission.submission_date|date:"d M Y" }}
-                                </option>
-                            {% endif %}
-                        {% endwith %}
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <!-- Questionnaire Filter -->
-            <div class="relative">
-                <select 
-                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    hx-get="{% url 'prom_review' patient.id %}?partial=questionnaire_overview"
-                    hx-target="#questionnaire-overview-container"
-                    hx-trigger="change"
-                    name="questionnaire_filter"
-                >
-                    <option value="">{% translate "All Questionnaires" %}</option>
-                    {% for pq in assigned_questionnaires %}
-                        <option value="{{ pq.questionnaire.id }}">
-                            {{ pq.questionnaire.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
     </div>
 
     <div class="space-y-4">

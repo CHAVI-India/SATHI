@@ -12,6 +12,23 @@ import math
 
 logger = logging.getLogger(__name__)
 
+def calculate_percentage(value: Optional[Decimal], max_value: Optional[Decimal]) -> float:
+    """Calculate the percentage of a value relative to a maximum value.
+    
+    Args:
+        value (Optional[Decimal]): The current value
+        max_value (Optional[Decimal]): The maximum possible value
+        
+    Returns:
+        float: The percentage (0-100) or 0 if calculation fails
+    """
+    try:
+        if value is None or max_value is None or max_value == 0:
+            return 0
+        return (float(value) / float(max_value)) * 100
+    except (ValueError, TypeError, ZeroDivisionError):
+        return 0
+
 class ConstructScoreData:
     def __init__(self, construct: ConstructScale, current_score: Optional[Decimal], 
                  previous_score: Optional[Decimal], historical_scores: List[QuestionnaireConstructScore]):

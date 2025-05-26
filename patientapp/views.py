@@ -6,13 +6,13 @@ from django.contrib import messages
 from django.urls import reverse_lazy, reverse
 from django.utils.translation import gettext_lazy as _, get_language
 from django.db import transaction
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Max
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
 from .models import Patient, Diagnosis, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
 from .forms import PatientForm, TreatmentForm
 from promapp.models import *
-from .utils import ConstructScoreData
+from .utils import ConstructScoreData, calculate_percentage
 import logging
 from bokeh.resources import CDN
 
@@ -23,12 +23,17 @@ logger = logging.getLogger(__name__)
 
 def prom_review(request, pk):
     """View for the PRO Review page that shows patient questionnaire responses.
-    Supports HTMX partial rendering for topline results and questionnaire overview sections.
+    Supports global filtering for all sections of the page.
     """
     logger.info(f"PRO Review view called for patient ID: {pk}")
     
     patient = get_object_or_404(Patient, pk=pk)
     logger.info(f"Found patient: {patient.name} (ID: {patient.id})")
+    
+    # Get filter parameters
+    questionnaire_filter = request.GET.get('questionnaire_filter')
+    submission_date = request.GET.get('submission_date')
+    time_range = request.GET.get('time_range', '5')
     
     # Get all questionnaire submissions for this patient
     submissions = QuestionnaireSubmission.objects.filter(
@@ -38,7 +43,20 @@ def prom_review(request, pk):
         'patient_questionnaire__questionnaire'
     ).prefetch_related(
         'patient_questionnaire__questionnaire__translations'
-    ).order_by('-submission_date')
+    )
+    
+    # Apply questionnaire filter if specified
+    if questionnaire_filter:
+        submissions = submissions.filter(
+            patient_questionnaire__questionnaire_id=questionnaire_filter
+        )
+    
+    # Apply submission date filter if specified
+    if submission_date:
+        submissions = submissions.filter(submission_date=submission_date)
+    
+    # Order by submission date
+    submissions = submissions.order_by('-submission_date')
     
     logger.info(f"Found {submissions.count()} total submissions")
     
@@ -64,6 +82,12 @@ def prom_review(request, pk):
         'questionnaire__translations'
     )
     
+    # Apply questionnaire filter to assigned questionnaires if specified
+    if questionnaire_filter:
+        assigned_questionnaires = assigned_questionnaires.filter(
+            questionnaire_id=questionnaire_filter
+        )
+    
     logger.info(f"Found {assigned_questionnaires.count()} assigned questionnaires")
     
     # Get item responses for the latest submissions
@@ -76,6 +100,29 @@ def prom_review(request, pk):
         'questionnaire_item__item__range_response'
     )
     
+    # Calculate percentages for item responses
+    for response in item_responses:
+        if response.questionnaire_item.item.response_type == 'Numeric' and response.questionnaire_item.item.range_response:
+            try:
+                numeric_value = float(response.response_value) if response.response_value else None
+                response.numeric_response = numeric_value
+                response.percentage = calculate_percentage(numeric_value, response.questionnaire_item.item.range_response.max_value)
+            except (ValueError, TypeError):
+                response.numeric_response = None
+                response.percentage = 0
+        elif response.questionnaire_item.item.response_type == 'Likert' and response.questionnaire_item.item.likert_response:
+            try:
+                likert_value = float(response.response_value) if response.response_value else None
+                response.likert_response = likert_value
+                # Get max value from LikertScaleResponseOption
+                max_value = response.questionnaire_item.item.likert_response.likertscaleresponseoption_set.aggregate(
+                    max_value=Max('option_value')
+                )['max_value']
+                response.percentage = calculate_percentage(likert_value, max_value)
+            except (ValueError, TypeError):
+                response.likert_response = None
+                response.percentage = 0
+    
     logger.info(f"Found {item_responses.count()} item responses")
     
     # Get construct scores for the latest submissions
@@ -87,12 +134,11 @@ def prom_review(request, pk):
     
     logger.info(f"Found {construct_scores.count()} construct scores")
 
-    # Get submission count from request or default to 5
-    submission_count = request.GET.get('submission_count', '5')
-    if submission_count == 'all':
+    # Get submission count from time range or default to 5
+    if time_range == 'all':
         submission_count = submissions.count()
     else:
-        submission_count = int(submission_count)
+        submission_count = int(time_range)
     
     logger.info(f"Using submission count: {submission_count}")
 
@@ -103,10 +149,6 @@ def prom_review(request, pk):
     for construct_score in construct_scores:
         construct = construct_score.construct
         logger.info(f"Processing construct: {construct.name}")
-        logger.debug(f"Construct details - direction: {construct.scale_better_score_direction}, "
-                    f"threshold: {construct.scale_threshold_score}, "
-                    f"normative mean: {construct.scale_normative_score_mean}, "
-                    f"normative sd: {construct.scale_normative_score_standard_deviation}")
         
         # Get historical scores for this construct
         historical_scores = QuestionnaireConstructScore.objects.filter(
@@ -158,18 +200,9 @@ def prom_review(request, pk):
         'bokeh_js': bokeh_js,
     }
     
-    # --- HTMX partial rendering logic ---
+    # If this is an HTMX request, only return the main content section
     if request.headers.get('HX-Request'):
-        partial = request.GET.get('partial')
-        if partial == 'topline_results':
-            # Only render the topline results section
-            return render(request, 'promapp/components/topline_results_section.html', context)
-        elif partial == 'questionnaire_overview':
-            # Only render the questionnaire overview card
-            return render(request, 'promapp/components/questionnaire_overview_card.html', context)
-        # Default fallback: render topline results section
-        return render(request, 'promapp/components/topline_results_section.html', context)
-    # --- End HTMX logic ---
+        return render(request, 'promapp/components/main_content.html', context)
     
     return render(request, 'promapp/prom_review.html', context)
 
