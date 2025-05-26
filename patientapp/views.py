@@ -123,10 +123,16 @@ def prom_review(request, pk):
                 )['max_value']
                 response.percentage = calculate_percentage(likert_value, max_value)
                 
-                # Add the option text to the response
-                for option in response.questionnaire_item.item.likert_response.likertscaleresponseoption_set.all():
+                # Add the option text and color to the response
+                likert_scale = response.questionnaire_item.item.likert_response
+                better_direction = response.questionnaire_item.item.item_better_score_direction or 'Higher is Better'
+                color_map = likert_scale.get_option_colors(better_direction)
+                
+                for option in likert_scale.likertscaleresponseoption_set.all():
                     if str(option.option_value) == response.response_value:
                         response.option_text = option.option_text
+                        response.option_color = color_map.get(str(option.option_value), '#ffffff')
+                        response.text_color = likert_scale.get_text_color(response.option_color)
                         break
             except (ValueError, TypeError):
                 response.likert_response = None

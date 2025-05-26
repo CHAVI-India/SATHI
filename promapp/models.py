@@ -14,6 +14,7 @@ import statistics
 from decimal import Decimal
 from .equation_parser import EquationValidator, EquationTransformer
 import logging
+import numpy as np
 
 # Create your models here.
 
@@ -163,6 +164,15 @@ class LikertScale(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
+    # Viridis color palette (from dark to light)
+    VIRIDIS_COLORS = [
+        '#440154',  # Dark purple
+        '#3b528b',  # Dark blue
+        '#21918c',  # Teal
+        '#5ec962',  # Green
+        '#fde725',  # Yellow
+    ]
+
     class Meta:
         ordering = ['-created_date']
         verbose_name = 'Likert Scale Response'
@@ -170,6 +180,122 @@ class LikertScale(models.Model):
 
     def __str__(self):
         return self.likert_scale_name
+
+    def get_viridis_colors(self, n_colors):
+        """
+        Generate n colors from the viridis color palette.
+        Returns a list of hex color codes.
+        """
+        if n_colors <= 0:
+            return []
+        
+        # If we need more colors than we have in our palette,
+        # we'll interpolate between the existing colors
+        if n_colors <= len(self.VIRIDIS_COLORS):
+            return self.VIRIDIS_COLORS[:n_colors]
+        
+        # For more colors, we'll interpolate between the base colors
+        colors = []
+        for i in range(n_colors):
+            # Calculate position in the color range
+            pos = i / (n_colors - 1)
+            # Get the two colors to interpolate between
+            idx = int(pos * (len(self.VIRIDIS_COLORS) - 1))
+            next_idx = min(idx + 1, len(self.VIRIDIS_COLORS) - 1)
+            # Linear interpolation between colors
+            t = (pos * (len(self.VIRIDIS_COLORS) - 1)) - idx
+            color = self.interpolate_color(
+                self.VIRIDIS_COLORS[idx],
+                self.VIRIDIS_COLORS[next_idx],
+                t
+            )
+            colors.append(color)
+        
+        return colors
+
+    def interpolate_color(self, color1, color2, t):
+        """
+        Interpolate between two hex colors.
+        t is a float between 0 and 1.
+        """
+        # Convert hex to RGB
+        def hex_to_rgb(hex_color):
+            hex_color = hex_color.lstrip('#')
+            return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+        
+        # Convert RGB to hex
+        def rgb_to_hex(rgb):
+            return '#{:02x}{:02x}{:02x}'.format(
+                int(rgb[0]),
+                int(rgb[1]),
+                int(rgb[2])
+            )
+        
+        # Get RGB values
+        rgb1 = hex_to_rgb(color1)
+        rgb2 = hex_to_rgb(color2)
+        
+        # Interpolate
+        rgb = tuple(
+            rgb1[i] + (rgb2[i] - rgb1[i]) * t
+            for i in range(3)
+        )
+        
+        return rgb_to_hex(rgb)
+
+    def get_text_color(self, bg_color):
+        """
+        Determine if text should be light or dark based on background color brightness.
+        Returns '#ffffff' for dark backgrounds and '#000000' for light backgrounds.
+        """
+        # Convert hex to RGB
+        hex_color = bg_color.lstrip('#')
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        
+        # Calculate relative luminance using the formula from WCAG 2.0
+        # https://www.w3.org/TR/WCAG20/#relativeluminancedef
+        r = r / 255
+        g = g / 255
+        b = b / 255
+        
+        r = r if r <= 0.03928 else ((r + 0.055) / 1.055) ** 2.4
+        g = g if g <= 0.03928 else ((g + 0.055) / 1.055) ** 2.4
+        b = b if b <= 0.03928 else ((b + 0.055) / 1.055) ** 2.4
+        
+        luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+        
+        # Return white text for dark backgrounds, black text for light backgrounds
+        return '#ffffff' if luminance < 0.5 else '#000000'
+
+    def get_option_colors(self, better_direction='Higher is Better'):
+        """
+        Get colors for each option in the scale.
+        Colors are assigned based on the better_direction:
+        - For 'Higher is Better': lighter colors for higher values
+        - For 'Lower is Better': lighter colors for lower values
+        """
+        options = self.likertscaleresponseoption_set.all().order_by('option_value')
+        n_options = options.count()
+        
+        if n_options == 0:
+            return {}
+        
+        # Get colors from viridis palette
+        colors = self.get_viridis_colors(n_options)
+        
+        # Create mapping of option values to colors
+        color_map = {}
+        for i, option in enumerate(options):
+            if better_direction == 'Higher is Better':
+                # Higher values get lighter colors
+                color_map[str(option.option_value)] = colors[i]
+            else:
+                # Lower values get lighter colors
+                color_map[str(option.option_value)] = colors[-(i+1)]
+        
+        return color_map
 
 class LikertScaleResponseOption(TranslatableModel):
     '''
