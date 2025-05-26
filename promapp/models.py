@@ -119,6 +119,38 @@ class ConstructScale(models.Model):
         self.full_clean()  # This will call clean() and validate all fields
         super().save(*args, **kwargs)
 
+class ScoringTypeChoices(models.TextChoices):
+    AVERAGE = 'Average', 'Average'
+    SUM = 'Sum', 'Sum'
+    MEDIAN = 'Median', 'Median'
+    MODE = 'Mode', 'Mode'
+    MIN = 'Min', 'Minimum'
+    MAX = 'Max', 'Maximum'
+
+
+
+class CompositeConstructScaleScoring(models.Model):
+    '''
+    Composite Construct Scale Scoring model. This is used when construct scales are combined to form a score.
+    '''
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    composite_construct_scale_name = models.CharField(max_length=255, null=True, blank=True, help_text = "The name of the composite construct scale")
+    construct_scales = models.ManyToManyField(ConstructScale, help_text = "The construct scales which will be used to calculate the composite construct scale")
+    scoring_type = models.CharField(max_length=255, choices=ScoringTypeChoices.choices, help_text = "The type of scoring to use for the composite construct scale")
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_date']
+        verbose_name = 'Composite Construct Scale Scoring'
+        verbose_name_plural = 'Composite Construct Scale Scorings'
+
+    def __str__(self):
+        return self.composite_construct_scale_name or f"Composite Scale {self.id}"
+
+
+
+
 
 class LikertScale(models.Model):
     '''
@@ -465,6 +497,21 @@ class QuestionnaireConstructScore(models.Model):
         ordering = ['-created_date']
         verbose_name = 'Questionnaire Construct Score'
         verbose_name_plural = 'Questionnaire Construct Scores'
+
+class QuestionnaireConstructScoreComposite(models.Model):
+    '''
+    Questionnaire Construct Score Composite model. This is used to store the composite score for the construct.
+    '''
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    questionnaire_submission = models.ForeignKey(QuestionnaireSubmission, on_delete=models.CASCADE, help_text = "The submission to which the composite score belongs")
+    composite_construct_scale = models.ForeignKey(CompositeConstructScaleScoring, on_delete=models.CASCADE, help_text = "The composite construct scale to which the score belongs")
+    score = models.DecimalField(max_digits=10, decimal_places=2, help_text = "The score for the composite construct", null=True, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['-created_date']
+        verbose_name = 'Questionnaire Construct Score Composite'
+
 
 
 class QuestionnaireItemResponse(models.Model):

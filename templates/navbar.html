@@ -32,6 +32,11 @@
                     {% translate "Construct Scales" %}
                   </a>
                   {% endif %}
+                  {% if perms.promapp.view_compositeconstructscalescoring %}
+                  <a href="{% url 'composite_construct_scale_scoring_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    {% translate "Composite Construct Scales" %}
+                  </a>
+                  {% endif %}
                   {% if perms.promapp.view_item %}
                   <a href="{% url 'item_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     {% translate "Items" %}
@@ -134,6 +139,11 @@
           {% if perms.promapp.view_constructscale %}
           <a href="{% url 'construct_scale_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
             {% translate "Construct Scales" %}
+          </a>
+          {% endif %}
+          {% if perms.promapp.view_compositeconstructscalescoring %}
+          <a href="{% url 'composite_construct_scale_scoring_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
+            {% translate "Composite Construct Scales" %}
           </a>
           {% endif %}
           {% if perms.promapp.view_item %}

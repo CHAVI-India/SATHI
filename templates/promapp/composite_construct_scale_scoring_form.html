@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load cotton %}
+
+{% block title %}
+  {% if object %}
+    {% translate "Update Composite Construct Scale Scoring" %}
+  {% else %}
+    {% translate "Create Composite Construct Scale Scoring" %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-blue-700">
+          {% if object %}
+            {% translate "Update Composite Construct Scale Scoring" %}
+          {% else %}
+            {% translate "Create New Composite Construct Scale Scoring" %}
+          {% endif %}
+        </h1>
+        <c-link_button 
+          href="{% url 'composite_construct_scale_scoring_list' %}" 
+          variant="secondary"
+          icon_left="<path fill-rule='evenodd' d='M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z' clip-rule='evenodd'/>">
+          {% translate "Back to List" %}
+        </c-link_button>
+      </div>
+      
+      {% if messages %}
+        <div class="mb-6">
+          {% for message in messages %}
+            <div class="{% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 mb-3 rounded border" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        {% crispy form %}
+        
+        <div class="flex justify-end space-x-3">
+          <c-link_button 
+            href="{% url 'composite_construct_scale_scoring_list' %}" 
+            variant="secondary">
+            {% translate "Cancel" %}
+          </c-link_button>
+          <c-save_button 
+            type="submit"
+            icon_left="{% if object %}<path fill-rule='evenodd' d='M5 13l4 4L19 7' stroke-width='2' stroke='currentColor' fill='none'/>{% else %}<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd'/>{% endif %}">
+            {% if object %}
+              {% translate "Update Composite Scale" %}
+            {% else %}
+              {% translate "Create Composite Scale" %}
+            {% endif %}
+          </c-save_button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Style for the multiple select widget */
+select[multiple] {
+    min-height: 200px;
+    border: 2px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+}
+
+select[multiple]:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+select[multiple] option {
+    padding: 0.5rem;
+    margin: 0.125rem 0;
+    border-radius: 0.25rem;
+}
+
+select[multiple] option:checked {
+    background-color: #3b82f6;
+    color: white;
+}
+
+select[multiple] option:hover {
+    background-color: #f3f4f6;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectElement = document.querySelector('select[name="construct_scales"]');
+    
+    if (selectElement) {
+        // Add keyboard search functionality
+        let searchTimeout;
+        let searchString = '';
+        
+        selectElement.addEventListener('keydown', function(e) {
+            // Allow normal navigation keys
+            if (['ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'].includes(e.key)) {
+                return;
+            }
+            
+            // Handle Ctrl+A to select all
+            if (e.ctrlKey && e.key === 'a') {
+                e.preventDefault();
+                for (let option of this.options) {
+                    option.selected = true;
+                }
+                return;
+            }
+            
+            // Handle typing for search
+            if (e.key.length === 1) {
+                e.preventDefault();
+                searchString += e.key.toLowerCase();
+                
+                // Find matching option
+                for (let option of this.options) {
+                    if (option.text.toLowerCase().includes(searchString)) {
+                        option.scrollIntoView({ block: 'nearest' });
+                        break;
+                    }
+                }
+                
+                // Clear search string after delay
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchString = '';
+                }, 1000);
+            }
+        });
+        
+        // Add double-click to toggle selection
+        selectElement.addEventListener('dblclick', function(e) {
+            if (e.target.tagName === 'OPTION') {
+                e.target.selected = !e.target.selected;
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

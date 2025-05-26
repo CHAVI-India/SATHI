@@ -14,10 +14,10 @@
           </h3>
           <div class="flex space-x-2">
             {% if perms.promapp.change_constructscale %}
-              <c-edit_button href="{% url 'construct_scale_edit' scale.pk %}" size="sm">
+              <c-edit_button href="{% url 'construct_scale_update' scale.pk %}" size="sm">
                 {% translate "Edit" %}
               </c-edit_button>
-              <c-link_button href="{% url 'construct_equation_edit' scale.pk %}" variant="outline" size="sm" class="border-purple-300 text-purple-700 hover:bg-purple-50">
+              <c-link_button href="{% url 'construct_equation_update' scale.pk %}" variant="outline" size="sm" class="border-purple-300 text-purple-700 hover:bg-purple-50">
                 {% translate "Equation" %}
               </c-link_button>
             {% endif %}

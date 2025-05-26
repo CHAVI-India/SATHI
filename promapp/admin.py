@@ -107,6 +107,14 @@ class QuestionnaireItemResponseAdmin(admin.ModelAdmin):
     readonly_fields = ('created_date', 'modified_date')
 
 
+@admin.register(CompositeConstructScaleScoring)
+class CompositeConstructScaleScoringAdmin(admin.ModelAdmin):
+    list_display = ('composite_construct_scale_name', 'scoring_type')
+    search_fields = ('composite_construct_scale_name', 'scoring_type')
+    list_filter = ('scoring_type',)
+    ordering = ('-created_date',)
+    readonly_fields = ('created_date', 'modified_date')
+
 @admin.register(QuestionnaireItemRule)
 class QuestionnaireItemRuleAdmin(admin.ModelAdmin):
     pass

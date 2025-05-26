@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from .views import MyQuestionnaireListView
-from . import patient_reponses_view
+
 
 urlpatterns = [
     # Questionnaire URLs
@@ -20,8 +20,14 @@ urlpatterns = [
     
     # Construct Scale URLs
     path('construct-scales/', views.ConstructScaleListView.as_view(), name='construct_scale_list'),
-    path('construct-scales/<uuid:pk>/edit/', views.ConstructScaleUpdateView.as_view(), name='construct_scale_edit'),
+    path('construct-scales/<uuid:pk>/update/', views.ConstructScaleUpdateView.as_view(), name='construct_scale_update'),
     path('construct-scales/<uuid:pk>/delete/', views.ConstructScaleDeleteView.as_view(), name='construct_scale_delete'),
+    
+    # Composite Construct Scale Scoring URLs
+    path('composite-construct-scales/', views.CompositeConstructScaleScoringListView.as_view(), name='composite_construct_scale_scoring_list'),
+    path('composite-construct-scales/create/', views.CompositeConstructScaleScoringCreateView.as_view(), name='composite_construct_scale_scoring_create'),
+    path('composite-construct-scales/<uuid:pk>/update/', views.CompositeConstructScaleScoringUpdateView.as_view(), name='composite_construct_scale_scoring_update'),
+    path('composite-construct-scales/<uuid:pk>/delete/', views.CompositeConstructScaleScoringDeleteView.as_view(), name='composite_construct_scale_scoring_delete'),
     
     # Likert Scale URLs
     path('likert-scales/', views.LikertScaleListView.as_view(), name='likert_scale_list'),
@@ -112,7 +118,7 @@ urlpatterns = [
     # Construct Scale Search URLs
     path('search-construct-scales/', views.search_construct_scales, name='search_construct_scales'),
 
-    path('construct-scale/<uuid:pk>/equation/', views.ConstructEquationView.as_view(), name='construct_equation_edit'),
+    path('construct-scale/<uuid:pk>/equation/', views.ConstructEquationView.as_view(), name='construct_equation_update'),
     path('validate-equation/', views.validate_equation, name='validate_equation'),
     path('add-to-equation/', views.add_to_equation, name='add_to_equation'),
 

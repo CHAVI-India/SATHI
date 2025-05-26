@@ -1,0 +1,99 @@
+{% load i18n %}
+{% load cotton %}
+
+<div class="space-y-4">
+  {% for composite_scale in composite_scales %}
+    <c-card 
+      shadow="md" 
+      border="light" 
+      padding="md" 
+      class="w-full hover:shadow-lg transition-shadow duration-200">
+        <div class="flex justify-between items-start mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">
+            {{ composite_scale.composite_construct_scale_name|default:"Untitled Composite Scoring" }}
+          </h3>
+          <div class="flex space-x-2">
+            {% if perms.promapp.change_compositeconstructscalescoring %}
+              <c-edit_button href="{% url 'composite_construct_scale_scoring_update' composite_scale.pk %}" size="sm">
+                {% translate "Edit" %}
+              </c-edit_button>
+            {% endif %}
+            {% if perms.promapp.delete_compositeconstructscalescoring %}
+              <c-link_button href="{% url 'composite_construct_scale_scoring_delete' composite_scale.pk %}" variant="outline" size="sm" class="border-red-300 text-red-700 hover:bg-red-50">
+                {% translate "Delete" %}
+              </c-link_button>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center">
+              <span class="font-medium mr-1">{% translate "Scoring Type:" %}</span>
+              <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                {{ composite_scale.get_scoring_type_display }}
+              </span>
+            </div>
+            <div class="flex items-center">
+              <span class="font-medium mr-1">{% translate "Construct Scales:" %}</span>
+              {{ composite_scale.construct_scales.count }}
+            </div>
+          </div>
+          <div class="flex items-center text-gray-600">
+            <span class="font-medium mr-1">{% translate "Created:" %}</span>
+            {{ composite_scale.created_date|date:"SHORT_DATE_FORMAT" }}
+          </div>
+        </div>
+
+        <!-- Display associated construct scales -->
+        {% if composite_scale.construct_scales.exists %}
+          <div class="mt-4 p-3 bg-gray-50 rounded-md">
+            <div class="text-sm">
+              <span class="font-medium text-gray-700">{% translate "Associated Construct Scales:" %}</span>
+              <div class="mt-2 flex flex-wrap gap-2">
+                {% for construct_scale in composite_scale.construct_scales.all %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                    {{ construct_scale.name }}
+                    {% if construct_scale.instrument_name %}
+                      <span class="ml-1 text-indigo-600">({{ construct_scale.instrument_name }})</span>
+                    {% endif %}
+                  </span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Display composite equation if available -->
+        {% if composite_scale.composite_equation %}
+          <div class="mt-4 p-3 bg-yellow-50 rounded-md">
+            <div class="text-sm">
+              <span class="font-medium text-gray-700">{% translate "Composite Equation:" %}</span>
+              <code class="ml-2 text-purple-600 break-all">{{ composite_scale.composite_equation }}</code>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Display description if available -->
+        {% if composite_scale.description %}
+          <div class="mt-4 p-3 bg-green-50 rounded-md">
+            <div class="text-sm">
+              <span class="font-medium text-gray-700">{% translate "Description:" %}</span>
+              <p class="mt-1 text-gray-600">{{ composite_scale.description }}</p>
+            </div>
+          </div>
+        {% endif %}
+    </c-card>
+  {% endfor %}
+</div>
+
+{% if is_paginated %}
+  <div class="mt-6">
+    <c-paginator 
+      :page_obj="page_obj" 
+      :is_paginated="is_paginated" 
+      show_info="true"
+      show_page_numbers="true"
+      preserve_params="true" />
+  </div>
+{% endif %}

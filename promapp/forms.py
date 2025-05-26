@@ -1,5 +1,5 @@
 from django import forms
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, LikertScaleResponseOption, ConstructScale, QuestionnaireItemRule, QuestionnaireItemRuleGroup
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, LikertScaleResponseOption, ConstructScale, QuestionnaireItemRule, QuestionnaireItemRuleGroup, CompositeConstructScaleScoring
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Div, HTML, Submit, Button
 from django.forms import inlineformset_factory
@@ -873,9 +873,13 @@ class ConstructEquationForm(forms.ModelForm):
     scale_equation = forms.CharField(
         required=False,
         widget=forms.Textarea(attrs={
-            'class': 'w-full px-4 py-2 text-lg border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-            'placeholder': 'Enter equation (e.g., q1 + q2)',
-            'rows': '6'
+            'rows': 4,
+            'class': 'w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono',
+            'placeholder': 'Enter equation using {q1}, {q2}, etc. for question references',
+            'hx-get': '/promapp/validate-equation/',
+            'hx-trigger': 'keyup changed delay:500ms',
+            'hx-target': '#equation-validation',
+            'hx-include': '[name="scale_id"]'
         })
     )
 
@@ -885,17 +889,88 @@ class ConstructEquationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['scale_equation'].help_text = mark_safe(
-            'Enter an equation using question references (q1, q2, etc.). '
-            'Available functions: abs(), round(), min(), max(), sum(), pow(), sqrt(). '
-            'Example: (q1 + q2) / 2 or if q1 > 5 then q2 else q3'
-        )
+        self.helper = FormHelper()
+        self.helper.form_tag = False
 
     def clean_scale_equation(self):
-        equation = self.cleaned_data.get('scale_equation', '')
+        equation = self.cleaned_data.get('scale_equation')
         if equation:
-            # Normalize line endings and whitespace
-            equation = equation.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ')
-            equation = ' '.join(equation.split())  # Normalize whitespace
+            # Basic validation will be done in the model's validate_scale_equation method
+            pass
         return equation
+
+
+class CompositeConstructScaleScoringForm(forms.ModelForm):
+    """
+    Form for creating and editing composite construct scale scoring configurations.
+    """
+    construct_scales = forms.ModelMultipleChoiceField(
+        queryset=ConstructScale.objects.all(),
+        widget=forms.SelectMultiple(attrs={
+            'class': 'form-control',
+            'size': '8',
+            'multiple': True
+        }),
+        help_text="Hold Ctrl/Cmd to select multiple construct scales. Type to search within the list."
+    )
+
+    class Meta:
+        model = CompositeConstructScaleScoring
+        fields = ['composite_construct_scale_name', 'construct_scales', 'scoring_type']
+        widgets = {
+            'composite_construct_scale_name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
+                'placeholder': 'Enter composite construct scale name'
+            }),
+            'scoring_type': forms.Select(attrs={
+                'class': 'w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500'
+            })
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            # Basic Information Section
+            Div(
+                HTML(f'<h3 class="text-lg font-semibold text-gray-800 mb-4">{_("Basic Information")}</h3>'),
+                Field('composite_construct_scale_name', css_class='w-full px-4 py-3 border-2 border-gray-300 rounded-lg'),
+                Field('scoring_type', css_class='w-full px-4 py-3 border-2 border-gray-300 rounded-lg'),
+                css_class='bg-gray-50 p-4 rounded-md mb-6'
+            ),
+            # Construct Scales Selection Section
+            Div(
+                HTML(f'<h3 class="text-lg font-semibold text-gray-800 mb-4">{_("Select Construct Scales")}</h3>'),
+                Field('construct_scales', css_class='form-control'),
+                HTML('<div class="mt-2 text-sm text-gray-600">'),
+                HTML('Hold Ctrl/Cmd and click to select multiple items. At least 2 construct scales are required.'),
+                HTML('</div>'),
+                css_class='bg-gray-50 p-4 rounded-md mb-6'
+            )
+        )
+
+        # Update queryset to show construct scales with their details
+        self.fields['construct_scales'].queryset = ConstructScale.objects.all().order_by('name')
+        
+        # Customize the choice labels to include more information
+        choices = []
+        for construct in self.fields['construct_scales'].queryset:
+            label = construct.name
+            if construct.instrument_name:
+                label += f" ({construct.instrument_name}"
+                if construct.instrument_version:
+                    label += f" v{construct.instrument_version}"
+                label += ")"
+            choices.append((construct.id, label))
+        
+        self.fields['construct_scales'].choices = choices
+
+    def clean_construct_scales(self):
+        construct_scales = self.cleaned_data.get('construct_scales')
+        if not construct_scales:
+            raise forms.ValidationError("Please select at least one construct scale.")
+        if len(construct_scales) < 2:
+            raise forms.ValidationError("A composite score requires at least two construct scales.")
+        return construct_scales
 

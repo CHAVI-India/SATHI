@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.conf import settings
 from django.utils import translation
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption, PatientQuestionnaire, QuestionnaireItemResponse, Patient, QuestionnaireItemRule, QuestionnaireItemRuleGroup, QuestionnaireSubmission, QuestionnaireConstructScore
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption, PatientQuestionnaire, QuestionnaireItemResponse, Patient, QuestionnaireItemRule, QuestionnaireItemRuleGroup, QuestionnaireSubmission, QuestionnaireConstructScore, CompositeConstructScaleScoring
 from .forms import (
     QuestionnaireForm, ItemForm, QuestionnaireItemForm, 
     LikertScaleForm, LikertScaleResponseOptionFormSet,
@@ -18,7 +18,7 @@ from .forms import (
     LikertScaleResponseOptionForm, RangeScaleForm,
     QuestionnaireResponseForm, QuestionnaireItemRuleForm, QuestionnaireItemRuleGroupForm,
     ItemTranslationForm, QuestionnaireTranslationForm, LikertScaleResponseOptionTranslationForm, RangeScaleTranslationForm,
-    TranslationSearchForm, ConstructEquationForm
+    TranslationSearchForm, ConstructEquationForm, CompositeConstructScaleScoringForm
 )
 from django.utils.translation import get_language
 from django.db import models
@@ -3316,5 +3316,150 @@ def add_to_equation(request):
     if not question:
         return HttpResponse('')
     return HttpResponse(question)
+
+class CompositeConstructScaleScoringListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """
+    View for listing composite construct scale scoring configurations.
+    """
+    model = CompositeConstructScaleScoring
+    template_name = 'promapp/composite_construct_scale_scoring_list.html'
+    context_object_name = 'composite_scales'
+    permission_required = 'promapp.view_compositeconstructscalescoring'
+    paginate_by = 25  # Show 25 items per page
+    
+    def get_queryset(self):
+        queryset = CompositeConstructScaleScoring.objects.all().prefetch_related('construct_scales')
+        
+        # Apply search filter if provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(composite_construct_scale_name__icontains=search)
+        
+        # Apply scoring type filter if provided
+        scoring_type = self.request.GET.get('scoring_type')
+        if scoring_type and scoring_type != 'all':
+            queryset = queryset.filter(scoring_type=scoring_type)
+        
+        # Apply construct count filter if provided
+        construct_count = self.request.GET.get('construct_count')
+        if construct_count and construct_count != 'all':
+            queryset = queryset.annotate(
+                num_constructs=models.Count('construct_scales', distinct=True)
+            )
+            if construct_count == 'few':
+                # 2-3 constructs
+                queryset = queryset.filter(num_constructs__gte=2, num_constructs__lte=3)
+            elif construct_count == 'medium':
+                # 4-5 constructs
+                queryset = queryset.filter(num_constructs__gte=4, num_constructs__lte=5)
+            elif construct_count == 'many':
+                # 6+ constructs
+                queryset = queryset.filter(num_constructs__gte=6)
+            
+        return queryset.order_by('composite_construct_scale_name')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search', '')
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # Get scoring type choices for filter
+        from .models import ScoringTypeChoices
+        scoring_type_choices = [{'value': choice[0], 'label': choice[1]} for choice in ScoringTypeChoices.choices]
+        
+        # Create filters for the search component
+        context['composite_scale_filters'] = [
+            {
+                'type': 'select',
+                'name': 'scoring_type',
+                'label': 'Scoring type',
+                'selected': self.request.GET.get('scoring_type', 'all'),
+                'options': scoring_type_choices,
+                'trigger': 'hx-trigger="change"'
+            },
+            {
+                'type': 'select',
+                'name': 'construct_count',
+                'label': 'Number of constructs',
+                'selected': self.request.GET.get('construct_count', 'all'),
+                'options': [
+                    {'value': 'few', 'label': 'Few (2-3)'},
+                    {'value': 'medium', 'label': 'Medium (4-5)'},
+                    {'value': 'many', 'label': 'Many (6+)'}
+                ],
+                'trigger': 'hx-trigger="change"'
+            }
+        ]
+        
+        return context
+    
+    def get(self, request, *args, **kwargs):
+        # Check if this is an HTMX request
+        if request.META.get('HTTP_HX_REQUEST'):
+            # If it is an HTMX request, only return the table part
+            self.object_list = self.get_queryset()
+            context = self.get_context_data()
+            html = render_to_string('promapp/partials/composite_construct_scale_scoring_list_table.html', context)
+            return HttpResponse(html)
+        
+        # Otherwise, return the full page as usual
+        return super().get(request, *args, **kwargs)
+
+
+class CompositeConstructScaleScoringCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    """
+    View for creating a new composite construct scale scoring configuration.
+    """
+    model = CompositeConstructScaleScoring
+    form_class = CompositeConstructScaleScoringForm
+    template_name = 'promapp/composite_construct_scale_scoring_form.html'
+    permission_required = 'promapp.add_compositeconstructscalescoring'
+
+    def get_success_url(self):
+        return reverse('composite_construct_scale_scoring_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, _('Composite construct scale scoring created successfully.'))
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, _('Please correct the errors below.'))
+        return super().form_invalid(form)
+
+
+class CompositeConstructScaleScoringUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    """
+    View for updating a composite construct scale scoring configuration.
+    """
+    model = CompositeConstructScaleScoring
+    form_class = CompositeConstructScaleScoringForm
+    template_name = 'promapp/composite_construct_scale_scoring_form.html'
+    permission_required = 'promapp.change_compositeconstructscalescoring'
+
+    def get_success_url(self):
+        return reverse('composite_construct_scale_scoring_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, _('Composite construct scale scoring updated successfully.'))
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, _('Please correct the errors below.'))
+        return super().form_invalid(form)
+
+
+class CompositeConstructScaleScoringDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    """
+    View for deleting a composite construct scale scoring configuration.
+    """
+    model = CompositeConstructScaleScoring
+    permission_required = 'promapp.delete_compositeconstructscalescoring'
+
+    def get_success_url(self):
+        return reverse('composite_construct_scale_scoring_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, _('Composite construct scale scoring deleted successfully.'))
+        return super().delete(request, *args, **kwargs)
 
 
