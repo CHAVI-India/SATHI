@@ -57,11 +57,11 @@ class ConstructScoreData:
             
             if construct.scale_better_score_direction == 'Higher is Better':
                 is_important = score <= threshold
-                logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'>' if is_important else '<='} threshold {threshold}")
+                logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'<=' if is_important else '>'} threshold {threshold}")
                 return is_important
             elif construct.scale_better_score_direction == 'Lower is Better':
                 is_important = score >= threshold
-                logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'<' if is_important else '>='} threshold {threshold}")
+                logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'>=' if is_important else '<'} threshold {threshold}")
                 return is_important
         
         # Check normative score if threshold not available
@@ -77,22 +77,22 @@ class ConstructScoreData:
                 
                 if construct.scale_better_score_direction == 'Higher is Better':
                     is_important = score <= (normative + sd_threshold)
-                    logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'>' if is_important else '<='} normative+sd_threshold {normative + sd_threshold}")
+                    logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'<=' if is_important else '>'} normative+sd_threshold {normative + sd_threshold}")
                     return is_important
                 elif construct.scale_better_score_direction == 'Lower is Better':
                     is_important = score >= (normative - sd_threshold)
-                    logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'<' if is_important else '>='} normative-sd_threshold {normative - sd_threshold}")
+                    logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'>=' if is_important else '<'} normative-sd_threshold {normative - sd_threshold}")
                     return is_important
             
             # If no standard deviation, just compare with mean
             else:
                 if construct.scale_better_score_direction == 'Higher is Better':
                     is_important = score <= normative
-                    logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'>' if is_important else '<='} normative {normative}")
+                    logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'<=' if is_important else '>'} normative {normative}")
                     return is_important
                 elif construct.scale_better_score_direction == 'Lower is Better':
                     is_important = score >= normative
-                    logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'<' if is_important else '>='} normative {normative}")
+                    logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'>=' if is_important else '<'} normative {normative}")
                     return is_important
         
         logger.info(f"Construct {construct.name} not important - no applicable criteria met")
