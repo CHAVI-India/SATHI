@@ -502,6 +502,7 @@ class QuestionnaireConstructScore(models.Model):
     score = models.DecimalField(max_digits=10, decimal_places=2, help_text = "The score for the construct", null=True, blank=True)
     items_answered = models.IntegerField(help_text = "The number of items answered for the construct", null=True, blank=True)
     items_not_answered = models.IntegerField(help_text = "The number of items not answered for the construct", null=True, blank=True)
+    calculation_log = models.TextField(help_text = "The log of the equation processing", null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
     class Meta:
@@ -517,6 +518,7 @@ class QuestionnaireConstructScoreComposite(models.Model):
     questionnaire_submission = models.ForeignKey(QuestionnaireSubmission, on_delete=models.CASCADE, help_text = "The submission to which the composite score belongs")
     composite_construct_scale = models.ForeignKey(CompositeConstructScaleScoring, on_delete=models.CASCADE, help_text = "The composite construct scale to which the score belongs")
     score = models.DecimalField(max_digits=10, decimal_places=2, help_text = "The score for the composite construct", null=True, blank=True)
+    calculation_log = models.TextField(help_text = "The log of the equation processing", null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
     class Meta:
@@ -794,100 +796,191 @@ def calculate_scores_for_submission(submission):
         
         logger.info(f"Processing construct {construct.name} with equation: {construct.scale_equation}")
         
+        # Initialize calculation log for this construct
+        calculation_log = []
+        calculation_log.append(f"=== CONSTRUCT SCORE CALCULATION ===")
+        calculation_log.append(f"Construct: {construct.name}")
+        calculation_log.append(f"Equation: {construct.scale_equation}")
+        calculation_log.append(f"Minimum required items: {construct.minimum_number_of_items}")
+        calculation_log.append("")
+        
         # Create a mapping of item numbers to response values for this construct
         response_values = {}
         valid_response_count = 0
         total_construct_items = 0
         
-        # Find all items in this questionnaire related to this construct
+        # Get all items that belong to this construct scale (regardless of whether they're in the questionnaire)
+        all_construct_items = Item.objects.filter(
+            construct_scale=construct,
+            response_type__in=['Number', 'Likert', 'Range']
+        ).select_related('construct_scale')
+        
+        # Create a mapping of item_id to response for quick lookup
+        response_map = {}
         for response in responses:
             qi = response.questionnaire_item
-            item = qi.item
+            if qi.item.construct_scale == construct:
+                response_map[qi.item.id] = response
+        
+        # Process all items that belong to this construct
+        calculation_log.append("ITEM VALUE PROCESSING:")
+        for item in all_construct_items:
+            total_construct_items += 1
+            item_number = item.item_number
             
-            # Check if this item belongs to the current construct
-            if item.construct_scale != construct:
-                continue
-                
-            # Only use Number, Likert, and Range response types for scoring
-            if item.response_type in ['Number', 'Likert', 'Range']:
-                total_construct_items += 1
+            # Check if we have a response for this item
+            if item.id in response_map:
+                response = response_map[item.id]
                 response_value = response.response_value
-                item_number = item.item_number
                 
                 logger.debug(f"For construct {construct.name}: item {item_number} has response '{response_value}'")
+                calculation_log.append(f"Item {item_number} ({item.name}): Response = '{response_value}'")
                 
-                # Only include non-empty responses as valid for minimum count
+                # Check if response has a valid value
                 if response_value and response_value.strip():
                     try:
                         # Convert to float for calculation
                         response_values[item_number] = float(response_value)
                         valid_response_count += 1
                         logger.debug(f"Valid response for item {item_number}: value = {response_value}")
+                        calculation_log.append(f"  → Using response value: {response_value}")
                     except (ValueError, TypeError):
                         logger.warning(f"Could not convert response for item {item_number} to float: {response_value}")
-                        response_values[item_number] = None
+                        # Use missing value or None
+                        if item.item_missing_value is not None:
+                            response_values[item_number] = float(item.item_missing_value)
+                            valid_response_count += 1  # Count missing values as valid for minimum count
+                            logger.debug(f"Using missing value for item {item_number}: {item.item_missing_value}")
+                            calculation_log.append(f"  → Invalid response, using missing value: {item.item_missing_value}")
+                        else:
+                            response_values[item_number] = None
+                            logger.debug(f"Using None for item {item_number} (no missing value specified)")
+                            calculation_log.append(f"  → Invalid response, using None (no missing value specified)")
                 else:
-                    logger.debug(f"Empty response for item {item_number}")
+                    # Empty or missing response - use missing value or None
+                    if item.item_missing_value is not None:
+                        response_values[item_number] = float(item.item_missing_value)
+                        valid_response_count += 1  # Count missing values as valid for minimum count
+                        logger.debug(f"Empty response for item {item_number}, using missing value: {item.item_missing_value}")
+                        calculation_log.append(f"  → Empty response, using missing value: {item.item_missing_value}")
+                    else:
+                        response_values[item_number] = None
+                        logger.debug(f"Empty response for item {item_number}, using None (no missing value specified)")
+                        calculation_log.append(f"  → Empty response, using None (no missing value specified)")
+            else:
+                # Item is part of construct but not in questionnaire - use missing value or None
+                calculation_log.append(f"Item {item_number} ({item.name}): Not in questionnaire")
+                if item.item_missing_value is not None:
+                    response_values[item_number] = float(item.item_missing_value)
+                    valid_response_count += 1  # Count missing values as valid for minimum count
+                    logger.debug(f"Item {item_number} not in questionnaire, using missing value: {item.item_missing_value}")
+                    calculation_log.append(f"  → Using missing value: {item.item_missing_value}")
+                else:
                     response_values[item_number] = None
+                    logger.debug(f"Item {item_number} not in questionnaire, using None (no missing value specified)")
+                    calculation_log.append(f"  → Using None (no missing value specified)")
         
         # Debug: Log the final response values dictionary
         logger.debug(f"Response values for construct {construct.name}: {response_values}")
         
+        calculation_log.append("")
+        calculation_log.append("FINAL VALUES FOR CALCULATION:")
+        for item_num, value in sorted(response_values.items()):
+            calculation_log.append(f"  {{{item_num}}} = {value}")
+        
         # Check for required items that are missing valid responses
         required_items_missing = []
-        for response in responses:
-            qi = response.questionnaire_item
-            item = qi.item
-            
-            # Check if this item belongs to the current construct and is required for scoring
-            if item.construct_scale == construct and item.is_required:
-                if item.response_type in ['Number', 'Likert', 'Range']:
-                    item_number = item.item_number
-                    # Check if this required item has a valid response
-                    if item_number not in response_values or response_values[item_number] is None:
-                        required_items_missing.append(item_number)
-                        logger.debug(f"Required item {item_number} ({item.name}) is missing a valid response")
+        calculation_log.append("")
+        calculation_log.append("REQUIRED ITEMS VALIDATION:")
+        for item in all_construct_items:
+            # Check if this item is required for scoring
+            if item.is_required:
+                item_number = item.item_number
+                # Check if this required item has a valid response or missing value
+                if item_number not in response_values or response_values[item_number] is None:
+                    required_items_missing.append(item_number)
+                    logger.debug(f"Required item {item_number} ({item.name}) is missing a valid response and has no missing value specified")
+                    calculation_log.append(f"  Item {item_number} ({item.name}): REQUIRED - MISSING")
+                else:
+                    calculation_log.append(f"  Item {item_number} ({item.name}): REQUIRED - OK")
         
         # If any required items are missing valid responses, skip score calculation
         if required_items_missing:
             logger.warning(f"Cannot calculate score for construct {construct.name}. " 
                           f"Required items missing valid responses: items {required_items_missing}")
+            calculation_log.append("")
+            calculation_log.append(f"CALCULATION FAILED: Required items missing: {required_items_missing}")
+            calculation_log.append("Score calculation cannot proceed.")
+            
             # Create a record but with no score to indicate required items were missing
             QuestionnaireConstructScore.objects.create(
                 questionnaire_submission=submission,
                 construct=construct,
                 score=None,
                 items_answered=valid_response_count,
-                items_not_answered=total_construct_items - valid_response_count
+                items_not_answered=total_construct_items - valid_response_count,
+                calculation_log="\n".join(calculation_log)
             )
             continue
         
         # Calculate items answered and not answered
-        items_answered = valid_response_count
-        items_not_answered = total_construct_items - valid_response_count
+        # Count actual responses (not missing values) as answered
+        actual_responses_count = 0
+        for item in all_construct_items:
+            item_number = item.item_number
+            if item.id in response_map:
+                response = response_map[item.id]
+                if response.response_value and response.response_value.strip():
+                    try:
+                        float(response.response_value)
+                        actual_responses_count += 1
+                    except (ValueError, TypeError):
+                        pass  # Invalid response, don't count
+        
+        items_answered = actual_responses_count
+        items_not_answered = total_construct_items - actual_responses_count
         
         logger.debug(f"For construct {construct.name}: {items_answered} items answered, {items_not_answered} items not answered, {total_construct_items} total items")
+        
+        calculation_log.append("")
+        calculation_log.append("CALCULATION SUMMARY:")
+        calculation_log.append(f"  Total items in construct: {total_construct_items}")
+        calculation_log.append(f"  Items with actual responses: {items_answered}")
+        calculation_log.append(f"  Items not answered: {items_not_answered}")
+        calculation_log.append(f"  Valid values for calculation: {valid_response_count}")
+        calculation_log.append(f"  Minimum required items: {construct.minimum_number_of_items}")
         
         # Check if we have enough valid responses (minimum_number_of_items logic)
         min_required = construct.minimum_number_of_items
         if valid_response_count < min_required:
             logger.warning(f"Not enough valid responses for construct {construct.name}. " 
                           f"Required: {min_required}, Found: {valid_response_count}")
+            calculation_log.append("")
+            calculation_log.append(f"CALCULATION FAILED: Insufficient valid responses")
+            calculation_log.append(f"Required: {min_required}, Found: {valid_response_count}")
+            calculation_log.append("Score calculation cannot proceed.")
+            
             # Still create a record but with no score, and include the count data
             QuestionnaireConstructScore.objects.create(
                 questionnaire_submission=submission,
                 construct=construct,
                 score=None,
                 items_answered=items_answered,
-                items_not_answered=items_not_answered
+                items_not_answered=items_not_answered,
+                calculation_log="\n".join(calculation_log)
             )
             continue
         
         # Calculate score using equation parser
         try:
+            calculation_log.append("")
+            calculation_log.append("EQUATION PROCESSING:")
+            calculation_log.append(f"  Equation: {construct.scale_equation}")
+            
             # Parse the equation
             validator = EquationValidator()
             tree = validator.parser.parse(construct.scale_equation)
+            calculation_log.append("  Equation parsing: SUCCESS")
             
             # Transform and evaluate the equation
             transformer = EquationTransformer(
@@ -900,18 +993,48 @@ def calculate_scores_for_submission(submission):
             # Store the result with items answered/not answered counts
             logger.info(f"Calculated score for construct {construct.name}: {score}")
             
+            calculation_log.append(f"  Equation evaluation: SUCCESS")
+            calculation_log.append(f"  Final calculated score: {score}")
+            calculation_log.append("")
+            calculation_log.append("CALCULATION COMPLETED SUCCESSFULLY")
+            
             QuestionnaireConstructScore.objects.create(
                 questionnaire_submission=submission,
                 construct=construct,
                 score=score,
                 items_answered=items_answered,
-                items_not_answered=items_not_answered
+                items_not_answered=items_not_answered,
+                calculation_log="\n".join(calculation_log)
             )
         
         except ValidationError as e:
             logger.error(f"Equation validation error for construct {construct.name}: {str(e)}")
+            calculation_log.append("")
+            calculation_log.append(f"CALCULATION FAILED: Equation validation error")
+            calculation_log.append(f"Error: {str(e)}")
+            
+            QuestionnaireConstructScore.objects.create(
+                questionnaire_submission=submission,
+                construct=construct,
+                score=None,
+                items_answered=items_answered,
+                items_not_answered=items_not_answered,
+                calculation_log="\n".join(calculation_log)
+            )
         except Exception as e:
             logger.error(f"Error calculating score for construct {construct.name}: {str(e)}", exc_info=True)
+            calculation_log.append("")
+            calculation_log.append(f"CALCULATION FAILED: Unexpected error")
+            calculation_log.append(f"Error: {str(e)}")
+            
+            QuestionnaireConstructScore.objects.create(
+                questionnaire_submission=submission,
+                construct=construct,
+                score=None,
+                items_answered=items_answered,
+                items_not_answered=items_not_answered,
+                calculation_log="\n".join(calculation_log)
+            )
     
     # After calculating all individual construct scores, calculate composite scores
     calculate_composite_scores_for_submission(submission)
@@ -952,89 +1075,152 @@ def calculate_composite_scores_for_submission(submission):
     for composite_scale in composite_scales:
         logger.info(f"Processing composite scale: {composite_scale.composite_construct_scale_name}")
         
+        # Initialize calculation log for this composite
+        calculation_log = []
+        calculation_log.append(f"=== COMPOSITE CONSTRUCT SCORE CALCULATION ===")
+        calculation_log.append(f"Composite Scale: {composite_scale.composite_construct_scale_name}")
+        calculation_log.append(f"Scoring Type: {composite_scale.scoring_type}")
+        calculation_log.append("")
+        
         # Get the construct scales that make up this composite
         component_constructs = composite_scale.construct_scales.all()
         
         if not component_constructs.exists():
             logger.warning(f"No component constructs found for composite scale {composite_scale.composite_construct_scale_name}")
+            calculation_log.append("CALCULATION FAILED: No component constructs found")
+            
+            QuestionnaireConstructScoreComposite.objects.create(
+                questionnaire_submission=submission,
+                composite_construct_scale=composite_scale,
+                score=None,
+                calculation_log="\n".join(calculation_log)
+            )
             continue
         
         # Collect scores for the component constructs
         component_scores = []
         missing_constructs = []
         
+        calculation_log.append("COMPONENT CONSTRUCT SCORES:")
         for construct in component_constructs:
             if construct.id in construct_score_map:
                 score = construct_score_map[construct.id]
                 component_scores.append(score)
                 logger.debug(f"Found score {score} for construct {construct.name}")
+                calculation_log.append(f"  {construct.name}: {score}")
             else:
                 # Missing scores are treated as 0
                 component_scores.append(0.0)
                 missing_constructs.append(construct.name)
                 logger.debug(f"Missing score for construct {construct.name}, using 0")
+                calculation_log.append(f"  {construct.name}: MISSING (using 0)")
         
         if missing_constructs:
             logger.info(f"Composite scale {composite_scale.composite_construct_scale_name}: "
                        f"Missing scores for constructs {missing_constructs}, treating as 0")
+            calculation_log.append("")
+            calculation_log.append(f"Note: Missing scores treated as 0: {', '.join(missing_constructs)}")
         
         # Calculate the composite score based on scoring type
         try:
             composite_score = None
             scoring_type = composite_scale.scoring_type
             
+            calculation_log.append("")
+            calculation_log.append("COMPOSITE SCORE CALCULATION:")
+            calculation_log.append(f"  Input values: {component_scores}")
+            calculation_log.append(f"  Scoring method: {scoring_type}")
+            
             if scoring_type == ScoringTypeChoices.AVERAGE:
                 if component_scores:
                     composite_score = sum(component_scores) / len(component_scores)
                     logger.debug(f"Average calculation: {component_scores} = {composite_score}")
+                    calculation_log.append(f"  Calculation: sum({component_scores}) / {len(component_scores)} = {composite_score}")
             
             elif scoring_type == ScoringTypeChoices.SUM:
                 composite_score = sum(component_scores)
                 logger.debug(f"Sum calculation: {component_scores} = {composite_score}")
+                calculation_log.append(f"  Calculation: sum({component_scores}) = {composite_score}")
             
             elif scoring_type == ScoringTypeChoices.MEDIAN:
                 if component_scores:
                     composite_score = statistics.median(component_scores)
                     logger.debug(f"Median calculation: {component_scores} = {composite_score}")
+                    calculation_log.append(f"  Calculation: median({component_scores}) = {composite_score}")
             
             elif scoring_type == ScoringTypeChoices.MODE:
                 if component_scores:
                     try:
                         composite_score = statistics.mode(component_scores)
                         logger.debug(f"Mode calculation: {component_scores} = {composite_score}")
+                        calculation_log.append(f"  Calculation: mode({component_scores}) = {composite_score}")
                     except statistics.StatisticsError:
                         # No unique mode found, use the first value as fallback
                         composite_score = component_scores[0] if component_scores else 0
                         logger.warning(f"No unique mode found for {component_scores}, using first value: {composite_score}")
+                        calculation_log.append(f"  No unique mode found, using first value: {composite_score}")
             
             elif scoring_type == ScoringTypeChoices.MIN:
                 if component_scores:
                     composite_score = min(component_scores)
                     logger.debug(f"Min calculation: {component_scores} = {composite_score}")
+                    calculation_log.append(f"  Calculation: min({component_scores}) = {composite_score}")
             
             elif scoring_type == ScoringTypeChoices.MAX:
                 if component_scores:
                     composite_score = max(component_scores)
                     logger.debug(f"Max calculation: {component_scores} = {composite_score}")
+                    calculation_log.append(f"  Calculation: max({component_scores}) = {composite_score}")
             
             else:
                 logger.error(f"Unknown scoring type: {scoring_type}")
+                calculation_log.append(f"  ERROR: Unknown scoring type: {scoring_type}")
+                
+                QuestionnaireConstructScoreComposite.objects.create(
+                    questionnaire_submission=submission,
+                    composite_construct_scale=composite_scale,
+                    score=None,
+                    calculation_log="\n".join(calculation_log)
+                )
                 continue
             
             if composite_score is not None:
                 # Convert to Decimal for storage
                 composite_score_decimal = Decimal(str(composite_score))
                 
+                calculation_log.append(f"  Final composite score: {composite_score}")
+                calculation_log.append("")
+                calculation_log.append("CALCULATION COMPLETED SUCCESSFULLY")
+                
                 # Store the composite score
                 QuestionnaireConstructScoreComposite.objects.create(
                     questionnaire_submission=submission,
                     composite_construct_scale=composite_scale,
-                    score=composite_score_decimal
+                    score=composite_score_decimal,
+                    calculation_log="\n".join(calculation_log)
                 )
                 
                 logger.info(f"Calculated composite score for {composite_scale.composite_construct_scale_name}: {composite_score}")
             else:
                 logger.warning(f"Could not calculate composite score for {composite_scale.composite_construct_scale_name}")
+                calculation_log.append("  CALCULATION FAILED: Could not calculate composite score")
+                
+                QuestionnaireConstructScoreComposite.objects.create(
+                    questionnaire_submission=submission,
+                    composite_construct_scale=composite_scale,
+                    score=None,
+                    calculation_log="\n".join(calculation_log)
+                )
         
         except Exception as e:
             logger.error(f"Error calculating composite score for {composite_scale.composite_construct_scale_name}: {str(e)}", exc_info=True)
+            calculation_log.append("")
+            calculation_log.append(f"CALCULATION FAILED: Unexpected error")
+            calculation_log.append(f"Error: {str(e)}")
+            
+            QuestionnaireConstructScoreComposite.objects.create(
+                questionnaire_submission=submission,
+                composite_construct_scale=composite_scale,
+                score=None,
+                calculation_log="\n".join(calculation_log)
+            )

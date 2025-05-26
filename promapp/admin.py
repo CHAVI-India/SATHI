@@ -122,3 +122,10 @@ class QuestionnaireItemRuleAdmin(admin.ModelAdmin):
 @admin.register(QuestionnaireItemRuleGroup)
 class QuestionnaireItemRuleGroupAdmin(admin.ModelAdmin):
     pass
+
+@admin.register(QuestionnaireConstructScoreComposite)
+class QuestionnaireConstructScoreCompositeAdmin(admin.ModelAdmin):
+    list_display = ('questionnaire_submission', 'composite_construct_scale', 'score')
+    search_fields = ('questionnaire_submission', 'composite_construct_scale', 'score')
+    list_filter = ('questionnaire_submission', 'composite_construct_scale', 'score')
+    ordering = ('-created_date',)
