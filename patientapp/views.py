@@ -11,16 +11,92 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
 from .models import Patient, Diagnosis, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
 from .forms import PatientForm, TreatmentForm
+from promapp.models import *
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 
+
 def prom_review(request, pk):
     """View for the PRO Review page that shows patient questionnaire responses."""
+    logger.info(f"PRO Review view called for patient ID: {pk}")
+    
     patient = get_object_or_404(Patient, pk=pk)
+    logger.info(f"Found patient: {patient.name} (ID: {patient.id})")
+    
+    # Get all questionnaire submissions for this patient
+    submissions = QuestionnaireSubmission.objects.filter(
+        patient=patient
+    ).select_related(
+        'patient_questionnaire',
+        'patient_questionnaire__questionnaire'
+    ).prefetch_related(
+        'patient_questionnaire__questionnaire__translations'
+    ).order_by('-submission_date')
+    
+    logger.info(f"Found {submissions.count()} total submissions")
+    
+    # Get submission counts per questionnaire
+    questionnaire_submission_counts = {}
+    for submission in submissions:
+        q_id = submission.patient_questionnaire.questionnaire_id
+        questionnaire_submission_counts[q_id] = questionnaire_submission_counts.get(q_id, 0) + 1
+    
+    # Get the latest submission for each questionnaire
+    latest_submissions = {}
+    for submission in submissions:
+        if submission.patient_questionnaire.questionnaire_id not in latest_submissions:
+            latest_submissions[submission.patient_questionnaire.questionnaire_id] = submission
+            logger.info(f"Latest submission for questionnaire {submission.patient_questionnaire.questionnaire_id}: {submission.submission_date}")
+    
+    # Get all assigned questionnaires
+    assigned_questionnaires = PatientQuestionnaire.objects.filter(
+        patient=patient
+    ).select_related(
+        'questionnaire'
+    ).prefetch_related(
+        'questionnaire__translations'
+    )
+    
+    logger.info(f"Found {assigned_questionnaires.count()} assigned questionnaires")
+    
+    # Get item responses for the latest submissions
+    item_responses = QuestionnaireItemResponse.objects.filter(
+        questionnaire_submission__in=latest_submissions.values()
+    ).select_related(
+        'questionnaire_item',
+        'questionnaire_item__item',
+        'questionnaire_item__item__likert_response',
+        'questionnaire_item__item__range_response'
+    )
+    
+    logger.info(f"Found {item_responses.count()} item responses")
+    
+    # Get construct scores for the latest submissions
+    construct_scores = QuestionnaireConstructScore.objects.filter(
+        questionnaire_submission__in=latest_submissions.values()
+    ).select_related(
+        'construct'
+    )
+    
+    logger.info(f"Found {construct_scores.count()} construct scores")
+    
     context = {
         'patient': patient,
+        'submissions': submissions,
+        'latest_submissions': latest_submissions,
+        'assigned_questionnaires': assigned_questionnaires,
+        'item_responses': item_responses,
+        'construct_scores': construct_scores,
+        'questionnaire_submission_counts': questionnaire_submission_counts,
     }
+    
     return render(request, 'promapp/prom_review.html', context)
+
+
+
 
 def patient_list(request):
     # Get filter parameters

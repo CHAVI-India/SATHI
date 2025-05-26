@@ -1,0 +1,86 @@
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+<div class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">{% translate "Questionnaire Overview" %}</h3>
+        <div class="flex space-x-2">
+            <!-- Submission Date Selector -->
+            <div class="relative">
+                <select 
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    hx-get="{% url 'prom_review' patient.id %}"
+                    hx-target="#results-container"
+                    hx-trigger="change"
+                    name="submission_date"
+                >
+                    <option value="">{% translate "Latest Submissions" %}</option>
+                    {% for submission in submissions %}
+                        {% if submission.submission_date %}
+                            <option value="{{ submission.submission_date|date:'Y-m-d' }}">
+                                {{ submission.patient_questionnaire.questionnaire.name }} - {{ submission.submission_date|date:"d M Y" }}
+                            </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Questionnaire Filter -->
+            <div class="relative">
+                <select 
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    hx-get="{% url 'prom_review' patient.id %}"
+                    hx-target="#results-container"
+                    hx-trigger="change"
+                    name="questionnaire_filter"
+                >
+                    <option value="">{% translate "All Questionnaires" %}</option>
+                    {% for submission in submissions %}
+                        <option value="{{ submission.patient_questionnaire.questionnaire.id }}">
+                            {{ submission.patient_questionnaire.questionnaire.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        {% for submission in submissions %}
+            <div class="border rounded-lg p-4 {% if forloop.first %}bg-blue-50{% endif %}">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h4 class="text-base font-medium text-gray-900">{{ submission.patient_questionnaire.questionnaire.name }}</h4>
+                        <p class="text-sm text-gray-500">
+                            {% if submission.submission_date %}
+                                {% blocktranslate with count=questionnaire_submission_counts|get_item:submission.patient_questionnaire.questionnaire.id %}
+                                    {{ count }} submission{{ count|pluralize }}
+                                {% endblocktranslate %}
+                            {% else %}
+                                {% translate "Not submitted yet" %}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        {% if submission.submission_date %}
+                            <p class="text-sm font-medium text-gray-900">
+                                {% translate "Last Submission" %}
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                {{ submission.submission_date|date:"d M Y" }}
+                            </p>
+                        {% else %}
+                            <p class="text-sm text-gray-500">
+                                {% translate "Awaiting submission" %}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="text-center py-4">
+                <p class="text-gray-500">{% translate "No questionnaires available for this patient." %}</p>
+            </div>
+        {% endfor %}
+    </div>
+</div> 

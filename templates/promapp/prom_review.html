@@ -27,18 +27,13 @@
                     
                     <!-- Right Section -->
                     <div class="lg:col-span-2">
-                        <!-- Questionnaire Overview -->
+                        {% include "promapp/components/questionnaire_overview_card.html" %}
                     </div>
                 </div>
 
-                <!-- Middle Section -->
-                <div class="mt-6">
-                    <!-- Topline Results -->
-                </div>
-
-                <!-- Bottom Section -->
-                <div class="mt-6">
-                    <!-- Item-wise Results -->
+                <!-- Results Container -->
+                <div id="results-container">
+                    {% include "promapp/components/results_container.html" %}
                 </div>
             </div>
         </div>

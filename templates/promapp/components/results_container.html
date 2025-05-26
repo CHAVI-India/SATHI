@@ -1,0 +1,59 @@
+{% load i18n %}
+
+<div id="results-container" class="space-y-6">
+    <!-- Topline Results Section -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">{% translate "Topline Results" %}</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {% for submission in latest_submissions.values %}
+                {% with questionnaire=submission.questionnaire %}
+                    <div class="border rounded-lg p-4">
+                        <h4 class="text-base font-medium text-gray-900">{{ questionnaire.name }}</h4>
+                        <p class="text-sm text-gray-500">
+                            {% translate "Submission Date" %}: {{ submission.submission_date|date:"d M Y" }}
+                        </p>
+                        <!-- Add construct scores here when implemented -->
+                    </div>
+                {% endwith %}
+            {% empty %}
+                <div class="col-span-full text-center py-4">
+                    <p class="text-gray-500">{% translate "No submissions available." %}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Item-wise Results Section -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">{% translate "Item-wise Results" %}</h3>
+        <div class="space-y-6">
+            {% for submission in latest_submissions.values %}
+                {% with questionnaire=submission.questionnaire %}
+                    <fieldset class="border rounded-lg p-4">
+                        <legend class="text-base font-medium text-gray-900 px-2">
+                            {{ questionnaire.name }}
+                        </legend>
+                        <div class="mt-4 space-y-4">
+                            {% for response in item_responses %}
+                                {% if response.submission == submission %}
+                                    <div class="border rounded-lg p-4">
+                                        <h5 class="text-sm font-medium text-gray-900">
+                                            {{ response.questionnaire_item.item.name }}
+                                        </h5>
+                                        <p class="text-sm text-gray-500">
+                                            {{ response.response_value }}
+                                        </p>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </fieldset>
+                {% endwith %}
+            {% empty %}
+                <div class="text-center py-4">
+                    <p class="text-gray-500">{% translate "No submissions available." %}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div> 

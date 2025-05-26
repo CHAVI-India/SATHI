@@ -5,7 +5,6 @@ from .views import MyQuestionnaireListView
 
 urlpatterns = [
     # PRO Review URL
-    path('prom-review/<uuid:pk>/', views.prom_review, name='prom_review'),
 
     # Questionnaire URLs
     path('questionnaires/', views.QuestionnaireListView.as_view(), name='questionnaire_list'),

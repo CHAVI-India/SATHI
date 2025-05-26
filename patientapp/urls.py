@@ -22,4 +22,9 @@ urlpatterns = [
     path('treatment-types/create/', views.TreatmentTypeCreateView.as_view(), name='treatment_type_create'),
     path('treatment-types/<uuid:pk>/update/', views.TreatmentTypeUpdateView.as_view(), name='treatment_type_update'),
     path('treatment-types/<uuid:pk>/delete/', views.TreatmentTypeDeleteView.as_view(), name='treatment_type_delete'),
+
+    # PRO Review URLs
+    path('patients/<uuid:pk>/prom-review/', views.prom_review, name='prom_review'), 
+
+
 ] 
