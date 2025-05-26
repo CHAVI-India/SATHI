@@ -1,1 +1,65 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+{% load cotton %}
 
+{% block title %}{% translate "PRO Review" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="p-6">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">{% translate "PRO Review" %}</h1>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="space-y-6">
+                <!-- Top Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left Section -->
+                    <div class="lg:col-span-1">
+                        <!-- Patient Info Card -->
+                    </div>
+                    
+                    <!-- Right Section -->
+                    <div class="lg:col-span-2">
+                        <!-- Questionnaire Overview -->
+                    </div>
+                </div>
+
+                <!-- Middle Section -->
+                <div class="mt-6">
+                    <!-- Topline Results -->
+                </div>
+
+                <!-- Bottom Section -->
+                <div class="mt-6">
+                    <!-- Item-wise Results -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    // Handle HTMX after swap to update plots
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'results-container') {
+            // Reinitialize plots after content update
+            initializePlots();
+        }
+    });
+
+    // Initialize all plots
+    function initializePlots() {
+        // Plot initialization code will go here
+    }
+</script>
+{% endblock %}
