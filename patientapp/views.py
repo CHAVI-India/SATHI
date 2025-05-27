@@ -142,9 +142,31 @@ def prom_review(request, pk):
                         response.option_color = color_map.get(str(option.option_value), '#ffffff')
                         response.text_color = likert_scale.get_text_color(response.option_color)
                         break
+
+                # Get previous response for change calculation
+                previous_response = QuestionnaireItemResponse.objects.filter(
+                    questionnaire_item=response.questionnaire_item,
+                    questionnaire_submission__patient=patient,
+                    questionnaire_submission__submission_date__lt=response.questionnaire_submission.submission_date
+                ).order_by('-questionnaire_submission__submission_date').first()
+
+                if previous_response and previous_response.response_value:
+                    try:
+                        previous_value = float(previous_response.response_value)
+                        response.previous_value = previous_value
+                        response.value_change = likert_value - previous_value if likert_value is not None else None
+                    except (ValueError, TypeError):
+                        response.previous_value = None
+                        response.value_change = None
+                else:
+                    response.previous_value = None
+                    response.value_change = None
+
             except (ValueError, TypeError):
                 response.likert_response = None
                 response.percentage = 0
+                response.previous_value = None
+                response.value_change = None
     
     logger.info(f"Found {item_responses.count()} item responses")
     
