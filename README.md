@@ -41,9 +41,28 @@ For designers of questionnaires the following features are provided:
 
 Each item in the system belongs to a construct which measures a latent trait. A construct can have a single or multiple items. Answers provided to these items (aside from text based answers), can be used to calculate scores for the contructs. These scores can then be tracked in the user interface. 
 
-# Translations
+Two types of scores are computed:
+1. Construct score : These are directly related to the items and support complex equations
+2. Composite scores : These are obtained by combining multiple construct scores. Simple addition, multiplication, average, median, mode, minimum and maximum are supported.
 
-A complete dashboard is provided for translating the questionnaires, items in the questionnaires as well as the responses to the items. This allows uses to add translations to these items in an intuitive manner.
+
+# Health care provider interface
+
+A comprehensive healthcare provider interface is provided with the following features:
+1. Each patients responses can be viewed in a single page.
+2. The number of questionnaires available , the number of times each questionnaire has been answered as well as the last date of submission are shown.
+3. Topline results show the score of constructs which exceed clinical threshold score or normative scores. The last submitted score is shown along with the indicator if the score has improved or worsened. Improving scores are indicated with a green color and deteriorating scores with a orange color icon. The score also shows an indicator of the direction of change. 
+4. We show a plot of the scores over time. In each plot, the normative, threshold scores and standard deviations of the normative scores are shown if available. 
+6. Additional scores of other constructs which do get presented in the topline results section will be shown in section below the topline results. 
+7. Composite scores of the constructs will also be shown here.
+8. Item wise scores are shown with plots if they are numeric, range or likert type responses. 
+    - For numeric and range type responses the plot shows the value over time. 
+    - For likert type responses, we show the last value along with a change indicator. The change indicator and the item value background receive a different color with darker shades indicating worse outcomes. 
+    - The plot for the likert responses will also show the same color scheme. 
+
+
+Plots are created using Bokeh which allow interactivity like panning, zooming, and tooltips with the data. 
+
 
 # Add Patient
 
@@ -52,6 +71,7 @@ Users can add patients to the system using a single page form and assign the que
 Users can choose to add diagnoses, and treatments for diagnoses for the patients. 
 
 # Translations
+
 The system allows users to add translations for questionnaires, items, and options in the Likert and Range scale options values. Media translations are also supported. Once an item is translated it can be used in multiple questionnaires. The same is true for Likert scale and Range Scale translations. 
 
 The ability to add translations is provided for the users with appropriate permissions. 
