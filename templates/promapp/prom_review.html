@@ -7,6 +7,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/prom_review.css' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 {{ bokeh_css|safe }}
 {% endblock %}
 
@@ -26,26 +27,18 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Submission Date Filter -->
                     <div>
-                        <label for="submission-date" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Submission Date" %}</label>
-                        <select 
+                        <label for="submission-date" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Submissions Up To" %}</label>
+                        <input
+                            type="text"
                             id="submission-date"
                             name="submission_date"
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            placeholder="{% translate "Select a date" %}"
                             hx-get="{% url 'prom_review' patient.id %}"
                             hx-target="#main-content"
                             hx-trigger="change"
+                            value="{{ request.GET.submission_date|default:'' }}"
                         >
-                            <option value="">{% translate "Latest Submissions" %}</option>
-                            {% for pq in assigned_questionnaires %}
-                                {% with submission=latest_submissions|get_item:pq.questionnaire.id %}
-                                    {% if submission and submission.submission_date %}
-                                        <option value="{{ submission.submission_date|date:'Y-m-d' }}">
-                                            {{ pq.questionnaire.name }} - {{ submission.submission_date|date:"d M Y" }}
-                                        </option>
-                                    {% endif %}
-                                {% endwith %}
-                            {% endfor %}
-                        </select>
                     </div>
 
                     <!-- Questionnaire Filter -->
@@ -117,4 +110,19 @@
 
 {% block extra_js %}
 {{ bokeh_js|safe }}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("#submission-date", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d M Y",
+            onChange: function(selectedDates, dateStr, instance) {
+                // HTMX should pick up the change event automatically from the input field
+                // If not, uncomment the line below to trigger it manually
+                // htmx.trigger(instance.element, 'change');
+            }
+        });
+    });
+</script>
 {% endblock %}

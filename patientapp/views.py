@@ -61,7 +61,7 @@ def prom_review(request, pk):
     
     # Apply submission date filter if specified
     if submission_date:
-        submissions = submissions.filter(submission_date=submission_date)
+        submissions = submissions.filter(submission_date__date__lte=submission_date)
     
     # Order by submission date
     submissions = submissions.order_by('-submission_date')
