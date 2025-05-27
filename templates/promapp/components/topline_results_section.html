@@ -17,9 +17,9 @@
                             <div class="ml-2">
                                 {% if score_data.score_change > 0 %}
                                     {% if score_data.construct.scale_better_score_direction == 'Higher' %}
-                                        <span class="text-orange-500">↑</span>
-                                    {% else %}
                                         <span class="text-green-500">↑</span>
+                                    {% else %}
+                                        <span class="text-orange-500">↑</span>
                                     {% endif %}
                                 {% elif score_data.score_change < 0 %}
                                     {% if score_data.construct.scale_better_score_direction == 'Higher' %}
