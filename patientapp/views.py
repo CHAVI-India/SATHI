@@ -66,12 +66,14 @@ def prom_review(request, pk):
         q_id = submission.patient_questionnaire.questionnaire_id
         questionnaire_submission_counts[q_id] = questionnaire_submission_counts.get(q_id, 0) + 1
     
-    # Get the latest submission for each questionnaire
+    # Get the latest submission for each questionnaire, respecting filters
     latest_submissions = {}
     for submission in submissions:
-        if submission.patient_questionnaire.questionnaire_id not in latest_submissions:
-            latest_submissions[submission.patient_questionnaire.questionnaire_id] = submission
-            logger.info(f"Latest submission for questionnaire {submission.patient_questionnaire.questionnaire_id}: {submission.submission_date}")
+        q_id = submission.patient_questionnaire.questionnaire_id
+        # Only add if we haven't seen this questionnaire yet or if this submission is more recent
+        if q_id not in latest_submissions or submission.submission_date > latest_submissions[q_id].submission_date:
+            latest_submissions[q_id] = submission
+            logger.info(f"Latest submission for questionnaire {q_id}: {submission.submission_date}")
     
     # Get all assigned questionnaires
     assigned_questionnaires = PatientQuestionnaire.objects.filter(
@@ -102,6 +104,12 @@ def prom_review(request, pk):
         'questionnaire_item__item__likert_response__likertscaleresponseoption_set',
         'questionnaire_item__item__likert_response__likertscaleresponseoption_set__translations'
     )
+    
+    # Apply questionnaire filter to item responses if specified
+    if questionnaire_filter:
+        item_responses = item_responses.filter(
+            questionnaire_item__questionnaire_id=questionnaire_filter
+        )
     
     # Calculate percentages and add option text for item responses
     for response in item_responses:
@@ -146,6 +154,12 @@ def prom_review(request, pk):
     ).select_related(
         'construct'
     )
+    
+    # Apply questionnaire filter to construct scores if specified
+    if questionnaire_filter:
+        construct_scores = construct_scores.filter(
+            questionnaire_submission__patient_questionnaire__questionnaire_id=questionnaire_filter
+        )
     
     logger.info(f"Found {construct_scores.count()} construct scores")
 
