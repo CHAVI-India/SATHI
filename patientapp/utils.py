@@ -80,10 +80,9 @@ class ConstructScoreData:
         
         # Format x-axis with timezone-aware formatting
         p.xaxis.formatter = DatetimeTickFormatter(
-            hours="%d %b %Y %H:%M",
-            days="%d %b %Y",
-            months="%d %b %Y",
-            years="%d %b %Y"
+            days="%d-%b %y",
+            months="%d-%b %y",
+            years="%d-%b %y"
         )
         p.xaxis.major_label_orientation = math.pi/2  # Rotate labels 90 degrees
         
@@ -150,7 +149,7 @@ class ConstructScoreData:
         # Configure hover tool
         hover = HoverTool(
             tooltips=[
-                ('Date', '@dates{%d %b %Y}'),
+                ('Date', '@dates{%d-%b %y}'),
                 ('Score', '@scores{0.0}')
             ],
             formatters={
@@ -268,10 +267,9 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
     
     # Format axes
     p.xaxis.formatter = DatetimeTickFormatter(
-        hours="%d %b %Y %H:%M",
-        days="%d %b %Y",
-        months="%d %b %Y",
-        years="%d %b %Y"
+        days="%d-%b %y",
+        months="%d-%b %y",
+        years="%d-%b %y"
     )
     p.xaxis.major_label_orientation = math.pi/2
     p.yaxis.major_label_orientation = math.pi/4
@@ -303,7 +301,7 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
     # Configure hover tool
     hover = HoverTool(
         tooltips=[
-            ('Date', '@dates{%d %b %Y}'),
+            ('Date', '@dates{%d-%b %y}'),
             ('Response', '@responses')
         ],
         formatters={
@@ -359,10 +357,9 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
     
     # Format x-axis
     p.xaxis.formatter = DatetimeTickFormatter(
-        hours="%d %b %Y %H:%M",
-        days="%d %b %Y",
-        months="%d %b %Y",
-        years="%d %b %Y"
+        days="%d-%b %y",
+        months="%d-%b %y",
+        years="%d-%b %y"
     )
     p.xaxis.major_label_orientation = math.pi/2
     
@@ -427,7 +424,7 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
     # Configure hover tool
     hover = HoverTool(
         tooltips=[
-            ('Date', '@dates{%d %b %Y}'),
+            ('Date', '@dates{%d-%b %y}'),
             ('Value', '@values{0.0}')
         ],
         formatters={
