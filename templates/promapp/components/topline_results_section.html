@@ -3,7 +3,82 @@
 
 <div class="bg-white rounded-lg shadow p-4 mb-6 w-full">
     <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-gray-900">{% trans "Topline Results" %}</h2>
+        <div class="flex items-center space-x-2">
+            <h2 class="text-xl font-bold text-gray-900">{% trans "Topline Results" %}</h2>
+            <div class="relative group">
+                <svg class="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="absolute left-0 top-6 w-96 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                    <div class="space-y-3">
+                        <div class="font-semibold">{% trans "Legend:" %}</div>
+                        
+                        <!-- Trend Icons -->
+                        <div class="space-y-1">
+                            <div class="text-xs font-medium text-gray-300">{% trans "Trend Indicators:" %}</div>
+                            <div class="flex items-center space-x-2">
+                                <c-icon_trending_up class="text-green-400 w-4 h-4" />
+                                <span>{% trans "Score improved (beneficial change)" %}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <c-icon_trending_up class="text-orange-400 w-4 h-4" />
+                                <span>{% trans "Score increased (concerning change)" %}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <c-icon_trending_down class="text-green-400 w-4 h-4" />
+                                <span>{% trans "Score decreased (beneficial change)" %}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <c-icon_trending_down class="text-orange-400 w-4 h-4" />
+                                <span>{% trans "Score decreased (concerning change)" %}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <c-icon_no_change class="text-gray-400 w-4 h-4" />
+                                <span>{% trans "No change from previous submission" %}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Status Indicators -->
+                        <div class="space-y-1">
+                            <div class="text-xs font-medium text-gray-300">{% trans "Status Indicators:" %}</div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-green-400">✓</span>
+                                <span>{% trans "Meets clinical threshold" %}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-red-400">⚠</span>
+                                <span>{% trans "Does not meet clinical threshold" %}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-blue-400">◯</span>
+                                <span>{% trans "Normative population mean" %}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Plot Legend -->
+                        <div class="space-y-1">
+                            <div class="text-xs font-medium text-gray-300">{% trans "Plot Elements:" %}</div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-1 bg-blue-400"></div>
+                                <span>{% trans "Score trend line over time" %}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                <span>{% trans "Individual score points" %}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-1 bg-red-400 border-dashed border border-red-400"></div>
+                                <span>{% trans "Clinical threshold line" %}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-1 bg-gray-400 border-dashed border border-gray-400"></div>
+                                <span>{% trans "Normative mean reference line" %}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -11,33 +86,77 @@
             <div class="bg-white rounded-lg shadow p-4">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold text-gray-900">{{ score_data.construct.name }}</h3>
-                    <div class="flex items-center">
+                    <div class="flex items-center space-x-2">
                         <span class="text-2xl font-bold text-gray-900">{{ score_data.score|floatformat:1 }}</span>
                         {% if score_data.score_change is not None %}
-                            <div class="ml-2">
-                                {% if score_data.score_change > 0 %}
-                                    {% if score_data.construct.scale_better_score_direction == 'Higher' %}
-                                        <span class="text-green-500">↑</span>
-                                    {% else %}
-                                        <span class="text-orange-500">↑</span>
-                                    {% endif %}
-                                {% elif score_data.score_change < 0 %}
-                                    {% if score_data.construct.scale_better_score_direction == 'Higher' %}
-                                        <span class="text-green-500">↓</span>
-                                    {% else %}
-                                        <span class="text-orange-500">↓</span>
-                                    {% endif %}
+                            {% if score_data.score_change > 0 %}
+                                {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
+                                    <c-icon_trending_up class="text-green-500 w-5 h-5" />
                                 {% else %}
-                                    <span class="text-gray-500">→</span>
+                                    <c-icon_trending_up class="text-orange-500 w-5 h-5" />
                                 {% endif %}
-                            </div>
-                        {% else %}
-                            <span class="ml-2 text-gray-500">-NA-</span>
+                            {% elif score_data.score_change < 0 %}
+                                {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
+                                    <c-icon_trending_down class="text-orange-500 w-5 h-5" />
+                                {% else %}
+                                    <c-icon_trending_down class="text-green-500 w-5 h-5" />
+                                {% endif %}
+                            {% else %}
+                                <c-icon_no_change class="text-gray-500 w-5 h-5" />
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>
-                <div class="plot-container" id="plot-{{ score_data.construct.id }}">
+                
+                <div class="plot-container mb-3" id="plot-{{ score_data.construct.id }}">
                     {{ score_data.bokeh_plot|safe }}
+                </div>
+                
+                <!-- Threshold and Normative Information Below Plot -->
+                <div class="flex justify-between items-center text-xs text-gray-600 border-t pt-2">
+                    <div class="flex items-center space-x-3">
+                        <!-- Threshold indicator -->
+                        {% if score_data.construct.scale_threshold_score and score_data.score is not None %}
+                            <div class="flex items-center space-x-1">
+                                <span>{{ score_data.construct.scale_threshold_score|floatformat:1 }}</span>
+                                {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
+                                    {% if score_data.score >= score_data.construct.scale_threshold_score %}
+                                        <span class="text-green-600">✓</span>
+                                    {% else %}
+                                        <span class="text-red-600">⚠</span>
+                                    {% endif %}
+                                {% elif score_data.construct.scale_better_score_direction == 'Lower is Better' %}
+                                    {% if score_data.score <= score_data.construct.scale_threshold_score %}
+                                        <span class="text-green-600">✓</span>
+                                    {% else %}
+                                        <span class="text-red-600">⚠</span>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Normative score -->
+                        {% if score_data.construct.scale_normative_score_mean %}
+                            <div class="flex items-center space-x-1">
+                                <span>{{ score_data.construct.scale_normative_score_mean|floatformat:1 }}</span>
+                                <span class="text-blue-500">◯</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Score direction indicator -->
+                    {% if score_data.construct.scale_better_score_direction %}
+                        <span class="px-1 py-0.5 rounded text-xs
+                            {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
+                                bg-green-100 text-green-700
+                            {% elif score_data.construct.scale_better_score_direction == 'Lower is Better' %}
+                                bg-red-100 text-red-700
+                            {% else %}
+                                bg-gray-100 text-gray-700
+                            {% endif %}">
+                            {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}↑{% elif score_data.construct.scale_better_score_direction == 'Lower is Better' %}↓{% else %}~{% endif %}
+                        </span>
+                    {% endif %}
                 </div>
             </div>
         {% empty %}

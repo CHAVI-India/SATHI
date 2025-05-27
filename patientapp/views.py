@@ -215,6 +215,49 @@ def prom_review(request, pk):
         )
     
     logger.info(f"Found {construct_scores.count()} construct scores")
+    
+    # Get composite construct scores for the latest submissions
+    composite_construct_scores = QuestionnaireConstructScoreComposite.objects.filter(
+        questionnaire_submission__in=latest_submissions.values()
+    ).select_related(
+        'composite_construct_scale'
+    )
+    
+    # Apply questionnaire filter to composite construct scores if specified
+    if questionnaire_filter:
+        composite_construct_scores = composite_construct_scores.filter(
+            questionnaire_submission__patient_questionnaire__questionnaire_id=questionnaire_filter
+        )
+    
+    logger.info(f"Found {composite_construct_scores.count()} composite construct scores")
+
+    # Add historical data to construct scores
+    for construct_score in construct_scores:
+        # Get previous score for change calculation
+        previous_score_obj = QuestionnaireConstructScore.objects.filter(
+            questionnaire_submission__patient=patient,
+            construct=construct_score.construct,
+            questionnaire_submission__submission_date__lt=construct_score.questionnaire_submission.submission_date
+        ).order_by('-questionnaire_submission__submission_date').first()
+        
+        construct_score.previous_score = previous_score_obj.score if previous_score_obj else None
+        construct_score.score_change = None
+        if construct_score.score is not None and construct_score.previous_score is not None:
+            construct_score.score_change = construct_score.score - construct_score.previous_score
+
+    # Add historical data to composite construct scores
+    for composite_score in composite_construct_scores:
+        # Get previous composite score for change calculation
+        previous_composite_obj = QuestionnaireConstructScoreComposite.objects.filter(
+            questionnaire_submission__patient=patient,
+            composite_construct_scale=composite_score.composite_construct_scale,
+            questionnaire_submission__submission_date__lt=composite_score.questionnaire_submission.submission_date
+        ).order_by('-questionnaire_submission__submission_date').first()
+        
+        composite_score.previous_score = previous_composite_obj.score if previous_composite_obj else None
+        composite_score.score_change = None
+        if composite_score.score is not None and composite_score.previous_score is not None:
+            composite_score.score_change = composite_score.score - composite_score.previous_score
 
     # Get important construct scores
     important_construct_scores = []
@@ -257,6 +300,13 @@ def prom_review(request, pk):
     
     logger.info(f"Found {len(important_construct_scores)} important construct scores")
     
+    # Filter out important construct scores from the main construct_scores list
+    # to avoid duplication between topline results and construct scores section
+    important_construct_ids = {score_data.construct.id for score_data in important_construct_scores}
+    other_construct_scores = [cs for cs in construct_scores if cs.construct.id not in important_construct_ids]
+    
+    logger.info(f"Found {len(other_construct_scores)} other construct scores (excluding important ones)")
+    
     # Get Bokeh resources
     bokeh_css = CDN.render_css()
     bokeh_js = CDN.render_js()
@@ -268,6 +318,8 @@ def prom_review(request, pk):
         'assigned_questionnaires': assigned_questionnaires,
         'item_responses': item_responses,
         'construct_scores': construct_scores,
+        'other_construct_scores': other_construct_scores,
+        'composite_construct_scores': composite_construct_scores,
         'questionnaire_submission_counts': questionnaire_submission_counts,
         'important_construct_scores': important_construct_scores,
         'bokeh_css': bokeh_css,
