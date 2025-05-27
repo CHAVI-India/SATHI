@@ -1,9 +1,9 @@
 from decimal import Decimal
 from typing import Dict, List, Optional, Union
-from promapp.models import ConstructScale, QuestionnaireConstructScore
+from promapp.models import *
 import logging
 from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource, HoverTool, Span, BoxAnnotation
+from bokeh.models import ColumnDataSource, HoverTool, Span, BoxAnnotation, FactorRange
 from bokeh.embed import components
 from bokeh.palettes import Category10
 from datetime import datetime
@@ -222,8 +222,8 @@ class ConstructScoreData:
         logger.info(f"Construct {construct.name} not important - no applicable criteria met")
         return False
 
-def create_item_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item') -> str:
-    """Create a Bokeh plot for item responses over time.
+def create_likert_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item') -> str:
+    """Create a Bokeh plot specifically for Likert responses.
     
     Args:
         historical_responses (List[QuestionnaireItemResponse]): List of historical responses
@@ -232,11 +232,104 @@ def create_item_response_plot(historical_responses: List['QuestionnaireItemRespo
     Returns:
         str: HTML string containing the Bokeh plot components
     """
-    # Prepare data with timezone conversion
+    # Get all options ordered by their value
+    options = list(item.likert_response.likertscaleresponseoption_set.all().order_by('option_value'))
+    option_map = {str(opt.option_value): opt.option_text for opt in options}
+    y_range = [opt.option_text for opt in options]
+    
+    # Prepare data
+    dates = []
+    option_texts = []
+    for response in reversed(historical_responses):
+        local_time = timezone.localtime(response.questionnaire_submission.submission_date)
+        dates.append(local_time)
+        option_text = option_map.get(str(response.response_value), '')
+        option_texts.append(option_text)
+    
+    # Create figure
+    p = figure(
+        width=400,
+        height=200,
+        tools="hover,pan,box_zoom,reset",
+        toolbar_location=None,
+        sizing_mode="scale_width",
+        x_axis_type="datetime",
+        y_range=FactorRange(factors=y_range)
+    )
+    
+    # Style the plot
+    p.background_fill_color = "#ffffff"
+    p.border_fill_color = "#ffffff"
+    p.grid.grid_line_color = "#e5e7eb"
+    p.grid.grid_line_width = 1
+    p.axis.axis_line_color = None
+    p.axis.major_tick_line_color = None
+    p.axis.minor_tick_line_color = None
+    
+    # Format axes
+    p.xaxis.formatter = DatetimeTickFormatter(
+        hours="%d %b %Y %H:%M",
+        days="%d %b %Y",
+        months="%d %b %Y",
+        years="%d %b %Y"
+    )
+    p.xaxis.major_label_orientation = math.pi/2
+    p.yaxis.major_label_orientation = math.pi/4
+    
+    # Add data
+    source = ColumnDataSource(data=dict(
+        dates=dates,
+        responses=option_texts
+    ))
+    
+    # Add line and points
+    p.line(
+        x='dates',
+        y='responses',
+        source=source,
+        line_width=2,
+        line_color='#000000'
+    )
+    
+    p.scatter(
+        x='dates',
+        y='responses',
+        source=source,
+        size=6,
+        fill_color='#000000',
+        line_color='#000000'
+    )
+    
+    # Configure hover tool
+    hover = HoverTool(
+        tooltips=[
+            ('Date', '@dates{%d %b %Y}'),
+            ('Response', '@responses')
+        ],
+        formatters={
+            '@dates': 'datetime'
+        }
+    )
+    p.add_tools(hover)
+    
+    # Get the plot components
+    script, div = components(p)
+    return script + div
+
+def create_numeric_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item') -> str:
+    """Create a Bokeh plot for numeric responses.
+    
+    Args:
+        historical_responses (List[QuestionnaireItemResponse]): List of historical responses
+        item (Item): The item being plotted
+        
+    Returns:
+        str: HTML string containing the Bokeh plot components
+    """
+    # Prepare data
     dates = []
     values = []
     for response in reversed(historical_responses):
-        # Convert UTC time to local timezone
         local_time = timezone.localtime(response.questionnaire_submission.submission_date)
         dates.append(local_time)
         try:
@@ -264,16 +357,16 @@ def create_item_response_plot(historical_responses: List['QuestionnaireItemRespo
     p.axis.major_tick_line_color = None
     p.axis.minor_tick_line_color = None
     
-    # Format x-axis with timezone-aware formatting
+    # Format x-axis
     p.xaxis.formatter = DatetimeTickFormatter(
         hours="%d %b %Y %H:%M",
         days="%d %b %Y",
         months="%d %b %Y",
         years="%d %b %Y"
     )
-    p.xaxis.major_label_orientation = math.pi/2  # Rotate labels 90 degrees
+    p.xaxis.major_label_orientation = math.pi/2
     
-    # Add main line
+    # Add data
     source = ColumnDataSource(data=dict(
         dates=dates,
         values=values
@@ -301,7 +394,6 @@ def create_item_response_plot(historical_responses: List['QuestionnaireItemRespo
         )
         p.add_layout(normative)
         
-        # Add standard deviation band if available
         if item.item_normative_score_standard_deviation:
             sd = float(item.item_normative_score_standard_deviation)
             mean = float(item.item_normative_score_mean)
@@ -314,6 +406,7 @@ def create_item_response_plot(historical_responses: List['QuestionnaireItemRespo
             )
             p.add_layout(band)
     
+    # Add line and points
     p.line(
         x='dates',
         y='values',
@@ -322,7 +415,6 @@ def create_item_response_plot(historical_responses: List['QuestionnaireItemRespo
         line_color='#000000'
     )
     
-    # Add scatter points
     p.scatter(
         x='dates',
         y='values',
@@ -346,4 +438,19 @@ def create_item_response_plot(historical_responses: List['QuestionnaireItemRespo
     
     # Get the plot components
     script, div = components(p)
-    return script + div 
+    return script + div
+
+def create_item_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item') -> str:
+    """Create a Bokeh plot for item responses over time.
+    
+    Args:
+        historical_responses (List[QuestionnaireItemResponse]): List of historical responses
+        item (Item): The item being plotted
+        
+    Returns:
+        str: HTML string containing the Bokeh plot components
+    """
+    if item.response_type == 'Likert' and item.likert_response:
+        return create_likert_response_plot(historical_responses, item)
+    else:
+        return create_numeric_response_plot(historical_responses, item) 
