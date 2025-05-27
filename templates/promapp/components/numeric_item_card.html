@@ -1,5 +1,5 @@
 {% extends "promapp/components/item_card_base.html" %}
-{% load i18n %}
+{% load i18n cotton %}
 
 {% block item_value %}
 <div class="flex items-baseline">
@@ -7,20 +7,23 @@
     {% if item_response.previous_value is not None %}
         {% if item_response.value_change > 0 %}
             {% if item_response.questionnaire_item.item.item_better_score_direction == 'Higher is Better' %}
-                <span class="text-green-500 text-xs">↑</span>
+                <c-icon_trending_up class="text-green-500 !w-3 !h-3" />
                 <span class="text-green-500 ml-1 text-xs">+{{ item_response.value_change|floatformat:1 }}</span>
             {% else %}
-                <span class="text-orange-500 text-xs">↑</span>
+                <c-icon_trending_up class="text-orange-500 !w-3 !h-3" />
                 <span class="text-orange-500 ml-1 text-xs">+{{ item_response.value_change|floatformat:1 }}</span>
             {% endif %}
         {% elif item_response.value_change < 0 %}
             {% if item_response.questionnaire_item.item.item_better_score_direction == 'Higher is Better' %}
-                <span class="text-orange-500 text-xs">↓</span>
+                <c-icon_trending_down class="text-orange-500 !w-3 !h-3" />
                 <span class="text-orange-500 ml-1 text-xs">{{ item_response.value_change|floatformat:1 }}</span>
             {% else %}
-                <span class="text-green-500 text-xs">↓</span>
+                <c-icon_trending_down class="text-green-500 !w-3 !h-3" />
                 <span class="text-green-500 ml-1 text-xs">{{ item_response.value_change|floatformat:1 }}</span>
             {% endif %}
+        {% elif item_response.value_change == 0 %}
+            <c-icon_no_change class="text-blue-500 !w-3 !h-3" />
+            <span class="text-blue-500 ml-1 text-xs">0.0</span>
         {% endif %}
     {% endif %}
 </div>

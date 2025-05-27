@@ -121,10 +121,15 @@ def prom_review(request, pk):
     
     # Calculate percentages and add option text for item responses
     for response in item_responses:
+        current_value_for_change_calc = None
+        response.bokeh_plot = None # Initialize bokeh_plot for all responses
+
+        # Type-specific processing
         if response.questionnaire_item.item.response_type == 'Numeric' and response.questionnaire_item.item.range_response:
             try:
                 numeric_value = float(response.response_value) if response.response_value else None
                 response.numeric_response = numeric_value
+                current_value_for_change_calc = numeric_value
                 response.percentage = calculate_percentage(numeric_value, response.questionnaire_item.item.range_response.max_value)
             except (ValueError, TypeError):
                 response.numeric_response = None
@@ -133,63 +138,66 @@ def prom_review(request, pk):
             try:
                 likert_value = float(response.response_value) if response.response_value else None
                 response.likert_response = likert_value
-                # Get max value from LikertScaleResponseOption
+                current_value_for_change_calc = likert_value
                 max_value = response.questionnaire_item.item.likert_response.likertscaleresponseoption_set.aggregate(
                     max_value=Max('option_value')
                 )['max_value']
                 response.percentage = calculate_percentage(likert_value, max_value)
                 
-                # Add the option text and color to the response
                 likert_scale = response.questionnaire_item.item.likert_response
                 better_direction = response.questionnaire_item.item.item_better_score_direction or 'Higher is Better'
                 color_map = likert_scale.get_option_colors(better_direction)
-                
                 for option in likert_scale.likertscaleresponseoption_set.all():
                     if str(option.option_value) == response.response_value:
                         response.option_text = option.option_text
                         response.option_color = color_map.get(str(option.option_value), '#ffffff')
                         response.text_color = likert_scale.get_text_color(response.option_color)
                         break
+            except (ValueError, TypeError) as e_likert_proc:
+                logger.error(f"Error processing Likert item {response.questionnaire_item.item.id} (Response ID {response.id}): {e_likert_proc}", exc_info=True)
+                response.likert_response = None
+                response.percentage = 0
+        
+        # Common: Get previous response for change calculation (for both Numeric and Likert)
+        response.previous_value = None
+        response.value_change = None
+        if current_value_for_change_calc is not None:
+            previous_response_obj = QuestionnaireItemResponse.objects.filter(
+                questionnaire_item=response.questionnaire_item,
+                questionnaire_submission__patient=patient,
+                questionnaire_submission__submission_date__lt=response.questionnaire_submission.submission_date
+            ).order_by('-questionnaire_submission__submission_date').first()
 
-                # Get previous response for change calculation
-                previous_response = QuestionnaireItemResponse.objects.filter(
-                    questionnaire_item=response.questionnaire_item,
-                    questionnaire_submission__patient=patient,
-                    questionnaire_submission__submission_date__lt=response.questionnaire_submission.submission_date
-                ).order_by('-questionnaire_submission__submission_date').first()
+            if previous_response_obj and previous_response_obj.response_value:
+                try:
+                    previous_value_float = float(previous_response_obj.response_value)
+                    response.previous_value = previous_value_float
+                    response.value_change = current_value_for_change_calc - previous_value_float
+                except (ValueError, TypeError):
+                    logger.warning(f"Could not parse previous value for item {response.questionnaire_item.item.id} (Response ID {response.id})")
 
-                if previous_response and previous_response.response_value:
-                    try:
-                        previous_value = float(previous_response.response_value)
-                        response.previous_value = previous_value
-                        response.value_change = likert_value - previous_value if likert_value is not None else None
-                    except (ValueError, TypeError):
-                        response.previous_value = None
-                        response.value_change = None
-                else:
-                    response.previous_value = None
-                    response.value_change = None
+        # Common: Get historical responses for plotting (for both Numeric and Likert)
+        try:
+            historical_responses = QuestionnaireItemResponse.objects.filter(
+                questionnaire_item=response.questionnaire_item,
+                questionnaire_submission__patient=patient
+            ).select_related(
+                'questionnaire_submission'
+            ).order_by('questionnaire_submission__submission_date')[:submission_count]
+            
+            logger.debug(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): Found {len(historical_responses)} historical responses for plot. submission_count is {submission_count}.")
 
-                # Get historical responses for plotting
-                historical_responses = QuestionnaireItemResponse.objects.filter(
-                    questionnaire_item=response.questionnaire_item,
-                    questionnaire_submission__patient=patient
-                ).select_related(
-                    'questionnaire_submission'
-                ).order_by('questionnaire_submission__submission_date')[:submission_count]
-
-                # Generate Bokeh plot
+            if historical_responses:
                 response.bokeh_plot = create_item_response_plot(
                     historical_responses,
                     response.questionnaire_item.item
                 )
-
-            except (ValueError, TypeError):
-                response.likert_response = None
-                response.percentage = 0
-                response.previous_value = None
-                response.value_change = None
-                response.bokeh_plot = None
+                if not response.bokeh_plot:
+                    logger.warning(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): create_item_response_plot returned None or empty string.")
+            else:
+                logger.info(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): No historical responses to plot, setting bokeh_plot to None.")
+        except Exception as e_plot_gen:
+            logger.error(f"Error generating plot for item {response.questionnaire_item.item.id} (Response ID {response.id}): {e_plot_gen}", exc_info=True)
     
     logger.info(f"Found {item_responses.count()} item responses")
     

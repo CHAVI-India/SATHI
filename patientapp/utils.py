@@ -368,6 +368,10 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
         except (ValueError, TypeError):
             values.append(None)
     
+    logger.debug(f"Numeric plot for item {item.id}: Dates: {dates}")
+    logger.debug(f"Numeric plot for item {item.id}: Values: {values}")
+    logger.debug(f"Numeric plot for item {item.id}: Threshold: {item.item_threshold_score}, Normative Mean: {item.item_normative_score_mean}, SD: {item.item_normative_score_standard_deviation}")
+
     # Create figure
     p = figure(
         width=400,
@@ -481,6 +485,7 @@ def create_item_response_plot(historical_responses: List['QuestionnaireItemRespo
     Returns:
         str: HTML string containing the Bokeh plot components
     """
+    logger.debug(f"create_item_response_plot called for item {item.id}, type: {item.response_type}, has likert_response: {bool(item.likert_response)}, has range_response: {bool(item.range_response)}")
     if item.response_type == 'Likert' and item.likert_response:
         return create_likert_response_plot(historical_responses, item)
     else:
