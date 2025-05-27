@@ -63,7 +63,7 @@ class ConstructScoreData:
         p = figure(
             width=400,
             height=200,
-            tools="hover,pan,box_zoom,reset",
+            tools="pan,box_zoom,reset",
             toolbar_location=None,
             sizing_mode="scale_width",
             x_axis_type="datetime"  # Set x-axis type to datetime
@@ -154,7 +154,9 @@ class ConstructScoreData:
             ],
             formatters={
                 '@dates': 'datetime'
-            }
+            },
+            mode='mouse',
+            point_policy='follow_mouse'
         )
         p.add_tools(hover)
         
@@ -236,6 +238,10 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
     option_map = {str(opt.option_value): opt.option_text for opt in options}
     y_range = [opt.option_text for opt in options]
     
+    # Get color map for options
+    better_direction = item.item_better_score_direction or 'Higher is Better'
+    color_map = item.likert_response.get_option_colors(better_direction)
+    
     # Prepare data
     dates = []
     option_texts = []
@@ -249,7 +255,7 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
     p = figure(
         width=400,
         height=200,
-        tools="hover,pan,box_zoom,reset",
+        tools="pan,box_zoom,reset",
         toolbar_location=None,
         sizing_mode="scale_width",
         x_axis_type="datetime",
@@ -273,6 +279,21 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
     )
     p.xaxis.major_label_orientation = math.pi/2
     p.yaxis.major_label_orientation = math.pi/4
+    
+    # Add colored strips for each option
+    for i, option in enumerate(options):
+        # Get the color for this option
+        color = color_map.get(str(option.option_value), '#ffffff')
+        
+        # Create a box annotation for this option
+        box = BoxAnnotation(
+            bottom=i - 0.5,
+            top=i + 0.5,
+            fill_color=color,
+            fill_alpha=0.2,  # Make it semi-transparent
+            line_width=0
+        )
+        p.add_layout(box)
     
     # Add data
     source = ColumnDataSource(data=dict(
@@ -306,7 +327,9 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
         ],
         formatters={
             '@dates': 'datetime'
-        }
+        },
+        mode='mouse',
+        point_policy='follow_mouse'
     )
     p.add_tools(hover)
     
@@ -340,7 +363,7 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
     p = figure(
         width=400,
         height=200,
-        tools="hover,pan,box_zoom,reset",
+        tools="pan,box_zoom,reset",
         toolbar_location=None,
         sizing_mode="scale_width",
         x_axis_type="datetime"
@@ -429,7 +452,9 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
         ],
         formatters={
             '@dates': 'datetime'
-        }
+        },
+        mode='mouse',
+        point_policy='follow_mouse'
     )
     p.add_tools(hover)
     
