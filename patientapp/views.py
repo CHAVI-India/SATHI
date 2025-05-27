@@ -34,6 +34,7 @@ def prom_review(request, pk):
     questionnaire_filter = request.GET.get('questionnaire_filter')
     submission_date = request.GET.get('submission_date')
     time_range = request.GET.get('time_range', '5')
+    item_filter = request.GET.getlist('item_filter')  # Get list of selected item IDs
     
     # Get submission count from time range or default to 5
     if time_range == 'all':
@@ -117,6 +118,12 @@ def prom_review(request, pk):
     if questionnaire_filter:
         item_responses = item_responses.filter(
             questionnaire_item__questionnaire_id=questionnaire_filter
+        )
+    
+    # Apply item filter if specified
+    if item_filter:
+        item_responses = item_responses.filter(
+            questionnaire_item__item_id__in=item_filter
         )
     
     # Calculate percentages and add option text for item responses
@@ -311,6 +318,29 @@ def prom_review(request, pk):
     bokeh_css = CDN.render_css()
     bokeh_js = CDN.render_js()
     
+    # Get available items for the filter (based on current questionnaire filter)
+    available_items_query = Item.objects.select_related('construct_scale').prefetch_related('translations')
+    
+    if questionnaire_filter:
+        # Get items from the selected questionnaire
+        available_items_query = available_items_query.filter(
+            questionnaireitem__questionnaire_id=questionnaire_filter
+        ).distinct()
+    else:
+        # Get items from all assigned questionnaires
+        questionnaire_ids = assigned_questionnaires.values_list('questionnaire_id', flat=True)
+        available_items_query = available_items_query.filter(
+            questionnaireitem__questionnaire_id__in=questionnaire_ids
+        ).distinct()
+    
+    available_items = available_items_query.order_by('construct_scale__name', 'item_number')
+    
+    # Get selected item details for proper initialization
+    selected_items_data = []
+    if item_filter:
+        selected_items = Item.objects.filter(id__in=item_filter).prefetch_related('translations')
+        selected_items_data = [{'id': str(item.id), 'name': item.name} for item in selected_items]
+    
     context = {
         'patient': patient,
         'submissions': submissions,
@@ -322,6 +352,8 @@ def prom_review(request, pk):
         'composite_construct_scores': composite_construct_scores,
         'questionnaire_submission_counts': questionnaire_submission_counts,
         'important_construct_scores': important_construct_scores,
+        'available_items': available_items,
+        'selected_items_data': selected_items_data,
         'bokeh_css': bokeh_css,
         'bokeh_js': bokeh_js,
     }
@@ -333,6 +365,44 @@ def prom_review(request, pk):
     return render(request, 'promapp/prom_review.html', context)
 
 
+def prom_review_item_search(request, pk):
+    """HTMX endpoint for searching items in the item filter autocomplete."""
+    patient = get_object_or_404(Patient, pk=pk)
+    search_query = request.GET.get('item-filter-search', '').strip()
+    questionnaire_filter = request.GET.get('questionnaire_filter')
+    
+    # Get available items based on questionnaire filter
+    items_query = Item.objects.select_related('construct_scale').prefetch_related('translations')
+    
+    if questionnaire_filter:
+        # Get items from the selected questionnaire
+        items_query = items_query.filter(
+            questionnaireitem__questionnaire_id=questionnaire_filter
+        ).distinct()
+    else:
+        # Get items from all assigned questionnaires for this patient
+        assigned_questionnaires = PatientQuestionnaire.objects.filter(patient=patient)
+        questionnaire_ids = assigned_questionnaires.values_list('questionnaire_id', flat=True)
+        items_query = items_query.filter(
+            questionnaireitem__questionnaire_id__in=questionnaire_ids
+        ).distinct()
+    
+    # Apply search filter if provided
+    if search_query:
+        items_query = items_query.filter(
+            Q(translations__name__icontains=search_query) |
+            Q(construct_scale__name__icontains=search_query)
+        ).distinct()
+    
+    # Limit results to prevent too many options
+    items = items_query.order_by('construct_scale__name', 'item_number')[:20]
+    
+    context = {
+        'items': items,
+        'search_query': search_query,
+    }
+    
+    return render(request, 'promapp/partials/item_search_results.html', context)
 
 
 def patient_list(request):

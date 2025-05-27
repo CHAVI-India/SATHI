@@ -23,38 +23,50 @@
             </div>
 
             <!-- Global Filters -->
-            <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 mb-6 shadow-sm border border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- Submission Date Filter -->
-                    <div>
-                        <label for="submission-date" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Submissions Up To" %}</label>
+                    <div class="space-y-2">
+                        <label for="submission-date" class="block text-sm font-semibold text-gray-700">
+                            <svg class="w-4 h-4 inline mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            {% translate "Submissions Up To" %}
+                        </label>
                         <input
                             type="text"
                             id="submission-date"
                             name="submission_date"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
                             placeholder="{% translate "Select a date" %}"
                             hx-get="{% url 'prom_review' patient.id %}"
                             hx-target="#main-content"
                             hx-trigger="change"
+                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='time_range']"
                             value="{{ request.GET.submission_date|default:'' }}"
                         >
                     </div>
 
                     <!-- Questionnaire Filter -->
-                    <div>
-                        <label for="questionnaire-filter" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Questionnaire" %}</label>
-                        <select 
+                    <div class="space-y-2">
+                        <label for="questionnaire-filter" class="block text-sm font-semibold text-gray-700">
+                            <svg class="w-4 h-4 inline mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            {% translate "Questionnaire" %}
+                        </label>
+                        <select
                             id="questionnaire-filter"
                             name="questionnaire_filter"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
                             hx-get="{% url 'prom_review' patient.id %}"
                             hx-target="#main-content"
                             hx-trigger="change"
+                            hx-include="[name='item_filter'], [name='submission_date'], [name='time_range']"
                         >
                             <option value="">{% translate "All Questionnaires" %}</option>
                             {% for pq in assigned_questionnaires %}
-                                <option value="{{ pq.questionnaire.id }}">
+                                <option value="{{ pq.questionnaire.id }}" {% if request.GET.questionnaire_filter == pq.questionnaire.id|stringformat:"s" %}selected{% endif %}>
                                     {{ pq.questionnaire.name }}
                                 </option>
                             {% endfor %}
@@ -62,22 +74,70 @@
                     </div>
 
                     <!-- Time Range Filter -->
-                    <div>
-                        <label for="time-range" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Show Last" %}</label>
-                        <select 
+                    <div class="space-y-2">
+                        <label for="time-range" class="block text-sm font-semibold text-gray-700">
+                            <svg class="w-4 h-4 inline mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {% translate "Show Last" %}
+                        </label>
+                        <select
                             id="time-range"
                             name="time_range"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
                             hx-get="{% url 'prom_review' patient.id %}"
                             hx-target="#main-content"
                             hx-trigger="change"
+                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='submission_date']"
                         >
-                            <option value="3">3 {% translate "submissions" %}</option>
-                            <option value="5" selected>5 {% translate "submissions" %}</option>
-                            <option value="10">10 {% translate "submissions" %}</option>
-                            <option value="15">15 {% translate "submissions" %}</option>
-                            <option value="all">{% translate "All submissions" %}</option>
+                            <option value="3" {% if request.GET.time_range == "3" %}selected{% endif %}>3 {% translate "submissions" %}</option>
+                            <option value="5" {% if request.GET.time_range == "5" or not request.GET.time_range %}selected{% endif %}>5 {% translate "submissions" %}</option>
+                            <option value="10" {% if request.GET.time_range == "10" %}selected{% endif %}>10 {% translate "submissions" %}</option>
+                            <option value="15" {% if request.GET.time_range == "15" %}selected{% endif %}>15 {% translate "submissions" %}</option>
+                            <option value="all" {% if request.GET.time_range == "all" %}selected{% endif %}>{% translate "All submissions" %}</option>
                         </select>
+                    </div>
+
+                    <!-- Item Filter -->
+                    <div class="space-y-2">
+                        <label for="item-filter" class="block text-sm font-semibold text-gray-700">
+                            <svg class="w-4 h-4 inline mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                            </svg>
+                            {% translate "Filter by Items" %}
+                        </label>
+                        <div class="relative">
+                            <input
+                                type="text"
+                                id="item-filter-search"
+                                name="item-filter-search"
+                                class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400 pl-10"
+                                placeholder="{% translate "Search items..." %}"
+                                hx-get="{% url 'prom_review_item_search' patient.id %}"
+                                hx-target="#item-filter-dropdown"
+                                hx-trigger="input changed delay:300ms, focus delay:100ms"
+                                hx-include="[name='questionnaire_filter']"
+                                autocomplete="off"
+                            >
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                            <div id="item-filter-dropdown" class="absolute z-20 w-full bg-white border border-gray-300 rounded-lg shadow-xl mt-1 max-h-64 overflow-y-auto hidden">
+                                <!-- Item search results will be loaded here -->
+                            </div>
+                        </div>
+                        <!-- Hidden inputs for selected items -->
+                        <div id="item-filter-inputs">
+                            {% for item_data in selected_items_data %}
+                                <input type="hidden" name="item_filter" value="{{ item_data.id }}" data-item-name="{{ item_data.name }}">
+                            {% endfor %}
+                        </div>
+                        <!-- Selected items summary -->
+                        <div id="selected-items-summary" class="mt-2 text-sm text-blue-600 font-medium">
+                            <!-- Summary of selected items will appear here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -126,6 +186,142 @@
                 // htmx.trigger(instance.element, 'change');
             }
         });
+
+        // Item filter functionality
+        const itemSearchInput = document.getElementById('item-filter-search');
+        const itemDropdown = document.getElementById('item-filter-dropdown');
+        const selectedItemsSummary = document.getElementById('selected-items-summary');
+        const itemFilterInputs = document.getElementById('item-filter-inputs');
+
+        // Show/hide dropdown on focus/blur
+        itemSearchInput.addEventListener('focus', function() {
+            itemDropdown.classList.remove('hidden');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!itemSearchInput.contains(e.target) && !itemDropdown.contains(e.target)) {
+                itemDropdown.classList.add('hidden');
+            }
+        });
+
+        // Handle checkbox state after HTMX swap
+        document.addEventListener('htmx:afterSwap', function(e) {
+            if (e.target.id === 'item-filter-dropdown') {
+                itemDropdown.classList.remove('hidden');
+                updateCheckboxStates();
+            }
+        });
+
+        // Global function to handle checkbox changes
+        window.handleItemCheckboxChange = function(checkbox) {
+            const itemId = checkbox.dataset.itemId;
+            const itemName = checkbox.dataset.itemName;
+            
+            if (checkbox.checked) {
+                addSelectedItem(itemId, itemName);
+            } else {
+                removeSelectedItem(itemId);
+            }
+        };
+
+        function addSelectedItem(itemId, itemName) {
+            // Check if item is already selected
+            const existingInput = itemFilterInputs.querySelector(`input[value="${itemId}"]`);
+            if (existingInput) return;
+
+            // Create hidden input
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'item_filter';
+            hiddenInput.value = itemId;
+            hiddenInput.dataset.itemName = itemName;
+            itemFilterInputs.appendChild(hiddenInput);
+
+            // Update summary
+            updateSelectedItemsSummary();
+            
+            // Trigger filter update
+            triggerFilterUpdate();
+        }
+
+        function removeSelectedItem(itemId) {
+            // Remove hidden input
+            const hiddenInput = itemFilterInputs.querySelector(`input[value="${itemId}"]`);
+            if (hiddenInput) {
+                hiddenInput.remove();
+            }
+
+            // Update summary
+            updateSelectedItemsSummary();
+            
+            // Trigger filter update
+            triggerFilterUpdate();
+        }
+
+        function updateCheckboxStates() {
+            // Get currently selected item IDs
+            const selectedIds = Array.from(itemFilterInputs.querySelectorAll('input[name="item_filter"]'))
+                .map(input => input.value);
+            
+            // Update checkbox states in dropdown
+            const checkboxes = itemDropdown.querySelectorAll('.item-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectedIds.includes(checkbox.dataset.itemId);
+            });
+        }
+
+        function updateSelectedItemsSummary() {
+            const selectedInputs = itemFilterInputs.querySelectorAll('input[name="item_filter"]');
+            const count = selectedInputs.length;
+            
+            if (count === 0) {
+                selectedItemsSummary.textContent = '';
+            } else if (count === 1) {
+                const itemName = selectedInputs[0].dataset.itemName || 'item';
+                selectedItemsSummary.textContent = `1 item selected: ${itemName}`;
+            } else {
+                selectedItemsSummary.textContent = `${count} items selected`;
+            }
+        }
+
+        function triggerFilterUpdate() {
+            // Get all current filter values
+            const params = new URLSearchParams();
+            
+            // Add questionnaire filter
+            const questionnaireFilter = document.querySelector('[name="questionnaire_filter"]');
+            if (questionnaireFilter && questionnaireFilter.value) {
+                params.append('questionnaire_filter', questionnaireFilter.value);
+            }
+            
+            // Add submission date filter
+            const submissionDate = document.querySelector('[name="submission_date"]');
+            if (submissionDate && submissionDate.value) {
+                params.append('submission_date', submissionDate.value);
+            }
+            
+            // Add time range filter
+            const timeRange = document.querySelector('[name="time_range"]');
+            if (timeRange && timeRange.value) {
+                params.append('time_range', timeRange.value);
+            }
+            
+            // Add item filters
+            const itemFilters = document.querySelectorAll('[name="item_filter"]');
+            itemFilters.forEach(input => {
+                if (input.value) {
+                    params.append('item_filter', input.value);
+                }
+            });
+            
+            // Trigger HTMX request
+            htmx.ajax('GET', '{% url "prom_review" patient.id %}?' + params.toString(), {
+                target: '#main-content'
+            });
+        }
+
+        // Initialize selected items summary on page load
+        updateSelectedItemsSummary();
     });
 </script>
 {% endblock %}
