@@ -220,4 +220,130 @@ class ConstructScoreData:
                     return is_important
         
         logger.info(f"Construct {construct.name} not important - no applicable criteria met")
-        return False 
+        return False
+
+def create_item_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item') -> str:
+    """Create a Bokeh plot for item responses over time.
+    
+    Args:
+        historical_responses (List[QuestionnaireItemResponse]): List of historical responses
+        item (Item): The item being plotted
+        
+    Returns:
+        str: HTML string containing the Bokeh plot components
+    """
+    # Prepare data with timezone conversion
+    dates = []
+    values = []
+    for response in reversed(historical_responses):
+        # Convert UTC time to local timezone
+        local_time = timezone.localtime(response.questionnaire_submission.submission_date)
+        dates.append(local_time)
+        try:
+            value = float(response.response_value) if response.response_value else None
+            values.append(value)
+        except (ValueError, TypeError):
+            values.append(None)
+    
+    # Create figure
+    p = figure(
+        width=400,
+        height=200,
+        tools="hover,pan,box_zoom,reset",
+        toolbar_location=None,
+        sizing_mode="scale_width",
+        x_axis_type="datetime"
+    )
+    
+    # Style the plot
+    p.background_fill_color = "#ffffff"
+    p.border_fill_color = "#ffffff"
+    p.grid.grid_line_color = "#e5e7eb"
+    p.grid.grid_line_width = 1
+    p.axis.axis_line_color = None
+    p.axis.major_tick_line_color = None
+    p.axis.minor_tick_line_color = None
+    
+    # Format x-axis with timezone-aware formatting
+    p.xaxis.formatter = DatetimeTickFormatter(
+        hours="%d %b %Y %H:%M",
+        days="%d %b %Y",
+        months="%d %b %Y",
+        years="%d %b %Y"
+    )
+    p.xaxis.major_label_orientation = math.pi/2  # Rotate labels 90 degrees
+    
+    # Add main line
+    source = ColumnDataSource(data=dict(
+        dates=dates,
+        values=values
+    ))
+    
+    # Add threshold line if available
+    if item.item_threshold_score:
+        threshold = Span(
+            location=float(item.item_threshold_score),
+            dimension='width',
+            line_color='#f97316',
+            line_dash='solid',
+            line_width=1
+        )
+        p.add_layout(threshold)
+    
+    # Add normative line and band if available
+    if item.item_normative_score_mean:
+        normative = Span(
+            location=float(item.item_normative_score_mean),
+            dimension='width',
+            line_color='#1e3a8a',
+            line_dash='solid',
+            line_width=1
+        )
+        p.add_layout(normative)
+        
+        # Add standard deviation band if available
+        if item.item_normative_score_standard_deviation:
+            sd = float(item.item_normative_score_standard_deviation)
+            mean = float(item.item_normative_score_mean)
+            band = BoxAnnotation(
+                bottom=mean - sd,
+                top=mean + sd,
+                fill_color='#1e3a8a',
+                fill_alpha=0.1,
+                line_width=0
+            )
+            p.add_layout(band)
+    
+    p.line(
+        x='dates',
+        y='values',
+        source=source,
+        line_width=2,
+        line_color='#000000'
+    )
+    
+    # Add scatter points
+    p.scatter(
+        x='dates',
+        y='values',
+        source=source,
+        size=6,
+        fill_color='#000000',
+        line_color='#000000'
+    )
+    
+    # Configure hover tool
+    hover = HoverTool(
+        tooltips=[
+            ('Date', '@dates{%d %b %Y}'),
+            ('Value', '@values{0.0}')
+        ],
+        formatters={
+            '@dates': 'datetime'
+        }
+    )
+    p.add_tools(hover)
+    
+    # Get the plot components
+    script, div = components(p)
+    return script + div 

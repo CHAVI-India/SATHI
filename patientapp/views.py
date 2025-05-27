@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from .models import Patient, Diagnosis, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
 from .forms import PatientForm, TreatmentForm
 from promapp.models import *
-from .utils import ConstructScoreData, calculate_percentage
+from .utils import ConstructScoreData, calculate_percentage, create_item_response_plot
 import logging
 from bokeh.resources import CDN
 
@@ -34,6 +34,14 @@ def prom_review(request, pk):
     questionnaire_filter = request.GET.get('questionnaire_filter')
     submission_date = request.GET.get('submission_date')
     time_range = request.GET.get('time_range', '5')
+    
+    # Get submission count from time range or default to 5
+    if time_range == 'all':
+        submission_count = QuestionnaireSubmission.objects.filter(patient=patient).count()
+    else:
+        submission_count = int(time_range)
+    
+    logger.info(f"Using submission count: {submission_count}")
     
     # Get all questionnaire submissions for this patient
     submissions = QuestionnaireSubmission.objects.filter(
@@ -162,11 +170,26 @@ def prom_review(request, pk):
                     response.previous_value = None
                     response.value_change = None
 
+                # Get historical responses for plotting
+                historical_responses = QuestionnaireItemResponse.objects.filter(
+                    questionnaire_item=response.questionnaire_item,
+                    questionnaire_submission__patient=patient
+                ).select_related(
+                    'questionnaire_submission'
+                ).order_by('questionnaire_submission__submission_date')[:submission_count]
+
+                # Generate Bokeh plot
+                response.bokeh_plot = create_item_response_plot(
+                    historical_responses,
+                    response.questionnaire_item.item
+                )
+
             except (ValueError, TypeError):
                 response.likert_response = None
                 response.percentage = 0
                 response.previous_value = None
                 response.value_change = None
+                response.bokeh_plot = None
     
     logger.info(f"Found {item_responses.count()} item responses")
     
@@ -184,14 +207,6 @@ def prom_review(request, pk):
         )
     
     logger.info(f"Found {construct_scores.count()} construct scores")
-
-    # Get submission count from time range or default to 5
-    if time_range == 'all':
-        submission_count = submissions.count()
-    else:
-        submission_count = int(time_range)
-    
-    logger.info(f"Using submission count: {submission_count}")
 
     # Get important construct scores
     important_construct_scores = []
