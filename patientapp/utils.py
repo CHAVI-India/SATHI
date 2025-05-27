@@ -281,16 +281,25 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
     p.yaxis.major_label_orientation = math.pi/4
     
     # Add colored strips for each option
+    n = len(options)
     for i, option in enumerate(options):
-        # Get the color for this option
         color = color_map.get(str(option.option_value), '#ffffff')
-        
-        # Create a box annotation for this option
+        if i == 0:
+            # First option: extend to bottom
+            bottom = -0.5
+            top = 0.5
+        elif i == n - 1:
+            # Last option: extend to top
+            bottom = i - 0.5
+            top = i + 0.5
+        else:
+            bottom = i - 0.5
+            top = i + 0.5
         box = BoxAnnotation(
-            bottom=i - 0.5,
-            top=i + 0.5,
+            bottom=bottom,
+            top=top,
             fill_color=color,
-            fill_alpha=0.2,  # Make it semi-transparent
+            fill_alpha=0.2,
             line_width=0
         )
         p.add_layout(box)
