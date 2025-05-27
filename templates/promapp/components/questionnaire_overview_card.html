@@ -6,33 +6,28 @@
         <h3 class="text-lg font-semibold text-gray-900">{% translate "Questionnaire Overview" %}</h3>
     </div>
 
-    <div class="space-y-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         {# Iterate over latest_submissions.values to show one card per questionnaire #}
         {% for submission in latest_submissions.values %}
-            <div class="border rounded-lg p-4 {% if forloop.first %}bg-blue-50{% endif %}">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h4 class="text-base font-medium text-gray-900">{{ submission.patient_questionnaire.questionnaire.name }}</h4>
-                        <p class="text-sm text-gray-500">
-                            {% if submission.submission_date %}
-                                {% blocktranslate with count=questionnaire_submission_counts|get_item:submission.patient_questionnaire.questionnaire.id %}
-                                    {{ count }} submission{{ count|pluralize }}
-                                {% endblocktranslate %}
-                            {% else %}
-                                {% translate "Not submitted yet" %}
-                            {% endif %}
-                        </p>
-                    </div>
-                    <div class="text-right">
+            <div class="border rounded-lg p-3 {% if forloop.first %}bg-blue-50{% endif %}">
+                <div>
+                    <div class="flex items-center">
                         {% if submission.submission_date %}
-                            <p class="text-sm font-medium text-gray-900">
-                                {% translate "Last Submission" %}
-                            </p>
-                            <p class="text-sm text-gray-500">
+                            {% with count=questionnaire_submission_counts|get_item:submission.patient_questionnaire.questionnaire.id %}
+                                {% if count %}
+                                    <span class="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-500 text-white text-xs mr-2">{{ count }}</span>
+                                {% endif %}
+                            {% endwith %}
+                        {% endif %}
+                        <h4 class="text-sm font-medium text-gray-900">{{ submission.patient_questionnaire.questionnaire.name }}</h4>
+                    </div>
+                    <div>
+                        {% if submission.submission_date %}
+                            <p class="text-xs text-gray-500 mt-1">
                                 {{ submission.submission_date|date:"d M Y" }}
                             </p>
                         {% else %}
-                            <p class="text-sm text-gray-500">
+                            <p class="text-xs text-gray-500 mt-1">
                                 {% translate "Awaiting submission" %}
                             </p>
                         {% endif %}
