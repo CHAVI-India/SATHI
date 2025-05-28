@@ -17,77 +17,56 @@ The page will be called PRO Review
 ## Filtering 
 
 Global filters will be provided which allow users to filter the list by the following 
-1. Date of submission which will allow the users to select a date upto which the responses will be shown. 
+1. Date of submission which will allow the users to select a date upto which the responses will be shown. Responses upto the date or before it will be shown after selection.
 2. Questionnaire name (related to the questionnaires assigned to the patient)
-3. 
+3. Item names (These are reflective of the items available in questionnaires for the patient)
+
+4. Addtionally, the user can choose to display results of a configurable number of responses in the plots. 
+
+Note that the default display will show responses related to all questionnaires focussed on the last submission by default. 
+## Time Analysis
+
+The system allows users to designate a date from which the plots data display will be done. Default is the date of Registration. However, other dates related to diagnosis and treatment initiation are also available. 
+
+For each date the user can configure the time interval to be shown (i.e. time between the selected date and the date of the last submission). 
+
+This setting is also used to calculate the aggregation setting. 
+
+## Patient information 
+
+This shows the patient name, id, age, gender and date of registration. Additionally all available diagnoses and their treatments are shown in an hierarchical list. 
+
+## Questionnaire Overview 
+
+This shows the questionnaires available for the patient, number of responses to each questionnaire and the date of last response for each questionnaire.
+
+## Topline results
 
 
-Access the page will be accessed through a button called "View Responses" placed on the Patient Table component which is used in the Patient List template. Clicking this button will provide the necessary context in form of the patient's primary key. 
+This shows the key construct scores which need attention. The rules used to determine placement in the Topline results section are as follows:
 
-**Technology Stack**: Django Templates + Tailwind CSS + HTMX + Bokeh + Django Crispy Forms
+1. If the construct score has a threshold score designated (clinical threshold score) and the direction which indicates a better / desirable score then the construct will appear in the topline section if the score is higher than the threshold (when a lower score is better) or vice-versa. 
+2. If the threshold score is not specified but the normative score is specified with the standard deviation then anything above 1/2 the standard deviation above or below the normative score as per the direction.  
+3. If the threshold score is not specified but the normative score is specified with the standard deviation then anything above 1/2 the standard deviation above or below the normative score as per the direction.
+4. If both threshold & normative scores are available then threshold scores will be given importance. 
 
-Top right card (1/3rd of the width in wide display):
- - Patient Name, Patient ID, 
- - Diagnses
- - Treatments with date
- 
-**Component**: `PatientInfoCard` 
-**Template**: `templates/promapp/components/patient_info_card.html`
+If these scores are not available then the construct score will not appear in the topline results. Note that as the system computes these rules dynamically, if threshold or normative score data is made available at a later stage then the displays will be modified automatically. 
 
-Top Left card (2/3rd of the width in wide display):
- - Questionnaires available for the patient, number of submissions for the questionnaire, last date of submission
- - The latest submitted questionnaire(s) will be shown in the page together. That is if the patient submits response to two questionnaires then the responses from the latest submission of both these questionnaires is to be shown by default. The responses will be used in the sections below (Topline results and Item wise reuslts).
- - Option to navigate to a specific submission (by date and submission). Note if a different submission date is selected then the display will change accordingly below.
+The change in the direction of the score w.r.t to the previous assessment is shown with an arrow. This color is marked with red if the change is deterimental (determined by the relationship above) or green if the change is beneficial. 
 
-**Component**: `QuestionnaireOverviewCard`
-**Template**: `templates/promapp/components/questionnaire_overview_card.html`
-**Widgets**: 
-- `SubmissionDateSelector` (dropdown for submission navigation)
-- `QuestionnaireFilter` (filter specific questionnaires)
-**HTMX**: Updates `#results-container` on submission date change
+A line plot is shown with the last 5 values by default. X axis shows the time in weeks from the start date (can be defined by the observer) Y axis shows the score value. Addtionally we indicate the threshold and normative score values if available (orange and blue color). If standard deviation of the normative score is available then it will be shown as a band with light blue color around the normative score. 
 
-Topline results
-This section which will span the entire width will show the **important** construct scales. Importance will be determined by the following hurestic:
- - Any score that is greater than the threshold score - if the direction is lower is better and lower than the threshold score if the direction is higher is better
- - If the threshold score is not specified but the normative score is specified alone then any score above or below the normative score depending on the direction as above.
- - If the threshold score is not specified but the normative score is specified with the standard deviation then anything above 1/2 the standard deviation above or below the normative score as per the direction. 
- - If both threshold score and normative scores are available scores above or below the threshold score will be given prominence
+# Other construct scores
 
-**Component**: `ToplineResultsSection`
-**Template**: `templates/promapp/components/topline_results_section.html`
- 
-The scores will be shown in a card component where the score of the latest submission shall be shown prominently on the left (1/3rd of the space). Below this score the change with respect to the previous score will be shown with an arrow indicating increase or decrease (orange arrow up for increase or decrease based on the direction, green arrow down for decrease or increase based on the direction, orange horizontal bar for no change) if a prior score is available. orange arrow will indicate worsening and green arrow will indicate improvement. If the direction is not specified the arrows will not be shown. If the previous submission had a missing score for the construct same will be shown as -NA-.
+This section shows the construct scores for the patient which are not shown in the Topline results. The display indicates the actual score, the direction of change w.r.t to the previous score (if available) and the type of change (deterimental indicated with a red color and improvment indicated with a green color). Additionally it shows the number of items answered for the construct score and if the construct score is withing the the threshold. Finally a arrow indicator is provided with indicates if a higher score is better or vice versa. 
 
-**Component**: `ImportantConstructCard` (multiple instances, 2-4 per row)
-**Template**: `templates/promapp/components/important_construct_card.html`
-**Widget**: `ChangeIndicator` (arrows: green=improvement, orange=worsening, horizontal=no change, "-NA-"=missing previous)
+## Composite Construct score
 
-The remaining 2/3rd of half of the space will be occupied by an interactive line plot showing the threshold score value as a line (orange), normative population score as a blue line (with SD bands 1 standard deviation if available with light semitransparent blue). The Y axis will comprise of the score and the X axis will have the last 5 submissions arranged such that the latest submission value is at the left. However a widget will be provided which allows the user to customize the number of submissions they wish to see. 
+If defined then composite construct scores are shown here. Unlike construct scores, composite scores do not have clinical thresholds and normative values defined. However the number of constructs involved in the composite is shown. 
 
-**Plotting**: Bokeh line plots with threshold (orange) and normative (navy blue) reference lines
-**Widget**: `SubmissionControlWidget` (controls: 3, 5, 10, 15, All submissions - default: 5)
-**HTMX**: Updates all plots when submission count changes
+## Item wise results. 
 
-Missing scores will be denoted with a cross.
-
-The remaining section will link to clinical advisory which will be added latter for the specific construct scale
-
-Item wise results. 
-
-This will allow users to drill down to the specific item wise responses. Items will be grouped by construct scales inside fieldsets which will be open by default but can be collapsed if desiorange. A toggle will be provided for this. 
-
-**Component**: `ItemWiseResultsSection`
-**Template**: `templates/promapp/components/item_wise_results_section.html`
-
-For each fieldset we will have the construct score for the latest submission and a sparkline showing the trend in the construct score.
-
-**Component**: `ConstructFieldset` (collapsible groupings)
-**Template**: `templates/promapp/components/construct_fieldset.html`
-**Widgets**: 
-- `FieldsetToggle` (individual expand/collapse)
-- `GlobalFieldsetToggle` (expand/collapse all)
-**Plotting**: Mini Bokeh sparklines for construct score trends 
-
+This section shows the results for each item. 
 The display for the item will be different based on the type of response:
 
 | Response Type | Display |
@@ -100,31 +79,19 @@ The display for the item will be different based on the type of response:
 ## Text Option
 For text items we do not need any specific visualization as noted above. However we may want to get the important concepts from the text later on. This will be implemented later.
 
-**Component**: `TextItemCard`
-**Template**: `templates/promapp/components/text_item_card.html`
-**Widget**: `TextResponsePaginator` (navigate through historical text responses)
-**Layout**: Wide card spanning full width
 
 ## Numeric and Range options
 For Numeric and Range options which are numeric the display will be similiar to the construct scale
 
-**Components**: 
-- `NumericItemCard` 
-- `RangeItemCard` (same implementation as NumericItemCard)
-**Templates**: 
-- `templates/promapp/components/numeric_item_card.html`
-- `templates/promapp/components/range_item_card.html`
-**Layout**: Two items per row on wide displays, left half (1/2) for value display, right half (1/2) for plot
+
  
 The scores will be shown in a card component where the score of the latest submission shall be shown prominently on the left (1/2 of the space). Each item in the construct will be represented in a card of its own and two items will be shown in the same row for wide displays. Below this score the change with respect to the previous score will be shown with an arrow indicating increase or decrease (orange arrow up for increase or decrease based on the direction, green arrow down for decrease or increase based on the direction, orange horizontal bar for no change) if a prior score is available. orange arrow will indicate worsening and green arrow will indicate improvement. Note that if the direction is not specified then only the previous score will be shown. 
 
-**Widget**: `ChangeIndicator` (same logic as construct cards)
 
 If the previous submission had a missing score for the item same will be shown as -NA-.
 
 The remaining half of the space will be occupied by interactive line plots for each item arranged in the same order as the cards. Again 2 plots for each row in wide displays. Plots will have Y axis as the value and x axis as the submission date. To save space the submission date will be common for all plots here. Number of submissions for visualization will be controlled by the widget noted in the topline results section for all plots. Threshold scores and normatives scores will be depicted using the orange and blue lines respectively. If standard deviation of the normaitve score is present for the item then a semi-transparent lighter hue of blue will be used to depict this.
 
-**Plotting**: Bokeh line plots with threshold/normative reference lines, controlled by `SubmissionControlWidget` 
 
 
 ## Likert Response
