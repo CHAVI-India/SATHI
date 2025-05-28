@@ -4,75 +4,75 @@
 <div class="bg-white rounded-lg shadow p-4 mb-6 w-full">
     <div class="flex justify-between items-center mb-4">
         <div class="flex items-center space-x-2">
-            <h2 class="text-xl font-bold text-gray-900">{% trans "Topline Results" %}</h2>
+            <h2 class="text-xl font-bold text-gray-900">{% translate "Topline Results" %}</h2>
             <div class="relative group">
                 <svg class="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <div class="absolute left-0 top-6 w-96 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
                     <div class="space-y-3">
-                        <div class="font-semibold">{% trans "Legend:" %}</div>
+                        <div class="font-semibold">{% translate "Legend:" %}</div>
                         
                         <!-- Trend Icons -->
                         <div class="space-y-1">
-                            <div class="text-xs font-medium text-gray-300">{% trans "Trend Indicators:" %}</div>
+                            <div class="text-xs font-medium text-gray-300">{% translate "Trend Indicators:" %}</div>
                             <div class="flex items-center space-x-2">
                                 <c-icon_trending_up class="text-green-400 w-4 h-4" />
-                                <span>{% trans "Score improved (beneficial change)" %}</span>
+                                <span>{% translate "Score improved (beneficial change)" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <c-icon_trending_up class="text-orange-400 w-4 h-4" />
-                                <span>{% trans "Score increased (concerning change)" %}</span>
+                                <span>{% translate "Score increased (concerning change)" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <c-icon_trending_down class="text-green-400 w-4 h-4" />
-                                <span>{% trans "Score decreased (beneficial change)" %}</span>
+                                <span>{% translate "Score decreased (beneficial change)" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <c-icon_trending_down class="text-orange-400 w-4 h-4" />
-                                <span>{% trans "Score decreased (concerning change)" %}</span>
+                                <span>{% translate "Score decreased (concerning change)" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <c-icon_no_change class="text-gray-400 w-4 h-4" />
-                                <span>{% trans "No change from previous submission" %}</span>
+                                <span>{% translate "No change from previous submission" %}</span>
                             </div>
                         </div>
                         
                         <!-- Status Indicators -->
                         <div class="space-y-1">
-                            <div class="text-xs font-medium text-gray-300">{% trans "Status Indicators:" %}</div>
+                            <div class="text-xs font-medium text-gray-300">{% translate "Status Indicators:" %}</div>
                             <div class="flex items-center space-x-2">
                                 <span class="text-green-400">✓</span>
-                                <span>{% trans "Meets clinical threshold" %}</span>
+                                <span>{% translate "Meets clinical threshold" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <span class="text-red-400">⚠</span>
-                                <span>{% trans "Does not meet clinical threshold" %}</span>
+                                <span>{% translate "Does not meet clinical threshold" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <span class="text-blue-400">◯</span>
-                                <span>{% trans "Normative population mean" %}</span>
+                                <span>{% translate "Normative population mean" %}</span>
                             </div>
                         </div>
                         
                         <!-- Plot Legend -->
                         <div class="space-y-1">
-                            <div class="text-xs font-medium text-gray-300">{% trans "Plot Elements:" %}</div>
+                            <div class="text-xs font-medium text-gray-300">{% translate "Plot Elements:" %}</div>
                             <div class="flex items-center space-x-2">
                                 <div class="w-4 h-1 bg-blue-400"></div>
-                                <span>{% trans "Score trend line over time" %}</span>
+                                <span>{% translate "Score trend line over time" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
-                                <span>{% trans "Individual score points" %}</span>
+                                <span>{% translate "Individual score points" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <div class="w-4 h-1 bg-red-400 border-dashed border border-red-400"></div>
-                                <span>{% trans "Clinical threshold line" %}</span>
+                                <span>{% translate "Clinical threshold line" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <div class="w-4 h-1 bg-gray-400 border-dashed border border-gray-400"></div>
-                                <span>{% trans "Normative mean reference line" %}</span>
+                                <span>{% translate "Normative mean reference line" %}</span>
                             </div>
                         </div>
                     </div>
@@ -161,7 +161,7 @@
             </div>
         {% empty %}
             <div class="col-span-full text-center py-4">
-                <p class="text-gray-500">{% trans "No important construct scores available" %}</p>
+                <p class="text-gray-500">{% translate "No important construct scores available" %}</p>
             </div>
         {% endfor %}
     </div>

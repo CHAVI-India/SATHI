@@ -42,7 +42,7 @@ class PatientForm(forms.ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             # User Account Information
-            HTML('<h3 class="text-lg font-medium text-gray-900 mb-4">{% trans "User Account Information" %}</h3>'),
+            HTML('<h3 class="text-lg font-medium text-gray-900 mb-4">{% translate "User Account Information" %}</h3>'),
             Div(
                 Field('username', css_class='w-full px-3 py-2 border rounded'),
                 Field('email', css_class='w-full px-3 py-2 border rounded'),
@@ -50,7 +50,7 @@ class PatientForm(forms.ModelForm):
             ),
             
             # Password Section
-            HTML('<h3 class="text-lg font-medium text-gray-900 mt-6 mb-4">{% trans "Password" %}</h3>'),
+            HTML('<h3 class="text-lg font-medium text-gray-900 mt-6 mb-4">{% translate "Password" %}</h3>'),
             Div(
                 Field('password1', css_class='w-full px-3 py-2 border rounded'),
                 Field('password2', css_class='w-full px-3 py-2 border rounded'),
@@ -58,7 +58,7 @@ class PatientForm(forms.ModelForm):
             ),
             
             # Patient Information
-            HTML('<h3 class="text-lg font-medium text-gray-900 mt-6 mb-4">{% trans "Patient Information" %}</h3>'),
+            HTML('<h3 class="text-lg font-medium text-gray-900 mt-6 mb-4">{% translate "Patient Information" %}</h3>'),
             Div(
                 Field('name', css_class='w-full px-3 py-2 border rounded'),
                 Field('age', css_class='w-full px-3 py-2 border rounded'),
@@ -68,7 +68,7 @@ class PatientForm(forms.ModelForm):
             ),
             
             # Groups Section
-            HTML('<h3 class="text-lg font-medium text-gray-900 mt-6 mb-4">{% trans "User Groups" %}</h3>'),
+            HTML('<h3 class="text-lg font-medium text-gray-900 mt-6 mb-4">{% translate "User Groups" %}</h3>'),
             Div(
                 Field('groups', css_class='space-y-2'),
                 css_class='mt-2'

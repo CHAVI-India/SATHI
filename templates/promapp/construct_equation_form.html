@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8 max-w-7xl">
     <div class="bg-white shadow rounded-lg p-6">
-        <h1 class="text-2xl font-bold mb-6">{% trans "Construct Scale Equation" %}</h1>
+        <h1 class="text-2xl font-bold mb-6">{% translate "Construct Scale Equation" %}</h1>
         
         {% if messages %}
         <div class="mb-6">
@@ -23,7 +23,7 @@
             <div class="space-y-4">
                 <div>
                     <label for="{{ form.minimum_number_of_items.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {% trans "Minimum Number of Items Required" %}
+                        {% translate "Minimum Number of Items Required" %}
                     </label>
                     <div class="mt-1">
                         <input
@@ -32,7 +32,7 @@
                             id="{{ form.minimum_number_of_items.id_for_label }}"
                             min="0"
                             class="block w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            placeholder="{% trans 'Enter minimum number of items that must be answered' %}"
+                            placeholder="{% translate 'Enter minimum number of items that must be answered' %}"
                             value="{{ form.minimum_number_of_items.value|default:0 }}"
                         />
                         {% if form.minimum_number_of_items.errors %}
@@ -43,14 +43,14 @@
                         </div>
                         {% endif %}
                         <p class="mt-2 text-sm text-gray-500">
-                            {% trans "The minimum number of items that must be answered to calculate the score for this construct scale. Set to 0 if there is no minimum requirement." %}
+                            {% translate "The minimum number of items that must be answered to calculate the score for this construct scale. Set to 0 if there is no minimum requirement." %}
                         </p>
                     </div>
                 </div>
 
                 <div>
                     <label for="{{ form.scale_equation.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {% trans "Scale Equation" %}
+                        {% translate "Scale Equation" %}
                     </label>
                     <div class="mt-1">
                         {% if valid_items %}
@@ -75,11 +75,11 @@
                                     </div>
                                     <div class="ml-3">
                                                                 <h3 class="text-sm font-medium text-yellow-800">
-                            {% trans "No Valid Items Available" %}
+                            {% translate "No Valid Items Available" %}
                         </h3>
                                         <div class="mt-2 text-sm text-yellow-700">
                                             <p>
-                                                {% trans "There are no items in this scale that can be used in equations. Please add items to the scale before creating an equation." %}
+                                                {% translate "There are no items in this scale that can be used in equations. Please add items to the scale before creating an equation." %}
                                             </p>
                                         </div>
                                     </div>
@@ -90,7 +90,7 @@
                                 id="{{ form.scale_equation.id_for_label }}"
                                 rows="6"
                                 class="block w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg shadow-sm bg-gray-100 font-mono cursor-not-allowed"
-                                placeholder="{% trans 'Add items to the scale first' %}"
+                                placeholder="{% translate 'Add items to the scale first' %}"
                                 disabled
                             ></textarea>
                         {% endif %}
@@ -109,74 +109,74 @@
                         <button type="button" 
                                 class="text-sm text-indigo-600 hover:text-indigo-800 focus:outline-none"
                                 onclick="toggleHelp()">
-                            {% trans "Show/Hide Equation Syntax Help" %}
+                            {% translate "Show/Hide Equation Syntax Help" %}
                         </button>
                         
                         <div id="equation-help" class="hidden mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <h3 class="font-medium text-gray-900 mb-2">{% trans "Equation Syntax Guide" %}</h3>
+                            <h3 class="font-medium text-gray-900 mb-2">{% translate "Equation Syntax Guide" %}</h3>
                             
                             <div class="space-y-4">
                                 <!-- Basic Syntax -->
                                 <div>
-                                    <h4 class="font-medium text-gray-800">{% trans "Basic Syntax" %}</h4>
+                                    <h4 class="font-medium text-gray-800">{% translate "Basic Syntax" %}</h4>
                                     <ul class="list-disc pl-5 space-y-1 text-sm text-gray-600">
-                                        <li>{% trans "Use {qN} to reference items (e.g., {q1}, {q2})" %}</li>
-                                        <li>{% trans "Basic arithmetic: +, -, *, /, ^ (power)" %}</li>
-                                        <li>{% trans "Parentheses () for grouping" %}</li>
-                                        <li>{% trans "Equations can span multiple lines for better readability" %}</li>
+                                        <li>{% translate "Use {qN} to reference items (e.g., {q1}, {q2})" %}</li>
+                                        <li>{% translate "Basic arithmetic: +, -, *, /, ^ (power)" %}</li>
+                                        <li>{% translate "Parentheses () for grouping" %}</li>
+                                        <li>{% translate "Equations can span multiple lines for better readability" %}</li>
                                     </ul>
                                 </div>
 
                                 <!-- Functions -->
                                 <div>
-                                    <h4 class="font-medium text-gray-800">{% trans "Available Functions" %}</h4>
+                                    <h4 class="font-medium text-gray-800">{% translate "Available Functions" %}</h4>
                                     <ul class="list-disc pl-5 space-y-1 text-sm text-gray-600">
-                                        <li><code>abs(x)</code> - {% trans "Absolute value" %}</li>
-                                        <li><code>min(x, y, ...)</code> - {% trans "Minimum value" %}</li>
-                                        <li><code>max(x, y, ...)</code> - {% trans "Maximum value" %}</li>
-                                        <li><code>sum(x, y, ...)</code> - {% trans "Sum of values" %}</li>
-                                        <li><code>round(x)</code> - {% trans "Round to nearest integer" %}</li>
-                                        <li><code>sqrt(x)</code> - {% trans "Square root" %}</li>
+                                        <li><code>abs(x)</code> - {% translate "Absolute value" %}</li>
+                                        <li><code>min(x, y, ...)</code> - {% translate "Minimum value" %}</li>
+                                        <li><code>max(x, y, ...)</code> - {% translate "Maximum value" %}</li>
+                                        <li><code>sum(x, y, ...)</code> - {% translate "Sum of values" %}</li>
+                                        <li><code>round(x)</code> - {% translate "Round to nearest integer" %}</li>
+                                        <li><code>sqrt(x)</code> - {% translate "Square root" %}</li>
                                     </ul>
                                 </div>
 
                                 <!-- Conditional Logic -->
                                 <div>
-                                    <h4 class="font-medium text-gray-800">{% trans "Conditional Logic" %}</h4>
+                                    <h4 class="font-medium text-gray-800">{% translate "Conditional Logic" %}</h4>
                                     <ul class="list-disc pl-5 space-y-1 text-sm text-gray-600">
-                                        <li>{% trans "Basic if-then-else: if condition then value1 else value2" %}</li>
-                                        <li>{% trans "Multiple conditions with elif: if condition1 then value1 elif condition2 then value2 else value3" %}</li>
-                                        <li>{% trans "Comparisons: >, <, >=, <=, ==, !=" %}</li>
-                                        <li>{% trans "Logical operators: and, or, xor" %}</li>
+                                        <li>{% translate "Basic if-then-else: if condition then value1 else value2" %}</li>
+                                        <li>{% translate "Multiple conditions with elif: if condition1 then value1 elif condition2 then value2 else value3" %}</li>
+                                        <li>{% translate "Comparisons: >, <, >=, <=, ==, !=" %}</li>
+                                        <li>{% translate "Logical operators: and, or, xor" %}</li>
                                     </ul>
                                 </div>
 
                                 <!-- Examples -->
                                 <div>
-                                    <h4 class="font-medium text-gray-800">{% trans "Examples" %}</h4>
+                                    <h4 class="font-medium text-gray-800">{% translate "Examples" %}</h4>
                                     <div class="space-y-2 text-sm">
                                         <!-- Basic Arithmetic -->
                                         <div class="bg-white p-2 rounded border">
                                             <code class="text-indigo-600">({q1} + {q2}) * {q3}</code>
-                                            <p class="text-gray-600 mt-1">{% trans "Basic arithmetic with grouping" %}</p>
+                                            <p class="text-gray-600 mt-1">{% translate "Basic arithmetic with grouping" %}</p>
                                         </div>
 
                                         <!-- Functions -->
                                         <div class="bg-white p-2 rounded border">
                                             <code class="text-indigo-600">min({q1}, {q2}) + max({q3}, {q4})</code>
-                                            <p class="text-gray-600 mt-1">{% trans "Using min and max functions" %}</p>
+                                            <p class="text-gray-600 mt-1">{% translate "Using min and max functions" %}</p>
                                         </div>
 
                                         <!-- Simple Conditional -->
                                         <div class="bg-white p-2 rounded border">
                                             <code class="text-indigo-600">if {q1} > {q2} then {q3} else {q4}</code>
-                                            <p class="text-gray-600 mt-1">{% trans "Simple conditional" %}</p>
+                                            <p class="text-gray-600 mt-1">{% translate "Simple conditional" %}</p>
                                         </div>
 
                                         <!-- Complex Conditional -->
                                         <div class="bg-white p-2 rounded border">
                                             <code class="text-indigo-600">if {q1} > {q2} and {q3} < {q4} then min({q1}, {q5}) else max({q2}, {q3})</code>
-                                            <p class="text-gray-600 mt-1">{% trans "Complex conditional with functions" %}</p>
+                                            <p class="text-gray-600 mt-1">{% translate "Complex conditional with functions" %}</p>
                                         </div>
 
                                         <!-- Multi-line Conditional -->
@@ -185,7 +185,7 @@
 elif {q1} == 1 and {q2} == 2 then 2
 elif {q1} == 2 and {q2} == 1 then 3
 else 0</pre>
-                                            <p class="text-gray-600 mt-1">{% trans "Multi-line conditional with multiple conditions" %}</p>
+                                            <p class="text-gray-600 mt-1">{% translate "Multi-line conditional with multiple conditions" %}</p>
                                         </div>
 
                                         <!-- Complex Multi-line Example -->
@@ -195,7 +195,7 @@ elif {q1} > 10 and {q2} > 5 then 75
 elif {q1} > 5 and {q2} > 3 then 50
 elif {q1} > 0 then 25
 else 0</pre>
-                                            <p class="text-gray-600 mt-1">{% trans "Complex multi-line conditional with nested conditions" %}</p>
+                                            <p class="text-gray-600 mt-1">{% translate "Complex multi-line conditional with nested conditions" %}</p>
                                         </div>
 
                                         <!-- Function with Conditional -->
@@ -204,20 +204,20 @@ else 0</pre>
     if {q1} > {q2} then sqrt({q1} * {q2})
     else abs({q1} - {q2})
 )</pre>
-                                            <p class="text-gray-600 mt-1">{% trans "Function with nested conditional" %}</p>
+                                            <p class="text-gray-600 mt-1">{% translate "Function with nested conditional" %}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Tips -->
                                 <div>
-                                    <h4 class="font-medium text-gray-800">{% trans "Tips" %}</h4>
+                                    <h4 class="font-medium text-gray-800">{% translate "Tips" %}</h4>
                                     <ul class="list-disc pl-5 space-y-1 text-sm text-gray-600">
-                                        <li>{% trans "Use multiple lines for complex conditions to improve readability" %}</li>
-                                        <li>{% trans "Indent your conditions to make the structure clearer" %}</li>
-                                        <li>{% trans "Group related conditions together" %}</li>
-                                        <li>{% trans "Always include an else clause to handle unexpected cases" %}</li>
-                                        <li>{% trans "Use parentheses to clarify operator precedence" %}</li>
+                                        <li>{% translate "Use multiple lines for complex conditions to improve readability" %}</li>
+                                        <li>{% translate "Indent your conditions to make the structure clearer" %}</li>
+                                        <li>{% translate "Group related conditions together" %}</li>
+                                        <li>{% translate "Always include an else clause to handle unexpected cases" %}</li>
+                                        <li>{% translate "Use parentheses to clarify operator precedence" %}</li>
                                     </ul>
                                 </div>
                             </div>
@@ -230,15 +230,15 @@ else 0</pre>
 
             <div class="flex justify-end space-x-4 pt-4 border-t">
                 <c-link_button href="{% url 'construct_scale_list' %}" variant="secondary">
-                    {% trans "Cancel" %}
+                    {% translate "Cancel" %}
                 </c-link_button>
                 {% if valid_items %}
                     <c-save_button type="submit">
-                        {% trans "Save Equation" %}
+                        {% translate "Save Equation" %}
                     </c-save_button>
                 {% else %}
                     <c-button type="submit" variant="secondary" disabled="true">
-                        {% trans "Save Equation" %}
+                        {% translate "Save Equation" %}
                     </c-button>
                 {% endif %}
             </div>
@@ -246,7 +246,7 @@ else 0</pre>
     </div>
 
     <div class="mt-8 bg-white shadow rounded-lg p-6">
-        <h2 class="text-lg font-medium text-gray-900 mb-4">{% trans "Valid Items for Equation" %}</h2>
+        <h2 class="text-lg font-medium text-gray-900 mb-4">{% translate "Valid Items for Equation" %}</h2>
         {% if valid_items %}
             <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <div class="flex items-center">
@@ -254,8 +254,8 @@ else 0</pre>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                                          <p class="text-sm text-blue-700">
-                         <strong>{% trans "How to add items:" %}</strong> 
-                         {% trans "Click on any item below to add it to your equation, or drag and drop it into the equation text area." %}
+                         <strong>{% translate "How to add items:" %}</strong> 
+                         {% translate "Click on any item below to add it to your equation, or drag and drop it into the equation text area." %}
                      </p>
                 </div>
             </div>
@@ -265,7 +265,7 @@ else 0</pre>
                      draggable="true" 
                      data-question="q{{ item_data.question_number }}"
                      onclick="addQuestionToEquation('q{{ item_data.question_number }}')"
-                     title="{% trans 'Click to add to equation or drag and drop' %}">
+                     title="{% translate 'Click to add to equation or drag and drop' %}">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
                             <div class="text-sm font-medium text-blue-900 group-hover:text-blue-700">
@@ -297,11 +297,11 @@ else 0</pre>
                     </div>
                     <div class="ml-3">
                         <h3 class="text-sm font-medium text-yellow-800">
-                            {% trans "No Valid Items Available" %}
+                            {% translate "No Valid Items Available" %}
                         </h3>
                         <div class="mt-2 text-sm text-yellow-700">
                             <p>
-                                                                            {% trans "There are no items in this scale that can be used in equations. Please add items to the scale before creating an equation." %}
+                                                                            {% translate "There are no items in this scale that can be used in equations. Please add items to the scale before creating an equation." %}
                             </p>
                         </div>
                     </div>
@@ -310,13 +310,13 @@ else 0</pre>
         {% endif %}
 
         {% if invalid_items %}
-        <h2 class="text-lg font-medium text-gray-900 mt-8 mb-4">{% trans "Invalid Items (Cannot be used in equation)" %}</h2>
+        <h2 class="text-lg font-medium text-gray-900 mt-8 mb-4">{% translate "Invalid Items (Cannot be used in equation)" %}</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {% for item in invalid_items %}
             <div class="p-4 border rounded-lg bg-gray-50">
-                <div class="font-medium text-gray-900">{% trans "Item" %} {{ item.questionnaireitem_set.first.question_number }}</div>
+                <div class="font-medium text-gray-900">{% translate "Item" %} {{ item.questionnaireitem_set.first.question_number }}</div>
                 <div class="text-sm text-gray-500">{{ item.name }}</div>
-                <div class="text-sm text-red-600 mt-2">{% trans "Cannot be used in equation" %}</div>
+                <div class="text-sm text-red-600 mt-2">{% translate "Cannot be used in equation" %}</div>
             </div>
             {% endfor %}
         </div>

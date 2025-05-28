@@ -9,10 +9,10 @@
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-blue-700">{% trans "Construct Scales" %}</h1>
+        <h1 class="text-2xl font-bold text-blue-700">{% translate "Construct Scales" %}</h1>
         {% if perms.promapp.add_constructscale %}
           <c-create_button href="{% url 'create_construct_scale' %}">
-            {% trans "Create New Construct Scale" %}
+            {% translate "Create New Construct Scale" %}
           </c-create_button>
         {% endif %}
       </div>
@@ -42,7 +42,7 @@
           <p class="text-gray-600 mb-4">{% translate "No construct scales available yet." %}</p>
           {% if perms.promapp.add_constructscale %}
             <c-create_button href="{% url 'create_construct_scale' %}">
-              {% trans "Create First Construct Scale" %}
+              {% translate "Create First Construct Scale" %}
             </c-create_button>
           {% endif %}
         </div>

@@ -10,19 +10,19 @@
 {% block item_plot %}
 <div class="mt-4">
     <div class="flex justify-between items-center mb-2">
-        <h6 class="text-sm font-medium text-gray-700">{% trans "Previous Responses" %}</h6>
+        <h6 class="text-sm font-medium text-gray-700">{% translate "Previous Responses" %}</h6>
         <div class="flex gap-2">
             <button class="text-sm text-blue-600 hover:text-blue-800" 
                     hx-get="{% url 'get_previous_response' item_response.id %}"
                     hx-target="#previous-responses-{{ item_response.id }}"
                     hx-swap="innerHTML">
-                {% trans "Previous" %}
+                {% translate "Previous" %}
             </button>
             <button class="text-sm text-blue-600 hover:text-blue-800"
                     hx-get="{% url 'get_next_response' item_response.id %}"
                     hx-target="#previous-responses-{{ item_response.id }}"
                     hx-swap="innerHTML">
-                {% trans "Next" %}
+                {% translate "Next" %}
             </button>
         </div>
     </div>
@@ -35,7 +35,7 @@
                 </div>
             {% endfor %}
         {% else %}
-            <p class="text-gray-500">{% trans "No previous responses" %}</p>
+            <p class="text-gray-500">{% translate "No previous responses" %}</p>
         {% endif %}
     </div>
 </div>
