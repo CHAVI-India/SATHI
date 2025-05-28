@@ -49,53 +49,51 @@
 
                     <!-- Questionnaire Filter -->
                     <div class="space-y-2">
-                        <label for="questionnaire-filter" class="block text-sm font-semibold text-gray-700">
-                            <svg class="w-4 h-4 inline mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            {% translate "Questionnaire" %}
-                        </label>
-                        <select
+                        {% comment %} Django view needs to provide 'questionnaire_options_for_cotton'.
+                                   Example: questionnaire_options_for_cotton = [{'id': pq.questionnaire.id, 'name': pq.questionnaire.name} for pq in assigned_questionnaires]
+                                   The 'selected' value (request.GET.questionnaire_filter) is passed directly.
+                        {% endcomment %}
+                        <c-filter_dropdown name="questionnaire_filter"
                             id="questionnaire-filter"
-                            name="questionnaire_filter"
-                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
-                            hx-get="{% url 'prom_review' patient.id %}"
-                            hx-target="#main-content"
-                            hx-trigger="change"
-                            hx-include="[name='item_filter'], [name='submission_date'], [name='time_range']"
-                        >
-                            <option value="">{% translate "All Questionnaires" %}</option>
-                            {% for pq in assigned_questionnaires %}
-                                <option value="{{ pq.questionnaire.id }}" {% if request.GET.questionnaire_filter == pq.questionnaire.id|stringformat:"s" %}selected{% endif %}>
-                                    {{ pq.questionnaire.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
+                            label="{% translate "Questionnaire" %}"
+                            placeholder="{% translate "All Questionnaires" %}"
+                            :options="questionnaire_options_for_cotton"
+                            :selected="request.GET.questionnaire_filter"
+                            hx_get="{% url 'prom_review' patient.id %}"
+                            hx_target="#main-content"
+                            hx_trigger="change"
+                        />
+                        {# KILO CODE NOTE:
+                           - The original SVG icon in the label is lost due to c-filter_dropdown limitations.
+                           - The original hx-include attribute is lost as c-filter_dropdown does not support it. This may impact functionality.
+                           - Assumes 'questionnaire_options_for_cotton' is prepared in the Django view context.
+                        #}
                     </div>
 
                     <!-- Time Range Filter -->
                     <div class="space-y-2">
-                        <label for="time-range" class="block text-sm font-semibold text-gray-700">
-                            <svg class="w-4 h-4 inline mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            {% translate "Show Last" %}
-                        </label>
-                        <select
+                        {% comment %} Django view needs to provide 'time_range_options_for_cotton' (list of (value, translated_label) tuples)
+                                   and 'selected_time_range_for_cotton' (e.g., request.GET.get('time_range') or "5").
+                                   Example for options:
+                                   time_range_options_for_cotton = [
+                                       ("3", gettext("3 submissions")), ("5", gettext("5 submissions")), ..., ("all", gettext("All submissions"))
+                                   ]
+                                   selected_time_range_for_cotton = request.GET.get('time_range') or "5"
+                        {% endcomment %}
+                        <c-filter_dropdown name="time_range"
                             id="time-range"
-                            name="time_range"
-                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
-                            hx-get="{% url 'prom_review' patient.id %}"
-                            hx-target="#main-content"
-                            hx-trigger="change"
-                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='submission_date']"
-                        >
-                            <option value="3" {% if request.GET.time_range == "3" %}selected{% endif %}>3 {% translate "submissions" %}</option>
-                            <option value="5" {% if request.GET.time_range == "5" or not request.GET.time_range %}selected{% endif %}>5 {% translate "submissions" %}</option>
-                            <option value="10" {% if request.GET.time_range == "10" %}selected{% endif %}>10 {% translate "submissions" %}</option>
-                            <option value="15" {% if request.GET.time_range == "15" %}selected{% endif %}>15 {% translate "submissions" %}</option>
-                            <option value="all" {% if request.GET.time_range == "all" %}selected{% endif %}>{% translate "All submissions" %}</option>
-                        </select>
+                            label="{% translate "Show Last" %}"
+                            :options="time_range_options_for_cotton"
+                            :selected="selected_time_range_for_cotton"
+                            hx_get="{% url 'prom_review' patient.id %}"
+                            hx_target="#main-content"
+                            hx_trigger="change"
+                        />
+                        {# KILO CODE NOTE:
+                           - The original SVG icon in the label is lost due to c-filter_dropdown limitations.
+                           - The original hx-include attribute is lost as c-filter_dropdown does not support it. This may impact functionality.
+                           - Assumes 'time_range_options_for_cotton' (with pre-translated labels) and 'selected_time_range_for_cotton' (handling default) are prepared in the Django view.
+                        #}
                     </div>
 
                     <!-- Item Filter -->

@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.urls import reverse_lazy, reverse
-from django.utils.translation import gettext_lazy as _, get_language
+from django.utils.translation import gettext_lazy as _, gettext, get_language
 from django.db import transaction
 from django.db.models import Q, Count, Max
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
@@ -340,12 +340,27 @@ def prom_review(request, pk):
     if item_filter:
         selected_items = Item.objects.filter(id__in=item_filter).prefetch_related('translations')
         selected_items_data = [{'id': str(item.id), 'name': item.name} for item in selected_items]
-    
+
+    # Prepare options for Cotton dropdowns
+    questionnaire_options_for_cotton = [
+        {'id': str(pq.questionnaire.id), 'name': pq.questionnaire.name}
+        for pq in assigned_questionnaires  # Use the already filtered or full list
+    ]
+
+    time_range_options_for_cotton = [
+        ("3", gettext("3 submissions")),
+        ("5", gettext("5 submissions")),
+        ("10", gettext("10 submissions")),
+        ("15", gettext("15 submissions")),
+        ("all", gettext("All submissions")),
+    ]
+    selected_time_range_for_cotton = request.GET.get('time_range', '5')
+
     context = {
         'patient': patient,
         'submissions': submissions,
         'latest_submissions': latest_submissions,
-        'assigned_questionnaires': assigned_questionnaires,
+        'assigned_questionnaires': assigned_questionnaires, # Still needed for other parts of the template
         'item_responses': item_responses,
         'construct_scores': construct_scores,
         'other_construct_scores': other_construct_scores,
@@ -356,6 +371,9 @@ def prom_review(request, pk):
         'selected_items_data': selected_items_data,
         'bokeh_css': bokeh_css,
         'bokeh_js': bokeh_js,
+        'questionnaire_options_for_cotton': questionnaire_options_for_cotton,
+        'time_range_options_for_cotton': time_range_options_for_cotton,
+        'selected_time_range_for_cotton': selected_time_range_for_cotton,
     }
     
     # If this is an HTMX request, only return the main content section
