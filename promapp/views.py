@@ -26,7 +26,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Prefetch, Q
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from django.utils.timesince import timeuntil
 from django.conf import settings
 from django.utils import translation
@@ -1318,6 +1318,14 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
             time_since_last = timezone.now() - last_submission.submission_date
             interval = patient_questionnaire.questionnaire.questionnaire_answer_interval
 
+            # Handle special case: if interval is 0, allow immediate re-answering
+            if interval == 0:
+                return True, None
+            # Handle edge case: if interval is negative (shouldn't happen with validation), treat as 0
+            elif interval < 0:
+                return True, None
+            
+            # Check if enough time has passed since the last submission
             if time_since_last.total_seconds() < interval:
                 return False, last_submission.submission_date + timezone.timedelta(seconds=interval)
 
@@ -1698,9 +1706,19 @@ class MyQuestionnaireListView(LoginRequiredMixin, ListView):
             if last_submission:
                 # Calculate when the questionnaire can be answered next
                 interval_seconds = pq.questionnaire.questionnaire_answer_interval
-                next_available = last_submission.submission_date + timedelta(seconds=interval_seconds)
-                pq.next_available = next_available
-                pq.can_answer = timezone.now() >= next_available
+                
+                # Handle special case: if interval is 0, allow immediate re-answering
+                if interval_seconds == 0:
+                    pq.next_available = last_submission.submission_date
+                    pq.can_answer = True
+                # Handle edge case: if interval is negative (shouldn't happen with validation), treat as 0
+                elif interval_seconds < 0:
+                    pq.next_available = last_submission.submission_date
+                    pq.can_answer = True
+                else:
+                    next_available = last_submission.submission_date + timezone.timedelta(seconds=interval_seconds)
+                    pq.next_available = next_available
+                    pq.can_answer = timezone.now() >= next_available
             else:
                 # If no previous submission, can answer immediately
                 pq.next_available = None

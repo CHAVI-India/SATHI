@@ -22,8 +22,16 @@
                 </div>
             </div>
 
-            <!-- Global Filters -->
-            <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 mb-6 shadow-sm border border-gray-200">
+            <!-- Data Filters -->
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 mb-4 shadow-sm border border-gray-200">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                        <svg class="w-5 h-5 inline mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        {% translate "Data Filters" %}
+                    </h3>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- Submission Date Filter -->
                     <div class="space-y-2">
@@ -42,7 +50,7 @@
                             hx-get="{% url 'prom_review' patient.id %}"
                             hx-target="#main-content"
                             hx-trigger="change"
-                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='time_range']"
+                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='time_range'], [name='start_date_reference'], [name='time_interval']"
                             value="{{ request.GET.submission_date|default:'' }}"
                         >
                     </div>
@@ -136,6 +144,75 @@
                         <div id="selected-items-summary" class="mt-2 text-sm text-blue-600 font-medium">
                             <!-- Summary of selected items will appear here -->
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Time Analysis Settings -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6 shadow-sm border border-blue-200">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                        <svg class="w-5 h-5 inline mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {% translate "Time Analysis Settings" %}
+                    </h3>
+                    <p class="text-sm text-gray-600">{% translate "Configure how time intervals are calculated and displayed in the plots" %}</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Start Date Reference Filter -->
+                    <div class="space-y-2">
+                        <label for="start-date-reference" class="block text-sm font-semibold text-gray-700">
+                            <svg class="w-4 h-4 inline mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            {% translate "Start Date Reference" %}
+                        </label>
+                        <select
+                            id="start-date-reference"
+                            name="start_date_reference"
+                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
+                            hx-get="{% url 'prom_review' patient.id %}"
+                            hx-target="#main-content"
+                            hx-trigger="change"
+                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='time_range'], [name='submission_date'], [name='time_interval']"
+                        >
+                            {% for reference_key, display_name, date_value in available_start_dates %}
+                                <option value="{{ reference_key }}"
+                                    {% if request.GET.start_date_reference == reference_key or not request.GET.start_date_reference and reference_key == 'date_of_registration' %}selected{% endif %}>
+                                    {{ display_name }} ({{ date_value|date:"d/m/Y" }})
+                                </option>
+                            {% empty %}
+                                <option value="date_of_registration">{% translate "Date of Registration" %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Time Interval Filter -->
+                    <div class="space-y-2">
+                        <label for="time-interval" class="block text-sm font-semibold text-gray-700">
+                            <svg class="w-4 h-4 inline mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {% translate "Time Interval Units" %}
+                        </label>
+                        <select
+                            id="time-interval"
+                            name="time_interval"
+                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
+                            hx-get="{% url 'prom_review' patient.id %}"
+                            hx-target="#main-content"
+                            hx-trigger="change"
+                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='time_range'], [name='submission_date'], [name='start_date_reference']"
+                        >
+                            <option value="seconds" {% if request.GET.time_interval == 'seconds' %}selected{% endif %}>{% translate "Seconds" %}</option>
+                            <option value="minutes" {% if request.GET.time_interval == 'minutes' %}selected{% endif %}>{% translate "Minutes" %}</option>
+                            <option value="hours" {% if request.GET.time_interval == 'hours' %}selected{% endif %}>{% translate "Hours" %}</option>
+                            <option value="days" {% if request.GET.time_interval == 'days' %}selected{% endif %}>{% translate "Days" %}</option>
+                            <option value="weeks" {% if request.GET.time_interval == 'weeks' or not request.GET.time_interval %}selected{% endif %}>{% translate "Weeks" %}</option>
+                            <option value="months" {% if request.GET.time_interval == 'months' %}selected{% endif %}>{% translate "Months" %}</option>
+                            <option value="years" {% if request.GET.time_interval == 'years' %}selected{% endif %}>{% translate "Years" %}</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -302,6 +379,18 @@
             const timeRange = document.querySelector('[name="time_range"]');
             if (timeRange && timeRange.value) {
                 params.append('time_range', timeRange.value);
+            }
+            
+            // Add start date reference filter
+            const startDateReference = document.querySelector('[name="start_date_reference"]');
+            if (startDateReference && startDateReference.value) {
+                params.append('start_date_reference', startDateReference.value);
+            }
+            
+            // Add time interval filter
+            const timeInterval = document.querySelector('[name="time_interval"]');
+            if (timeInterval && timeInterval.value) {
+                params.append('time_interval', timeInterval.value);
             }
             
             // Add item filters

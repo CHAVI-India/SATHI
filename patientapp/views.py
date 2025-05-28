@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from .models import Patient, Diagnosis, DiagnosisList, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
 from .forms import PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm
 from promapp.models import *
-from .utils import ConstructScoreData, calculate_percentage, create_item_response_plot
+from .utils import ConstructScoreData, calculate_percentage, create_item_response_plot, get_patient_start_date, get_patient_available_start_dates, filter_positive_intervals, filter_positive_intervals_construct
 import logging
 from bokeh.resources import CDN
 
@@ -35,6 +35,8 @@ def prom_review(request, pk):
     submission_date = request.GET.get('submission_date')
     time_range = request.GET.get('time_range', '5')
     item_filter = request.GET.getlist('item_filter')  # Get list of selected item IDs
+    start_date_reference = request.GET.get('start_date_reference', 'date_of_registration')
+    time_interval = request.GET.get('time_interval', 'weeks')
     
     # Get submission count from time range or default to 5
     # This count needs to respect the submission_date filter if active.
@@ -216,19 +218,28 @@ def prom_review(request, pk):
                     'questionnaire_submission'
                 ).order_by('-questionnaire_submission__submission_date')[:submission_count]
             )
-            # No need to reverse here, as utils.py's reversed() will make it oldest to newest for plotting.
             
-            logger.debug(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): Found {len(historical_responses_for_plot)} historical responses for plot (submission_count: {submission_count}, submission_date_filter: {submission_date}).")
+            # Filter out responses with negative time intervals
+            start_date = get_patient_start_date(patient, start_date_reference)
+            if start_date:
+                historical_responses_for_plot = filter_positive_intervals(
+                    historical_responses_for_plot, start_date, time_interval
+                )
+            
+            logger.debug(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): Found {len(historical_responses_for_plot)} historical responses for plot after filtering (submission_count: {submission_count}, submission_date_filter: {submission_date}).")
 
             if historical_responses_for_plot:
                 response.bokeh_plot = create_item_response_plot(
                     historical_responses_for_plot, # Pass the filtered and sliced list
-                    response.questionnaire_item.item
+                    response.questionnaire_item.item,
+                    patient,
+                    start_date_reference,
+                    time_interval
                 )
                 if not response.bokeh_plot:
                     logger.warning(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): create_item_response_plot returned None or empty string.")
             else:
-                logger.info(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): No historical responses to plot, setting bokeh_plot to None.")
+                logger.info(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): No historical responses to plot after filtering, setting bokeh_plot to None.")
         except Exception as e_plot_gen:
             logger.error(f"Error generating plot for item {response.questionnaire_item.item.id} (Response ID {response.id}): {e_plot_gen}", exc_info=True)
     
@@ -319,7 +330,14 @@ def prom_review(request, pk):
             ).order_by('-questionnaire_submission__submission_date')[:submission_count]
         )
         
-        logger.debug(f"Found {len(historical_scores_for_plot)} historical scores for {construct.name} plot (submission_count: {submission_count}, submission_date_filter: {submission_date}).")
+        # Filter out scores with negative time intervals
+        start_date = get_patient_start_date(patient, start_date_reference)
+        if start_date:
+            historical_scores_for_plot = filter_positive_intervals_construct(
+                historical_scores_for_plot, start_date, time_interval
+            )
+        
+        logger.debug(f"Found {len(historical_scores_for_plot)} historical scores for {construct.name} plot after filtering (submission_count: {submission_count}, submission_date_filter: {submission_date}).")
 
         # Determine the 'previous_score' for ConstructScoreData based on this plot-specific historical data.
         # This 'previous_score' is for the context of the plot and the ConstructScoreData object.
@@ -335,7 +353,10 @@ def prom_review(request, pk):
             construct=construct, # construct_score.construct
             current_score=construct_score.score, # This is from the main construct_scores list, respecting filters for card display
             previous_score=previous_score_for_plot_context, # Previous score in the context of the plot data
-            historical_scores=historical_scores_for_plot # Filtered and sliced list for the plot
+            historical_scores=historical_scores_for_plot, # Filtered and sliced list for the plot
+            patient=patient,
+            start_date_reference=start_date_reference,
+            time_interval=time_interval
         )
 
         # Only include if it's an important construct
@@ -396,6 +417,17 @@ def prom_review(request, pk):
     ]
     selected_time_range_for_cotton = request.GET.get('time_range', '5')
 
+    # Get available start dates for this patient
+    available_start_dates = get_patient_available_start_dates(patient)
+    
+    # Ensure we have at least the registration date as fallback
+    if not available_start_dates:
+        available_start_dates = [('date_of_registration', 'Date of Registration', patient.created_date.date())]
+    
+    # Set default start_date_reference if not provided
+    if not start_date_reference:
+        start_date_reference = available_start_dates[0][0] if available_start_dates else 'date_of_registration'
+
     context = {
         'patient': patient,
         'submissions': submissions,
@@ -414,6 +446,7 @@ def prom_review(request, pk):
         'questionnaire_options_for_cotton': questionnaire_options_for_cotton,
         'time_range_options_for_cotton': time_range_options_for_cotton,
         'selected_time_range_for_cotton': selected_time_range_for_cotton,
+        'available_start_dates': available_start_dates,
     }
     
     # If this is an HTMX request, only return the main content section
