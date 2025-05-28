@@ -37,12 +37,24 @@ def prom_review(request, pk):
     item_filter = request.GET.getlist('item_filter')  # Get list of selected item IDs
     
     # Get submission count from time range or default to 5
+    # This count needs to respect the submission_date filter if active.
+    
+    # Base query for counting submissions, respecting patient and potentially date filter
+    submission_count_base_query = QuestionnaireSubmission.objects.filter(patient=patient)
+    if submission_date: # The global submission_date filter from request.GET
+        submission_count_base_query = submission_count_base_query.filter(submission_date__date__lte=submission_date)
+
     if time_range == 'all':
-        submission_count = QuestionnaireSubmission.objects.filter(patient=patient).count()
+        submission_count = submission_count_base_query.count()
+        # If count is 0 (e.g. no submissions up to filter date, or no submissions at all), plot will be empty.
     else:
         submission_count = int(time_range)
+        # Ensure submission_count doesn't exceed available submissions after date filter
+        # (or total submissions if no date filter)
+        actual_available_count = submission_count_base_query.count()
+        submission_count = min(submission_count, actual_available_count)
     
-    logger.info(f"Using submission count: {submission_count}")
+    logger.info(f"Using submission count for plots: {submission_count}")
     
     # Get all questionnaire submissions for this patient
     submissions = QuestionnaireSubmission.objects.filter(
@@ -185,18 +197,32 @@ def prom_review(request, pk):
 
         # Common: Get historical responses for plotting (for both Numeric and Likert)
         try:
-            historical_responses = QuestionnaireItemResponse.objects.filter(
+            # Fetch historical responses for the plot, respecting submission_date filter
+            base_item_historical_qs = QuestionnaireItemResponse.objects.filter(
                 questionnaire_item=response.questionnaire_item,
                 questionnaire_submission__patient=patient
-            ).select_related(
-                'questionnaire_submission'
-            ).order_by('questionnaire_submission__submission_date')[:submission_count]
-            
-            logger.debug(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): Found {len(historical_responses)} historical responses for plot. submission_count is {submission_count}.")
+            )
 
-            if historical_responses:
+            if submission_date: # Apply the global submission_date filter
+                base_item_historical_qs = base_item_historical_qs.filter(
+                    questionnaire_submission__submission_date__date__lte=submission_date
+                )
+            
+            # Get the 'submission_count' most recent responses within the (optional) date filter.
+            # Bokeh plotting functions in utils.py use reversed(historical_responses),
+            # so historical_responses should be in descending order (latest first) here.
+            historical_responses_for_plot = list(
+                base_item_historical_qs.select_related(
+                    'questionnaire_submission'
+                ).order_by('-questionnaire_submission__submission_date')[:submission_count]
+            )
+            # No need to reverse here, as utils.py's reversed() will make it oldest to newest for plotting.
+            
+            logger.debug(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): Found {len(historical_responses_for_plot)} historical responses for plot (submission_count: {submission_count}, submission_date_filter: {submission_date}).")
+
+            if historical_responses_for_plot:
                 response.bokeh_plot = create_item_response_plot(
-                    historical_responses,
+                    historical_responses_for_plot, # Pass the filtered and sliced list
                     response.questionnaire_item.item
                 )
                 if not response.bokeh_plot:
@@ -274,28 +300,42 @@ def prom_review(request, pk):
         construct = construct_score.construct
         logger.info(f"Processing construct: {construct.name}")
         
-        # Get historical scores for this construct
-        historical_scores = QuestionnaireConstructScore.objects.filter(
+        # Get historical scores for this construct's plot, respecting submission_date filter
+        base_construct_historical_qs = QuestionnaireConstructScore.objects.filter(
             questionnaire_submission__patient=patient,
             construct=construct
-        ).select_related(
-            'questionnaire_submission'
-        ).order_by('-questionnaire_submission__submission_date')[:submission_count]
+        )
 
-        logger.debug(f"Found {historical_scores.count()} historical scores for {construct.name}")
+        if submission_date: # Apply the global submission_date filter
+            base_construct_historical_qs = base_construct_historical_qs.filter(
+                questionnaire_submission__submission_date__date__lte=submission_date
+            )
 
-        # Get previous score for change calculation
-        previous_score = None
-        if historical_scores.count() > 1:
-            previous_score = historical_scores[1].score
-            logger.debug(f"Previous score for {construct.name}: {previous_score}")
+        # Get the 'submission_count' most recent scores within the (optional) date filter.
+        # ConstructScoreData._create_bokeh_plot in utils.py also uses reversed(historical_scores).
+        historical_scores_for_plot = list(
+            base_construct_historical_qs.select_related(
+                'questionnaire_submission'
+            ).order_by('-questionnaire_submission__submission_date')[:submission_count]
+        )
+        
+        logger.debug(f"Found {len(historical_scores_for_plot)} historical scores for {construct.name} plot (submission_count: {submission_count}, submission_date_filter: {submission_date}).")
+
+        # Determine the 'previous_score' for ConstructScoreData based on this plot-specific historical data.
+        # This 'previous_score' is for the context of the plot and the ConstructScoreData object.
+        # The main card display uses construct_score.previous_score which is already correctly calculated.
+        previous_score_for_plot_context = None
+        if len(historical_scores_for_plot) > 1:
+            # historical_scores_for_plot is latest first, so [1] is the second latest.
+            previous_score_for_plot_context = historical_scores_for_plot[1].score
+            logger.debug(f"Previous score for {construct.name} (plot context): {previous_score_for_plot_context}")
 
         # Create construct score data object
         score_data = ConstructScoreData(
-            construct=construct,
-            current_score=construct_score.score,
-            previous_score=previous_score,
-            historical_scores=historical_scores
+            construct=construct, # construct_score.construct
+            current_score=construct_score.score, # This is from the main construct_scores list, respecting filters for card display
+            previous_score=previous_score_for_plot_context, # Previous score in the context of the plot data
+            historical_scores=historical_scores_for_plot # Filtered and sliced list for the plot
         )
 
         # Only include if it's an important construct

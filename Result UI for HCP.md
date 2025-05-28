@@ -14,6 +14,14 @@ Page display:
 The page will be called PRO Review
 **Template**: `templates/promapp/prom_review.html`
 
+## Filtering 
+
+Global filters will be provided which allow users to filter the list by the following 
+1. Date of submission which will allow the users to select a date upto which the responses will be shown. 
+2. Questionnaire name (related to the questionnaires assigned to the patient)
+3. 
+
+
 Access the page will be accessed through a button called "View Responses" placed on the Patient Table component which is used in the Patient List template. Clicking this button will provide the necessary context in form of the patient's primary key. 
 
 **Technology Stack**: Django Templates + Tailwind CSS + HTMX + Bokeh + Django Crispy Forms
@@ -173,3 +181,16 @@ Interactivity:
 Finally the page can be printed out without loosing any information
 
 In mobile screens the arrangement will be responsive. 
+
+# Display ordering
+
+Item & construct ordering in item wise results section to ensure items for the worst performing constructs are displayed first
+
+1. Items will be ordered based on the item number in their construct
+2. Constructs will be ordered based on the scale_better_score_direction and value as follows:
+  - If the direction choice is Higher is Better then the constructs with lowest score will be displayed first. 
+  - If the direction choice is Lower is Better then the constructs with the highest score will be displayed first.
+  - If the direction is No Direction or not specifieid or Middle is better then the constructs will be ordered according to the score value from lowest to highest score
+
+
+
