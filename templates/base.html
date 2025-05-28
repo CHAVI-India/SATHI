@@ -57,6 +57,50 @@
         </div>
     </footer>
 
+    <!-- Generic Modal Container -->
+    <div
+        id="modal-container"
+        class="fixed inset-0 z-50 overflow-y-auto bg-gray-600 bg-opacity-50 flex items-center justify-center p-4"
+        style="display: none;" {# Initially hidden, HTMX or JS will show it #}
+        hx-target="#modal-content" {# Default target for content loaded into the modal #}
+    >
+        <div id="modal-content" class="bg-white rounded-lg shadow-xl w-full max-w-lg">
+            {# Content will be loaded here by HTMX #}
+        </div>
+    </div>
+
     {% block extra_js %}{% endblock %}
-</body>
+    <script>
+        // Listener for closing modal and handling refresh trigger from server
+        document.body.addEventListener('closeModalAndRefreshTreatmentTypes', function(evt) {
+            const modalContainer = document.getElementById('modal-container');
+            if (modalContainer) {
+                modalContainer.style.display = 'none';
+            }
+            // The server response for this event already clears #modal-content by sending empty content.
+            
+            const treatmentTypeWrapper = document.getElementById('treatment-type-select-wrapper');
+            if (treatmentTypeWrapper) {
+                console.log("Event 'closeModalAndRefreshTreatmentTypes' caught. Should refresh treatment type dropdown.");
+                alert('Treatment Type added. Please refresh the form if the new type is not visible in the dropdown.');
+            }
+        });
+
+        // Listener to show modal when new content is successfully loaded into #modal-content
+        const modalContentElement = document.getElementById('modal-content');
+        if (modalContentElement) {
+            modalContentElement.addEventListener('htmx:afterSwap', function(evt) {
+                // This event fires after content is swapped into #modal-content.
+                // We only want to show the modal if actual form content was loaded,
+                // not when it's cleared by the 'closeModalAndRefreshTreatmentTypes' response from server.
+                if (evt.detail.xhr && evt.detail.xhr.responseText && evt.detail.xhr.responseText.trim() !== "") {
+                    const modalContainer = document.getElementById('modal-container');
+                    if (modalContainer) {
+                        modalContainer.style.display = 'flex';
+                    }
+                }
+            });
+        }
+    </script>
+  </body>
 </html>

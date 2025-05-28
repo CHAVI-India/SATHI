@@ -1,0 +1,24 @@
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load cotton %}
+
+<form method="post" hx-post="{{ request.path }}" hx-target="#modal-content" hx-swap="innerHTML">
+    {% csrf_token %}
+    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-md">
+        <h2 class="text-xl font-bold text-gray-900">
+            {% translate "Add New Treatment Type" %}
+        </h2>
+    </div>
+    <div class="px-6 py-4">
+        {{ form|crispy }}
+    </div>
+    <div class="mt-4 px-6 py-3 bg-gray-50 rounded-b-md flex justify-end space-x-3 border-t">
+        <!-- Close button for the modal -->
+        <c-button type="button" variant="secondary" onclick="document.getElementById('modal-container').style.display='none'; document.getElementById('modal-content').innerHTML='';">
+            {% translate "Cancel" %}
+        </c-button>
+        <c-save_button>
+            {% translate "Add" %}
+        </c-save_button>
+    </div>
+</form>

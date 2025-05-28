@@ -13,19 +13,39 @@
             <form method="post">
                 {% csrf_token %}
                 {% for field in form %}
+                    {% if field.name == 'treatment_type' %}
+                    <!-- Wrapper for the treatment type field for HTMX refresh -->
+                    <div id="treatment-type-select-wrapper" class="mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ field.label }}
+                            </label>
+                            {% if perms.patientapp.add_treatmenttype %}
+                                <c-button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    hx-get="{% url 'treatment_type_create' %}"
+                                    hx-target="#modal-content"
+                                    hx-swap="innerHTML"
+                                >
+                                    {% translate "Add New Treatment Type" %}
+                                </c-button>
+                            {% endif %}
+                        </div>
+                        {{ field|as_crispy_field }}
+                    </div>
+                    {% else %}
+                    <!-- Other fields -->
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-2">
                             <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
                                 {{ field.label }}
                             </label>
-                            {% if field.name == 'treatment_type' and perms.patientapp.add_treatmenttype %}
-                                <c-link_button href="{% url 'treatment_type_create' %}" target="_blank" size="sm">
-                                    {% translate "Add New Treatment Type" %}
-                                </c-link_button>
-                            {% endif %}
                         </div>
                         {{ field|as_crispy_field }}
                     </div>
+                    {% endif %}
                 {% endfor %}
                 <div class="mt-6 flex justify-end space-x-3">
                     <c-link_button href="{% url 'patient_detail' diagnosis.patient.id %}" variant="secondary">

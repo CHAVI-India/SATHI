@@ -17,6 +17,15 @@
             {% translate "Manage Questionnaires" %}
           </c-link_button>
           {% endif %}
+          {# Add View PRO Review button #}
+          <c-view_results_button href="{% url 'prom_review' patient.id %}">
+            {% translate "View PRO Review" %}
+          </c-view_results_button>
+          {% if perms.patientapp.change_patient %}
+          <c-edit_button href="{% url 'patient_restricted_update' patient.id %}" variant="outline">
+            {% translate "Edit Patient Details" %}
+          </c-edit_button>
+          {% endif %}
         </div>
       </div>
 
@@ -68,11 +77,13 @@
                     value="{{ patient.institution.name }}"
                     layout="horizontal" />
                 
-                <c-field_display 
-                    label="{% translate 'Created Date' %}"
-                    value="{{ patient.created_date }}"
-                    type="date"
+                {% with formatted_dor=patient.date_of_registration|date:"Y-m-d" %}
+                <c-field_display
+                    label="{% translate 'Date of Registration' %}"
+                    :value="formatted_dor"
+                    {# No type="date", treat as plain string. The component will render the pre-formatted string. #}
                     layout="horizontal" />
+                {% endwith %}
             </dl>
         </c-card>
       </div>
@@ -101,8 +112,12 @@
                     padding="sm">
                     <div class="flex justify-between items-start mb-3">
                         <div>
-                            <h4 class="text-lg font-medium text-gray-900">{{ diagnosis.diagnosis }}</h4>
-                            <p class="text-xs text-gray-500">{{ diagnosis.created_date|date:"F j, Y" }}</p>
+                            <h4 class="text-lg font-medium text-gray-900">
+                                {{ diagnosis.diagnosis }}
+                                {% if diagnosis.date_of_diagnosis %}
+                                <span class="text-xs text-gray-500 font-normal ml-2">({% translate "Diagnosed" %}: {{ diagnosis.date_of_diagnosis|date:"F j, Y" }})</span>
+                                {% endif %}
+                            </h4>
                         </div>
                         <div class="flex space-x-2">
                             {% if perms.patientapp.change_diagnosis %}
@@ -110,11 +125,7 @@
                                 {% translate "Edit" %}
                             </c-edit_button>
                             {% endif %}
-                            {% if perms.patientapp.delete_diagnosis %}
-                            <c-link_button href="{% url 'diagnosis_delete' diagnosis.id %}" target="_blank" variant="danger">
-                                {% translate "Delete" %}
-                            </c-link_button>
-                            {% endif %}
+                            {# Diagnosis delete button removed as per request #}
                         </div>
                     </div>
                     
@@ -139,17 +150,13 @@
                                 <div class="bg-gray-50 border border-gray-200 rounded p-3">
                                     <div class="flex justify-between items-start">
                                         <div>
-                                            <p class="font-medium text-sm">{{ treatment.treatment_intent }}</p>
-                                            <p class="text-xs text-gray-500">
-                                                {% for type in treatment.treatment_type.all %}
-                                                {{ type.treatment_type }}{% if not forloop.last %}, {% endif %}
-                                                {% endfor %}
+                                            <p class="text-sm">
+                                                <strong class="font-medium">{% for type in treatment.treatment_type.all %}{{ type.treatment_type }}{% if not forloop.last %}, {% endif %}{% empty %}{% translate "N/A" %}{% endfor %}</strong>
+                                                {% if treatment.treatment_intent %}({{ treatment.treatment_intent }}){% endif %}
+                                                {% if treatment.date_of_start_of_treatment %}
+                                                <span class="text-xs text-gray-500 ml-2">{% translate "Started" %}: {{ treatment.date_of_start_of_treatment|date:"F j, Y" }}</span>
+                                                {% endif %}
                                             </p>
-                                            {% if treatment.date_of_start_of_treatment %}
-                                            <p class="text-xs text-gray-500">
-                                                {% translate "Started" %}: {{ treatment.date_of_start_of_treatment|date:"F j, Y" }}
-                                            </p>
-                                            {% endif %}
                                         </div>
                                         <div class="flex space-x-2">
                                             {% if perms.patientapp.change_treatment %}
@@ -157,11 +164,7 @@
                                                 {% translate "Edit" %}
                                             </c-edit_button>
                                             {% endif %}
-                                            {% if perms.patientapp.delete_treatment %}
-                                            <c-link_button href="{% url 'treatment_delete' treatment.id %}" target="_blank" variant="danger">
-                                                {% translate "Delete" %}
-                                            </c-link_button>
-                                            {% endif %}
+                                            {# Treatment delete button removed as per request #}
                                         </div>
                                     </div>
                                 </div>

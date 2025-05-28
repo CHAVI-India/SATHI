@@ -40,6 +40,7 @@ class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = secured_fields.EncryptedCharField(max_length=255, searchable=True, null=True, blank=True)
     patient_id = secured_fields.EncryptedCharField(max_length=255, searchable=True, null=True, blank=True)
+    date_of_registration = secured_fields.EncryptedDateField(verbose_name="Date of Registration",null=True, blank=True, searchable=True)
     age = models.PositiveIntegerField(null=True, blank=True)
     gender = models.CharField(max_length=255, choices=GenderChoices.choices, null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
@@ -61,6 +62,7 @@ class Diagnosis(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     diagnosis = models.CharField(max_length=255,null=True, blank=True)
+    date_of_diagnosis = secured_fields.EncryptedDateField(verbose_name="Date of Diagnosis",null=True,blank=True,searchable=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
@@ -105,6 +107,7 @@ class Treatment(models.Model):
     treatment_type = models.ManyToManyField(TreatmentType, blank=True)
     treatment_intent = models.CharField(max_length=255, choices=TreatmentIntentChoices.choices, null=True, blank=True)
     date_of_start_of_treatment = models.DateField(null=True, blank=True)
+    date_of_end_of_treatment = models.DateField(null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 

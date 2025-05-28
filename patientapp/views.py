@@ -10,7 +10,7 @@ from django.db.models import Q, Count, Max
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
 from .models import Patient, Diagnosis, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
-from .forms import PatientForm, TreatmentForm
+from .forms import PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm
 from promapp.models import *
 from .utils import ConstructScoreData, calculate_percentage, create_item_response_plot
 import logging
@@ -672,10 +672,35 @@ class PatientCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView)
         context['title'] = _('Add New Patient')
         return context
 
+class PatientRestrictedUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Patient
+    form_class = PatientRestrictedUpdateForm
+    template_name = 'patientapp/patient_restricted_update_form.html'
+    permission_required = 'patientapp.change_patient' # Or a more specific permission
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('Edit Patient Details')
+        return context
+
+    def form_valid(self, form):
+        try:
+            with transaction.atomic():
+                self.object = form.save()
+                messages.success(self.request, _('Patient basic details updated successfully.'))
+                return redirect(self.get_success_url())
+        except Exception as e:
+            logger.error(f"Error updating patient basic details {self.object.id}: {e}", exc_info=True)
+            messages.error(self.request, _('An error occurred while updating the patient basic details.'))
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return reverse('patient_detail', kwargs={'pk': self.object.pk})
+
 # Diagnosis Views
 class DiagnosisCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Diagnosis
-    fields = ['diagnosis']
+    form_class = DiagnosisForm
     template_name = 'patientapp/diagnosis_form.html'
     permission_required = 'patientapp.add_diagnosis'
 
@@ -695,25 +720,19 @@ class DiagnosisCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVie
 
 class DiagnosisUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Diagnosis
-    fields = ['diagnosis']
+    form_class = DiagnosisForm
     template_name = 'patientapp/diagnosis_form.html'
     permission_required = 'patientapp.change_diagnosis'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = _('Edit Diagnosis')
+        context['patient'] = self.object.patient # Pass patient to context for the cancel button
         return context
 
     def get_success_url(self):
         return reverse('patient_detail', kwargs={'pk': self.object.patient.pk})
-
-class DiagnosisDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    model = Diagnosis
-    template_name = 'patientapp/diagnosis_confirm_delete.html'
-    permission_required = 'patientapp.delete_diagnosis'
-
-    def get_success_url(self):
-        return reverse('patient_detail', kwargs={'pk': self.object.patient.pk})
+# DiagnosisDeleteView removed as per request to restrict delete to admin only.
 
 # Treatment Views
 class TreatmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -749,33 +768,52 @@ class TreatmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
         context['treatment_types'] = TreatmentType.objects.all()
         context['treatment_intents'] = TreatmentIntentChoices.choices
         context['title'] = _('Edit Treatment')
+        # Ensure diagnosis is in context for the cancel button URL
+        context['diagnosis'] = self.object.diagnosis
         return context
 
     def get_success_url(self):
         return reverse('patient_detail', kwargs={'pk': self.object.diagnosis.patient.pk})
 
-class TreatmentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    model = Treatment
-    template_name = 'patientapp/treatment_confirm_delete.html'
-    permission_required = 'patientapp.delete_treatment'
-
-    def get_success_url(self):
-        return reverse('patient_detail', kwargs={'pk': self.object.diagnosis.patient.pk})
+# TreatmentDeleteView removed as per request to restrict delete to admin only.
 
 # Treatment Type Views
+from django.http import HttpResponse
+
 class TreatmentTypeCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = TreatmentType
     fields = ['treatment_type']
-    template_name = 'patientapp/treatment_type_form.html'
+    template_name = 'patientapp/treatment_type_form.html' # Full page template
     permission_required = 'patientapp.add_treatmenttype'
+
+    def get_template_names(self):
+        if self.request.htmx:
+            return ['patientapp/partials/treatment_type_form_modal.html']
+        return [self.template_name]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = _('Add Treatment Type')
         return context
 
+    def form_valid(self, form):
+        super().form_valid(form) # Save the object
+        if self.request.htmx:
+            # Send back an empty response for the modal content, effectively clearing it.
+            # And trigger an event to tell the parent page to refresh the dropdown and hide the modal container.
+            response = HttpResponse(status=200) # OK
+            # This will replace the modal content with nothing.
+            response.content = ""
+            # This header tells the client to hide the modal container and refresh the treatment type field.
+            # We'll need corresponding JS on the client to handle 'closeModalAndRefreshTreatmentTypes'.
+            response['HX-Trigger'] = 'closeModalAndRefreshTreatmentTypes'
+            return response
+        return redirect(self.get_success_url())
+
+
     def get_success_url(self):
-        return reverse('treatment_type_list')
+        # This is for non-HTMX requests or if form_valid doesn't return an HttpResponse
+        return reverse('treatment_type_list') # Or redirect back to the treatment form?
 
 class TreatmentTypeUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = TreatmentType
@@ -791,13 +829,7 @@ class TreatmentTypeUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
     def get_success_url(self):
         return reverse('treatment_type_list')
 
-class TreatmentTypeDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    model = TreatmentType
-    template_name = 'patientapp/treatment_type_confirm_delete.html'
-    permission_required = 'patientapp.delete_treatmenttype'
-
-    def get_success_url(self):
-        return reverse('treatment_type_list')
+# TreatmentTypeDeleteView removed as per request to restrict delete to admin only.
 
 def treatment_type_list(request):
     treatment_types = TreatmentType.objects.all()

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
-from .models import Patient, Institution, Treatment
+from .models import Patient, Institution, Treatment, Diagnosis
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Div, Submit, HTML
 from django.utils.translation import gettext_lazy as _
@@ -29,11 +29,12 @@ class PatientForm(forms.ModelForm):
     
     class Meta:
         model = Patient
-        fields = ['patient_id', 'name', 'age', 'gender', 'institution', 'username', 'email', 'password1', 'password2', 'groups']
+        fields = ['patient_id', 'name', 'age', 'gender', 'institution','date_of_registration' , 'username', 'email', 'password1', 'password2', 'groups']
         widgets = {
             'age': forms.NumberInput(attrs={'min': 0, 'max': 150}),
             'password1': forms.PasswordInput(),
             'password2': forms.PasswordInput(),
+            'date_of_registration': forms.DateInput(attrs={'type': 'date'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -64,6 +65,7 @@ class PatientForm(forms.ModelForm):
                 Field('age', css_class='w-full px-3 py-2 border rounded'),
                 Field('gender', css_class='w-full px-3 py-2 border rounded'),
                 Field('institution', css_class='w-full px-3 py-2 border rounded'),
+                Field('date_of_registration',css_class='w-full px-3 py-2 border rounded'),
                 css_class='space-y-4'
             ),
             
@@ -94,6 +96,33 @@ class PatientForm(forms.ModelForm):
             raise forms.ValidationError(_("A user with that email already exists."))
         return email
 
+class DiagnosisForm(forms.ModelForm):
+    class Meta:
+        model = Diagnosis
+        fields = ['diagnosis', 'date_of_diagnosis']
+        widgets = {
+            'date_of_diagnosis': forms.DateInput(attrs={'type': 'date'}),
+        }
+class PatientRestrictedUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Patient
+        fields = ['age', 'gender', 'institution', 'date_of_registration']
+        widgets = {
+            'age': forms.NumberInput(attrs={'min': 0, 'max': 150}),
+            'date_of_registration': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # If you want to use crispy forms helper for this new form:
+        # self.helper = FormHelper()
+        # self.helper.form_tag = False # To prevent crispy from rendering the <form> tag
+        # self.helper.layout = Layout(
+        #     Field('age', css_class='w-full px-3 py-2 border rounded'),
+        #     Field('gender', css_class='w-full px-3 py-2 border rounded'),
+        #     Field('institution', css_class='w-full px-3 py-2 border rounded'),
+        #     Field('date_of_registration', css_class='w-full px-3 py-2 border rounded'),
+        # )
 class TreatmentForm(forms.ModelForm):
     class Meta:
         model = Treatment

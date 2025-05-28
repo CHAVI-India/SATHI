@@ -61,11 +61,7 @@
                                         {% translate "Edit" %}
                                     </c-edit_button>
                                     {% endif %}
-                                    {% if perms.patientapp.delete_treatmenttype %}
-                                    <c-link_button href="{% url 'treatment_type_delete' treatment_type.id %}" target="_blank" variant="danger">
-                                        {% translate "Delete" %}
-                                    </c-link_button>
-                                    {% endif %}
+                                    {# Treatment Type delete button removed as per request #}
                                 </div>
                             </td>
                         </tr>

@@ -24,40 +24,10 @@
       <form method="post" class="space-y-8">
         {% csrf_token %}
         
-        <!-- User Account Information -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-medium text-gray-900">{% translate "User Account Information" %}</h3>
-          <div class="grid grid-cols-1 gap-4">
-            {% if form.username %}
-              {{ form.username|as_crispy_field }}
-            {% endif %}
-            {% if form.email %}
-              {{ form.email|as_crispy_field }}
-            {% endif %}
-          </div>
-        </div>
-
-        {% if form.password1 %}
-        <!-- Password Section (only for create view) -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-medium text-gray-900">{% translate "Password" %}</h3>
-          <div class="grid grid-cols-1 gap-4">
-            {{ form.password1|as_crispy_field }}
-            {{ form.password2|as_crispy_field }}
-          </div>
-        </div>
-        {% endif %}
-
         <!-- Patient Information -->
         <div class="space-y-4">
           <h3 class="text-lg font-medium text-gray-900">{% translate "Patient Information" %}</h3>
           <div class="grid grid-cols-1 gap-4">
-            {% if form.patient_id %}
-              {{ form.patient_id|as_crispy_field }}
-            {% endif %}
-            {% if form.name %}
-              {{ form.name|as_crispy_field }}
-            {% endif %}
             {{ form.age|as_crispy_field }}
             {{ form.gender|as_crispy_field }}
             {{ form.institution|as_crispy_field }}
@@ -65,25 +35,17 @@
           </div>
         </div>
 
-        <!-- Groups Section -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-medium text-gray-900">{% translate "User Groups" %}</h3>
-          <div class="mt-2">
-            {{ form.groups|as_crispy_field }}
-          </div>
-        </div>
-
         <!-- Form Actions -->
         <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-          <c-link_button href="{% url 'patient_list' %}" variant="secondary">
+          <c-link_button href="{% url 'patient_detail' object.pk %}" variant="secondary">
             {% translate "Cancel" %}
           </c-link_button>
           <c-save_button>
-            {% if object %}{% translate "Update Patient" %}{% else %}{% translate "Create Patient" %}{% endif %}
+            {% translate "Edit Patient Details" %}
           </c-save_button>
         </div>
       </form>
     </div>
   </div>
 </div>
-{% endblock %} 
+{% endblock %}
