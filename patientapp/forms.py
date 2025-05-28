@@ -103,6 +103,12 @@ class DiagnosisForm(forms.ModelForm):
         widgets = {
             'date_of_diagnosis': forms.DateInput(attrs={'type': 'date'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.date_of_diagnosis:
+            self.initial['date_of_diagnosis'] = self.instance.date_of_diagnosis.strftime('%Y-%m-%d')
+
 class PatientRestrictedUpdateForm(forms.ModelForm):
     class Meta:
         model = Patient
@@ -114,6 +120,9 @@ class PatientRestrictedUpdateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.date_of_registration:
+            self.initial['date_of_registration'] = self.instance.date_of_registration.strftime('%Y-%m-%d')
+        
         # If you want to use crispy forms helper for this new form:
         # self.helper = FormHelper()
         # self.helper.form_tag = False # To prevent crispy from rendering the <form> tag
@@ -129,4 +138,9 @@ class TreatmentForm(forms.ModelForm):
         fields = ['treatment_type', 'treatment_intent', 'date_of_start_of_treatment']
         widgets = {
             'date_of_start_of_treatment': forms.DateInput(attrs={'type': 'date'}),
-        } 
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.date_of_start_of_treatment:
+            self.initial['date_of_start_of_treatment'] = self.instance.date_of_start_of_treatment.strftime('%Y-%m-%d')

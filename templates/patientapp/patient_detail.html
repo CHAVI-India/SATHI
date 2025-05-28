@@ -104,11 +104,11 @@
             shadow="lg"
             border="medium"
             padding="sm">
-            <div class="space-y-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6"> {# Changed from space-y-4 to grid #}
                 {% for diagnosis in diagnoses %}
-                <c-card 
-                    shadow="lg"
-                    border="medium"
+                <c-card
+                    shadow="md" {# Optionally reduced shadow for multi-column #}
+                    border="light" {# Optionally reduced border #}
                     padding="sm">
                     <div class="flex justify-between items-start mb-3">
                         <div>
