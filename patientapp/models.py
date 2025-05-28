@@ -54,6 +54,25 @@ class Patient(models.Model):
     def __str__(self):
         return self.name
 
+class DiagnosisList(models.Model):
+    '''
+    List of diagnosis for the system. This list will be referenced in the model for the Diagnosis. 
+    '''
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4,editable=False)
+    diagnosis = models.CharField(null=True,blank=True,max_length = 255)
+    icd_11_code = models.CharField(null=True, blank=True,max_length=255, verbose_name= "ICD 11 Code")
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta: 
+        ordering = ['-created_date']
+        verbose_name = 'List of Diagnosis'
+        verbose_name_plural = 'List of Diagnoses'
+
+    def __str__(self):
+        return f"{self.icd_11_code}: {self.diagnosis}"
+
+
 
 class Diagnosis(models.Model):
     '''
@@ -61,8 +80,8 @@ class Diagnosis(models.Model):
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    diagnosis = models.CharField(max_length=255,null=True, blank=True)
-    date_of_diagnosis = secured_fields.EncryptedDateField(verbose_name="Date of Diagnosis",null=True,blank=True,searchable=True)
+    diagnosis = models.ForeignKey(DiagnosisList,on_delete=models.CASCADE,null=True, blank=True,help_text="Select the Diagnosis from the list",related_name="diagnosis_list")
+    date_of_diagnosis = secured_fields.EncryptedDateField(verbose_name="Date of Diagnosis",null=True,blank=True,searchable=True, help_text="Select the Date of Diagnosis from the calendar")
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 

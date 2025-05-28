@@ -64,7 +64,7 @@
                         <div class="flex flex-wrap gap-1">
                             {% for diagnosis in patient.diagnosis_set.all %}
                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {{ diagnosis.diagnosis|truncatechars:30 }}
+                                {{ diagnosis.diagnosis.diagnosis|truncatechars:30 }}
                             </span>
                             {% endfor %}
                         </div>

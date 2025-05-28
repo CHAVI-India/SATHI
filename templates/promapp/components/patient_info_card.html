@@ -62,7 +62,7 @@
                             <div class="flex items-start gap-x-2 clinical-filter-label">
                                 <div class="flex items-center gap-x-1">
                                     <span class="text-blue-600">📋</span>
-                                    <span class="font-semibold text-gray-800">{{ diagnosis.diagnosis|default:"Unnamed Diagnosis" }}</span>
+                                    <span class="font-semibold text-gray-800">{{ diagnosis.diagnosis.diagnosis|default:"Unnamed Diagnosis" }}</span>
                                 </div>
                                 {% if diagnosis.date_of_diagnosis %}
                                 <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full clinical-tag">

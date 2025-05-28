@@ -11,6 +11,10 @@ class InstitutionAdmin(admin.ModelAdmin):
 class PatientAdmin(admin.ModelAdmin):
     list_display = ['name', 'patient_id', 'age', 'gender', 'created_date', 'modified_date']
 
+@admin.register(DiagnosisList)
+class DiagnosisList(admin.ModelAdmin):
+    list_display = ['diagnosis','icd_11_code']
+
 @admin.register(Diagnosis)
 class DiagnosisAdmin(admin.ModelAdmin):
     list_display = ['patient', 'diagnosis', 'created_date', 'modified_date']

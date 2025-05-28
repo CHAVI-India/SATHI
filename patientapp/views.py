@@ -9,7 +9,7 @@ from django.db import transaction
 from django.db.models import Q, Count, Max
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
-from .models import Patient, Diagnosis, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
+from .models import Patient, Diagnosis, DiagnosisList, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
 from .forms import PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm
 from promapp.models import *
 from .utils import ConstructScoreData, calculate_percentage, create_item_response_plot
@@ -490,7 +490,7 @@ def patient_list(request):
         patients = patients.filter(gender=gender)
     
     if diagnosis:
-        patients = patients.filter(diagnosis__diagnosis__icontains=diagnosis).distinct()
+        patients = patients.filter(diagnosis__diagnosis__diagnosis__icontains=diagnosis).distinct()
     
     if treatment_type:
         patients = patients.filter(diagnosis__treatment__treatment_type__treatment_type__icontains=treatment_type).distinct()
@@ -537,7 +537,7 @@ def patient_list(request):
     gender_choices = GenderChoices.choices
     
     # Get unique diagnoses for the filter dropdown
-    diagnoses = list(Diagnosis.objects.values_list('diagnosis', flat=True).distinct().exclude(diagnosis__isnull=True).exclude(diagnosis=''))
+    diagnoses = list(DiagnosisList.objects.values_list('diagnosis', flat=True).distinct().exclude(diagnosis__isnull=True).exclude(diagnosis=''))
     
     # Get unique treatment types for the filter dropdown
     treatment_types = list(TreatmentType.objects.values_list('treatment_type', flat=True).distinct().exclude(treatment_type__isnull=True).exclude(treatment_type=''))

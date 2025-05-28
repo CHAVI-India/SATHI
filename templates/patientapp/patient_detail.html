@@ -113,7 +113,7 @@
                     <div class="flex justify-between items-start mb-3">
                         <div>
                             <h4 class="text-lg font-medium text-gray-900">
-                                {{ diagnosis.diagnosis }}
+                                {{ diagnosis.diagnosis.diagnosis }}
                                 {% if diagnosis.date_of_diagnosis %}
                                 <span class="text-xs text-gray-500 font-normal ml-2">({% translate "Diagnosed" %}: {{ diagnosis.date_of_diagnosis|date:"F j, Y" }})</span>
                                 {% endif %}

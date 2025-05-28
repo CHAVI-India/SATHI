@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
-from .models import Patient, Institution, Treatment, Diagnosis
+from .models import Patient, Institution, Treatment, Diagnosis, DiagnosisList
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Div, Submit, HTML
 from django.utils.translation import gettext_lazy as _
