@@ -121,9 +121,14 @@
                         </div>
                         <div class="flex space-x-2">
                             {% if perms.patientapp.change_diagnosis %}
-                            <c-edit_button href="{% url 'diagnosis_update' diagnosis.id %}" target="_blank">
-                                {% translate "Edit" %}
+                            <c-edit_button href="{% url 'diagnosis_update' diagnosis.id %}" target="_blank" size="sm">
+                                {% translate "Edit Diagnosis" %}
                             </c-edit_button>
+                            {% endif %}
+                            {% if perms.patientapp.add_treatment %}
+                            <c-create_button href="{% url 'treatment_create' diagnosis.id %}" target="_blank" size="sm">
+                                {% translate "Add Treatment" %}
+                            </c-create_button>
                             {% endif %}
                             {# Diagnosis delete button removed as per request #}
                         </div>
@@ -131,16 +136,9 @@
                     
                     <!-- Treatments for this diagnosis -->
                     <div class="mt-4">
-                        <div class="flex justify-between items-center mb-3">
-                            <div></div>
-                            {% if perms.patientapp.add_treatment %}
-                            <c-create_button href="{% url 'treatment_create' diagnosis.id %}" target="_blank" size="sm">
-                                {% translate "Add Treatment" %}
-                            </c-create_button>
-                            {% endif %}
-                        </div>
+                        {# Removed the separate div for Add Treatment button that was here before #}
                         
-                        <c-card 
+                        <c-card
                             title="{% translate 'Treatments' %}"
                             shadow="sm"
                             border="light"
