@@ -27,6 +27,4 @@ urlpatterns = [
     # PRO Review URLs
     path('patients/<uuid:pk>/prom-review/', views.prom_review, name='prom_review'),
     path('patients/<uuid:pk>/prom-review/item-search/', views.prom_review_item_search, name='prom_review_item_search'),
-
-
 ]

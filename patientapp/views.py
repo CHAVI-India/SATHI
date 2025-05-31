@@ -498,7 +498,8 @@ def prom_review_item_search(request, pk):
 
 def patient_list(request):
     # Get filter parameters
-    search_query = request.GET.get('search', '')
+    name_search = request.GET.get('name_search', '')
+    id_search = request.GET.get('id_search', '')
     institution_id = request.GET.get('institution', '')
     gender = request.GET.get('gender', '')
     diagnosis = request.GET.get('diagnosis', '')
@@ -510,11 +511,11 @@ def patient_list(request):
     patients = Patient.objects.select_related('user', 'institution').all()
     
     # Apply filters
-    if search_query:
-        patients = patients.filter(
-            Q(name__icontains=search_query) |
-            Q(patient_id__icontains=search_query)
-        )
+    if name_search:
+        patients = patients.filter(name__exact=name_search)
+    
+    if id_search:
+        patients = patients.filter(patient_id__exact=id_search)
     
     if institution_id:
         patients = patients.filter(institution_id=institution_id)
@@ -765,6 +766,7 @@ class DiagnosisUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
 
     def get_success_url(self):
         return reverse('patient_detail', kwargs={'pk': self.object.patient.pk})
+
 # DiagnosisDeleteView removed as per request to restrict delete to admin only.
 
 # Treatment Views
