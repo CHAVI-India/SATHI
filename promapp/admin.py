@@ -73,6 +73,28 @@ class QuestionnaireItemAdmin(admin.ModelAdmin):
 class ConstructScaleImportResource(resources.ModelResource):
     class Meta:
         model = ConstructScale
+        import_id_fields = ['id']  # Use UUID as the import identifier
+        fields = ('id', 'name', 'instrument_name', 'instrument_version', 'scale_equation',
+                 'minimum_number_of_items', 'scale_better_score_direction', 'scale_threshold_score',
+                 'scale_minimum_clinical_important_difference', 'scale_normative_score_mean',
+                 'scale_normative_score_standard_deviation')
+        export_order = fields
+
+    def before_import_row(self, row, **kwargs):
+        """
+        Handle UUID generation for new records during import
+        """
+        if not row.get('id'):
+            row['id'] = str(uuid.uuid4())
+
+    def get_instance(self, instance_loader, row):
+        """
+        Override to handle UUID lookup
+        """
+        try:
+            return self.get_queryset().get(id=row['id'])
+        except (self.Meta.model.DoesNotExist, KeyError):
+            return None
 
 @admin.register(ConstructScale)
 class ConstructScaleAdmin(ImportExportActionModelAdmin):
