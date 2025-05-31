@@ -3,9 +3,10 @@ from .models import *
 from parler.admin import TranslatableAdmin, TranslatableStackedInline
 # Import export section
 from import_export import resources
-from import_export.admin import ImportExportActionModelAdmin
+from import_export.admin import ImportExportActionModelAdmin, ImportExportModelAdmin
 from import_export import fields
 from import_export.widgets import ForeignKeyWidget
+from .resources import ItemResource
 #from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
 # Register your models here.
 
@@ -26,16 +27,85 @@ class LikertScaleResponseOptionInline(TranslatableStackedInline):
     extra = 1
 
 
+class LikertScaleResponseOptionImportResource(resources.ModelResource):
+    class Meta:
+        model = LikertScaleResponseOption
+        import_id_fields = ['id']  # Use UUID as the import identifier
+        fields = ('id', 'likert_scale', 'option_order', 'option_value', 'option_text')
+        export_order = fields
+
+    def before_import_row(self, row, **kwargs):
+        """
+        Handle UUID generation for new records during import
+        """
+        if not row.get('id'):
+            row['id'] = str(uuid.uuid4())
+    
+    def get_instance(self, instance_loader, row):
+        """
+        Override to handle UUID lookup
+        """
+        try:
+            return self.get_queryset().get(id=row['id'])
+        except (self.Meta.model.DoesNotExist, KeyError):
+            return None
+
+
+@admin.register(LikertScaleResponseOption)
+class LikertScaleResponseOptionAdmin(TranslatableAdmin, ImportExportActionModelAdmin):
+    resource_classes = [LikertScaleResponseOptionImportResource]
+    list_display = ('likert_scale', 'option_order', 'get_option_text', 'option_value', 'option_emoji')
+    search_fields = ('likert_scale', 'option_order', 'translations__option_text', 'option_value', 'option_emoji')
+    list_filter = ('likert_scale',)
+    ordering = ('-created_date',)
+    readonly_fields = ('created_date', 'modified_date')
+    
+    # Parler translation settings
+    fieldsets = (
+        (None, {
+            'fields': ('likert_scale', 'option_order', 'option_value', 'option_emoji')
+        }),
+        ('Translations', {
+            'fields': ('option_text', 'option_media'),
+            'classes': ('parler-translatable',)
+        }),
+    )
+
+    def get_option_text(self, obj):
+        """Get the translated option text for the current language"""
+        return obj.safe_translation_getter('option_text', any_language=True)
+    get_option_text.short_description = 'Option Text'
 
 
 class QuestionnaireItemInline(admin.StackedInline):
     model = QuestionnaireItem
     extra = 1
 
+class LikertScaleImportResource(resources.ModelResource):
+    class Meta:
+        model = LikertScale
+        import_id_fields = ['id']  # Use UUID as the import identifier
+        fields = ('id', 'likert_scale_name')
+        export_order = fields
 
+    def before_import_row(self, row, **kwargs):
+        """
+        Handle UUID generation for new records during import
+        """
+        if not row.get('id'):
+            row['id'] = str(uuid.uuid4())
+
+    def get_instance(self, instance_loader, row):
+        """
+        Override to handle UUID lookup
+        """
+        try:
+            return self.get_queryset().get(id=row['id'])
+        except (self.Meta.model.DoesNotExist, KeyError):
+            return None        
 
 @admin.register(LikertScale)
-class LikertScaleAdmin(admin.ModelAdmin):
+class LikertScaleAdmin(ImportExportActionModelAdmin):
     inlines = [LikertScaleResponseOptionInline]
     list_display = ('likert_scale_name',)
     search_fields = ('likert_scale_name',)
@@ -43,6 +113,7 @@ class LikertScaleAdmin(admin.ModelAdmin):
     ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')
     group_fieldsets = True
+    resource_classes = [LikertScaleImportResource]
 
 @admin.register(RangeScale)
 class RangeScaleAdmin(admin.ModelAdmin):
@@ -108,12 +179,11 @@ class ConstructScaleAdmin(ImportExportActionModelAdmin):
 
 
 @admin.register(Item)
-class ItemAdmin(TranslatableAdmin):
-    list_display = ('construct_scale', 'name', 'response_type')
-    search_fields = ('construct_scale', 'name', 'response_type')
-    list_filter = ('response_type',)
-    ordering = ('-created_date',)
-    readonly_fields = ('created_date', 'modified_date')
+class ItemAdmin(ImportExportModelAdmin):
+    resource_class = ItemResource
+    list_display = ('name', 'item_number', 'response_type', 'construct_scale')
+    list_filter = ('response_type', 'construct_scale')
+    search_fields = ('translations__name', 'item_number')
 
 
 @admin.register(QuestionnaireSubmission)

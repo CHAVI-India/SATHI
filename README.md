@@ -80,3 +80,124 @@ The ability to add translations is provided for the users with appropriate permi
 # Security
 
 Patient identifies are securekly encrypted in the database. 
+
+# Item Import/Export Guide
+
+This guide explains how to format your CSV file for importing Items and their translations into the system.
+
+## CSV Format
+
+The CSV file should be formatted as follows:
+
+```csv
+id,construct_scale,item_number,response_type,language_code,name,likert_response,range_response,is_required,item_missing_value,item_better_score_direction,item_threshold_score,item_minimum_clinical_important_difference,item_normative_score_mean,item_normative_score_standard_deviation,discrimination_parameter,difficulty_parameter,pseudo_guessing_parameter
+550e8400-e29b-41d4-a716-446655440000,123e4567-e89b-12d3-a456-426614174000,1,Likert,en,"How are you feeling?",789e4567-e89b-12d3-a456-426614174000,,true,0,"Higher is Better",5,2,10,2,1.5,0.5,0.1
+```
+
+## Required Fields
+
+1. `id`: UUID of the Item (required for updates, can be empty for new items)
+2. `construct_scale`: UUID of the related ConstructScale
+3. `item_number`: Integer number of the item in the construct scale
+4. `response_type`: One of: 'Text', 'Number', 'Likert', 'Range'
+5. `language_code`: Language code for the translation (e.g., 'en', 'es', 'fr')
+6. `name`: The translated text for the item
+
+## Optional Fields
+
+7. `likert_response`: UUID of the LikertScale (required if response_type is 'Likert')
+8. `range_response`: UUID of the RangeScale (required if response_type is 'Range')
+9. `is_required`: Boolean (true/false)
+10. `item_missing_value`: Decimal value for missing responses
+11. `item_better_score_direction`: One of: 'Higher is Better', 'Lower is Better', 'Middle is Better', 'No Direction'
+12. `item_threshold_score`: Decimal value
+13. `item_minimum_clinical_important_difference`: Decimal value
+14. `item_normative_score_mean`: Decimal value
+15. `item_normative_score_standard_deviation`: Decimal value
+16. `discrimination_parameter`: Float value
+17. `difficulty_parameter`: Float value
+18. `pseudo_guessing_parameter`: Float value
+
+## Translation Guidelines
+
+1. **One Language Per Import**
+   - Each CSV file should contain translations for only one language
+   - The `language_code` column should have the same value for all rows
+   - Example: All rows should have `language_code=en` for English translations
+
+2. **Multiple Languages**
+   - To import multiple languages, create separate CSV files for each language
+   - Use the same `id` values across files to link translations to the same Item
+   - Example:
+     ```csv
+     # english.csv
+     id,...,language_code,name
+     550e8400-e29b-41d4-a716-446655440000,...,en,"How are you feeling?"
+
+     # spanish.csv
+     id,...,language_code,name
+     550e8400-e29b-41d4-a716-446655440000,...,es,"¿Cómo te sientes?"
+     ```
+
+3. **Translation Updates**
+   - To update an existing translation, use the same `id` and `language_code`
+   - The system will update the existing translation rather than creating a new one
+
+## Response Type Requirements
+
+1. **Likert Response**
+   - If `response_type` is 'Likert', `likert_response` must be provided
+   - `range_response` should be empty
+
+2. **Range Response**
+   - If `response_type` is 'Range', `range_response` must be provided
+   - `likert_response` should be empty
+
+3. **Text/Number Response**
+   - If `response_type` is 'Text' or 'Number', both `likert_response` and `range_response` should be empty
+
+## Example CSV Files
+
+### English Translation
+```csv
+id,construct_scale,item_number,response_type,language_code,name,likert_response,range_response,is_required
+550e8400-e29b-41d4-a716-446655440000,123e4567-e89b-12d3-a456-426614174000,1,Likert,en,"How are you feeling?",789e4567-e89b-12d3-a456-426614174000,,true
+660e8400-e29b-41d4-a716-446655440001,123e4567-e89b-12d3-a456-426614174000,2,Likert,en,"Rate your pain",789e4567-e89b-12d3-a456-426614174000,,true
+```
+
+### Spanish Translation
+```csv
+id,construct_scale,item_number,response_type,language_code,name,likert_response,range_response,is_required
+550e8400-e29b-41d4-a716-446655440000,123e4567-e89b-12d3-a456-426614174000,1,Likert,es,"¿Cómo te sientes?",789e4567-e89b-12d3-a456-426614174000,,true
+660e8400-e29b-41d4-a716-446655440001,123e4567-e89b-12d3-a456-426614174000,2,Likert,es,"Califica tu dolor",789e4567-e89b-12d3-a456-426614174000,,true
+```
+
+## Import Process
+
+1. Prepare your CSV file following the format above
+2. Go to the Django admin interface
+3. Navigate to Items
+4. Click the "Import" button
+5. Upload your CSV file
+6. Review the preview
+7. Confirm the import
+
+## Troubleshooting
+
+1. **Missing Required Fields**
+   - Ensure all required fields are present in your CSV
+   - Check that the `language_code` is valid
+
+2. **Invalid UUIDs**
+   - Verify that all UUIDs (id, construct_scale, likert_response, range_response) are valid
+   - Check that referenced objects exist in the database
+
+3. **Response Type Mismatch**
+   - Ensure the correct response fields are provided for each response type
+   - Check that likert_response is provided for Likert items
+   - Check that range_response is provided for Range items
+
+4. **Translation Issues**
+   - Verify that the language_code is consistent throughout the file
+   - Check that the name field contains the translated text
+   - Ensure the id matches the item you want to translate

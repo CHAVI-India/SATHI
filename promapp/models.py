@@ -175,8 +175,8 @@ class LikertScale(models.Model):
 
     class Meta:
         ordering = ['-created_date']
-        verbose_name = 'Likert Scale Response'
-        verbose_name_plural = 'Likert Scale Responses'
+        verbose_name = 'Likert Scale'
+        verbose_name_plural = 'Likert Scales'
 
     def __str__(self):
         return self.likert_scale_name
