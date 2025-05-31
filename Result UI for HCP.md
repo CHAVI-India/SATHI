@@ -161,3 +161,30 @@ Item & construct ordering in item wise results section to ensure items for the w
 
 
 
+# Aggregation features
+
+The system will be able to show the aggregated data in the plots as well as the cards. 
+
+How aggregation will be done:
+1. Aggregation will be done for the construct scores, as well as items with Likert, Range and Numeric response types. 
+2. For each of the construct scores, and item responses (of the types mentioned) the system will get the data of all patients in the system who have provided one or more responses for these.
+3. Before the aggregation the system will take into account the time period from which the responses are to be evaluated. For example the default start period is date of registration. However other dates can be selected as in the UI. Based on the type of date that has been selected (note that it is not the actual date value but the type of date) the aggregation will be done. 
+4. The end date upto which the submissions are to be shown will be selected by the users in the Submissions Upto field. The interval between the start and end date is used to calculate the duration or interval over which the responses are to be obtained. For example if the duration is 3 months then we need all responses given by other patients in the three month period from the start date chosen. 
+5. By default all patients responses will be shown. However we will have the potential to filter the list by matching gender, diagnosis, treatment etc. A combination of these factors will also be possible. If none of these are specified all patients are to be returned. 
+6. After this the system evaluate the time interval units desired. For example if it is Days then the aggregation is to be done at a days level else weeks and so on. Default is weeks. 
+7. The user will be able to choose the type of aggregation in the UI:
+   - Median with interquartile range (25th - 75th quartile)
+   - Mean with 95% confidence intervals of mean
+   - Mean +/- 0.5 SD
+   - Mean +/- 1 SD
+   - Mean +/- 0.5 SD
+   - Mean +/- 2 SD
+   - Mean +/- 2.5 SD
+8. The values of the patient whose data is being reviewed is to be discarded from the dataset. For the remaining patients, the median and IQR values of the construct scale score or the item responses will be computed at each of the time intervals desired. For example if the user wishes to review the responses over a period of 3 months from the date of registration at weekly intervals and has provided responses at 0 weeks, 1 week, 2 week, 3 week, 6 weeks, 9 weeks and 12 weeks then the system will first group the responses of the other patients into these week categories and then compute the median for each week. This implies that for the median aggregation, patients who have provided responses at 4, 5 and 6 weeks will all be grouped into the 6 week response group. 
+8. Once this aggregation is performed then the median and IQRs scores at each week will be displayed on the line plots using the following convention:
+   - Dotted gray line for the median or mean
+   - Error bars on the points to represent the dispersion parameter (IQR, SD or 95% CI as the case may be)
+
+Missing values for the given construct score / item response will be discarded for the computation. However if the patient response is such that one construct score is missing or one item value is missing while others are avaialble then all available values will be used for computation. 
+
+It is important to remember that we would want the index patients responses to be always removed. 
