@@ -1,6 +1,11 @@
 from django.contrib import admin
 from .models import *
 from parler.admin import TranslatableAdmin, TranslatableStackedInline
+# Import export section
+from import_export import resources
+from import_export.admin import ImportExportActionModelAdmin
+from import_export import fields
+from import_export.widgets import ForeignKeyWidget
 #from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
 # Register your models here.
 
@@ -26,6 +31,8 @@ class LikertScaleResponseOptionInline(TranslatableStackedInline):
 class QuestionnaireItemInline(admin.StackedInline):
     model = QuestionnaireItem
     extra = 1
+
+
 
 @admin.register(LikertScale)
 class LikertScaleAdmin(admin.ModelAdmin):
@@ -63,8 +70,13 @@ class QuestionnaireItemAdmin(admin.ModelAdmin):
     readonly_fields = ('created_date', 'modified_date')
 
 
+class ConstructScaleImportResource(resources.ModelResource):
+    class Meta:
+        model = ConstructScale
+
 @admin.register(ConstructScale)
-class ConstructScaleAdmin(admin.ModelAdmin):
+class ConstructScaleAdmin(ImportExportActionModelAdmin):
+    resource_classes = [ConstructScaleImportResource]
     list_display = ('name','instrument_name','instrument_version')
     exclude = ('created_date', 'modified_date')
     search_fields = ('name','instrument_name','instrument_version')
