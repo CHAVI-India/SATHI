@@ -13,6 +13,27 @@ from django.utils import timezone
 from django.conf import settings
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
+import os
+import pandas as pd
+
+# Set up plotting data logger
+plotting_logger = logging.getLogger('plotting_data')
+plotting_logger.setLevel(logging.INFO)
+
+# Create file handler if it doesn't exist
+if not plotting_logger.handlers:
+    log_dir = os.path.join(settings.BASE_DIR, 'logs')
+    os.makedirs(log_dir, exist_ok=True)
+    log_file = os.path.join(log_dir, 'plotting_data.log')
+    
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.INFO)
+    
+    # Create formatter
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    
+    plotting_logger.addHandler(file_handler)
 
 logger = logging.getLogger(__name__)
 
@@ -258,7 +279,8 @@ def calculate_percentage(value: Optional[Decimal], max_value: Optional[Decimal])
 class ConstructScoreData:
     def __init__(self, construct: ConstructScale, current_score: Optional[Decimal],
                  previous_score: Optional[Decimal], historical_scores: List[QuestionnaireConstructScore],
-                 patient=None, start_date_reference='date_of_registration', time_interval='weeks'):
+                 patient=None, start_date_reference='date_of_registration', time_interval='weeks',
+                 aggregated_statistics=None):
         self.construct = construct
         self.score = current_score
         self.previous_score = previous_score
@@ -266,8 +288,9 @@ class ConstructScoreData:
         self.patient = patient
         self.start_date_reference = start_date_reference
         self.time_interval = time_interval
+        self.aggregated_statistics = aggregated_statistics or {}
         self.bokeh_plot = self._create_bokeh_plot(historical_scores)
-        logger.info(f"Created ConstructScoreData for {construct.name}: score={current_score}, previous={previous_score}")
+        logger.info(f"Created ConstructScoreData for {construct.name}: score={current_score}, previous={previous_score}, aggregated_intervals={len(self.aggregated_statistics)}")
 
     def _calculate_score_change(self) -> Optional[float]:
         if self.score is not None and self.previous_score is not None:
@@ -283,11 +306,21 @@ class ConstructScoreData:
         if self.patient:
             start_date = get_patient_start_date(self.patient, self.start_date_reference)
         
+        plotting_logger.info("="*80)
+        plotting_logger.info(f"PLOTTING DATA for {self.construct.name}")
+        plotting_logger.info("="*80)
+        plotting_logger.info(f"Patient: {self.patient.name if self.patient else 'Unknown'}")
+        plotting_logger.info(f"Start Date: {start_date}")
+        plotting_logger.info(f"Time Interval Type: {self.time_interval}")
+        plotting_logger.info(f"Number of Historical Scores: {len(historical_scores)}")
+        
         # Filter out scores with negative intervals
         if start_date:
             filtered_scores = filter_positive_intervals_construct(historical_scores, start_date, self.time_interval)
         else:
             filtered_scores = historical_scores
+        
+        plotting_logger.info(f"Filtered Scores (non-negative intervals): {len(filtered_scores)}")
         
         # Prepare data with time intervals and submission dates for tooltip
         time_intervals = []
@@ -310,12 +343,57 @@ class ConstructScoreData:
         
         scores = [float(score.score) if score.score is not None else None for score in reversed(filtered_scores)]
         
+        # Log individual patient data in tabular format
+        plotting_logger.info("\nINDIVIDUAL PATIENT DATA:")
+        if time_intervals:
+            # Create DataFrame for nice tabular output
+            df_individual = pd.DataFrame({
+                'Time_Interval': [f"{x:.2f}" for x in time_intervals],
+                'Score': [f"{x:.1f}" if x is not None else "N/A" for x in scores],
+                'Submission_Date': submission_dates
+            })
+            plotting_logger.info(f"\n{df_individual.to_string(index=False)}")
+        else:
+            plotting_logger.info("No individual data available")
+        
         # Calculate x-axis range to ensure it starts from 0 or positive values
         if time_intervals:
             x_min = max(0, min(time_intervals) - 0.1 * (max(time_intervals) - min(time_intervals)) if max(time_intervals) > min(time_intervals) else 0)
             x_max = max(time_intervals) + 0.1 * (max(time_intervals) - min(time_intervals)) if max(time_intervals) > min(time_intervals) else max(time_intervals) + 1
         else:
             x_min, x_max = 0, 1
+        
+        plotting_logger.info(f"\nX-axis range: {x_min:.2f} to {x_max:.2f}")
+        
+        # If we have aggregated data, extend the range to include all aggregated intervals
+        if self.aggregated_statistics:
+            agg_intervals = list(self.aggregated_statistics.keys())
+            if agg_intervals:
+                x_min = max(0, min(x_min, min(agg_intervals) - 0.1 * (max(agg_intervals) - min(agg_intervals)) if max(agg_intervals) > min(agg_intervals) else 0))
+                x_max = max(x_max, max(agg_intervals) + 0.1 * (max(agg_intervals) - min(agg_intervals)) if max(agg_intervals) > min(agg_intervals) else max(agg_intervals) + 1)
+            
+            # Log aggregated data in tabular format
+            plotting_logger.info("\nAGGREGATED POPULATION DATA:")
+            plotting_logger.info(f"Number of time intervals with aggregated data: {len(self.aggregated_statistics)}")
+            
+            # Create DataFrame for aggregated statistics
+            agg_data = []
+            for interval, stats in sorted(self.aggregated_statistics.items()):
+                agg_data.append({
+                    'Time_Interval': f"{interval:.1f}",
+                    'Central': f"{stats['central']:.2f}",
+                    'Lower_Bound': f"{stats['lower']:.2f}",
+                    'Upper_Bound': f"{stats['upper']:.2f}",
+                    'Sample_Size': stats['n']
+                })
+            
+            if agg_data:
+                df_agg = pd.DataFrame(agg_data)
+                plotting_logger.info(f"\n{df_agg.to_string(index=False)}")
+            
+            plotting_logger.info(f"Extended X-axis range: {x_min:.2f} to {x_max:.2f}")
+        else:
+            plotting_logger.info("\nNO AGGREGATED DATA AVAILABLE")
         
         # Create figure with linear x-axis for time intervals
         interval_label = get_interval_label(self.time_interval)
@@ -329,6 +407,11 @@ class ConstructScoreData:
             x_range=(x_min, x_max)
         )
         
+        plotting_logger.info(f"\nPLOT CONFIGURATION:")
+        plotting_logger.info(f"X-axis label: Time ({interval_label})")
+        plotting_logger.info(f"Plot size: 400x200")
+        plotting_logger.info(f"Tools: pan, box_zoom, reset")
+        
         # Style the plot
         p.background_fill_color = "#ffffff"
         p.border_fill_color = "#ffffff"
@@ -338,13 +421,12 @@ class ConstructScoreData:
         p.axis.major_tick_line_color = None
         p.axis.minor_tick_line_color = None
         
-        # Add main line
+        # Add main line and points for individual patient
         source = ColumnDataSource(data=dict(
             time_intervals=time_intervals,
             scores=scores,
             submission_dates=submission_dates
         ))
-        
 
         # Add threshold line if available
         if self.construct.scale_threshold_score:
@@ -356,6 +438,7 @@ class ConstructScoreData:
                 line_width=1
             )
             p.add_layout(threshold)
+            plotting_logger.info(f"Added threshold line at: {self.construct.scale_threshold_score}")
         
         # Add normative line and band if available
         if self.construct.scale_normative_score_mean:
@@ -367,6 +450,7 @@ class ConstructScoreData:
                 line_width=1
             )
             p.add_layout(normative)
+            plotting_logger.info(f"Added normative line at: {self.construct.scale_normative_score_mean}")
             
             # Add standard deviation band if available
             if self.construct.scale_normative_score_standard_deviation:
@@ -380,6 +464,95 @@ class ConstructScoreData:
                     line_width=0
                 )
                 p.add_layout(band)
+                plotting_logger.info(f"Added normative band: {mean - sd:.2f} to {mean + sd:.2f}")
+
+        # Add aggregated data if available
+        if self.aggregated_statistics:
+            # Prepare aggregated data
+            agg_intervals = sorted(self.aggregated_statistics.keys())
+            agg_central = [self.aggregated_statistics[interval]['central'] for interval in agg_intervals]
+            agg_lower = [self.aggregated_statistics[interval]['lower'] for interval in agg_intervals]
+            agg_upper = [self.aggregated_statistics[interval]['upper'] for interval in agg_intervals]
+            agg_n = [self.aggregated_statistics[interval]['n'] for interval in agg_intervals]
+            
+            # Log aggregated plot arrays in tabular format
+            plotting_logger.info("\nAGGREGATED PLOT DATA ARRAYS:")
+            plot_data = []
+            for i, interval in enumerate(agg_intervals):
+                plot_data.append({
+                    'Array_Index': i,
+                    'Time_Interval': f"{interval:.1f}",
+                    'Central_Value': f"{agg_central[i]:.2f}",
+                    'Lower_Bound': f"{agg_lower[i]:.2f}",
+                    'Upper_Bound': f"{agg_upper[i]:.2f}",
+                    'Sample_Size': agg_n[i]
+                })
+            
+            df_plot = pd.DataFrame(plot_data)
+            plotting_logger.info(f"\n{df_plot.to_string(index=False)}")
+            
+            # Create data source for aggregated data
+            agg_source = ColumnDataSource(data=dict(
+                time_intervals=agg_intervals,
+                central=agg_central,
+                lower=agg_lower,
+                upper=agg_upper,
+                n=agg_n
+            ))
+            
+            # Add aggregated central line (dotted gray)
+            p.line(
+                x='time_intervals',
+                y='central',
+                source=agg_source,
+                line_width=2,
+                line_color='#6b7280',
+                line_dash='dotted',
+                alpha=0.8
+            )
+            
+            # Add aggregated points
+            p.scatter(
+                x='time_intervals',
+                y='central',
+                source=agg_source,
+                size=4,
+                fill_color='#6b7280',
+                line_color='#6b7280',
+                alpha=0.8
+            )
+            
+            # Add error bars for dispersion
+            from bokeh.models import Whisker
+            whisker = Whisker(
+                source=agg_source,
+                base='time_intervals',
+                upper='upper',
+                lower='lower',
+                line_color='#6b7280',
+                line_alpha=0.6,
+                line_width=1
+            )
+            p.add_layout(whisker)
+            
+            plotting_logger.info("Added population line, points, and error bars")
+            
+            # Add hover tool for aggregated data
+            agg_hover = HoverTool(
+                tooltips=[
+                    ('Time Interval', '@time_intervals{0.0}'),
+                    ('Population Central', '@central{0.0}'),
+                    ('Lower Bound', '@lower{0.0}'),
+                    ('Upper Bound', '@upper{0.0}'),
+                    ('Sample Size', '@n')
+                ],
+                mode='mouse',
+                point_policy='follow_mouse',
+                renderers=[p.scatter(x='time_intervals', y='central', source=agg_source, size=0, alpha=0)]
+            )
+            p.add_tools(agg_hover)
+
+        # Add individual patient line and points (on top of aggregated data)
         p.line(
             x='time_intervals',
             y='scores',
@@ -397,9 +570,10 @@ class ConstructScoreData:
             fill_color='#000000',
             line_color='#000000'
         )
-        
 
-        # Configure hover tool
+        plotting_logger.info("Added individual patient line and points (black)")
+
+        # Configure hover tool for individual data
         hover = HoverTool(
             tooltips=[
                 ('Submission Date', '@submission_dates'),
@@ -410,6 +584,11 @@ class ConstructScoreData:
             point_policy='follow_mouse'
         )
         p.add_tools(hover)
+        
+        plotting_logger.info("Added hover tooltips for individual data")
+        plotting_logger.info("="*80)
+        plotting_logger.info(f"END PLOTTING DATA for {self.construct.name}")
+        plotting_logger.info("="*80)
         
         # Get the plot components
         script, div = components(p)
@@ -474,6 +653,26 @@ class ConstructScoreData:
         logger.info(f"Construct {construct.name} not important - no applicable criteria met")
         return False
 
+def create_item_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item',
+                             patient=None, start_date_reference='date_of_registration', time_interval='weeks') -> str:
+    """Create a Bokeh plot for item responses over time.
+    
+    Args:
+        historical_responses (List[QuestionnaireItemResponse]): List of historical responses
+        item (Item): The item being plotted
+        patient: Patient instance for start date calculation
+        start_date_reference: Reference date type for time calculation
+        time_interval: Time interval type for x-axis
+        
+    Returns:
+        str: HTML string containing the Bokeh plot components
+    """
+    logger.debug(f"create_item_response_plot called for item {item.id}, type: {item.response_type}, has likert_response: {bool(item.likert_response)}, has range_response: {bool(item.range_response)}")
+    if item.response_type == 'Likert' and item.likert_response:
+        return create_likert_response_plot(historical_responses, item, patient, start_date_reference, time_interval)
+    else:
+        return create_numeric_response_plot(historical_responses, item, patient, start_date_reference, time_interval)
+
 def create_likert_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item',
                                patient=None, start_date_reference='date_of_registration', time_interval='weeks') -> str:
     """Create a Bokeh plot specifically for Likert responses.
@@ -536,7 +735,7 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
         x_max = max(time_intervals) + 0.1 * (max(time_intervals) - min(time_intervals)) if max(time_intervals) > min(time_intervals) else max(time_intervals) + 1
     else:
         x_min, x_max = 0, 1
-    
+
     # Create figure with linear x-axis for time intervals
     interval_label = get_interval_label(time_interval)
     p = figure(
@@ -585,15 +784,15 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
             line_width=0
         )
         p.add_layout(box)
-    
-    # Add data
+
+    # Add data for individual patient
     source = ColumnDataSource(data=dict(
         time_intervals=time_intervals,
         responses=option_texts,
         submission_dates=submission_dates
     ))
     
-    # Add line and points
+    # Add individual patient line and points (on top of aggregated data)
     p.line(
         x='time_intervals',
         y='responses',
@@ -602,7 +801,7 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
         line_color='#000000'
     )
     
-    p.scatter(
+    individual_scatter = p.scatter(
         x='time_intervals',
         y='responses',
         source=source,
@@ -611,7 +810,7 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
         line_color='#000000'
     )
     
-    # Configure hover tool
+    # Configure hover tool for individual data
     hover = HoverTool(
         tooltips=[
             ('Submission Date', '@submission_dates'),
@@ -619,7 +818,8 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
             ('Response', '@responses')
         ],
         mode='mouse',
-        point_policy='follow_mouse'
+        point_policy='follow_mouse',
+        renderers=[individual_scatter]
     )
     p.add_tools(hover)
     
@@ -687,7 +887,7 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
         x_max = max(time_intervals) + 0.1 * (max(time_intervals) - min(time_intervals)) if max(time_intervals) > min(time_intervals) else max(time_intervals) + 1
     else:
         x_min, x_max = 0, 1
-    
+
     # Create figure with linear x-axis for time intervals
     interval_label = get_interval_label(time_interval)
     p = figure(
@@ -709,7 +909,7 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
     p.axis.major_tick_line_color = None
     p.axis.minor_tick_line_color = None
     
-    # Add data
+    # Add data for individual patient
     source = ColumnDataSource(data=dict(
         time_intervals=time_intervals,
         values=values,
@@ -749,8 +949,8 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
                 line_width=0
             )
             p.add_layout(band)
-    
-    # Add line and points
+
+    # Add individual patient line and points (on top of aggregated data)
     p.line(
         x='time_intervals',
         y='values',
@@ -759,7 +959,7 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
         line_color='#000000'
     )
     
-    p.scatter(
+    individual_scatter = p.scatter(
         x='time_intervals',
         y='values',
         source=source,
@@ -768,7 +968,7 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
         line_color='#000000'
     )
     
-    # Configure hover tool
+    # Configure hover tool for individual data
     hover = HoverTool(
         tooltips=[
             ('Submission Date', '@submission_dates'),
@@ -776,7 +976,8 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
             ('Value', '@values{0.0}')
         ],
         mode='mouse',
-        point_policy='follow_mouse'
+        point_policy='follow_mouse',
+        renderers=[individual_scatter]
     )
     p.add_tools(hover)
     
@@ -784,22 +985,459 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
     script, div = components(p)
     return script + div
 
-def create_item_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item',
-                             patient=None, start_date_reference='date_of_registration', time_interval='weeks') -> str:
-    """Create a Bokeh plot for item responses over time.
+def get_filtered_patients_for_aggregation(exclude_patient, patient_filter_gender=None, 
+                                        patient_filter_diagnosis=None, patient_filter_treatment=None):
+    """Get patients for aggregation based on filtering criteria, excluding the current patient.
     
     Args:
-        historical_responses (List[QuestionnaireItemResponse]): List of historical responses
-        item (Item): The item being plotted
-        patient: Patient instance for start date calculation
-        start_date_reference: Reference date type for time calculation
-        time_interval: Time interval type for x-axis
+        exclude_patient: Patient instance to exclude from aggregation
+        patient_filter_gender: Gender filter ('match', specific gender, or None for all)
+        patient_filter_diagnosis: Diagnosis filter ('match', specific diagnosis ID, or None for all)
+        patient_filter_treatment: Treatment filter ('match', specific treatment type ID, or None for all)
         
     Returns:
-        str: HTML string containing the Bokeh plot components
+        QuerySet: Filtered patients excluding the current patient
     """
-    logger.debug(f"create_item_response_plot called for item {item.id}, type: {item.response_type}, has likert_response: {bool(item.likert_response)}, has range_response: {bool(item.range_response)}")
-    if item.response_type == 'Likert' and item.likert_response:
-        return create_likert_response_plot(historical_responses, item, patient, start_date_reference, time_interval)
+    from patientapp.models import Patient
+    
+    # Start with all patients except the current one
+    patients = Patient.objects.exclude(id=exclude_patient.id)
+    
+    # Apply gender filter
+    if patient_filter_gender:
+        if patient_filter_gender == 'match':
+            patients = patients.filter(gender=exclude_patient.gender)
+        else:
+            patients = patients.filter(gender=patient_filter_gender)
+    
+    # Apply diagnosis filter
+    if patient_filter_diagnosis:
+        if patient_filter_diagnosis == 'match':
+            # Get all diagnosis IDs for the current patient
+            patient_diagnosis_ids = exclude_patient.diagnosis_set.values_list('diagnosis_id', flat=True)
+            if patient_diagnosis_ids:
+                patients = patients.filter(diagnosis__diagnosis_id__in=patient_diagnosis_ids).distinct()
+        else:
+            patients = patients.filter(diagnosis__diagnosis_id=patient_filter_diagnosis).distinct()
+    
+    # Apply treatment filter
+    if patient_filter_treatment:
+        if patient_filter_treatment == 'match':
+            # Get all treatment type IDs for the current patient
+            patient_treatment_type_ids = []
+            for diagnosis in exclude_patient.diagnosis_set.all():
+                treatment_type_ids = diagnosis.treatment_set.values_list('treatment_type__id', flat=True)
+                patient_treatment_type_ids.extend(treatment_type_ids)
+            
+            if patient_treatment_type_ids:
+                patients = patients.filter(
+                    diagnosis__treatment__treatment_type__id__in=patient_treatment_type_ids
+                ).distinct()
+        else:
+            patients = patients.filter(
+                diagnosis__treatment__treatment_type_id=patient_filter_treatment
+            ).distinct()
+    
+    return patients
+
+def aggregate_construct_scores_by_time_interval(construct, patients_queryset, start_date_reference, 
+                                              time_interval, submission_date_filter=None, 
+                                              reference_time_intervals=None):
+    """Aggregate construct scores from multiple patients by time intervals.
+    
+    For each reference time interval from the index patient, find the most recent
+    observation from other patients that is at or before each reference time point.
+    
+    Args:
+        construct: ConstructScale instance
+        patients_queryset: QuerySet of patients to include in aggregation
+        start_date_reference: Reference date type for time calculation
+        time_interval: Time interval type for grouping
+        submission_date_filter: Optional date filter for submissions
+        reference_time_intervals: List of reference time intervals from index patient
+        
+    Returns:
+        dict: Mapping of reference time intervals to aggregated data
+    """
+    from promapp.models import QuestionnaireConstructScore
+    
+    plotting_logger.info("="*80)
+    plotting_logger.info(f"AGGREGATION DATA for {construct.name}")
+    plotting_logger.info("="*80)
+    plotting_logger.info(f"Patients in aggregation: {patients_queryset.count()}")
+    plotting_logger.info(f"Start date reference: {start_date_reference}")
+    plotting_logger.info(f"Time interval: {time_interval}")
+    plotting_logger.info(f"Submission date filter: {submission_date_filter}")
+    plotting_logger.info(f"Reference time intervals from index patient: {reference_time_intervals}")
+    
+    if not reference_time_intervals:
+        plotting_logger.info("No reference time intervals provided - returning empty aggregation")
+        return {}
+    
+    aggregated_data = {}
+    patients_with_data = 0
+    total_scores_processed = 0
+    patient_data_list = []
+    
+    for patient in patients_queryset:
+        # Get start date for this patient
+        start_date = get_patient_start_date(patient, start_date_reference)
+        if not start_date:
+            continue
+            
+        # Get construct scores for this patient
+        scores_query = QuestionnaireConstructScore.objects.filter(
+            questionnaire_submission__patient=patient,
+            construct=construct
+        ).select_related('questionnaire_submission')
+        
+        # Apply submission date filter if specified
+        if submission_date_filter:
+            scores_query = scores_query.filter(
+                questionnaire_submission__submission_date__date__lte=submission_date_filter
+            )
+        
+        # Filter out scores with negative time intervals
+        scores = list(scores_query)
+        filtered_scores = filter_positive_intervals_construct(scores, start_date, time_interval)
+        
+        if not filtered_scores:
+            continue
+        
+        patients_with_data += 1
+        patient_scores = []
+        
+        # Calculate time intervals for all scores from this patient
+        patient_time_data = []
+        for score in filtered_scores:
+            if score.score is None:
+                continue
+                
+            interval_value = calculate_time_interval_value(
+                score.questionnaire_submission.submission_date,
+                start_date,
+                time_interval
+            )
+            patient_time_data.append({
+                'interval': interval_value,
+                'score': float(score.score),
+                'submission_date': score.questionnaire_submission.submission_date
+            })
+        
+        # Sort by time interval
+        patient_time_data.sort(key=lambda x: x['interval'])
+        
+        # For each reference time interval, find the most recent observation at or before that time
+        for ref_interval in reference_time_intervals:
+            # Find all observations at or before this reference time
+            eligible_observations = [obs for obs in patient_time_data if obs['interval'] <= ref_interval]
+            
+            if eligible_observations:
+                # Get the most recent observation (highest interval ≤ ref_interval)
+                most_recent = max(eligible_observations, key=lambda x: x['interval'])
+                
+                if ref_interval not in aggregated_data:
+                    aggregated_data[ref_interval] = []
+                
+                aggregated_data[ref_interval].append(most_recent['score'])
+                total_scores_processed += 1
+                
+                # Store for patient-level logging
+                patient_scores.append({
+                    'Reference_Interval': f"{ref_interval:.2f}",
+                    'Patient_Interval': f"{most_recent['interval']:.2f}",
+                    'Score': f"{most_recent['score']:.1f}",
+                    'Submission_Date': most_recent['submission_date'].strftime('%Y-%m-%d %H:%M')
+                })
+            else:
+                # No observations at or before this reference time
+                patient_scores.append({
+                    'Reference_Interval': f"{ref_interval:.2f}",
+                    'Patient_Interval': 'No data ≤ ref time',
+                    'Score': 'N/A',
+                    'Submission_Date': 'N/A'
+                })
+        
+        # Add patient data to list for tabular logging
+        if patient_scores:
+            patient_data_list.append({
+                'patient': patient,
+                'start_date': start_date,
+                'scores': patient_scores,
+                'score_count': len([s for s in patient_scores if s['Score'] != 'N/A'])
+            })
+    
+    # Log patient-level data in tables
+    plotting_logger.info("\nPATIENT-LEVEL AGGREGATION DATA:")
+    plotting_logger.info(f"Patients with data: {patients_with_data}")
+    plotting_logger.info(f"Total scores processed: {total_scores_processed}")
+    
+    for patient_data in patient_data_list[:5]:  # Show first 5 patients as example
+        plotting_logger.info(f"\nPatient: {patient_data['patient'].name} (Start: {patient_data['start_date']})")
+        plotting_logger.info(f"Scores count: {patient_data['score_count']}")
+        
+        if patient_data['scores']:
+            df_patient = pd.DataFrame(patient_data['scores'])
+            plotting_logger.info(f"\n{df_patient.to_string(index=False)}")
+    
+    if len(patient_data_list) > 5:
+        plotting_logger.info(f"\n... and {len(patient_data_list) - 5} more patients with data")
+    
+    # Log aggregated data summary in tabular format
+    plotting_logger.info("\nAGGREGATED DATA SUMMARY:")
+    plotting_logger.info(f"Reference intervals with data: {len(aggregated_data)}")
+    
+    if aggregated_data:
+        summary_data = []
+        for interval, values in sorted(aggregated_data.items()):
+            summary_data.append({
+                'Reference_Interval': f"{interval:.2f}",
+                'Score_Count': len(values),
+                'Min_Score': f"{min(values):.1f}",
+                'Max_Score': f"{max(values):.1f}",
+                'Mean_Score': f"{sum(values)/len(values):.2f}",
+                'Scores': f"[{', '.join([f'{v:.1f}' for v in sorted(values)])}]"
+            })
+        
+        df_summary = pd.DataFrame(summary_data)
+        plotting_logger.info(f"\n{df_summary.to_string(index=False)}")
     else:
-        return create_numeric_response_plot(historical_responses, item, patient, start_date_reference, time_interval)
+        plotting_logger.info("No aggregated data available")
+    
+    plotting_logger.info("="*80)
+    plotting_logger.info(f"END AGGREGATION DATA for {construct.name}")
+    plotting_logger.info("="*80)
+    
+    return aggregated_data
+
+def calculate_aggregation_statistics(aggregated_data, aggregation_type='median_iqr'):
+    """Calculate aggregation statistics for each time interval.
+    
+    Args:
+        aggregated_data: Dict mapping time intervals to lists of values
+        aggregation_type: Type of aggregation to perform
+        
+    Returns:
+        dict: Statistics for each time interval
+    """
+    import numpy as np
+    from scipy import stats
+    
+    plotting_logger.info("="*80)
+    plotting_logger.info("STATISTICS CALCULATION")
+    plotting_logger.info("="*80)
+    plotting_logger.info(f"Aggregation type: {aggregation_type}")
+    plotting_logger.info(f"Input data intervals: {len(aggregated_data)}")
+    
+    statistics = {}
+    calculation_data = []
+    
+    for interval, values in aggregated_data.items():
+        if not values or len(values) < 2:  # Need at least 2 values for meaningful statistics
+            calculation_data.append({
+                'Time_Interval': f"{interval:.1f}",
+                'Value_Count': len(values),
+                'Status': 'Skipped (need ≥2 values)',
+                'Central': 'N/A',
+                'Lower': 'N/A',
+                'Upper': 'N/A',
+                'Values': f"[{', '.join([f'{v:.1f}' for v in values]) if values else 'None'}]"
+            })
+            continue
+            
+        values_array = np.array(values)
+        n = len(values)
+        
+        if aggregation_type == 'median_iqr':
+            median = np.median(values_array)
+            q25 = np.percentile(values_array, 25)
+            q75 = np.percentile(values_array, 75)
+            statistics[interval] = {
+                'central': median,
+                'lower': q25,
+                'upper': q75,
+                'n': n
+            }
+            calculation_data.append({
+                'Time_Interval': f"{interval:.1f}",
+                'Value_Count': n,
+                'Status': 'Calculated',
+                'Central': f"{median:.2f} (median)",
+                'Lower': f"{q25:.2f} (Q25)",
+                'Upper': f"{q75:.2f} (Q75)",
+                'Values': f"[{', '.join([f'{v:.1f}' for v in sorted(values)])}]"
+            })
+            
+        elif aggregation_type == 'mean_95ci':
+            mean = np.mean(values_array)
+            sem = stats.sem(values_array)  # Standard error of mean
+            ci = stats.t.interval(0.95, n-1, loc=mean, scale=sem)
+            statistics[interval] = {
+                'central': mean,
+                'lower': ci[0],
+                'upper': ci[1],
+                'n': n
+            }
+            calculation_data.append({
+                'Time_Interval': f"{interval:.1f}",
+                'Value_Count': n,
+                'Status': 'Calculated',
+                'Central': f"{mean:.2f} (mean)",
+                'Lower': f"{ci[0]:.2f} (95% CI lower)",
+                'Upper': f"{ci[1]:.2f} (95% CI upper)",
+                'Values': f"[{', '.join([f'{v:.1f}' for v in sorted(values)])}]"
+            })
+            
+        elif aggregation_type.startswith('mean_'):
+            mean = np.mean(values_array)
+            std = np.std(values_array, ddof=1)  # Sample standard deviation
+            
+            # Extract the multiplier from the aggregation type
+            if aggregation_type == 'mean_0.5sd':
+                multiplier = 0.5
+            elif aggregation_type == 'mean_1sd':
+                multiplier = 1.0
+            elif aggregation_type == 'mean_2sd':
+                multiplier = 2.0
+            elif aggregation_type == 'mean_2.5sd':
+                multiplier = 2.5
+            else:
+                multiplier = 1.0
+                
+            statistics[interval] = {
+                'central': mean,
+                'lower': mean - (multiplier * std),
+                'upper': mean + (multiplier * std),
+                'n': n
+            }
+            calculation_data.append({
+                'Time_Interval': f"{interval:.1f}",
+                'Value_Count': n,
+                'Status': 'Calculated',
+                'Central': f"{mean:.2f} (mean)",
+                'Lower': f"{mean - (multiplier * std):.2f} (-{multiplier}SD)",
+                'Upper': f"{mean + (multiplier * std):.2f} (+{multiplier}SD)",
+                'Values': f"[{', '.join([f'{v:.1f}' for v in sorted(values)])}]"
+            })
+    
+    # Log calculation results in tabular format
+    plotting_logger.info("\nSTATISTICS CALCULATION RESULTS:")
+    if calculation_data:
+        df_calc = pd.DataFrame(calculation_data)
+        plotting_logger.info(f"\n{df_calc.to_string(index=False)}")
+    else:
+        plotting_logger.info("No calculation data available")
+    
+    # Log final statistics summary
+    plotting_logger.info(f"\nFINAL STATISTICS SUMMARY:")
+    plotting_logger.info(f"Valid intervals with statistics: {len(statistics)}")
+    
+    if statistics:
+        final_stats = []
+        for interval, stats_dict in sorted(statistics.items()):
+            final_stats.append({
+                'Time_Interval': f"{interval:.1f}",
+                'Central': f"{stats_dict['central']:.2f}",
+                'Lower_Bound': f"{stats_dict['lower']:.2f}",
+                'Upper_Bound': f"{stats_dict['upper']:.2f}",
+                'Sample_Size': stats_dict['n'],
+                'Range_Width': f"{stats_dict['upper'] - stats_dict['lower']:.2f}"
+            })
+        
+        df_final = pd.DataFrame(final_stats)
+        plotting_logger.info(f"\n{df_final.to_string(index=False)}")
+    else:
+        plotting_logger.info("No valid statistics calculated")
+    
+    plotting_logger.info("="*80)
+    plotting_logger.info("END STATISTICS CALCULATION")
+    plotting_logger.info("="*80)
+    
+    return statistics
+
+def calculate_aggregation_metadata(aggregated_data, patients_queryset, construct_or_item):
+    """Calculate metadata about the aggregation including patient and response counts.
+    
+    Args:
+        aggregated_data: Dict mapping time intervals to lists of values
+        patients_queryset: QuerySet of patients included in aggregation
+        construct_or_item: The construct or item being aggregated
+        
+    Returns:
+        dict: Metadata about the aggregation
+    """
+    total_responses = sum(len(values) for values in aggregated_data.values())
+    total_patients = patients_queryset.count()
+    
+    # Calculate unique patients that contributed data
+    # This requires checking which patients actually have data for this construct/item
+    contributing_patients = set()
+    
+    if hasattr(construct_or_item, 'scale_equation'):  # It's a construct
+        from promapp.models import QuestionnaireConstructScore
+        
+        for patient in patients_queryset:
+            has_data = QuestionnaireConstructScore.objects.filter(
+                questionnaire_submission__patient=patient,
+                construct=construct_or_item,
+                score__isnull=False
+            ).exists()
+            if has_data:
+                contributing_patients.add(patient.id)
+                
+    else:  # It's an item
+        from promapp.models import QuestionnaireItemResponse
+        
+        for patient in patients_queryset:
+            has_data = QuestionnaireItemResponse.objects.filter(
+                questionnaire_submission__patient=patient,
+                questionnaire_item__item=construct_or_item,
+                response_value__isnull=False
+            ).exclude(response_value='').exists()
+            if has_data:
+                contributing_patients.add(patient.id)
+    
+    # Calculate time interval range
+    time_intervals = sorted(aggregated_data.keys()) if aggregated_data else []
+    time_range = None
+    if time_intervals:
+        min_interval = min(time_intervals)
+        max_interval = max(time_intervals)
+        if min_interval == max_interval:
+            time_range = f"{min_interval:.1f}"
+        else:
+            time_range = f"{min_interval:.1f} - {max_interval:.1f}"
+    
+    return {
+        'total_eligible_patients': total_patients,
+        'contributing_patients': len(contributing_patients),
+        'total_responses': total_responses,
+        'time_intervals_count': len(time_intervals),
+        'time_range': time_range
+    }
+
+def get_plotting_log_file_path():
+    """Get the path to the plotting data log file."""
+    log_dir = os.path.join(settings.BASE_DIR, 'logs')
+    return os.path.join(log_dir, 'plotting_data.log')
+
+def clear_plotting_log():
+    """Clear the plotting data log file."""
+    log_file = get_plotting_log_file_path()
+    try:
+        with open(log_file, 'w') as f:
+            f.write('')
+        plotting_logger.info("Plotting data log file cleared")
+        return True
+    except Exception as e:
+        logger.error(f"Error clearing plotting log: {e}")
+        return False
+
+def log_plotting_session_start(patient_name, constructs_count):
+    """Log the start of a new plotting session."""
+    plotting_logger.info("=" * 100)
+    plotting_logger.info(f"NEW PLOTTING SESSION STARTED")
+    plotting_logger.info(f"Patient: {patient_name}")
+    plotting_logger.info(f"Number of constructs to plot: {constructs_count}")
+    plotting_logger.info(f"Session started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    plotting_logger.info("=" * 100)

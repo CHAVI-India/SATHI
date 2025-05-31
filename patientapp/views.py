@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from .models import Patient, Diagnosis, DiagnosisList, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
 from .forms import PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm
 from promapp.models import *
-from .utils import ConstructScoreData, calculate_percentage, create_item_response_plot, get_patient_start_date, get_patient_available_start_dates, filter_positive_intervals, filter_positive_intervals_construct
+from .utils import ConstructScoreData, calculate_percentage, create_item_response_plot, get_patient_start_date, get_patient_available_start_dates, filter_positive_intervals, filter_positive_intervals_construct, get_interval_label, calculate_time_interval_value
 import logging
 from bokeh.resources import CDN
 
@@ -37,6 +37,25 @@ def prom_review(request, pk):
     item_filter = request.GET.getlist('item_filter')  # Get list of selected item IDs
     start_date_reference = request.GET.get('start_date_reference', 'date_of_registration')
     time_interval = request.GET.get('time_interval', 'weeks')
+    
+    # Get aggregation parameters
+    show_aggregated = request.GET.get('show_aggregated', '0') == '1'
+    aggregation_type = request.GET.get('aggregation_type', 'median_iqr')
+    patient_filter_gender = request.GET.get('patient_filter_gender')
+    patient_filter_diagnosis = request.GET.get('patient_filter_diagnosis')
+    patient_filter_treatment = request.GET.get('patient_filter_treatment')
+    
+    logger.info(f"Aggregation settings: show_aggregated={show_aggregated}, type={aggregation_type}, gender={patient_filter_gender}, diagnosis={patient_filter_diagnosis}, treatment={patient_filter_treatment}")
+    
+    # Always get aggregated patients to show patient counts, regardless of whether aggregation is enabled
+    from patientapp.utils import get_filtered_patients_for_aggregation
+    aggregated_patients = get_filtered_patients_for_aggregation(
+        exclude_patient=patient,
+        patient_filter_gender=patient_filter_gender,
+        patient_filter_diagnosis=patient_filter_diagnosis,
+        patient_filter_treatment=patient_filter_treatment
+    )
+    logger.info(f"Found {aggregated_patients.count()} patients for aggregation (aggregation enabled: {show_aggregated})")
     
     # Get submission count from time range or default to 5
     # This count needs to respect the submission_date filter if active.
@@ -307,6 +326,10 @@ def prom_review(request, pk):
     important_construct_scores = []
     logger.info("Processing construct scores to find important ones...")
     
+    # Log plotting session start
+    from patientapp.utils import log_plotting_session_start
+    log_plotting_session_start(patient.name, construct_scores.count())
+    
     for construct_score in construct_scores:
         construct = construct_score.construct
         logger.info(f"Processing construct: {construct.name}")
@@ -348,6 +371,49 @@ def prom_review(request, pk):
             previous_score_for_plot_context = historical_scores_for_plot[1].score
             logger.debug(f"Previous score for {construct.name} (plot context): {previous_score_for_plot_context}")
 
+        # Calculate aggregated statistics if enabled
+        aggregated_statistics = None
+        if show_aggregated and aggregated_patients and historical_scores_for_plot:
+            try:
+                from patientapp.utils import (
+                    aggregate_construct_scores_by_time_interval,
+                    calculate_aggregation_statistics
+                )
+                
+                # Get reference time intervals from the index patient's data
+                reference_intervals = []
+                for score_obj in historical_scores_for_plot:
+                    interval_value = calculate_time_interval_value(
+                        score_obj.questionnaire_submission.submission_date,
+                        start_date,
+                        time_interval
+                    )
+                    if interval_value not in reference_intervals:
+                        reference_intervals.append(interval_value)
+                
+                # Sort reference intervals
+                reference_intervals.sort()
+                
+                # Aggregate data from other patients using index patient's time intervals as reference
+                aggregated_data = aggregate_construct_scores_by_time_interval(
+                    construct=construct,
+                    patients_queryset=aggregated_patients,
+                    start_date_reference=start_date_reference,
+                    time_interval=time_interval,
+                    submission_date_filter=submission_date,
+                    reference_time_intervals=reference_intervals
+                )
+                
+                # Calculate statistics
+                aggregated_statistics = calculate_aggregation_statistics(
+                    aggregated_data, aggregation_type
+                )
+                
+                logger.debug(f"Construct {construct.name}: Generated aggregated statistics for {len(aggregated_statistics)} intervals")
+                
+            except Exception as e:
+                logger.error(f"Error calculating aggregated data for construct {construct.name}: {e}")
+
         # Create construct score data object
         score_data = ConstructScoreData(
             construct=construct, # construct_score.construct
@@ -356,7 +422,8 @@ def prom_review(request, pk):
             historical_scores=historical_scores_for_plot, # Filtered and sliced list for the plot
             patient=patient,
             start_date_reference=start_date_reference,
-            time_interval=time_interval
+            time_interval=time_interval,
+            aggregated_statistics=aggregated_statistics  # Pass aggregated statistics
         )
 
         # Only include if it's an important construct
@@ -428,6 +495,72 @@ def prom_review(request, pk):
     if not start_date_reference:
         start_date_reference = available_start_dates[0][0] if available_start_dates else 'date_of_registration'
 
+    # Get available diagnoses and treatment types for aggregation filters
+    from patientapp.models import Diagnosis, TreatmentType
+    available_diagnoses = Diagnosis.objects.all().order_by('diagnosis')
+    available_treatment_types = TreatmentType.objects.all().order_by('treatment_type')
+
+    # Calculate aggregation metadata if aggregated patients are available
+    aggregation_metadata = None
+    if aggregated_patients:
+        try:
+            # Always provide basic metadata when aggregated patients are available
+            basic_metadata = {
+                'total_eligible_patients': aggregated_patients.count(),
+                'contributing_patients': 0,
+                'total_responses': 0,
+                'time_intervals_count': 0,
+                'time_range': 'N/A',
+                'time_interval_unit': get_interval_label(time_interval).lower()
+            }
+            
+            if show_aggregated and construct_scores.exists():
+                from patientapp.utils import calculate_aggregation_metadata
+                
+                # Use the first construct as a representative sample
+                first_construct = construct_scores.first().construct
+                
+                # Get aggregated data for metadata calculation
+                from patientapp.utils import aggregate_construct_scores_by_time_interval
+                start_date = get_patient_start_date(patient, start_date_reference)
+                
+                # Get sample aggregated data
+                sample_aggregated_data = aggregate_construct_scores_by_time_interval(
+                    construct=first_construct,
+                    patients_queryset=aggregated_patients,
+                    start_date_reference=start_date_reference,
+                    time_interval=time_interval,
+                    submission_date_filter=submission_date,
+                    reference_time_intervals=[0.0]  # Use dummy reference for metadata calculation
+                )
+                
+                # Calculate detailed metadata
+                aggregation_metadata = calculate_aggregation_metadata(
+                    sample_aggregated_data,
+                    aggregated_patients,
+                    first_construct
+                )
+                
+                # Add interval unit for display
+                aggregation_metadata['time_interval_unit'] = get_interval_label(time_interval).lower()
+                
+                logger.info(f"Detailed aggregation metadata: {aggregation_metadata}")
+            else:
+                # Use basic metadata when aggregation is not enabled
+                aggregation_metadata = basic_metadata
+                logger.info(f"Basic aggregation metadata: {aggregation_metadata}")
+                
+        except Exception as e:
+            logger.error(f"Error calculating aggregation metadata: {e}")
+            aggregation_metadata = {
+                'total_eligible_patients': aggregated_patients.count() if aggregated_patients else 0,
+                'contributing_patients': 0,
+                'total_responses': 0,
+                'time_intervals_count': 0,
+                'time_range': 'N/A',
+                'time_interval_unit': get_interval_label(time_interval).lower()
+            }
+
     context = {
         'patient': patient,
         'submissions': submissions,
@@ -447,6 +580,9 @@ def prom_review(request, pk):
         'time_range_options_for_cotton': time_range_options_for_cotton,
         'selected_time_range_for_cotton': selected_time_range_for_cotton,
         'available_start_dates': available_start_dates,
+        'available_diagnoses': available_diagnoses,
+        'available_treatment_types': available_treatment_types,
+        'aggregation_metadata': aggregation_metadata,
     }
     
     # If this is an HTMX request, only return the main content section

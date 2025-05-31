@@ -1,0 +1,136 @@
+{% load cotton %}
+{% load i18n %}
+
+{% if aggregation_metadata %}
+<div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200 shadow-sm mb-4">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+        <!-- Title and Status -->
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    {% trans "Population Comparison" %}
+                    {% if request.GET.show_aggregated %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {% trans "Active" %}
+                        </span>
+                    {% else %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                            {% trans "Available" %}
+                        </span>
+                    {% endif %}
+                </h3>
+                {% if not request.GET.show_aggregated %}
+                    <p class="text-xs text-gray-600 mt-0.5">{% trans "Enable to see population data overlaid on plots" %}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Statistics - Inline -->
+        <div class="flex items-center gap-6 text-sm">
+            <!-- Eligible Patients -->
+            <div class="text-center">
+                <div class="text-lg font-bold text-blue-600">{{ aggregation_metadata.total_eligible_patients }}</div>
+                <div class="text-xs text-gray-600">{% trans "Eligible" %}</div>
+            </div>
+            
+            {% if request.GET.show_aggregated %}
+                <!-- Contributing Patients -->
+                <div class="text-center">
+                    <div class="text-lg font-bold text-green-600">{{ aggregation_metadata.contributing_patients }}</div>
+                    <div class="text-xs text-gray-600">{% trans "Contributing" %}</div>
+                </div>
+                
+                <!-- Total Responses -->
+                <div class="text-center">
+                    <div class="text-lg font-bold text-purple-600">{{ aggregation_metadata.total_responses }}</div>
+                    <div class="text-xs text-gray-600">{% trans "Responses" %}</div>
+                </div>
+                
+                <!-- Time Coverage -->
+                <div class="text-center">
+                    <div class="text-lg font-bold text-orange-600">{{ aggregation_metadata.time_intervals_count }}</div>
+                    <div class="text-xs text-gray-600">{% trans "Time Points" %}</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Settings Summary - Inline when aggregation is active -->
+        {% if request.GET.show_aggregated %}
+            <div class="flex items-center gap-4 text-xs text-gray-600 flex-wrap">
+                <div class="flex items-center gap-1">
+                    <span class="font-medium">{% trans "Method:" %}</span>
+                    <span class="px-1.5 py-0.5 bg-white rounded text-xs font-mono border border-gray-200">
+                        {% if request.GET.aggregation_type == 'median_iqr' %}
+                            {% trans "Median+IQR" %}
+                        {% elif request.GET.aggregation_type == 'mean_95ci' %}
+                            {% trans "Mean+95%CI" %}
+                        {% elif request.GET.aggregation_type == 'mean_0.5sd' %}
+                            {% trans "Mean±0.5SD" %}
+                        {% elif request.GET.aggregation_type == 'mean_1sd' %}
+                            {% trans "Mean±1SD" %}
+                        {% elif request.GET.aggregation_type == 'mean_2sd' %}
+                            {% trans "Mean±2SD" %}
+                        {% elif request.GET.aggregation_type == 'mean_2.5sd' %}
+                            {% trans "Mean±2.5SD" %}
+                        {% else %}
+                            {% trans "Median+IQR" %}
+                        {% endif %}
+                    </span>
+                </div>
+                
+                {% if request.GET.patient_filter_gender %}
+                    <div class="flex items-center gap-1">
+                        <span class="font-medium">{% trans "Gender:" %}</span>
+                        <span class="px-1.5 py-0.5 bg-white rounded text-xs border border-gray-200">
+                            {% if request.GET.patient_filter_gender == 'match' %}
+                                {% trans "Match" %}
+                            {% else %}
+                                {{ request.GET.patient_filter_gender }}
+                            {% endif %}
+                        </span>
+                    </div>
+                {% endif %}
+                
+                {% if request.GET.patient_filter_diagnosis %}
+                    <div class="flex items-center gap-1">
+                        <span class="font-medium">{% trans "Diagnosis:" %}</span>
+                        <span class="px-1.5 py-0.5 bg-white rounded text-xs border border-gray-200">
+                            {% if request.GET.patient_filter_diagnosis == 'match' %}
+                                {% trans "Match" %}
+                            {% else %}
+                                {{ request.GET.patient_filter_diagnosis }}
+                            {% endif %}
+                        </span>
+                    </div>
+                {% endif %}
+                
+                {% if request.GET.patient_filter_treatment %}
+                    <div class="flex items-center gap-1">
+                        <span class="font-medium">{% trans "Treatment:" %}</span>
+                        <span class="px-1.5 py-0.5 bg-white rounded text-xs border border-gray-200">
+                            {% if request.GET.patient_filter_treatment == 'match' %}
+                                {% trans "Match" %}
+                            {% else %}
+                                {{ request.GET.patient_filter_treatment }}
+                            {% endif %}
+                        </span>
+                    </div>
+                {% endif %}
+                
+                <!-- Time coverage info when available -->
+                {% if aggregation_metadata.time_range and aggregation_metadata.time_range != 'N/A' %}
+                    <div class="flex items-center gap-1">
+                        <span class="font-medium">{% trans "Coverage:" %}</span>
+                        <span class="text-xs">{{ aggregation_metadata.time_range }} {{ aggregation_metadata.time_interval_unit }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %} 
