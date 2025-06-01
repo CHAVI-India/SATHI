@@ -986,6 +986,71 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
     script, div = components(p)
     return script + div
 
+def get_patient_start_date_for_aggregation(patient, start_date_reference='date_of_registration'):
+    """Get the start date for a patient for aggregation purposes.
+    
+    For aggregation, we use the same diagnosis/treatment type but allow different dates:
+    - If start_date_reference is a specific diagnosis, use that same diagnosis type's date
+    - If start_date_reference is a specific treatment, use that same treatment type's date
+    - Otherwise use the exact reference
+    
+    Args:
+        patient: Patient instance
+        start_date_reference: Type of start date reference key
+        
+    Returns:
+        datetime.date or None: The start date or None if not available
+    """
+    try:
+        if start_date_reference == 'date_of_registration':
+            return patient.date_of_registration
+        elif start_date_reference.startswith('date_of_diagnosis_'):
+            # Extract the diagnosis ID from the reference to get the diagnosis type
+            diagnosis_id = start_date_reference.replace('date_of_diagnosis_', '')
+            try:
+                # Get the diagnosis type from the reference diagnosis
+                from promapp.models import Diagnosis
+                reference_diagnosis = Diagnosis.objects.get(id=diagnosis_id)
+                diagnosis_list_id = reference_diagnosis.diagnosis_id
+                
+                # Find this patient's diagnosis of the same type
+                patient_diagnosis = patient.diagnosis_set.filter(
+                    diagnosis_id=diagnosis_list_id,
+                    date_of_diagnosis__isnull=False
+                ).order_by('date_of_diagnosis').first()
+                
+                return patient_diagnosis.date_of_diagnosis if patient_diagnosis else None
+            except:
+                # If we can't find the specific diagnosis type, return None
+                return None
+        elif start_date_reference.startswith('date_of_start_of_treatment_'):
+            # Extract the treatment ID from the reference to get the treatment type
+            treatment_id = start_date_reference.replace('date_of_start_of_treatment_', '')
+            try:
+                # Get the treatment types from the reference treatment
+                from promapp.models import Treatment
+                reference_treatment = Treatment.objects.get(id=treatment_id)
+                treatment_type_ids = list(reference_treatment.treatment_type.values_list('id', flat=True))
+                
+                # Find this patient's treatment with the same types
+                for diagnosis in patient.diagnosis_set.all():
+                    patient_treatment = diagnosis.treatment_set.filter(
+                        treatment_type__id__in=treatment_type_ids,
+                        date_of_start_of_treatment__isnull=False
+                    ).order_by('date_of_start_of_treatment').first()
+                    if patient_treatment:
+                        return patient_treatment.date_of_start_of_treatment
+                return None
+            except:
+                # If we can't find the specific treatment type, return None
+                return None
+        else:
+            # Fallback to exact reference for other types
+            return get_patient_start_date(patient, start_date_reference)
+    except Exception as e:
+        logger.error(f"Error getting aggregation start date for patient {patient.id}: {e}")
+        return None
+
 def get_filtered_patients_for_aggregation(exclude_patient, patient_filter_gender=None, 
                                         patient_filter_diagnosis=None, patient_filter_treatment=None):
     """Get patients for aggregation based on filtering criteria, excluding the current patient.
@@ -1089,7 +1154,7 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
     
     for patient in patients_queryset:
         # Get start date for this patient
-        start_date = get_patient_start_date(patient, start_date_reference)
+        start_date = get_patient_start_date_for_aggregation(patient, start_date_reference)
         if not start_date:
             continue
             
@@ -1262,7 +1327,7 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
                     reason = "Insufficient data"
             else:
                 # Patient wasn't even processed (no start date, no scores, etc.)
-                start_date = get_patient_start_date(patient, start_date_reference)
+                start_date = get_patient_start_date_for_aggregation(patient, start_date_reference)
                 if not start_date:
                     reason = "No start date available"
                 else:

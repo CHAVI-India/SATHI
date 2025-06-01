@@ -4,6 +4,104 @@
 <!-- Aggregation Metadata Card -->
 {% if aggregation_metadata %}
 <div class="mb-6 bg-white rounded-lg shadow-sm border border-gray-200">
+    {% if aggregation_metadata.insufficient_patients_reason %}
+    <!-- Insufficient Patients Case -->
+    <div class="p-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-orange-700 flex items-center gap-2">
+            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            {% translate "Population Comparison Not Available" %}
+        </h3>
+        <p class="text-sm text-orange-600 mt-1">
+            {{ aggregation_metadata.insufficient_patients_reason }}
+        </p>
+    </div>
+    
+    <div class="p-4">
+        <!-- Current Statistics -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+            <div class="text-center p-3 bg-orange-50 rounded-lg border border-orange-200">
+                <div class="font-bold text-2xl text-orange-600">{{ aggregation_metadata.patients_with_start_date }}</div>
+                <div class="text-sm text-gray-600">{% translate "With Selected" %}</div>
+                <div class="text-xs text-gray-500">{% translate "Start Date Type" %}</div>
+            </div>
+            <div class="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="font-bold text-2xl text-gray-600">{{ aggregation_metadata.total_eligible_patients }}</div>
+                <div class="text-sm text-gray-600">{% translate "Total" %}</div>
+                <div class="text-xs text-gray-500">{% translate "Patients" %}</div>
+            </div>
+            <div class="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div class="font-bold text-2xl text-blue-600">1+</div>
+                <div class="text-sm text-gray-600">{% translate "Minimum" %}</div>
+                <div class="text-xs text-gray-500">{% translate "Required" %}</div>
+            </div>
+        </div>
+        
+        <!-- Suggestion -->
+        <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <div class="text-sm font-medium text-blue-800">{% translate "Suggestion" %}</div>
+                <div class="text-sm text-blue-700 mt-1">
+                    {% translate "Try selecting 'Date of Registration' as the start date reference, or adjust the population filters to include more patients with the selected start date type." %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% elif aggregation_metadata.no_data_reason %}
+    <!-- No Data Available Case -->
+    <div class="p-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-yellow-700 flex items-center gap-2">
+            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            {% translate "Population Comparison Not Available" %}
+        </h3>
+        <p class="text-sm text-yellow-600 mt-1">
+            {{ aggregation_metadata.no_data_reason }}
+        </p>
+    </div>
+    
+    <div class="p-4">
+        <!-- Current Statistics -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+            <div class="text-center p-3 bg-green-50 rounded-lg border border-green-200">
+                <div class="font-bold text-2xl text-green-600">{{ aggregation_metadata.patients_with_start_date }}</div>
+                <div class="text-sm text-gray-600">{% translate "With Selected" %}</div>
+                <div class="text-xs text-gray-500">{% translate "Start Date Type" %}</div>
+            </div>
+            <div class="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="font-bold text-2xl text-gray-600">{{ aggregation_metadata.total_eligible_patients }}</div>
+                <div class="text-sm text-gray-600">{% translate "Total" %}</div>
+                <div class="text-xs text-gray-500">{% translate "Patients" %}</div>
+            </div>
+            <div class="text-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div class="font-bold text-2xl text-yellow-600">0</div>
+                <div class="text-sm text-gray-600">{% translate "With Data" %}</div>
+                <div class="text-xs text-gray-500">{% translate "In Time Range" %}</div>
+            </div>
+        </div>
+        
+        <!-- Suggestion -->
+        <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <div class="text-sm font-medium text-blue-800">{% translate "Suggestion" %}</div>
+                <div class="text-sm text-blue-700 mt-1">
+                    {% translate "Try extending the time range, adjusting the submission date filter, or selecting a different questionnaire to include more responses in the aggregation." %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- Normal Aggregation Case -->
     <div class="p-4 border-b border-gray-200">
         <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,6 +235,7 @@
         </div>
         {% endif %}
     </div>
+    {% endif %}
 </div>
 
 <script>
