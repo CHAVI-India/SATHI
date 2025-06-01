@@ -22,356 +22,9 @@
                 </div>
             </div>
 
-            <!-- Data Filters -->
-            <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 mb-4 shadow-sm border border-gray-200">
-                <div class="mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">
-                        <svg class="w-5 h-5 inline mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-                        </svg>
-                        {% translate "Data Filters" %}
-                    </h3>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Submission Date Filter -->
-                    <div class="space-y-2">
-                        <label for="submission-date" class="block text-sm font-semibold text-gray-700">
-                            <svg class="w-4 h-4 inline mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            {% translate "Submissions Up To" %}
-                        </label>
-                        <input
-                            type="text"
-                            id="submission-date"
-                            name="submission_date"
-                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
-                            placeholder="{% translate "Select a date" %}"
-                            hx-get="{% url 'prom_review' patient.id %}"
-                            hx-target="#main-content"
-                            hx-trigger="change"
-                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='time_range'], [name='submission_date'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
-                            value="{{ request.GET.submission_date|default:'' }}"
-                        >
-                    </div>
-
-                    <!-- Questionnaire Filter -->
-                    <div class="space-y-2">
-                        <label for="questionnaire-filter" class="block text-sm font-semibold text-gray-700">
-                            <svg class="w-4 h-4 inline mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            {% translate "Questionnaire" %}
-                        </label>
-                        <select
-                            id="questionnaire-filter"
-                            name="questionnaire_filter"
-                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
-                            hx-get="{% url 'prom_review' patient.id %}"
-                            hx-target="#main-content"
-                            hx-trigger="change"
-                            hx-include="[name='item_filter'], [name='time_range'], [name='submission_date'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
-                        >
-                            <option value="">{% translate "All Questionnaires" %}</option>
-                            {% for questionnaire_option in questionnaire_options_for_cotton %}
-                                <option value="{{ questionnaire_option.id }}" {% if request.GET.questionnaire_filter == questionnaire_option.id|stringformat:"s" %}selected{% endif %}>
-                                    {{ questionnaire_option.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <!-- Time Range Filter -->
-                    <div class="space-y-2">
-                        <label for="time-range" class="block text-sm font-semibold text-gray-700">
-                            <svg class="w-4 h-4 inline mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            {% translate "Show Last" %}
-                        </label>
-                        <select
-                            id="time-range"
-                            name="time_range"
-                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
-                            hx-get="{% url 'prom_review' patient.id %}"
-                            hx-target="#main-content"
-                            hx-trigger="change"
-                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='submission_date'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
-                        >
-                            {% for value, label in time_range_options_for_cotton %}
-                                <option value="{{ value }}" {% if selected_time_range_for_cotton == value %}selected{% endif %}>
-                                    {{ label }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <!-- Item Filter -->
-                    <div class="space-y-2">
-                        <label for="item-filter" class="block text-sm font-semibold text-gray-700">
-                            <svg class="w-4 h-4 inline mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-                            </svg>
-                            {% translate "Filter by Items" %}
-                        </label>
-                        <div class="relative">
-                            <input
-                                type="text"
-                                id="item-filter-search"
-                                name="item-filter-search"
-                                class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400 pl-10"
-                                placeholder="{% translate "Search items..." %}"
-                                hx-get="{% url 'prom_review_item_search' patient.id %}"
-                                hx-target="#item-filter-dropdown"
-                                hx-trigger="input changed delay:300ms, focus delay:100ms"
-                                hx-include="[name='questionnaire_filter']"
-                                autocomplete="off"
-                            >
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                            </div>
-                            <div id="item-filter-dropdown" class="absolute z-20 w-full bg-white border border-gray-300 rounded-lg shadow-xl mt-1 max-h-64 overflow-y-auto hidden">
-                                <!-- Item search results will be loaded here -->
-                            </div>
-                        </div>
-                        <!-- Hidden inputs for selected items -->
-                        <div id="item-filter-inputs">
-                            {% for item_data in selected_items_data %}
-                                <input type="hidden" name="item_filter" value="{{ item_data.id }}" data-item-name="{{ item_data.name }}">
-                            {% endfor %}
-                        </div>
-                        <!-- Selected items summary -->
-                        <div id="selected-items-summary" class="mt-2 text-sm text-blue-600 font-medium">
-                            <!-- Summary of selected items will appear here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Time Analysis Settings -->
-            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6 shadow-sm border border-blue-200">
-                <div class="mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">
-                        <svg class="w-5 h-5 inline mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        {% translate "Time Analysis Settings" %}
-                    </h3>
-                    <p class="text-sm text-gray-600">{% translate "Configure how time intervals are calculated and displayed in the plots" %}</p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Start Date Reference Filter -->
-                    <div class="space-y-2">
-                        <label for="start-date-reference" class="block text-sm font-semibold text-gray-700">
-                            <svg class="w-4 h-4 inline mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            {% translate "Start Date Reference" %}
-                        </label>
-                        <select
-                            id="start-date-reference"
-                            name="start_date_reference"
-                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
-                            hx-get="{% url 'prom_review' patient.id %}"
-                            hx-target="#main-content"
-                            hx-trigger="change"
-                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='time_range'], [name='submission_date'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
-                        >
-                            {% for reference_key, display_name, date_value in available_start_dates %}
-                                <option value="{{ reference_key }}"
-                                    {% if request.GET.start_date_reference == reference_key or not request.GET.start_date_reference and reference_key == 'date_of_registration' %}selected{% endif %}>
-                                    {{ display_name }} ({{ date_value|date:"d/m/Y" }})
-                                </option>
-                            {% empty %}
-                                <option value="date_of_registration">{% translate "Date of Registration" %}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <!-- Time Interval Filter -->
-                    <div class="space-y-2">
-                        <label for="time-interval" class="block text-sm font-semibold text-gray-700">
-                            <svg class="w-4 h-4 inline mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            {% translate "Time Interval Units" %}
-                        </label>
-                        <select
-                            id="time-interval"
-                            name="time_interval"
-                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
-                            hx-get="{% url 'prom_review' patient.id %}"
-                            hx-target="#main-content"
-                            hx-trigger="change"
-                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='time_range'], [name='submission_date'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
-                        >
-                            <option value="seconds" {% if request.GET.time_interval == 'seconds' %}selected{% endif %}>{% translate "Seconds" %}</option>
-                            <option value="minutes" {% if request.GET.time_interval == 'minutes' %}selected{% endif %}>{% translate "Minutes" %}</option>
-                            <option value="hours" {% if request.GET.time_interval == 'hours' %}selected{% endif %}>{% translate "Hours" %}</option>
-                            <option value="days" {% if request.GET.time_interval == 'days' %}selected{% endif %}>{% translate "Days" %}</option>
-                            <option value="weeks" {% if request.GET.time_interval == 'weeks' or not request.GET.time_interval %}selected{% endif %}>{% translate "Weeks" %}</option>
-                            <option value="months" {% if request.GET.time_interval == 'months' %}selected{% endif %}>{% translate "Months" %}</option>
-                            <option value="years" {% if request.GET.time_interval == 'years' %}selected{% endif %}>{% translate "Years" %}</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Aggregation Settings -->
-            <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 mb-4 shadow-sm border border-green-200">
-                <div class="mb-3">
-                    <div class="flex items-center justify-between mb-1">
-                        <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.044M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.196-2.044M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                            {% translate "Population Comparison" %}
-                            {% if aggregation_metadata %}
-                                <span class="text-sm font-normal text-gray-600">
-                                    ({{ aggregation_metadata.total_eligible_patients }} {% trans "eligible patients" %})
-                                </span>
-                            {% endif %}
-                        </h3>
-                    </div>
-                    <p class="text-sm text-gray-600">{% translate "Individual results are shown with aggregated data from similar patients for comparison" %}</p>
-                </div>
-
-                <!-- Aggregation Controls (always visible now) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Aggregation Type -->
-                    <div class="space-y-2">
-                        <label for="aggregation-type" class="block text-sm font-semibold text-gray-700">
-                            <svg class="w-4 h-4 inline mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                            </svg>
-                            {% translate "Aggregation Type" %}
-                        </label>
-                        <select
-                            id="aggregation-type"
-                            name="aggregation_type"
-                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
-                            hx-get="{% url 'prom_review' patient.id %}"
-                            hx-target="#main-content"
-                            hx-trigger="change"
-                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='time_range'], [name='submission_date'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
-                        >
-                            <option value="median_iqr" {% if request.GET.aggregation_type == 'median_iqr' or not request.GET.aggregation_type %}selected{% endif %}>{% translate "Median with IQR (25th-75th percentile)" %}</option>
-                            <option value="mean_95ci" {% if request.GET.aggregation_type == 'mean_95ci' %}selected{% endif %}>{% translate "Mean with 95% Confidence Intervals" %}</option>
-                            <option value="mean_0.5sd" {% if request.GET.aggregation_type == 'mean_0.5sd' %}selected{% endif %}>{% translate "Mean ± 0.5 SD" %}</option>
-                            <option value="mean_1sd" {% if request.GET.aggregation_type == 'mean_1sd' %}selected{% endif %}>{% translate "Mean ± 1 SD" %}</option>
-                            <option value="mean_2sd" {% if request.GET.aggregation_type == 'mean_2sd' %}selected{% endif %}>{% translate "Mean ± 2 SD" %}</option>
-                            <option value="mean_2.5sd" {% if request.GET.aggregation_type == 'mean_2.5sd' %}selected{% endif %}>{% translate "Mean ± 2.5 SD" %}</option>
-                        </select>
-                    </div>
-
-                    <!-- Patient Gender Filter -->
-                    <div class="space-y-2">
-                        <label for="patient-filter-gender" class="block text-sm font-semibold text-gray-700">
-                            <svg class="w-4 h-4 inline mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                            {% translate "Gender Filter" %}
-                        </label>
-                        <select
-                            id="patient-filter-gender"
-                            name="patient_filter_gender"
-                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
-                            hx-get="{% url 'prom_review' patient.id %}"
-                            hx-target="#main-content"
-                            hx-trigger="change"
-                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='time_range'], [name='submission_date'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
-                        >
-                            <option value="">{% translate "All Genders" %}</option>
-                            <option value="match" {% if request.GET.patient_filter_gender == 'match' %}selected{% endif %}>{% translate "Same as Patient" %}</option>
-                            <option value="Male" {% if request.GET.patient_filter_gender == 'Male' %}selected{% endif %}>{% translate "Male" %}</option>
-                            <option value="Female" {% if request.GET.patient_filter_gender == 'Female' %}selected{% endif %}>{% translate "Female" %}</option>
-                            <option value="Other" {% if request.GET.patient_filter_gender == 'Other' %}selected{% endif %}>{% translate "Other" %}</option>
-                        </select>
-                    </div>
-
-                    <!-- Patient Diagnosis Filter -->
-                    <div class="space-y-2">
-                        <label for="patient-filter-diagnosis" class="block text-sm font-semibold text-gray-700">
-                            <svg class="w-4 h-4 inline mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            {% translate "Diagnosis Filter" %}
-                        </label>
-                        <select
-                            id="patient-filter-diagnosis"
-                            name="patient_filter_diagnosis"
-                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
-                            hx-get="{% url 'prom_review' patient.id %}"
-                            hx-target="#main-content"
-                            hx-trigger="change"
-                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='time_range'], [name='submission_date'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_treatment']"
-                        >
-                            <option value="">{% translate "All Diagnoses" %}</option>
-                            <option value="match" {% if request.GET.patient_filter_diagnosis == 'match' %}selected{% endif %}>{% translate "Same as Patient" %}</option>
-                            {% for diagnosis in available_diagnoses %}
-                                <option value="{{ diagnosis.id }}" {% if request.GET.patient_filter_diagnosis == diagnosis.id|stringformat:"s" %}selected{% endif %}>
-                                    {{ diagnosis.diagnosis }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <!-- Patient Treatment Filter -->
-                    <div class="space-y-2">
-                        <label for="patient-filter-treatment" class="block text-sm font-semibold text-gray-700">
-                            <svg class="w-4 h-4 inline mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
-                            </svg>
-                            {% translate "Treatment Filter" %}
-                        </label>
-                        <select
-                            id="patient-filter-treatment"
-                            name="patient_filter_treatment"
-                            class="block w-full h-11 rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
-                            hx-get="{% url 'prom_review' patient.id %}"
-                            hx-target="#main-content"
-                            hx-trigger="change"
-                            hx-include="[name='item_filter'], [name='questionnaire_filter'], [name='time_range'], [name='submission_date'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis']"
-                        >
-                            <option value="">{% translate "All Treatments" %}</option>
-                            <option value="match" {% if request.GET.patient_filter_treatment == 'match' %}selected{% endif %}>{% translate "Same as Patient" %}</option>
-                            {% for treatment_type in available_treatment_types %}
-                                <option value="{{ treatment_type.id }}" {% if request.GET.patient_filter_treatment == treatment_type.id|stringformat:"s" %}selected{% endif %}>
-                                    {{ treatment_type.treatment_type }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-            </div>
-
             <!-- Main Content -->
             <div id="main-content" class="space-y-6">
-                <!-- Top Row -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Left Section -->
-                    <div class="lg:col-span-1">
-                        {% include "promapp/components/patient_info_card.html" %}
-                    </div>
-                    
-                    <!-- Right Section -->
-                    <div class="lg:col-span-2">
-                        {% include "promapp/components/questionnaire_overview_card.html" %}
-                    </div>
-                </div>
-
-                <!-- Topline Results -->
-                {% include "promapp/components/topline_results_section.html" %}
-
-                <!-- Construct Scores -->
-                {% include "promapp/components/construct_scores_section.html" %}
-
-                <!-- Item-wise Results -->
-                {% include "promapp/components/item_results_section.html" %}
-
-                <!-- Aggregation Metadata will be moved to main-content area -->
+                {% include "promapp/components/main_content.html" %}
             </div>
         </div>
     </div>
@@ -398,183 +51,91 @@
         const itemSearchInput = document.getElementById('item-filter-search');
         const itemDropdown = document.getElementById('item-filter-dropdown');
         const selectedItemsSummary = document.getElementById('selected-items-summary');
-        const itemFilterInputs = document.getElementById('item-filter-inputs');
+
+        // Initialize selected items summary
+        updateSelectedItemsSummary();
+
+        // Function to update the selected items summary
+        function updateSelectedItemsSummary() {
+            const selectedInputs = document.querySelectorAll('#item-filter-inputs input[type="hidden"]');
+            const count = selectedInputs.length;
+            
+            if (count === 0) {
+                selectedItemsSummary.innerHTML = '<span class="text-gray-500">{% translate "All items shown" %}</span>';
+            } else {
+                const itemNames = Array.from(selectedInputs).map(input => input.getAttribute('data-item-name')).slice(0, 3);
+                let summaryText = `${count} {% translate "item" %}${count !== 1 ? 's' : ''} {% translate "selected" %}`;
+                if (count <= 3) {
+                    summaryText += `: ${itemNames.join(', ')}`;
+                } else {
+                    summaryText += `: ${itemNames.join(', ')} + ${count - 3} {% translate "more" %}`;
+                }
+                selectedItemsSummary.innerHTML = `<span class="text-blue-600">${summaryText}</span>`;
+            }
+        }
+
+        // Handle item selection from dropdown
+        document.addEventListener('click', function(event) {
+            if (event.target.matches('.item-option')) {
+                const itemId = event.target.getAttribute('data-item-id');
+                const itemName = event.target.getAttribute('data-item-name');
+                
+                // Check if item is already selected
+                const existingInput = document.querySelector(`#item-filter-inputs input[value="${itemId}"]`);
+                if (existingInput) {
+                    // Remove if already selected
+                    existingInput.remove();
+                    event.target.classList.remove('bg-blue-50', 'text-blue-600');
+                    event.target.classList.add('hover:bg-gray-50');
+                } else {
+                    // Add new selection
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'item_filter';
+                    hiddenInput.value = itemId;
+                    hiddenInput.setAttribute('data-item-name', itemName);
+                    document.getElementById('item-filter-inputs').appendChild(hiddenInput);
+                    
+                    event.target.classList.add('bg-blue-50', 'text-blue-600');
+                    event.target.classList.remove('hover:bg-gray-50');
+                }
+                
+                updateSelectedItemsSummary();
+                
+                // Trigger HTMX update
+                const form = document.createElement('form');
+                const inputs = document.querySelectorAll('#item-filter-inputs input, [name="questionnaire_filter"], [name="time_range"], [name="submission_date"], [name="start_date_reference"], [name="time_interval"], [name="aggregation_type"], [name="patient_filter_gender"], [name="patient_filter_diagnosis"], [name="patient_filter_treatment"]');
+                inputs.forEach(input => {
+                    const clone = input.cloneNode(true);
+                    form.appendChild(clone);
+                });
+                
+                htmx.ajax('GET', "{% url 'prom_review' patient.id %}", {
+                    source: form,
+                    target: '#main-content'
+                });
+            }
+        });
 
         // Show/hide dropdown on focus/blur
         itemSearchInput.addEventListener('focus', function() {
             itemDropdown.classList.remove('hidden');
         });
 
-        document.addEventListener('click', function(e) {
-            if (!itemSearchInput.contains(e.target) && !itemDropdown.contains(e.target)) {
+        document.addEventListener('click', function(event) {
+            if (!itemSearchInput.contains(event.target) && !itemDropdown.contains(event.target)) {
                 itemDropdown.classList.add('hidden');
             }
         });
 
-        // Handle HTMX events to maintain filter consistency
-        document.addEventListener('htmx:afterSwap', function(e) {
-            // Handle item filter dropdown updates
-            if (e.target.id === 'item-filter-dropdown') {
-                itemDropdown.classList.remove('hidden');
-                updateCheckboxStates();
-            }
-        });
-
-        // Global function to handle checkbox changes
-        window.handleItemCheckboxChange = function(checkbox) {
-            const itemId = checkbox.dataset.itemId;
-            const itemName = checkbox.dataset.itemName;
-            
-            if (checkbox.checked) {
-                addSelectedItem(itemId, itemName);
-            } else {
-                removeSelectedItem(itemId);
-            }
-        };
-
-        function addSelectedItem(itemId, itemName) {
-            // Check if item is already selected
-            const existingInput = itemFilterInputs.querySelector(`input[value="${itemId}"]`);
-            if (existingInput) return;
-
-            // Create hidden input
-            const hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.name = 'item_filter';
-            hiddenInput.value = itemId;
-            hiddenInput.dataset.itemName = itemName;
-            itemFilterInputs.appendChild(hiddenInput);
-
-            // Update summary
-            updateSelectedItemsSummary();
-            
-            // Trigger filter update
-            triggerFilterUpdate();
-        }
-
-        function removeSelectedItem(itemId) {
-            // Remove hidden input
-            const hiddenInput = itemFilterInputs.querySelector(`input[value="${itemId}"]`);
-            if (hiddenInput) {
-                hiddenInput.remove();
-            }
-
-            // Update summary
-            updateSelectedItemsSummary();
-            
-            // Trigger filter update
-            triggerFilterUpdate();
-        }
-
-        function updateCheckboxStates() {
-            // Get currently selected item IDs
-            const selectedIds = Array.from(itemFilterInputs.querySelectorAll('input[name="item_filter"]'))
-                .map(input => input.value);
-            
-            // Update checkbox states in dropdown
-            const checkboxes = itemDropdown.querySelectorAll('.item-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = selectedIds.includes(checkbox.dataset.itemId);
-            });
-        }
-
-        function updateSelectedItemsSummary() {
-            const selectedInputs = itemFilterInputs.querySelectorAll('input[name="item_filter"]');
-            const count = selectedInputs.length;
-            
-            if (count === 0) {
-                selectedItemsSummary.textContent = '';
-            } else if (count === 1) {
-                const itemName = selectedInputs[0].dataset.itemName || 'item';
-                selectedItemsSummary.textContent = `1 item selected: ${itemName}`;
-            } else {
-                selectedItemsSummary.textContent = `${count} items selected`;
-            }
-        }
-
-        // Initialize selected items summary on page load
-        updateSelectedItemsSummary();
-
-        // Update all existing filter functions to include aggregation parameters
-        function updateFilterParams(params) {
-            // Add aggregation parameters (always enabled now)
-            const aggregationType = document.querySelector('[name="aggregation_type"]');
-            if (aggregationType && aggregationType.value) {
-                params.append('aggregation_type', aggregationType.value);
-            }
-            
-            const patientFilterGender = document.querySelector('[name="patient_filter_gender"]');
-            if (patientFilterGender && patientFilterGender.value) {
-                params.append('patient_filter_gender', patientFilterGender.value);
-            }
-            
-            const patientFilterDiagnosis = document.querySelector('[name="patient_filter_diagnosis"]');
-            if (patientFilterDiagnosis && patientFilterDiagnosis.value) {
-                params.append('patient_filter_diagnosis', patientFilterDiagnosis.value);
-            }
-            
-            const patientFilterTreatment = document.querySelector('[name="patient_filter_treatment"]');
-            if (patientFilterTreatment && patientFilterTreatment.value) {
-                params.append('patient_filter_treatment', patientFilterTreatment.value);
-            }
-        }
-
-        // Override the existing triggerFilterUpdate function to include aggregation params
-        function triggerFilterUpdate() {
-            // Get all current filter values
-            const params = new URLSearchParams();
-            
-            // Add questionnaire filter
-            const questionnaireFilter = document.querySelector('[name="questionnaire_filter"]');
-            if (questionnaireFilter && questionnaireFilter.value) {
-                params.append('questionnaire_filter', questionnaireFilter.value);
-            }
-            
-            // Add submission date filter
-            const submissionDate = document.querySelector('[name="submission_date"]');
-            if (submissionDate && submissionDate.value) {
-                params.append('submission_date', submissionDate.value);
-            }
-            
-            // Add time range filter
-            const timeRange = document.querySelector('[name="time_range"]');
-            if (timeRange && timeRange.value) {
-                params.append('time_range', timeRange.value);
-            }
-            
-            // Add start date reference filter
-            const startDateReference = document.querySelector('[name="start_date_reference"]');
-            if (startDateReference && startDateReference.value) {
-                params.append('start_date_reference', startDateReference.value);
-            }
-            
-            // Add time interval filter
-            const timeInterval = document.querySelector('[name="time_interval"]');
-            if (timeInterval && timeInterval.value) {
-                params.append('time_interval', timeInterval.value);
-            }
-            
-            // Add item filters
-            const itemFilters = document.querySelectorAll('[name="item_filter"]');
-            itemFilters.forEach(input => {
-                if (input.value) {
-                    params.append('item_filter', input.value);
+        // Clear search when dropdown is hidden
+        itemSearchInput.addEventListener('blur', function() {
+            setTimeout(() => {
+                if (!itemDropdown.matches(':hover')) {
+                    itemSearchInput.value = '';
                 }
-            });
-            
-            // Add aggregation parameters
-            updateFilterParams(params);
-            
-            // Update browser URL to reflect current state
-            const newUrl = new URL(window.location);
-            newUrl.search = params.toString();
-            window.history.replaceState({}, '', newUrl);
-            
-            // Trigger HTMX request
-            htmx.ajax('GET', '{% url "prom_review" patient.id %}?' + params.toString(), {
-                target: '#main-content'
-            });
-        }
+            }, 200);
+        });
     });
 </script>
 {% endblock %}

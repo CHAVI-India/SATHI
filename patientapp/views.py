@@ -373,6 +373,7 @@ def prom_review(request, pk):
 
         # Calculate aggregated statistics - now always enabled
         aggregated_statistics = None
+        aggregation_metadata = None
         if aggregated_patients and historical_scores_for_plot:
             try:
                 from patientapp.utils import (
@@ -395,7 +396,7 @@ def prom_review(request, pk):
                 reference_intervals.sort()
                 
                 # Aggregate data from other patients using index patient's time intervals as reference
-                aggregated_data, metadata = aggregate_construct_scores_by_time_interval(
+                aggregated_data, aggregation_metadata = aggregate_construct_scores_by_time_interval(
                     construct=construct,
                     patients_queryset=aggregated_patients,
                     start_date_reference=start_date_reference,
@@ -423,7 +424,8 @@ def prom_review(request, pk):
             patient=patient,
             start_date_reference=start_date_reference,
             time_interval=time_interval,
-            aggregated_statistics=aggregated_statistics  # Pass aggregated statistics
+            aggregated_statistics=aggregated_statistics,  # Pass aggregated statistics
+            aggregation_metadata=aggregation_metadata  # Pass aggregation metadata
         )
 
         # Only include if it's an important construct
@@ -517,6 +519,10 @@ def prom_review(request, pk):
             total_responses = 0
             time_intervals_count = 0
             time_ranges = []
+            all_patient_details = {'contributing': [], 'non_contributing': []}
+            
+            # Get patient details from the first construct that has aggregation data
+            found_patient_details = False
             
             # Aggregate metadata from important construct calculations (which have aggregated_statistics)
             for score_data in important_construct_scores:
@@ -531,6 +537,41 @@ def prom_review(request, pk):
                     for interval_stats in score_data.aggregated_statistics.values():
                         if 'n' in interval_stats:
                             total_responses += interval_stats['n']
+                    
+                    # Get patient details from the construct's metadata (if available)
+                    if not found_patient_details and hasattr(score_data, 'aggregation_metadata'):
+                        if 'patient_details' in score_data.aggregation_metadata:
+                            all_patient_details = score_data.aggregation_metadata['patient_details']
+                            found_patient_details = True
+            
+            # If we don't have patient details yet, try to get them from a fresh calculation
+            if not found_patient_details and important_construct_scores:
+                try:
+                    first_construct = important_construct_scores[0]
+                    if hasattr(first_construct, 'construct'):
+                        from patientapp.utils import aggregate_construct_scores_by_time_interval
+                        start_date = get_patient_start_date(patient, start_date_reference)
+                        
+                        if start_date and hasattr(first_construct, 'aggregated_statistics') and first_construct.aggregated_statistics:
+                            # Get reference intervals from this construct
+                            reference_intervals = sorted(list(first_construct.aggregated_statistics.keys()))
+                            if reference_intervals:
+                                # Get fresh metadata with patient details
+                                _, metadata_with_details = aggregate_construct_scores_by_time_interval(
+                                    construct=first_construct.construct,
+                                    patients_queryset=aggregated_patients,
+                                    start_date_reference=start_date_reference,
+                                    time_interval=time_interval,
+                                    submission_date_filter=submission_date,
+                                    reference_time_intervals=reference_intervals
+                                )
+                                if 'patient_details' in metadata_with_details:
+                                    all_patient_details = metadata_with_details['patient_details']
+                                    found_patient_details = True
+                                    
+                                    logger.info(f"Successfully retrieved patient details: {len(all_patient_details['contributing'])} contributing, {len(all_patient_details['non_contributing'])} non-contributing")
+                except Exception as e:
+                    logger.error(f"Error getting patient details: {e}")
             
             # Calculate overall time range
             time_range = None
@@ -552,16 +593,21 @@ def prom_review(request, pk):
             else:
                 estimated_contributing_patients = 0
             
+            # If we have actual patient details, use the real count
+            if found_patient_details:
+                estimated_contributing_patients = len(all_patient_details['contributing'])
+            
             aggregation_metadata = {
                 'total_eligible_patients': total_eligible_patients,
                 'contributing_patients': estimated_contributing_patients,
                 'total_responses': total_responses,
                 'time_intervals_count': time_intervals_count,
                 'time_range': time_range or 'N/A',
-                'time_interval_unit': get_interval_label(time_interval).lower()
+                'time_interval_unit': get_interval_label(time_interval).lower(),
+                'patient_details': all_patient_details,
             }
             
-            logger.info(f"Calculated aggregation metadata from {len(important_construct_scores)} important constructs: {aggregation_metadata}")
+            logger.info(f"Calculated aggregation metadata: {estimated_contributing_patients} contributing patients, {total_responses} responses, {time_intervals_count} intervals, patient_details_found: {found_patient_details}")
                 
         except Exception as e:
             logger.error(f"Error calculating aggregation metadata: {e}")
@@ -571,7 +617,8 @@ def prom_review(request, pk):
                 'total_responses': 0,
                 'time_intervals_count': 0,
                 'time_range': 'N/A',
-                'time_interval_unit': get_interval_label(time_interval).lower()
+                'time_interval_unit': get_interval_label(time_interval).lower(),
+                'patient_details': {'contributing': [], 'non_contributing': []},
             }
 
     context = {

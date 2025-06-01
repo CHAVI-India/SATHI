@@ -280,7 +280,7 @@ class ConstructScoreData:
     def __init__(self, construct: ConstructScale, current_score: Optional[Decimal],
                  previous_score: Optional[Decimal], historical_scores: List[QuestionnaireConstructScore],
                  patient=None, start_date_reference='date_of_registration', time_interval='weeks',
-                 aggregated_statistics=None):
+                 aggregated_statistics=None, aggregation_metadata=None):
         self.construct = construct
         self.score = current_score
         self.previous_score = previous_score
@@ -289,8 +289,9 @@ class ConstructScoreData:
         self.start_date_reference = start_date_reference
         self.time_interval = time_interval
         self.aggregated_statistics = aggregated_statistics or {}
+        self.aggregation_metadata = aggregation_metadata or {}
         self.bokeh_plot = self._create_bokeh_plot(historical_scores)
-        logger.info(f"Created ConstructScoreData for {construct.name}: score={current_score}, previous={previous_score}, aggregated_intervals={len(self.aggregated_statistics)}")
+        logger.info(f"Created ConstructScoreData for {construct.name}: score={current_score}, previous={previous_score}, aggregated_intervals={len(self.aggregated_statistics)}, has_metadata={bool(self.aggregation_metadata)}")
 
     def _calculate_score_change(self) -> Optional[float]:
         if self.score is not None and self.previous_score is not None:
@@ -1228,13 +1229,58 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
         else:
             time_range = f"{min_interval:.1f} - {max_interval:.1f}"
     
-    # Create metadata
+    # Create metadata with detailed patient information
+    patient_details = {
+        'contributing': [],
+        'non_contributing': []
+    }
+    
+    # Get all patients that were processed for detailed breakdown
+    processed_patient_ids = set(data['patient'].id for data in patient_data_list)
+    
+    # Add contributing patients details
+    for patient_data in patient_data_list:
+        if patient_data['patient'].id in contributing_patients:
+            patient_details['contributing'].append({
+                'patient_name': patient_data['patient'].name,
+                'patient_id': patient_data['patient'].patient_id,
+                'responses_count': patient_data['score_count'],
+                'time_range': f"{min([float(s['Patient_Interval']) for s in patient_data['scores'] if s['Patient_Interval'] != 'No data ≤ ref time']):.1f} - {max([float(s['Patient_Interval']) for s in patient_data['scores'] if s['Patient_Interval'] != 'No data ≤ ref time']):.1f}" if any(s['Patient_Interval'] != 'No data ≤ ref time' for s in patient_data['scores']) else None
+            })
+    
+    # Add non-contributing patients from eligible pool
+    for patient in patients_queryset:
+        if patient.id not in contributing_patients:
+            # Determine reason for not contributing
+            reason = "No data available"
+            if patient.id in processed_patient_ids:
+                # Patient was processed but didn't contribute
+                patient_data = next((data for data in patient_data_list if data['patient'].id == patient.id), None)
+                if patient_data and patient_data['score_count'] == 0:
+                    reason = "No data in time range"
+                else:
+                    reason = "Insufficient data"
+            else:
+                # Patient wasn't even processed (no start date, no scores, etc.)
+                start_date = get_patient_start_date(patient, start_date_reference)
+                if not start_date:
+                    reason = "No start date available"
+                else:
+                    reason = "No construct scores"
+            
+            patient_details['non_contributing'].append({
+                'patient_name': patient.name,
+                'patient_id': patient.patient_id,
+                'reason': reason
+            })
+    
     metadata = {
         'total_eligible_patients': patients_queryset.count(),
         'contributing_patients': len(contributing_patients),
         'total_responses': total_scores_processed,
         'time_intervals_count': len(time_intervals),
-        'time_range': time_range
+        'time_range': time_range,
+        'patient_details': patient_details
     }
     
     plotting_logger.info("="*80)
