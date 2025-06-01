@@ -570,7 +570,7 @@ class ConstructScoreData:
             fill_color='#000000',
             line_color='#000000'
         )
-
+        
         plotting_logger.info("Added individual patient line and points (black)")
 
         # Configure hover tool for individual data
@@ -735,7 +735,7 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
         x_max = max(time_intervals) + 0.1 * (max(time_intervals) - min(time_intervals)) if max(time_intervals) > min(time_intervals) else max(time_intervals) + 1
     else:
         x_min, x_max = 0, 1
-
+    
     # Create figure with linear x-axis for time intervals
     interval_label = get_interval_label(time_interval)
     p = figure(
@@ -784,7 +784,7 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
             line_width=0
         )
         p.add_layout(box)
-
+    
     # Add data for individual patient
     source = ColumnDataSource(data=dict(
         time_intervals=time_intervals,
@@ -887,7 +887,7 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
         x_max = max(time_intervals) + 0.1 * (max(time_intervals) - min(time_intervals)) if max(time_intervals) > min(time_intervals) else max(time_intervals) + 1
     else:
         x_min, x_max = 0, 1
-
+    
     # Create figure with linear x-axis for time intervals
     interval_label = get_interval_label(time_interval)
     p = figure(
@@ -949,7 +949,7 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
                 line_width=0
             )
             p.add_layout(band)
-
+    
     # Add individual patient line and points (on top of aggregated data)
     p.line(
         x='time_intervals',
@@ -1057,7 +1057,7 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
         reference_time_intervals: List of reference time intervals from index patient
         
     Returns:
-        dict: Mapping of reference time intervals to aggregated data
+        tuple: (aggregated_data dict, metadata dict)
     """
     from promapp.models import QuestionnaireConstructScore
     
@@ -1072,12 +1072,19 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
     
     if not reference_time_intervals:
         plotting_logger.info("No reference time intervals provided - returning empty aggregation")
-        return {}
+        return {}, {
+            'total_eligible_patients': patients_queryset.count(),
+            'contributing_patients': 0,
+            'total_responses': 0,
+            'time_intervals_count': 0,
+            'time_range': 'N/A'
+        }
     
     aggregated_data = {}
     patients_with_data = 0
     total_scores_processed = 0
     patient_data_list = []
+    contributing_patients = set()
     
     for patient in patients_queryset:
         # Get start date for this patient
@@ -1106,6 +1113,7 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
         
         patients_with_data += 1
         patient_scores = []
+        patient_contributed = False
         
         # Calculate time intervals for all scores from this patient
         patient_time_data = []
@@ -1141,6 +1149,7 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
                 
                 aggregated_data[ref_interval].append(most_recent['score'])
                 total_scores_processed += 1
+                patient_contributed = True
                 
                 # Store for patient-level logging
                 patient_scores.append({
@@ -1157,6 +1166,10 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
                     'Score': 'N/A',
                     'Submission_Date': 'N/A'
                 })
+        
+        # Track patients that actually contributed data
+        if patient_contributed:
+            contributing_patients.add(patient.id)
         
         # Add patient data to list for tabular logging
         if patient_scores:
@@ -1204,11 +1217,32 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
     else:
         plotting_logger.info("No aggregated data available")
     
+    # Calculate time interval range
+    time_intervals = sorted(aggregated_data.keys()) if aggregated_data else []
+    time_range = None
+    if time_intervals:
+        min_interval = min(time_intervals)
+        max_interval = max(time_intervals)
+        if min_interval == max_interval:
+            time_range = f"{min_interval:.1f}"
+        else:
+            time_range = f"{min_interval:.1f} - {max_interval:.1f}"
+    
+    # Create metadata
+    metadata = {
+        'total_eligible_patients': patients_queryset.count(),
+        'contributing_patients': len(contributing_patients),
+        'total_responses': total_scores_processed,
+        'time_intervals_count': len(time_intervals),
+        'time_range': time_range
+    }
+    
     plotting_logger.info("="*80)
     plotting_logger.info(f"END AGGREGATION DATA for {construct.name}")
+    plotting_logger.info(f"METADATA: {metadata}")
     plotting_logger.info("="*80)
     
-    return aggregated_data
+    return aggregated_data, metadata
 
 def calculate_aggregation_statistics(aggregated_data, aggregation_type='median_iqr'):
     """Calculate aggregation statistics for each time interval.
@@ -1367,35 +1401,28 @@ def calculate_aggregation_metadata(aggregated_data, patients_queryset, construct
         dict: Metadata about the aggregation
     """
     total_responses = sum(len(values) for values in aggregated_data.values())
-    total_patients = patients_queryset.count()
+    total_eligible_patients = patients_queryset.count()
     
-    # Calculate unique patients that contributed data
-    # This requires checking which patients actually have data for this construct/item
-    contributing_patients = set()
-    
-    if hasattr(construct_or_item, 'scale_equation'):  # It's a construct
-        from promapp.models import QuestionnaireConstructScore
+    # Calculate unique patients that contributed data from the actual aggregated data
+    # Since aggregated_data contains the actual responses used, we can count unique contributions
+    contributing_patients = 0
+    if aggregated_data:
+        # Each value in aggregated_data represents a response from a patient
+        # The number of contributing patients is estimated by the maximum number of responses
+        # across all time intervals (since a patient can contribute to multiple intervals)
+        max_responses_per_interval = max(len(values) for values in aggregated_data.values()) if aggregated_data else 0
         
-        for patient in patients_queryset:
-            has_data = QuestionnaireConstructScore.objects.filter(
-                questionnaire_submission__patient=patient,
-                construct=construct_or_item,
-                score__isnull=False
-            ).exists()
-            if has_data:
-                contributing_patients.add(patient.id)
-                
-    else:  # It's an item
-        from promapp.models import QuestionnaireItemResponse
+        # For a more accurate count, we need to consider that the same patients may contribute
+        # to multiple intervals. A reasonable estimate is the maximum responses in any single interval
+        # as this represents the minimum number of unique patients contributing
+        contributing_patients = max_responses_per_interval
         
-        for patient in patients_queryset:
-            has_data = QuestionnaireItemResponse.objects.filter(
-                questionnaire_submission__patient=patient,
-                questionnaire_item__item=construct_or_item,
-                response_value__isnull=False
-            ).exclude(response_value='').exists()
-            if has_data:
-                contributing_patients.add(patient.id)
+        # However, for a more conservative and realistic estimate, we can use
+        # the average number of responses across intervals, as this better represents
+        # the typical patient contribution pattern
+        if aggregated_data:
+            avg_responses = total_responses / len(aggregated_data)
+            contributing_patients = min(int(avg_responses) + 1, total_eligible_patients)
     
     # Calculate time interval range
     time_intervals = sorted(aggregated_data.keys()) if aggregated_data else []
@@ -1409,8 +1436,8 @@ def calculate_aggregation_metadata(aggregated_data, patients_queryset, construct
             time_range = f"{min_interval:.1f} - {max_interval:.1f}"
     
     return {
-        'total_eligible_patients': total_patients,
-        'contributing_patients': len(contributing_patients),
+        'total_eligible_patients': total_eligible_patients,
+        'contributing_patients': contributing_patients,
         'total_responses': total_responses,
         'time_intervals_count': len(time_intervals),
         'time_range': time_range

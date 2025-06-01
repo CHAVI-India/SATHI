@@ -38,8 +38,8 @@ def prom_review(request, pk):
     start_date_reference = request.GET.get('start_date_reference', 'date_of_registration')
     time_interval = request.GET.get('time_interval', 'weeks')
     
-    # Get aggregation parameters
-    show_aggregated = request.GET.get('show_aggregated', '0') == '1'
+    # Get aggregation parameters - aggregation is now always enabled
+    show_aggregated = True  # Always show aggregated data
     aggregation_type = request.GET.get('aggregation_type', 'median_iqr')
     patient_filter_gender = request.GET.get('patient_filter_gender')
     patient_filter_diagnosis = request.GET.get('patient_filter_diagnosis')
@@ -371,9 +371,9 @@ def prom_review(request, pk):
             previous_score_for_plot_context = historical_scores_for_plot[1].score
             logger.debug(f"Previous score for {construct.name} (plot context): {previous_score_for_plot_context}")
 
-        # Calculate aggregated statistics if enabled
+        # Calculate aggregated statistics - now always enabled
         aggregated_statistics = None
-        if show_aggregated and aggregated_patients and historical_scores_for_plot:
+        if aggregated_patients and historical_scores_for_plot:
             try:
                 from patientapp.utils import (
                     aggregate_construct_scores_by_time_interval,
@@ -395,7 +395,7 @@ def prom_review(request, pk):
                 reference_intervals.sort()
                 
                 # Aggregate data from other patients using index patient's time intervals as reference
-                aggregated_data = aggregate_construct_scores_by_time_interval(
+                aggregated_data, metadata = aggregate_construct_scores_by_time_interval(
                     construct=construct,
                     patients_queryset=aggregated_patients,
                     start_date_reference=start_date_reference,
@@ -496,59 +496,72 @@ def prom_review(request, pk):
         start_date_reference = available_start_dates[0][0] if available_start_dates else 'date_of_registration'
 
     # Get available diagnoses and treatment types for aggregation filters
-    from patientapp.models import Diagnosis, TreatmentType
-    available_diagnoses = Diagnosis.objects.all().order_by('diagnosis')
-    available_treatment_types = TreatmentType.objects.all().order_by('treatment_type')
+    from patientapp.models import DiagnosisList, TreatmentType
+    
+    # Get unique diagnoses that are actually assigned to patients
+    available_diagnoses = DiagnosisList.objects.filter(
+        diagnosis_list__patient__isnull=False
+    ).distinct().order_by('diagnosis')
+    
+    # Get unique treatment types that are actually assigned to patients
+    available_treatment_types = TreatmentType.objects.filter(
+        treatment__diagnosis__patient__isnull=False
+    ).distinct().order_by('treatment_type')
 
-    # Calculate aggregation metadata if aggregated patients are available
+    # Calculate aggregation metadata - now always available since aggregation is always enabled
     aggregation_metadata = None
     if aggregated_patients:
         try:
-            # Always provide basic metadata when aggregated patients are available
-            basic_metadata = {
-                'total_eligible_patients': aggregated_patients.count(),
-                'contributing_patients': 0,
-                'total_responses': 0,
-                'time_intervals_count': 0,
-                'time_range': 'N/A',
+            # Collect metadata from all the construct aggregations that were already calculated
+            total_eligible_patients = aggregated_patients.count()
+            total_responses = 0
+            time_intervals_count = 0
+            time_ranges = []
+            
+            # Aggregate metadata from important construct calculations (which have aggregated_statistics)
+            for score_data in important_construct_scores:
+                if hasattr(score_data, 'aggregated_statistics') and score_data.aggregated_statistics:
+                    # Count unique time intervals across all constructs
+                    construct_intervals = list(score_data.aggregated_statistics.keys())
+                    if construct_intervals:
+                        time_intervals_count = max(time_intervals_count, len(construct_intervals))
+                        time_ranges.extend([min(construct_intervals), max(construct_intervals)])
+                    
+                    # Count responses from this construct's aggregation
+                    for interval_stats in score_data.aggregated_statistics.values():
+                        if 'n' in interval_stats:
+                            total_responses += interval_stats['n']
+            
+            # Calculate overall time range
+            time_range = None
+            if time_ranges:
+                min_time = min(time_ranges)
+                max_time = max(time_ranges)
+                if min_time == max_time:
+                    time_range = f"{min_time:.1f}"
+                else:
+                    time_range = f"{min_time:.1f} - {max_time:.1f}"
+            
+            # Estimate contributing patients (this is approximate since we aggregate across constructs)
+            # Use a reasonable estimate based on total responses and intervals
+            if time_intervals_count > 0 and total_responses > 0:
+                estimated_contributing_patients = min(
+                    total_responses // max(1, time_intervals_count),
+                    total_eligible_patients
+                )
+            else:
+                estimated_contributing_patients = 0
+            
+            aggregation_metadata = {
+                'total_eligible_patients': total_eligible_patients,
+                'contributing_patients': estimated_contributing_patients,
+                'total_responses': total_responses,
+                'time_intervals_count': time_intervals_count,
+                'time_range': time_range or 'N/A',
                 'time_interval_unit': get_interval_label(time_interval).lower()
             }
             
-            if show_aggregated and construct_scores.exists():
-                from patientapp.utils import calculate_aggregation_metadata
-                
-                # Use the first construct as a representative sample
-                first_construct = construct_scores.first().construct
-                
-                # Get aggregated data for metadata calculation
-                from patientapp.utils import aggregate_construct_scores_by_time_interval
-                start_date = get_patient_start_date(patient, start_date_reference)
-                
-                # Get sample aggregated data
-                sample_aggregated_data = aggregate_construct_scores_by_time_interval(
-                    construct=first_construct,
-                    patients_queryset=aggregated_patients,
-                    start_date_reference=start_date_reference,
-                    time_interval=time_interval,
-                    submission_date_filter=submission_date,
-                    reference_time_intervals=[0.0]  # Use dummy reference for metadata calculation
-                )
-                
-                # Calculate detailed metadata
-                aggregation_metadata = calculate_aggregation_metadata(
-                    sample_aggregated_data,
-                    aggregated_patients,
-                    first_construct
-                )
-                
-                # Add interval unit for display
-                aggregation_metadata['time_interval_unit'] = get_interval_label(time_interval).lower()
-                
-                logger.info(f"Detailed aggregation metadata: {aggregation_metadata}")
-            else:
-                # Use basic metadata when aggregation is not enabled
-                aggregation_metadata = basic_metadata
-                logger.info(f"Basic aggregation metadata: {aggregation_metadata}")
+            logger.info(f"Calculated aggregation metadata from {len(important_construct_scores)} important constructs: {aggregation_metadata}")
                 
         except Exception as e:
             logger.error(f"Error calculating aggregation metadata: {e}")
