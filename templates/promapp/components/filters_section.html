@@ -26,7 +26,7 @@
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     hx-get="{% url 'prom_review' patient.id %}"
                     hx-target="#main-content"
-                    hx-include="[name='questionnaire_filter'], [name='submission_date'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                    hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
                     hx-indicator="#loading-indicator"
                 >
                     {% for ref_key, display_name, date_value in available_start_dates %}
@@ -37,20 +37,23 @@
                 </select>
             </div>
 
-            <!-- Submission Date Filter -->
+            <!-- Relative Time Filter -->
             <div>
-                <label for="submission-date" class="block text-sm font-medium text-gray-700 mb-1">
-                    {% translate "Up to Date" %}
+                <label for="max-time-interval" class="block text-sm font-medium text-gray-700 mb-1">
+                    {% translate "Up to" %} <span id="time-interval-unit-display">{% translate "weeks" %}</span> {% translate "after start date" %}
                 </label>
                 <input 
-                    type="date" 
-                    id="submission-date" 
-                    name="submission_date"
-                    value="{{ request.GET.submission_date }}"
+                    type="number" 
+                    id="max-time-interval" 
+                    name="max_time_interval"
+                    value="{{ request.GET.max_time_interval }}"
+                    min="0"
+                    step="0.1"
+                    placeholder="{% translate 'All data' %}"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     hx-get="{% url 'prom_review' patient.id %}"
                     hx-target="#main-content"
-                    hx-include="[name='questionnaire_filter'], [name='submission_date'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                    hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
                     hx-indicator="#loading-indicator"
                     hx-trigger="change"
                 >
@@ -67,7 +70,7 @@
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     hx-get="{% url 'prom_review' patient.id %}"
                     hx-target="#main-content"
-                    hx-include="[name='questionnaire_filter'], [name='submission_date'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                    hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
                     hx-indicator="#loading-indicator"
                 >
                     <option value="3" {% if request.GET.time_range == "3" %}selected{% endif %}>{% translate "3 submissions" %}</option>
@@ -89,8 +92,9 @@
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     hx-get="{% url 'prom_review' patient.id %}"
                     hx-target="#main-content"
-                    hx-include="[name='questionnaire_filter'], [name='submission_date'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                    hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
                     hx-indicator="#loading-indicator"
+                    onchange="updateTimeIntervalDisplay(); htmx.trigger(this, 'change')"
                 >
                     <option value="days" {% if request.GET.time_interval == "days" %}selected{% endif %}>{% translate "Days" %}</option>
                     <option value="weeks" {% if request.GET.time_interval == "weeks" or not request.GET.time_interval %}selected{% endif %}>{% translate "Weeks" %}</option>
@@ -120,7 +124,7 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         hx-get="{% url 'prom_review' patient.id %}"
                         hx-target="#main-content"
-                        hx-include="[name='questionnaire_filter'], [name='submission_date'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
                         hx-indicator="#loading-indicator"
                     >
                         <option value="median_iqr" {% if request.GET.aggregation_type == "median_iqr" or not request.GET.aggregation_type %}selected{% endif %}>{% translate "Median with IQR (25th-75th percentile)" %}</option>
@@ -142,7 +146,7 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         hx-get="{% url 'prom_review' patient.id %}"
                         hx-target="#main-content"
-                        hx-include="[name='questionnaire_filter'], [name='submission_date'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
                         hx-indicator="#loading-indicator"
                     >
                         <option value="">{% translate "All Genders" %}</option>
@@ -164,7 +168,7 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         hx-get="{% url 'prom_review' patient.id %}"
                         hx-target="#main-content"
-                        hx-include="[name='questionnaire_filter'], [name='submission_date'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
                         hx-indicator="#loading-indicator"
                     >
                         <option value="">{% translate "All Diagnoses" %}</option>
@@ -188,7 +192,7 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         hx-get="{% url 'prom_review' patient.id %}"
                         hx-target="#main-content"
-                        hx-include="[name='questionnaire_filter'], [name='submission_date'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
                         hx-indicator="#loading-indicator"
                     >
                         <option value="">{% translate "All Treatments" %}</option>
@@ -223,7 +227,7 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         hx-get="{% url 'prom_review' patient.id %}"
                         hx-target="#main-content"
-                        hx-include="[name='questionnaire_filter'], [name='submission_date'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
                         hx-indicator="#loading-indicator"
                     >
                         <option value="">{% translate "All Questionnaires" %}</option>
@@ -286,7 +290,7 @@
                                     name="item_filter" 
                                     value="{{ item.id }}" 
                                     class="item-checkbox mt-0.5 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                                    {% if item.id|stringformat:"s" in request.GET.item_filter %}checked{% endif %}
+                                    {% if item.id|stringformat:"s" in item_filter %}checked{% endif %}
                                     onchange="updateItemSelection()"
                                 >
                                 <div class="flex-1 text-sm">
@@ -300,10 +304,8 @@
                     
                     <!-- Hidden inputs for HTMX -->
                     <div id="item-filter-hidden-inputs">
-                        {% for item in available_items %}
-                            {% if item.id|stringformat:"s" in request.GET.item_filter %}
-                            <input type="hidden" name="item_filter" value="{{ item.id }}" class="item-hidden-input">
-                            {% endif %}
+                        {% for item_id in item_filter %}
+                        <input type="hidden" name="item_filter" value="{{ item_id }}" class="item-hidden-input">
                         {% endfor %}
                     </div>
                 </div>
@@ -407,13 +409,67 @@ function clearAllItems() {
     updateItemSelection();
 }
 
+function updateTimeIntervalDisplay() {
+    const timeIntervalSelect = document.getElementById('time-interval');
+    const displayElement = document.getElementById('time-interval-unit-display');
+    
+    if (timeIntervalSelect && displayElement) {
+        const selectedValue = timeIntervalSelect.value;
+        const unitNames = {
+            'days': '{% translate "days" %}',
+            'weeks': '{% translate "weeks" %}',
+            'months': '{% translate "months" %}',
+            'years': '{% translate "years" %}'
+        };
+        displayElement.textContent = unitNames[selectedValue] || '{% translate "weeks" %}';
+    }
+}
+
 function triggerItemFilterUpdate() {
-    // Use HTMX to trigger update
-    const button = document.getElementById('item-filter-dropdown');
-    htmx.ajax('GET', '{% url "prom_review" patient.id %}', {
+    // Get all form elements that should be included
+    const formData = new FormData();
+    
+    // Add all filter parameters
+    const questionnaire = document.querySelector('[name="questionnaire_filter"]');
+    if (questionnaire && questionnaire.value) formData.append('questionnaire_filter', questionnaire.value);
+    
+    const maxTimeInterval = document.querySelector('[name="max_time_interval"]');
+    if (maxTimeInterval && maxTimeInterval.value) formData.append('max_time_interval', maxTimeInterval.value);
+    
+    const timeRange = document.querySelector('[name="time_range"]');
+    if (timeRange && timeRange.value) formData.append('time_range', timeRange.value);
+    
+    const startDateRef = document.querySelector('[name="start_date_reference"]');
+    if (startDateRef && startDateRef.value) formData.append('start_date_reference', startDateRef.value);
+    
+    const timeInterval = document.querySelector('[name="time_interval"]');
+    if (timeInterval && timeInterval.value) formData.append('time_interval', timeInterval.value);
+    
+    const aggregationType = document.querySelector('[name="aggregation_type"]');
+    if (aggregationType && aggregationType.value) formData.append('aggregation_type', aggregationType.value);
+    
+    const genderFilter = document.querySelector('[name="patient_filter_gender"]');
+    if (genderFilter && genderFilter.value) formData.append('patient_filter_gender', genderFilter.value);
+    
+    const diagnosisFilter = document.querySelector('[name="patient_filter_diagnosis"]');
+    if (diagnosisFilter && diagnosisFilter.value) formData.append('patient_filter_diagnosis', diagnosisFilter.value);
+    
+    const treatmentFilter = document.querySelector('[name="patient_filter_treatment"]');
+    if (treatmentFilter && treatmentFilter.value) formData.append('patient_filter_treatment', treatmentFilter.value);
+    
+    // Add all selected item filters
+    const hiddenInputs = document.querySelectorAll('#item-filter-hidden-inputs input[name="item_filter"]');
+    hiddenInputs.forEach(input => {
+        formData.append('item_filter', input.value);
+    });
+    
+    // Build query string
+    const params = new URLSearchParams(formData);
+    const url = '{% url "prom_review" patient.id %}?' + params.toString();
+    
+    // Trigger HTMX request
+    htmx.ajax('GET', url, {
         target: '#main-content',
-        source: button,
-        include: '[name="questionnaire_filter"], [name="submission_date"], [name="time_range"], [name="item_filter"], [name="start_date_reference"], [name="time_interval"], [name="aggregation_type"], [name="patient_filter_gender"], [name="patient_filter_diagnosis"], [name="patient_filter_treatment"]',
         indicator: '#loading-indicator'
     });
 }
@@ -421,5 +477,6 @@ function triggerItemFilterUpdate() {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     updateItemDisplayText();
+    updateTimeIntervalDisplay();
 });
 </script> 

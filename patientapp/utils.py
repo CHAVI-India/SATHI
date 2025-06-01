@@ -1107,7 +1107,7 @@ def get_filtered_patients_for_aggregation(exclude_patient, patient_filter_gender
     return patients
 
 def aggregate_construct_scores_by_time_interval(construct, patients_queryset, start_date_reference, 
-                                              time_interval, submission_date_filter=None, 
+                                              time_interval, max_time_interval_filter=None, 
                                               reference_time_intervals=None):
     """Aggregate construct scores from multiple patients by time intervals.
     
@@ -1119,7 +1119,7 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
         patients_queryset: QuerySet of patients to include in aggregation
         start_date_reference: Reference date type for time calculation
         time_interval: Time interval type for grouping
-        submission_date_filter: Optional date filter for submissions
+        max_time_interval_filter: Optional maximum time interval (relative to start date) for filtering submissions
         reference_time_intervals: List of reference time intervals from index patient
         
     Returns:
@@ -1133,7 +1133,7 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
     plotting_logger.info(f"Patients in aggregation: {patients_queryset.count()}")
     plotting_logger.info(f"Start date reference: {start_date_reference}")
     plotting_logger.info(f"Time interval: {time_interval}")
-    plotting_logger.info(f"Submission date filter: {submission_date_filter}")
+    plotting_logger.info(f"Max time interval filter: {max_time_interval_filter}")
     plotting_logger.info(f"Reference time intervals from index patient: {reference_time_intervals}")
     
     if not reference_time_intervals:
@@ -1164,11 +1164,20 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
             construct=construct
         ).select_related('questionnaire_submission')
         
-        # Apply submission date filter if specified
-        if submission_date_filter:
-            scores_query = scores_query.filter(
-                questionnaire_submission__submission_date__date__lte=submission_date_filter
-            )
+        # Apply max time interval filter if specified
+        if max_time_interval_filter is not None:
+            # Filter scores based on relative time intervals from patient's start date
+            filtered_score_ids = []
+            for score in scores_query:
+                interval_value = calculate_time_interval_value(
+                    score.questionnaire_submission.submission_date,
+                    start_date,
+                    time_interval
+                )
+                if interval_value <= max_time_interval_filter:
+                    filtered_score_ids.append(score.id)
+            
+            scores_query = scores_query.filter(id__in=filtered_score_ids)
         
         # Filter out scores with negative time intervals
         scores = list(scores_query)
@@ -1300,43 +1309,29 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
         'non_contributing': []
     }
     
-    # Get all patients that were processed for detailed breakdown
-    processed_patient_ids = set(data['patient'].id for data in patient_data_list)
-    
-    # Add contributing patients details
+    # Add patient details to metadata
     for patient_data in patient_data_list:
+        patient_info = {
+            'id': patient_data['patient'].id,
+            'name': patient_data['patient'].name,
+            'start_date': patient_data['start_date'].strftime('%Y-%m-%d'),
+            'score_count': patient_data['score_count']
+        }
+        
         if patient_data['patient'].id in contributing_patients:
-            patient_details['contributing'].append({
-                'patient_name': patient_data['patient'].name,
-                'patient_id': patient_data['patient'].patient_id,
-                'responses_count': patient_data['score_count'],
-                'time_range': f"{min([float(s['Patient_Interval']) for s in patient_data['scores'] if s['Patient_Interval'] != 'No data ≤ ref time']):.1f} - {max([float(s['Patient_Interval']) for s in patient_data['scores'] if s['Patient_Interval'] != 'No data ≤ ref time']):.1f}" if any(s['Patient_Interval'] != 'No data ≤ ref time' for s in patient_data['scores']) else None
-            })
+            patient_details['contributing'].append(patient_info)
+        else:
+            patient_details['non_contributing'].append(patient_info)
     
-    # Add non-contributing patients from eligible pool
+    # Add non-contributing patients (those without any scores in the dataset)
     for patient in patients_queryset:
-        if patient.id not in contributing_patients:
-            # Determine reason for not contributing
-            reason = "No data available"
-            if patient.id in processed_patient_ids:
-                # Patient was processed but didn't contribute
-                patient_data = next((data for data in patient_data_list if data['patient'].id == patient.id), None)
-                if patient_data and patient_data['score_count'] == 0:
-                    reason = "No data in time range"
-                else:
-                    reason = "Insufficient data"
-            else:
-                # Patient wasn't even processed (no start date, no scores, etc.)
-                start_date = get_patient_start_date_for_aggregation(patient, start_date_reference)
-                if not start_date:
-                    reason = "No start date available"
-                else:
-                    reason = "No construct scores"
-            
+        if patient.id not in [p['patient'].id for p in patient_data_list]:
+            start_date = get_patient_start_date_for_aggregation(patient, start_date_reference)
             patient_details['non_contributing'].append({
-                'patient_name': patient.name,
-                'patient_id': patient.patient_id,
-                'reason': reason
+                'id': patient.id,
+                'name': patient.name,
+                'start_date': start_date.strftime('%Y-%m-%d') if start_date else 'N/A',
+                'score_count': 0
             })
     
     metadata = {
@@ -1344,13 +1339,13 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
         'contributing_patients': len(contributing_patients),
         'total_responses': total_scores_processed,
         'time_intervals_count': len(time_intervals),
-        'time_range': time_range,
+        'time_range': time_range or 'N/A',
+        'time_interval_unit': get_interval_label(time_interval).lower(),
         'patient_details': patient_details
     }
     
     plotting_logger.info("="*80)
-    plotting_logger.info(f"END AGGREGATION DATA for {construct.name}")
-    plotting_logger.info(f"METADATA: {metadata}")
+    plotting_logger.info(f"AGGREGATION METADATA: {metadata['contributing_patients']}/{metadata['total_eligible_patients']} patients contributed {metadata['total_responses']} scores across {metadata['time_intervals_count']} intervals")
     plotting_logger.info("="*80)
     
     return aggregated_data, metadata

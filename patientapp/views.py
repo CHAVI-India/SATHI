@@ -32,11 +32,22 @@ def prom_review(request, pk):
     
     # Get filter parameters
     questionnaire_filter = request.GET.get('questionnaire_filter')
-    submission_date = request.GET.get('submission_date')
+    max_time_interval = request.GET.get('max_time_interval')
     time_range = request.GET.get('time_range', '5')
     item_filter = request.GET.getlist('item_filter')  # Get list of selected item IDs
     start_date_reference = request.GET.get('start_date_reference', 'date_of_registration')
     time_interval = request.GET.get('time_interval', 'weeks')
+    
+    # Convert max_time_interval to float if provided
+    max_time_interval_value = None
+    if max_time_interval:
+        try:
+            max_time_interval_value = float(max_time_interval)
+            logger.info(f"Max time interval filter: {max_time_interval_value} {time_interval}")
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid max_time_interval value: {max_time_interval}")
+    
+    logger.info(f"Item filter received: {item_filter}")
     
     # Get aggregation parameters - aggregation is now always enabled
     show_aggregated = True  # Always show aggregated data
@@ -57,21 +68,38 @@ def prom_review(request, pk):
     )
     logger.info(f"Found {aggregated_patients.count()} patients for aggregation (aggregation enabled: {show_aggregated})")
     
-    # Get submission count from time range or default to 5
-    # This count needs to respect the submission_date filter if active.
+    # Get start date for this patient for relative time calculations
+    patient_start_date = get_patient_start_date(patient, start_date_reference)
     
-    # Base query for counting submissions, respecting patient and potentially date filter
+    # Get submission count from time range or default to 5
+    # This count needs to respect the max_time_interval filter if active.
+    
+    # Base query for counting submissions, respecting patient and potentially time interval filter
     submission_count_base_query = QuestionnaireSubmission.objects.filter(patient=patient)
-    if submission_date: # The global submission_date filter from request.GET
-        submission_count_base_query = submission_count_base_query.filter(submission_date__date__lte=submission_date)
+    
+    # Apply max time interval filter if specified
+    if max_time_interval_value is not None and patient_start_date:
+        # Filter submissions to only include those within the specified time interval from start date
+        filtered_submission_ids = []
+        for submission in submission_count_base_query.select_related():
+            interval_value = calculate_time_interval_value(
+                submission.submission_date,
+                patient_start_date,
+                time_interval
+            )
+            if interval_value <= max_time_interval_value:
+                filtered_submission_ids.append(submission.id)
+        
+        submission_count_base_query = submission_count_base_query.filter(id__in=filtered_submission_ids)
+        logger.info(f"Applied max time interval filter: {len(filtered_submission_ids)} submissions within {max_time_interval_value} {time_interval}")
 
     if time_range == 'all':
         submission_count = submission_count_base_query.count()
-        # If count is 0 (e.g. no submissions up to filter date, or no submissions at all), plot will be empty.
+        # If count is 0 (e.g. no submissions up to filter time interval, or no submissions at all), plot will be empty.
     else:
         submission_count = int(time_range)
-        # Ensure submission_count doesn't exceed available submissions after date filter
-        # (or total submissions if no date filter)
+        # Ensure submission_count doesn't exceed available submissions after time interval filter
+        # (or total submissions if no time interval filter)
         actual_available_count = submission_count_base_query.count()
         submission_count = min(submission_count, actual_available_count)
     
@@ -93,9 +121,20 @@ def prom_review(request, pk):
             patient_questionnaire__questionnaire_id=questionnaire_filter
         )
     
-    # Apply submission date filter if specified
-    if submission_date:
-        submissions = submissions.filter(submission_date__date__lte=submission_date)
+    # Apply max time interval filter if specified
+    if max_time_interval_value is not None and patient_start_date:
+        # Filter submissions based on relative time intervals
+        filtered_submission_ids = []
+        for submission in submissions.select_related():
+            interval_value = calculate_time_interval_value(
+                submission.submission_date,
+                patient_start_date,
+                time_interval
+            )
+            if interval_value <= max_time_interval_value:
+                filtered_submission_ids.append(submission.id)
+        
+        submissions = submissions.filter(id__in=filtered_submission_ids)
     
     # Order by submission date
     submissions = submissions.order_by('-submission_date')
@@ -158,6 +197,9 @@ def prom_review(request, pk):
         item_responses = item_responses.filter(
             questionnaire_item__item_id__in=item_filter
         )
+        logger.info(f"After applying item filter {item_filter}, found {item_responses.count()} item responses")
+    else:
+        logger.info(f"No item filter applied, found {item_responses.count()} total item responses")
     
     # Calculate percentages and add option text for item responses
     for response in item_responses:
@@ -218,18 +260,28 @@ def prom_review(request, pk):
 
         # Common: Get historical responses for plotting (for both Numeric and Likert)
         try:
-            # Fetch historical responses for the plot, respecting submission_date filter
+            # Fetch historical responses for the plot, respecting max_time_interval filter
             base_item_historical_qs = QuestionnaireItemResponse.objects.filter(
                 questionnaire_item=response.questionnaire_item,
                 questionnaire_submission__patient=patient
             )
 
-            if submission_date: # Apply the global submission_date filter
-                base_item_historical_qs = base_item_historical_qs.filter(
-                    questionnaire_submission__submission_date__date__lte=submission_date
-                )
+            # Apply max time interval filter if specified
+            if max_time_interval_value is not None and patient_start_date:
+                # Filter based on relative time intervals
+                filtered_response_ids = []
+                for hist_response in base_item_historical_qs.select_related('questionnaire_submission'):
+                    interval_value = calculate_time_interval_value(
+                        hist_response.questionnaire_submission.submission_date,
+                        patient_start_date,
+                        time_interval
+                    )
+                    if interval_value <= max_time_interval_value:
+                        filtered_response_ids.append(hist_response.id)
+                
+                base_item_historical_qs = base_item_historical_qs.filter(id__in=filtered_response_ids)
             
-            # Get the 'submission_count' most recent responses within the (optional) date filter.
+            # Get the 'submission_count' most recent responses within the (optional) time interval filter.
             # Bokeh plotting functions in utils.py use reversed(historical_responses),
             # so historical_responses should be in descending order (latest first) here.
             historical_responses_for_plot = list(
@@ -239,13 +291,12 @@ def prom_review(request, pk):
             )
             
             # Filter out responses with negative time intervals
-            start_date = get_patient_start_date(patient, start_date_reference)
-            if start_date:
+            if patient_start_date:
                 historical_responses_for_plot = filter_positive_intervals(
-                    historical_responses_for_plot, start_date, time_interval
+                    historical_responses_for_plot, patient_start_date, time_interval
                 )
             
-            logger.debug(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): Found {len(historical_responses_for_plot)} historical responses for plot after filtering (submission_count: {submission_count}, submission_date_filter: {submission_date}).")
+            logger.debug(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): Found {len(historical_responses_for_plot)} historical responses for plot after filtering (submission_count: {submission_count}, max_time_interval: {max_time_interval_value}).")
 
             if historical_responses_for_plot:
                 response.bokeh_plot = create_item_response_plot(
@@ -334,18 +385,28 @@ def prom_review(request, pk):
         construct = construct_score.construct
         logger.info(f"Processing construct: {construct.name}")
         
-        # Get historical scores for this construct's plot, respecting submission_date filter
+        # Get historical scores for this construct's plot, respecting max_time_interval filter
         base_construct_historical_qs = QuestionnaireConstructScore.objects.filter(
             questionnaire_submission__patient=patient,
             construct=construct
         )
 
-        if submission_date: # Apply the global submission_date filter
-            base_construct_historical_qs = base_construct_historical_qs.filter(
-                questionnaire_submission__submission_date__date__lte=submission_date
-            )
+        # Apply max time interval filter if specified
+        if max_time_interval_value is not None and patient_start_date:
+            # Filter based on relative time intervals
+            filtered_score_ids = []
+            for hist_score in base_construct_historical_qs.select_related('questionnaire_submission'):
+                interval_value = calculate_time_interval_value(
+                    hist_score.questionnaire_submission.submission_date,
+                    patient_start_date,
+                    time_interval
+                )
+                if interval_value <= max_time_interval_value:
+                    filtered_score_ids.append(hist_score.id)
+            
+            base_construct_historical_qs = base_construct_historical_qs.filter(id__in=filtered_score_ids)
 
-        # Get the 'submission_count' most recent scores within the (optional) date filter.
+        # Get the 'submission_count' most recent scores within the (optional) time interval filter.
         # ConstructScoreData._create_bokeh_plot in utils.py also uses reversed(historical_scores).
         historical_scores_for_plot = list(
             base_construct_historical_qs.select_related(
@@ -354,13 +415,12 @@ def prom_review(request, pk):
         )
         
         # Filter out scores with negative time intervals
-        start_date = get_patient_start_date(patient, start_date_reference)
-        if start_date:
+        if patient_start_date:
             historical_scores_for_plot = filter_positive_intervals_construct(
-                historical_scores_for_plot, start_date, time_interval
+                historical_scores_for_plot, patient_start_date, time_interval
             )
         
-        logger.debug(f"Found {len(historical_scores_for_plot)} historical scores for {construct.name} plot after filtering (submission_count: {submission_count}, submission_date_filter: {submission_date}).")
+        logger.debug(f"Found {len(historical_scores_for_plot)} historical scores for {construct.name} plot after filtering (submission_count: {submission_count}, max_time_interval: {max_time_interval_value}).")
 
         # Determine the 'previous_score' for ConstructScoreData based on this plot-specific historical data.
         # This 'previous_score' is for the context of the plot and the ConstructScoreData object.
@@ -386,7 +446,7 @@ def prom_review(request, pk):
                 for score_obj in historical_scores_for_plot:
                     interval_value = calculate_time_interval_value(
                         score_obj.questionnaire_submission.submission_date,
-                        start_date,
+                        patient_start_date,
                         time_interval
                     )
                     if interval_value not in reference_intervals:
@@ -400,8 +460,8 @@ def prom_review(request, pk):
                 for agg_patient in aggregated_patients:
                     # Use aggregation-friendly start date logic
                     from patientapp.utils import get_patient_start_date_for_aggregation
-                    patient_start_date = get_patient_start_date_for_aggregation(agg_patient, start_date_reference)
-                    if patient_start_date:
+                    patient_start_date_agg = get_patient_start_date_for_aggregation(agg_patient, start_date_reference)
+                    if patient_start_date_agg:
                         patients_with_requested_start_date += 1
                 
                 total_agg_patients = aggregated_patients.count()
@@ -416,7 +476,7 @@ def prom_review(request, pk):
                         patients_queryset=aggregated_patients,
                         start_date_reference=start_date_reference,
                         time_interval=time_interval,
-                        submission_date_filter=submission_date,
+                        max_time_interval_filter=max_time_interval_value,
                         reference_time_intervals=reference_intervals
                     )
                     
@@ -597,19 +657,18 @@ def prom_review(request, pk):
                     first_construct = important_construct_scores[0]
                     if hasattr(first_construct, 'construct'):
                         from patientapp.utils import aggregate_construct_scores_by_time_interval
-                        start_date = get_patient_start_date(patient, start_date_reference)
                         
                         # Check if we have sufficient patients with the requested start date type
                         patients_with_requested_start_date = 0
                         for agg_patient in aggregated_patients:
                             # Use aggregation-friendly start date logic
                             from patientapp.utils import get_patient_start_date_for_aggregation
-                            patient_start_date = get_patient_start_date_for_aggregation(agg_patient, start_date_reference)
-                            if patient_start_date:
+                            patient_start_date_agg = get_patient_start_date_for_aggregation(agg_patient, start_date_reference)
+                            if patient_start_date_agg:
                                 patients_with_requested_start_date += 1
                         
                         # Proceed if we have patients with the requested start date type (consistent with main aggregation logic)
-                        if patients_with_requested_start_date > 0 and start_date and hasattr(first_construct, 'aggregated_statistics') and first_construct.aggregated_statistics:
+                        if patients_with_requested_start_date > 0 and patient_start_date and hasattr(first_construct, 'aggregated_statistics') and first_construct.aggregated_statistics:
                             # Get reference intervals from this construct
                             reference_intervals = sorted(list(first_construct.aggregated_statistics.keys()))
                             if reference_intervals:
@@ -619,7 +678,7 @@ def prom_review(request, pk):
                                     patients_queryset=aggregated_patients,
                                     start_date_reference=start_date_reference,
                                     time_interval=time_interval,
-                                    submission_date_filter=submission_date,
+                                    max_time_interval_filter=max_time_interval_value,
                                     reference_time_intervals=reference_intervals
                                 )
                                 if 'patient_details' in metadata_with_details:
@@ -693,6 +752,7 @@ def prom_review(request, pk):
         'important_construct_scores': important_construct_scores,
         'available_items': available_items,
         'selected_items_data': selected_items_data,
+        'item_filter': item_filter,
         'bokeh_css': bokeh_css,
         'bokeh_js': bokeh_js,
         'questionnaire_options_for_cotton': questionnaire_options_for_cotton,
