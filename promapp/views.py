@@ -1344,11 +1344,8 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
         
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        questionnaire = self.object.questionnaire
-        
-        # Get all items for this questionnaire with translations
+    def get_translated_items(self, questionnaire):
+        """Helper method to get questionnaire items with properly translated Likert options"""
         current_language = get_language()
         questionnaire_items = QuestionnaireItem.objects.filter(
             questionnaire=questionnaire
@@ -1360,12 +1357,65 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
             'item__likert_response__likertscaleresponseoption_set'
         ).order_by('question_number')
         
+        # Prepare questionnaire items with translated Likert options
+        items_with_translations = []
+        for qi in questionnaire_items:
+            item_data = {
+                'questionnaire_item': qi,
+                'translated_options': [],
+                'translated_range_scale': None
+            }
+            
+            # If this is a Likert type question, get translated options
+            if qi.item.response_type == 'Likert' and qi.item.likert_response:
+                try:
+                    # Try to get options in current language
+                    options = qi.item.likert_response.likertscaleresponseoption_set.language(current_language).order_by('option_order')
+                except:
+                    # Fallback to English or any available language
+                    try:
+                        options = qi.item.likert_response.likertscaleresponseoption_set.language('en-gb').order_by('option_order')
+                    except:
+                        # Last fallback to all options
+                        options = qi.item.likert_response.likertscaleresponseoption_set.all().order_by('option_order')
+                
+                item_data['translated_options'] = options
+            
+            # If this is a Range type question, get translated range scale
+            elif qi.item.response_type == 'Range' and qi.item.range_response:
+                try:
+                    # Try to get range scale in current language
+                    range_scale = qi.item.range_response
+                    range_scale.set_current_language(current_language)
+                    item_data['translated_range_scale'] = range_scale
+                except:
+                    # Fallback to English or default language
+                    try:
+                        range_scale = qi.item.range_response
+                        range_scale.set_current_language('en-gb')
+                        item_data['translated_range_scale'] = range_scale
+                    except:
+                        # Last fallback to original range scale
+                        item_data['translated_range_scale'] = qi.item.range_response
+            
+            items_with_translations.append(item_data)
+        
+        return questionnaire_items, items_with_translations
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        questionnaire = self.object.questionnaire
+        
+        # Get all items for this questionnaire with translations
+        questionnaire_items, items_with_translations = self.get_translated_items(questionnaire)
+        
         # Create the form with the questionnaire items
         form = QuestionnaireResponseForm(questionnaire_items=questionnaire_items)
         
         context.update({
             'form': form,
             'questionnaire_items': questionnaire_items,
+            'items_with_translations': items_with_translations,
             'can_answer': True
         })
         return context
@@ -1380,16 +1430,7 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
         patient_questionnaire = self.get_object()
         
         # Get all items for this questionnaire with translations
-        current_language = get_language()
-        questionnaire_items = QuestionnaireItem.objects.filter(
-            questionnaire=patient_questionnaire.questionnaire
-        ).select_related(
-            'item',
-            'item__likert_response',
-            'item__range_response'
-        ).prefetch_related(
-            'item__likert_response__likertscaleresponseoption_set'
-        ).order_by('question_number')
+        questionnaire_items, items_with_translations = self.get_translated_items(patient_questionnaire.questionnaire)
         
         # Create the form with the questionnaire items
         form = QuestionnaireResponseForm(request.POST, questionnaire_items=questionnaire_items)
@@ -1420,10 +1461,16 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
                     return redirect('my_questionnaire_list')
             except Exception as e:
                 messages.error(request, _('An error occurred while saving your responses: %s') % str(e))
-                return self.render_to_response(self.get_context_data(form=form))
+                # Pass items_with_translations in the context for error cases
+                context = self.get_context_data(form=form)
+                context['items_with_translations'] = items_with_translations
+                return self.render_to_response(context)
         else:
             messages.error(request, _('There was an error saving your responses. Please try again.'))
-            return self.render_to_response(self.get_context_data(form=form))
+            # Pass items_with_translations in the context for error cases
+            context = self.get_context_data(form=form)
+            context['items_with_translations'] = items_with_translations
+            return self.render_to_response(context)
             
     def calculate_construct_scores(self, submission):
         """
