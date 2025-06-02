@@ -3536,7 +3536,7 @@ class QuestionnaireGuidanceView(LoginRequiredMixin, PermissionRequiredMixin, Tem
     related to questionnaires, constructs, items, and scoring.
     """
     template_name = 'promapp/questionnaire_guidance.html'
-    permission_required = 'promapp.view_questionnaire'
+    permission_required = 'promapp.add_questionnaire'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
