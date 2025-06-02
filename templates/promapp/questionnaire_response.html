@@ -227,14 +227,38 @@
         {% endwith %}
       {% endfor %}
 
-      <!-- Submit Button and Back to Questionnaire Button -->
-      <div class="flex flex-col items-end mt-8" id="submission-controls" style="display: none;">
-        <button type="submit" id="submit-btn" class="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 mb-4">
-          {% translate "Submit Responses" %}
-        </button>
-        <button type="button" id="back-to-questionnaire-btn" class="bg-gray-300 text-gray-800 px-6 py-2 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
-          {% translate "Back to Questionnaire" %}
-        </button>
+      <!-- Thank You Section -->
+      <div id="thank-you-section" class="bg-gradient-to-r from-green-50 to-blue-50 p-8 rounded-lg text-center transition-opacity duration-300 ease-in-out" style="display: none;">
+        <div class="flex flex-col items-center space-y-6">
+          <!-- Namaste Image Placeholder -->
+          <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
+            <!-- Placeholder for namaste image -->
+            <span class="text-4xl">🙏</span>
+            <!-- Replace above with: <img src="{% static 'path/to/namaste-image.png' %}" alt="Namaste" class="w-24 h-24 rounded-full"> -->
+          </div>
+          
+          <!-- Thank You Message -->
+          <div class="space-y-4">
+            <h2 class="text-2xl font-bold text-gray-900">
+              {% blocktrans with questionnaire_name=patient_questionnaire.questionnaire.name %}
+                Thank you for answering this {{ questionnaire_name }}.
+              {% endblocktrans %}
+            </h2>
+            <p class="text-lg text-gray-700 max-w-2xl mx-auto">
+              {% translate "You may now submit your answers by clicking on the red submit button. If you wish to review your answers please click on the back to questionnaire button which will allow you to review all your responses." %}
+            </p>
+          </div>
+          
+          <!-- Submission Controls -->
+          <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 mt-8">
+            <button type="submit" id="submit-btn" class="bg-red-600 text-white px-8 py-3 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 text-lg font-medium">
+              {% translate "Submit Responses" %}
+            </button>
+            <button type="button" id="back-to-questionnaire-btn" class="bg-gray-300 text-gray-800 px-8 py-3 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 text-lg font-medium">
+              {% translate "Back to Questionnaire" %}
+            </button>
+          </div>
+        </div>
       </div>
     </form>
   </div>
@@ -250,8 +274,7 @@
 
   document.addEventListener('DOMContentLoaded', function() {
     const questions = document.querySelectorAll('.question-item');
-    const submitButton = document.getElementById('submit-btn');
-    const submissionControls = document.getElementById('submission-controls');
+    const thankYouSection = document.getElementById('thank-you-section');
     const backToQuestionnaireBtn = document.getElementById('back-to-questionnaire-btn');
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('current-question-number');
@@ -260,8 +283,9 @@
 
     // Function to show a specific question with fade effect
     async function showQuestion(index) {
-      // Hide submission controls if visible
-      submissionControls.style.display = 'none';
+      // Hide thank you section if visible
+      thankYouSection.style.display = 'none';
+      
       // Fade out current question
       const currentQuestion = questions[currentQuestionIndex];
       if (currentQuestion) {
@@ -269,46 +293,62 @@
         await new Promise(resolve => setTimeout(resolve, 300)); // Wait for fade out
         currentQuestion.style.display = 'none';
       }
+      
       // Show and fade in new question
       const newQuestion = questions[index];
       newQuestion.style.display = 'block';
       // Force a reflow
       newQuestion.offsetHeight;
       newQuestion.style.opacity = '1';
+      
       // Update current index
       currentQuestionIndex = index;
+      
       // Update progress bar
       const progress = ((index + 1) / questions.length) * 100;
       progressBar.style.width = progress + '%';
-      progressText.textContent = `${index + 1} of ${questions.length}`;
+      progressText.textContent = `${index + 1}`;
+      
       // Update button visibility for current question
       const prevBtn = newQuestion.querySelector('.prev-btn');
       const nextBtn = newQuestion.querySelector('.next-btn');
+      
       // Enable/disable Previous button based on index
       prevBtn.disabled = index === 0;
       prevBtn.style.display = 'flex';  // Always show Previous button
-      // Show/hide Next button based on index
+      
+      // Show/hide Next button based on index - hide on last question since it will auto-advance
       if (index === questions.length - 1) {
-        nextBtn.textContent = "{% translate 'Proceed to Submission' %}";
-        nextBtn.style.display = 'flex';
+        nextBtn.style.display = 'none';
       } else {
-        nextBtn.textContent = "{% translate 'Next Question' %}";
         nextBtn.style.display = 'flex';
       }
     }
 
-    // Function to show submission controls
-    function showSubmissionControls() {
-      questions.forEach(q => {
-        q.style.opacity = '0';
-        q.style.display = 'none';
-      });
-      submissionControls.style.display = 'flex';
+    // Function to show thank you section
+    async function showThankYouSection() {
+      // Hide current question
+      const currentQuestion = questions[currentQuestionIndex];
+      if (currentQuestion) {
+        currentQuestion.style.opacity = '0';
+        await new Promise(resolve => setTimeout(resolve, 300)); // Wait for fade out
+        currentQuestion.style.display = 'none';
+      }
+      
+      // Show thank you section
+      thankYouSection.style.display = 'block';
+      // Force a reflow
+      thankYouSection.offsetHeight;
+      thankYouSection.style.opacity = '1';
+      
+      // Update progress bar to 100%
+      progressBar.style.width = '100%';
+      progressText.textContent = questions.length;
     }
 
     // Function to return to questionnaire (first question)
     function backToQuestionnaire() {
-      submissionControls.style.display = 'none';
+      thankYouSection.style.display = 'none';
       showQuestion(0);
     }
 
@@ -331,6 +371,29 @@
       }
     }
 
+    // Function to check if we should advance to next question or show thank you
+    async function handleQuestionAnswer() {
+      // If this is the last question, show thank you section
+      if (currentQuestionIndex === questions.length - 1) {
+        showThankYouSection();
+        return;
+      }
+
+      // Otherwise, find the next visible question
+      for (let i = currentQuestionIndex + 1; i < questions.length; i++) {
+        const nextQuestion = questions[i];
+        const shouldShow = await evaluateRules(nextQuestion.dataset.questionId);
+        if (shouldShow) {
+          // Show the next visible question
+          showQuestion(i);
+          return;
+        }
+      }
+      
+      // If no more visible questions, show thank you section
+      showThankYouSection();
+    }
+
     // Handle input changes
     questions.forEach(question => {
       const inputs = question.querySelectorAll('input, textarea');
@@ -339,23 +402,15 @@
           const questionId = question.dataset.questionId;
           responses[questionId] = this.value;
           
-          // Evaluate rules for subsequent questions
-          for (let i = currentQuestionIndex + 1; i < questions.length; i++) {
-            const nextQuestion = questions[i];
-            const shouldShow = await evaluateRules(nextQuestion.dataset.questionId);
-            if (!shouldShow) {
-              // Skip this question
-              continue;
-            }
-            // Show the next visible question
-            showQuestion(i);
-            break;
+          // Auto-advance if this is the current question
+          if (questions[currentQuestionIndex] === question) {
+            await handleQuestionAnswer();
           }
         });
       });
     });
 
-    // Add click handlers for all navigation buttons
+    // Add click handlers for navigation buttons
     questions.forEach((question, index) => {
       const prevBtn = question.querySelector('.prev-btn');
       const nextBtn = question.querySelector('.next-btn');
@@ -366,12 +421,9 @@
         }
       });
 
-      nextBtn.addEventListener('click', () => {
+      nextBtn.addEventListener('click', async () => {
         if (currentQuestionIndex < questions.length - 1) {
           showQuestion(currentQuestionIndex + 1);
-        } else {
-          // Last question: show submission controls
-          showSubmissionControls();
         }
       });
     });
