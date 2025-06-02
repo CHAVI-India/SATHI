@@ -60,6 +60,17 @@ A comprehensive healthcare provider interface is provided with the following fea
     - For likert type responses, we show the last value along with a change indicator. The change indicator and the item value background receive a different color with darker shades indicating worse outcomes. 
     - The plot for the likert responses will also show the same color scheme. 
 
+## Result Aggregation
+The construct score plots also display the aggregated results in addition to threhold and normative scores. Aggregated results are results obtained from other patients who have answered questionnaires with the same set of constructs. The index patient is excluded from the calculation of the  statistics. 
+The display allows visualization of the following :  
+1. Median with interquartile range (default)  
+2. Mean with 95% confidence intervals of mean  
+3. Mean with 0.5 - 2.5 standard deviations.  
+
+
+Aggregated results are displayed for the construct score using dotted lines and error bars. These allow you to compare the results reported by the patient against the usual patient population. Aggregation takes into account the time interval from the date. For example, if you desired to aggregate the response data of all patients with a diagnosis of breast cancer who have received neoadjuvant chemotherapy from the date of start of neoadjuvant cheomotherapy then the system will get the data for the corresponding construct scores from patients who have a diagnosis of breast cancer AND received neoadjuvant chemotherapy as the treatment. It will then calculate the summary statistics for the scores at the time-intervals corresponding to the the index patient and display them on the plot.
+
+
 
 Plots are created using Bokeh which allow interactivity like panning, zooming, and tooltips with the data. 
 
