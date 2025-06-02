@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'django_cotton',
     'promapp',
     'patientapp',
+    'providerapp',
 ]
 
 MIDDLEWARE = [
