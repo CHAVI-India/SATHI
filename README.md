@@ -16,6 +16,11 @@ Patients can log into the system using an username and password and can see all 
 8. It is possible to configure a minimum time interval between responses to the same questionnaire preventing spurious submissions.   
 9. Permission based access to the page where users can access questionnaires.   
 
+## Patient Portal
+
+A patient portal is provided which can be accessed by the patients themselves. They can use this to keep track of their questionnaires, their responses and see a graphical representation of the key issues that have affected them based on the responses to the questionnaires. This allows them be participants and beneficiaries of their responses. 
+
+
 # Questionnaire designers
 
 For designers of questionnaires the following features are provided:  
