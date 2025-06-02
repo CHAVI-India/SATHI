@@ -26,7 +26,7 @@
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     hx-get="{% url 'prom_review' patient.id %}"
                     hx-target="#main-content"
-                    hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                    hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment'], [name='patient_filter_min_age'], [name='patient_filter_max_age']"
                     hx-indicator="#loading-indicator"
                 >
                     {% for ref_key, display_name, date_value in available_start_dates %}
@@ -53,7 +53,7 @@
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     hx-get="{% url 'prom_review' patient.id %}"
                     hx-target="#main-content"
-                    hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                    hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment'], [name='patient_filter_min_age'], [name='patient_filter_max_age']"
                     hx-indicator="#loading-indicator"
                     hx-trigger="change"
                 >
@@ -70,7 +70,7 @@
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     hx-get="{% url 'prom_review' patient.id %}"
                     hx-target="#main-content"
-                    hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                    hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment'], [name='patient_filter_min_age'], [name='patient_filter_max_age']"
                     hx-indicator="#loading-indicator"
                 >
                     <option value="3" {% if request.GET.time_range == "3" %}selected{% endif %}>{% translate "3 submissions" %}</option>
@@ -92,7 +92,7 @@
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     hx-get="{% url 'prom_review' patient.id %}"
                     hx-target="#main-content"
-                    hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                    hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment'], [name='patient_filter_min_age'], [name='patient_filter_max_age']"
                     hx-indicator="#loading-indicator"
                     onchange="updateTimeIntervalDisplay(); htmx.trigger(this, 'change')"
                 >
@@ -124,7 +124,7 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         hx-get="{% url 'prom_review' patient.id %}"
                         hx-target="#main-content"
-                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment'], [name='patient_filter_min_age'], [name='patient_filter_max_age']"
                         hx-indicator="#loading-indicator"
                     >
                         <option value="median_iqr" {% if request.GET.aggregation_type == "median_iqr" or not request.GET.aggregation_type %}selected{% endif %}>{% translate "Median with IQR (25th-75th percentile)" %}</option>
@@ -146,7 +146,7 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         hx-get="{% url 'prom_review' patient.id %}"
                         hx-target="#main-content"
-                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment'], [name='patient_filter_min_age'], [name='patient_filter_max_age']"
                         hx-indicator="#loading-indicator"
                     >
                         <option value="">{% translate "All Genders" %}</option>
@@ -168,7 +168,7 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         hx-get="{% url 'prom_review' patient.id %}"
                         hx-target="#main-content"
-                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment'], [name='patient_filter_min_age'], [name='patient_filter_max_age']"
                         hx-indicator="#loading-indicator"
                     >
                         <option value="">{% translate "All Diagnoses" %}</option>
@@ -192,7 +192,7 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         hx-get="{% url 'prom_review' patient.id %}"
                         hx-target="#main-content"
-                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment'], [name='patient_filter_min_age'], [name='patient_filter_max_age']"
                         hx-indicator="#loading-indicator"
                     >
                         <option value="">{% translate "All Treatments" %}</option>
@@ -203,6 +203,83 @@
                         </option>
                         {% endfor %}
                     </select>
+                </div>
+            </div>
+
+            <!-- Age Group Filter Row -->
+            <div class="pt-4 border-t border-gray-100">
+                <h4 class="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    {% translate "Age Group Filter" %}
+                    {% if patient_current_age %}
+                        <span class="text-xs text-gray-500">({% translate "Patient age" %}: {{ patient_current_age }})</span>
+                    {% endif %}
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Match Patient Age -->
+                    <div>
+                        <label for="patient-filter-age-match" class="block text-sm font-medium text-gray-700 mb-1">
+                            {% translate "Age Match" %}
+                        </label>
+                        <button 
+                            type="button"
+                            id="patient-filter-age-match"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-left text-sm hover:bg-gray-50"
+                            onclick="matchPatientAge()"
+                        >
+                            {% if patient_current_age %}
+                                {% translate "Match Patient" %} ({{ patient_current_age }} {% translate "years" %})
+                            {% else %}
+                                {% translate "Match Patient" %} ({% translate "age unknown" %})
+                            {% endif %}
+                        </button>
+                    </div>
+
+                    <!-- Minimum Age -->
+                    <div>
+                        <label for="patient-filter-min-age" class="block text-sm font-medium text-gray-700 mb-1">
+                            {% translate "Minimum Age" %}
+                        </label>
+                        <input 
+                            type="number" 
+                            id="patient-filter-min-age" 
+                            name="patient_filter_min_age"
+                            value="{{ request.GET.patient_filter_min_age }}"
+                            min="0"
+                            max="150"
+                            placeholder="{% translate 'All ages' %}"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            hx-get="{% url 'prom_review' patient.id %}"
+                            hx-target="#main-content"
+                            hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment'], [name='patient_filter_min_age'], [name='patient_filter_max_age']"
+                            hx-indicator="#loading-indicator"
+                            hx-trigger="change"
+                        >
+                    </div>
+
+                    <!-- Maximum Age -->
+                    <div>
+                        <label for="patient-filter-max-age" class="block text-sm font-medium text-gray-700 mb-1">
+                            {% translate "Maximum Age" %}
+                        </label>
+                        <input 
+                            type="number" 
+                            id="patient-filter-max-age" 
+                            name="patient_filter_max_age"
+                            value="{{ request.GET.patient_filter_max_age }}"
+                            min="0"
+                            max="150"
+                            placeholder="{% translate 'All ages' %}"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            hx-get="{% url 'prom_review' patient.id %}"
+                            hx-target="#main-content"
+                            hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment'], [name='patient_filter_min_age'], [name='patient_filter_max_age']"
+                            hx-indicator="#loading-indicator"
+                            hx-trigger="change"
+                        >
+                    </div>
                 </div>
             </div>
         </div>
@@ -227,7 +304,7 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         hx-get="{% url 'prom_review' patient.id %}"
                         hx-target="#main-content"
-                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment']"
+                        hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment'], [name='patient_filter_min_age'], [name='patient_filter_max_age']"
                         hx-indicator="#loading-indicator"
                     >
                         <option value="">{% translate "All Questionnaires" %}</option>
@@ -323,6 +400,9 @@
 </div>
 
 <script>
+// Patient age data
+var PATIENT_AGE = {% if patient_current_age %}{{ patient_current_age }}{% else %}null{% endif %};
+
 // Item filter dropdown functionality
 function toggleItemDropdown() {
     const dropdown = document.getElementById('item-filter-options');
@@ -457,6 +537,12 @@ function triggerItemFilterUpdate() {
     const treatmentFilter = document.querySelector('[name="patient_filter_treatment"]');
     if (treatmentFilter && treatmentFilter.value) formData.append('patient_filter_treatment', treatmentFilter.value);
     
+    const minAgeFilter = document.querySelector('[name="patient_filter_min_age"]');
+    if (minAgeFilter && minAgeFilter.value) formData.append('patient_filter_min_age', minAgeFilter.value);
+    
+    const maxAgeFilter = document.querySelector('[name="patient_filter_max_age"]');
+    if (maxAgeFilter && maxAgeFilter.value) formData.append('patient_filter_max_age', maxAgeFilter.value);
+    
     // Add all selected item filters
     const hiddenInputs = document.querySelectorAll('#item-filter-hidden-inputs input[name="item_filter"]');
     hiddenInputs.forEach(input => {
@@ -472,6 +558,24 @@ function triggerItemFilterUpdate() {
         target: '#main-content',
         indicator: '#loading-indicator'
     });
+}
+
+// Age filter helper function
+function matchPatientAge() {
+    if (PATIENT_AGE !== null) {
+        var minAgeInput = document.getElementById('patient-filter-min-age');
+        var maxAgeInput = document.getElementById('patient-filter-max-age');
+        
+        if (minAgeInput && maxAgeInput) {
+            minAgeInput.value = PATIENT_AGE;
+            maxAgeInput.value = PATIENT_AGE;
+            
+            // Trigger HTMX update
+            minAgeInput.dispatchEvent(new Event('change'));
+        }
+    } else {
+        console.log('Patient age not available');
+    }
 }
 
 // Initialize on page load

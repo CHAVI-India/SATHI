@@ -104,7 +104,7 @@
                 
                 // Trigger HTMX update
                 const form = document.createElement('form');
-                const inputs = document.querySelectorAll('#item-filter-inputs input, [name="questionnaire_filter"], [name="time_range"], [name="submission_date"], [name="start_date_reference"], [name="time_interval"], [name="aggregation_type"], [name="patient_filter_gender"], [name="patient_filter_diagnosis"], [name="patient_filter_treatment"]');
+                const inputs = document.querySelectorAll('#item-filter-inputs input, [name="questionnaire_filter"], [name="time_range"], [name="submission_date"], [name="start_date_reference"], [name="time_interval"], [name="aggregation_type"], [name="patient_filter_gender"], [name="patient_filter_diagnosis"], [name="patient_filter_treatment"], [name="patient_filter_min_age"], [name="patient_filter_max_age"]');
                 inputs.forEach(input => {
                     const clone = input.cloneNode(true);
                     form.appendChild(clone);

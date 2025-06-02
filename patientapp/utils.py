@@ -1052,7 +1052,8 @@ def get_patient_start_date_for_aggregation(patient, start_date_reference='date_o
         return None
 
 def get_filtered_patients_for_aggregation(exclude_patient, patient_filter_gender=None, 
-                                        patient_filter_diagnosis=None, patient_filter_treatment=None):
+                                        patient_filter_diagnosis=None, patient_filter_treatment=None,
+                                        patient_filter_min_age=None, patient_filter_max_age=None):
     """Get patients for aggregation based on filtering criteria, excluding the current patient.
     
     Args:
@@ -1060,6 +1061,8 @@ def get_filtered_patients_for_aggregation(exclude_patient, patient_filter_gender
         patient_filter_gender: Gender filter ('match', specific gender, or None for all)
         patient_filter_diagnosis: Diagnosis filter ('match', specific diagnosis ID, or None for all)
         patient_filter_treatment: Treatment filter ('match', specific treatment type ID, or None for all)
+        patient_filter_min_age: Minimum age filter (integer or None)
+        patient_filter_max_age: Maximum age filter (integer or None)
         
     Returns:
         QuerySet: Filtered patients excluding the current patient
@@ -1101,8 +1104,32 @@ def get_filtered_patients_for_aggregation(exclude_patient, patient_filter_gender
                 ).distinct()
         else:
             patients = patients.filter(
-                diagnosis__treatment__treatment_type_id=patient_filter_treatment
+                diagnosis__treatment__treatment_type__id=patient_filter_treatment
             ).distinct()
+    
+    # Apply age filters if specified
+    if patient_filter_min_age is not None or patient_filter_max_age is not None:
+        # Filter patients based on age
+        # Get patient IDs that match age criteria
+        matching_patient_ids = []
+        for patient in patients:
+            age = calculate_patient_age(patient)
+            if age is not None:
+                age_matches = True
+                
+                # Check minimum age
+                if patient_filter_min_age is not None and age < patient_filter_min_age:
+                    age_matches = False
+                
+                # Check maximum age
+                if patient_filter_max_age is not None and age > patient_filter_max_age:
+                    age_matches = False
+                
+                if age_matches:
+                    matching_patient_ids.append(patient.id)
+        
+        # Filter queryset to only include patients with matching ages
+        patients = patients.filter(id__in=matching_patient_ids)
     
     return patients
 
@@ -1574,3 +1601,22 @@ def log_plotting_session_start(patient_name, constructs_count):
     plotting_logger.info(f"Number of constructs to plot: {constructs_count}")
     plotting_logger.info(f"Session started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     plotting_logger.info("=" * 100)
+
+def calculate_patient_age(patient, reference_date=None):
+    """Get the age of a patient.
+    
+    Args:
+        patient: Patient instance
+        reference_date: Date to calculate age at (not used, kept for compatibility)
+        
+    Returns:
+        int or None: Age in years, or None if age is not available
+    """
+    if not hasattr(patient, 'age') or patient.age is None:
+        return None
+    
+    try:
+        return int(patient.age)
+    except (ValueError, TypeError):
+        logger.error(f"Error getting age for patient {patient.id}: invalid age value {patient.age}")
+        return None

@@ -55,8 +55,25 @@ def prom_review(request, pk):
     patient_filter_gender = request.GET.get('patient_filter_gender')
     patient_filter_diagnosis = request.GET.get('patient_filter_diagnosis')
     patient_filter_treatment = request.GET.get('patient_filter_treatment')
+    patient_filter_min_age = request.GET.get('patient_filter_min_age')
+    patient_filter_max_age = request.GET.get('patient_filter_max_age')
     
-    logger.info(f"Aggregation settings: show_aggregated={show_aggregated}, type={aggregation_type}, gender={patient_filter_gender}, diagnosis={patient_filter_diagnosis}, treatment={patient_filter_treatment}")
+    # Convert age filters to integers if provided
+    min_age_value = None
+    max_age_value = None
+    if patient_filter_min_age:
+        try:
+            min_age_value = int(patient_filter_min_age)
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid min age value: {patient_filter_min_age}")
+    
+    if patient_filter_max_age:
+        try:
+            max_age_value = int(patient_filter_max_age)
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid max age value: {patient_filter_max_age}")
+    
+    logger.info(f"Aggregation settings: show_aggregated={show_aggregated}, type={aggregation_type}, gender={patient_filter_gender}, diagnosis={patient_filter_diagnosis}, treatment={patient_filter_treatment}, min_age={min_age_value}, max_age={max_age_value}")
     
     # Always get aggregated patients to show patient counts, regardless of whether aggregation is enabled
     from patientapp.utils import get_filtered_patients_for_aggregation
@@ -64,7 +81,9 @@ def prom_review(request, pk):
         exclude_patient=patient,
         patient_filter_gender=patient_filter_gender,
         patient_filter_diagnosis=patient_filter_diagnosis,
-        patient_filter_treatment=patient_filter_treatment
+        patient_filter_treatment=patient_filter_treatment,
+        patient_filter_min_age=min_age_value,
+        patient_filter_max_age=max_age_value
     )
     logger.info(f"Found {aggregated_patients.count()} patients for aggregation (aggregation enabled: {show_aggregated})")
     
@@ -617,6 +636,10 @@ def prom_review(request, pk):
         treatment__diagnosis__patient__isnull=False
     ).distinct().order_by('treatment_type')
 
+    # Get patient's current age for potential display
+    from patientapp.utils import calculate_patient_age
+    patient_current_age = calculate_patient_age(patient)
+
     # Calculate aggregation metadata - now always available since aggregation is always enabled
     aggregation_metadata = None
     if aggregated_patients:
@@ -762,6 +785,7 @@ def prom_review(request, pk):
         'available_diagnoses': available_diagnoses,
         'available_treatment_types': available_treatment_types,
         'aggregation_metadata': aggregation_metadata,
+        'patient_current_age': patient_current_age,
     }
     
     # If this is an HTMX request, only return the main content section
