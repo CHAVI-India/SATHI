@@ -15,6 +15,10 @@ from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 import os
 import pandas as pd
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404
+from .models import Patient, Institution
 
 # Set up plotting data logger
 plotting_logger = logging.getLogger('plotting_data')
@@ -1620,3 +1624,86 @@ def calculate_patient_age(patient, reference_date=None):
     except (ValueError, TypeError):
         logger.error(f"Error getting age for patient {patient.id}: invalid age value {patient.age}")
         return None
+
+# Institution-based Access Control Utilities
+def get_user_institution(user):
+    """
+    Get the institution for the current user if they are a provider.
+    Returns None if the user is not a provider or has no institution.
+    """
+    try:
+        return user.provider.institution
+    except AttributeError:
+        return None
+
+def is_provider_user(user):
+    """Check if the user is a provider (has a provider profile)."""
+    try:
+        return hasattr(user, 'provider') and user.provider is not None
+    except AttributeError:
+        return False
+
+def filter_patients_by_institution(queryset, user):
+    """
+    Filter a Patient queryset based on the user's institution.
+    If the user is a provider, only return patients from their institution.
+    If the user is not a provider, return all patients (assuming they have appropriate permissions).
+    """
+    user_institution = get_user_institution(user)
+    if user_institution:
+        return queryset.filter(institution=user_institution)
+    return queryset
+
+def check_patient_access(user, patient):
+    """
+    Check if a user can access a specific patient.
+    Raises PermissionDenied if access is not allowed.
+    """
+    user_institution = get_user_institution(user)
+    if user_institution and patient.institution != user_institution:
+        raise PermissionDenied(
+            "You do not have permission to access patients from other institutions."
+        )
+
+def get_accessible_patient_or_404(user, pk):
+    """
+    Get a patient by pk, ensuring the user has access to it.
+    Raises 404 if patient doesn't exist, PermissionDenied if no access.
+    """
+    patient = get_object_or_404(Patient, pk=pk)
+    check_patient_access(user, patient)
+    return patient
+
+# Institution Filtering Mixin for Class-Based Views
+class InstitutionFilterMixin:
+    """
+    Mixin for class-based views that automatically filters Patient querysets
+    based on the user's institution.
+    """
+    
+    def get_user_institution(self):
+        """Get the institution for the current user."""
+        return get_user_institution(self.request.user)
+    
+    def get_queryset(self):
+        """Filter the queryset based on user's institution."""
+        qs = super().get_queryset()
+        
+        # Only apply institution filtering if the model is Patient
+        if hasattr(qs.model, 'institution'):
+            qs = filter_patients_by_institution(qs, self.request.user)
+        
+        return qs
+    
+    def get_object(self, queryset=None):
+        """
+        Get the object, ensuring the user has access to it.
+        This method is called by DetailView, UpdateView, DeleteView, etc.
+        """
+        obj = super().get_object(queryset)
+        
+        # Only check access if the object is a Patient
+        if isinstance(obj, Patient):
+            check_patient_access(self.request.user, obj)
+        
+        return obj

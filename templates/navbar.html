@@ -10,7 +10,7 @@
         <div class="hidden md:block">
           <div class="ml-10 flex items-baseline space-x-4">
             <a href="/" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% translate "Home" %}</a>
-            {% if user.is_authenticated and perms.patientapp.add_patient %}
+            {% if user.is_authenticated and perms.patientapp.view_patient %}
             <a href="{% url 'patient_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% translate "Patients" %}</a>
             {% endif %}
             {% if user.is_authenticated and perms.promapp.view_questionnaire %}
@@ -74,7 +74,7 @@
                   <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {% translate "Manage Questionnaire" %}
                   </div>
-                  {% if user.is_authenticated and perms.promapp.add_patientquestionnaire %}
+                  {% if user.is_authenticated and perms.patientapp.view_patient and perms.promapp.add_patientquestionnaire %}
                   <a href="{% url 'patient_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     {% translate "Assign Questionnaire to Patient" %}
                   </a>
@@ -154,7 +154,7 @@
   <div class="hidden md:hidden" id="mobile-menu">
     <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-blue-600">
       <a href="/" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% translate "Home" %}</a>
-      {% if user.is_authenticated and perms.patientapp.add_patient %}
+      {% if user.is_authenticated and perms.patientapp.view_patient %}
       <a href="{% url 'patient_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% translate "Patients" %}</a>
       {% endif %}
       {% if user.is_authenticated and perms.promapp.view_questionnaire %}
@@ -206,7 +206,7 @@
           
           <!-- Manage Questionnaire Section -->
           <div class="text-white px-3 py-1 text-sm font-medium opacity-75">{% translate "Manage Questionnaire" %}</div>
-          {% if user.is_authenticated and perms.promapp.add_patientquestionnaire %}
+          {% if user.is_authenticated and perms.patientapp.view_patient and perms.promapp.add_patientquestionnaire %}
           <a href="{% url 'patient_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
             {% translate "Assign Questionnaire to Patient" %}
           </a>

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.urls import reverse_lazy, reverse
@@ -13,7 +14,14 @@ from django.http import JsonResponse
 from .models import Patient, Diagnosis, DiagnosisList, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
 from .forms import PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm
 from promapp.models import *
-from .utils import ConstructScoreData, calculate_percentage, create_item_response_plot, get_patient_start_date, get_patient_available_start_dates, filter_positive_intervals, filter_positive_intervals_construct, get_interval_label, calculate_time_interval_value
+from .utils import (
+    ConstructScoreData, calculate_percentage, create_item_response_plot, get_patient_start_date, 
+    get_patient_available_start_dates, filter_positive_intervals, filter_positive_intervals_construct, 
+    get_interval_label, calculate_time_interval_value,
+    # Institution filtering utilities
+    get_user_institution, is_provider_user, filter_patients_by_institution, 
+    check_patient_access, get_accessible_patient_or_404, InstitutionFilterMixin
+)
 import logging
 from bokeh.resources import CDN
 
@@ -22,13 +30,16 @@ logger = logging.getLogger(__name__)
 # Create your views here.
 
 
+@login_required
+@permission_required('patientapp.view_patient', raise_exception=True)
 def prom_review(request, pk):
     """View for the PRO Review page that shows patient questionnaire responses.
     Supports global filtering for all sections of the page.
     """
     logger.info(f"PRO Review view called for patient ID: {pk}")
     
-    patient = get_object_or_404(Patient, pk=pk)
+    # Get patient with institution access check
+    patient = get_accessible_patient_or_404(request.user, pk)
     logger.info(f"Found patient: {patient.name} (ID: {patient.id})")
     
     # Get filter parameters
@@ -796,9 +807,11 @@ def prom_review(request, pk):
     return render(request, 'promapp/prom_review.html', context)
 
 
+@login_required
+@permission_required('patientapp.view_patient', raise_exception=True)
 def prom_review_item_search(request, pk):
     """HTMX endpoint for searching items in the item filter autocomplete."""
-    patient = get_object_or_404(Patient, pk=pk)
+    patient = get_accessible_patient_or_404(request.user, pk)
     search_query = request.GET.get('item-filter-search', '').strip()
     questionnaire_filter = request.GET.get('questionnaire_filter')
     
@@ -837,13 +850,22 @@ def prom_review_item_search(request, pk):
 
 
 def patient_portal(request):
-    """Patient portal view for patients to see their own data and questionnaire responses."""
+    """
+    Patient portal view for patients to see their own data and questionnaire responses.
+    
+    Note: This view does NOT require 'patientapp.view_patient' permission because:
+    - Patients should not be given permission to view other patients
+    - This view is restricted to the authenticated user's own patient data only
+    - Security is enforced by checking request.user.patient exists and matches
+    """
     if not request.user.is_authenticated:
         return redirect('login')
     
     # Ensure the user is a patient
     try:
         patient = request.user.patient
+        # Additional security: ensure the patient can access their own data
+        check_patient_access(request.user, patient)
     except AttributeError:
         messages.error(request, _('You do not have patient access.'))
         return redirect('/')
@@ -1060,6 +1082,8 @@ def patient_portal(request):
     return render(request, 'patientapp/patient_portal.html', context)
 
 
+@login_required
+@permission_required('patientapp.view_patient', raise_exception=True)
 def patient_list(request):
     # Get filter parameters
     name_search = request.GET.get('name_search', '')
@@ -1071,8 +1095,9 @@ def patient_list(request):
     questionnaire_count = request.GET.get('questionnaire_count', '')
     sort_by = request.GET.get('sort', 'name')
     
-    # Start with base queryset
+    # Start with base queryset and apply institution filtering
     patients = Patient.objects.select_related('user', 'institution').all()
+    patients = filter_patients_by_institution(patients, request.user)
     
     # Apply filters
     if name_search:
@@ -1128,16 +1153,19 @@ def patient_list(request):
     else:
         patients = patients.order_by('name')
     
-    # Get all institutions for the filter dropdown
+    # Get institutions for the filter dropdown (filtered by user's institution for providers)
     institutions = Institution.objects.all()
+    user_institution = get_user_institution(request.user)
+    if user_institution:
+        institutions = institutions.filter(id=user_institution.id)
     
     # Get gender choices for the filter dropdown
     gender_choices = GenderChoices.choices
     
-    # Get unique diagnoses for the filter dropdown
+    # Get unique diagnoses for the filter dropdown (only from accessible patients)
     diagnoses = list(DiagnosisList.objects.values_list('diagnosis', flat=True).distinct().exclude(diagnosis__isnull=True).exclude(diagnosis=''))
     
-    # Get unique treatment types for the filter dropdown
+    # Get unique treatment types for the filter dropdown (only from accessible patients)
     treatment_types = list(TreatmentType.objects.values_list('treatment_type', flat=True).distinct().exclude(treatment_type__isnull=True).exclude(treatment_type=''))
     
     # Pagination
@@ -1207,8 +1235,10 @@ def patient_list(request):
     
     return render(request, 'patientapp/patient_list.html', context)
 
+@login_required
+@permission_required('patientapp.view_patient', raise_exception=True)
 def patient_detail(request, pk):
-    patient = get_object_or_404(Patient, pk=pk)
+    patient = get_accessible_patient_or_404(request.user, pk)
     diagnoses = patient.diagnosis_set.all().order_by('-created_date')
     context = {
         'patient': patient,
@@ -1232,12 +1262,24 @@ def treatment_detail(request, pk):
     treatment = Treatment.objects.get(pk=pk)
     return render(request, 'patientapp/treatment_detail.html', {'treatment': treatment})
 
-class PatientCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class PatientCreateView(InstitutionFilterMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Patient
     form_class = PatientForm
     template_name = 'patientapp/patient_form.html'
     success_url = reverse_lazy('patient_questionnaire_list')
     permission_required = 'patientapp.add_patient'
+
+    def get_form(self, form_class=None):
+        """Customize the form to limit institution choices for providers."""
+        form = super().get_form(form_class)
+        
+        # If user is a provider, limit institution choices to their institution
+        user_institution = get_user_institution(self.request.user)
+        if user_institution:
+            form.fields['institution'].queryset = Institution.objects.filter(id=user_institution.id)
+            form.fields['institution'].initial = user_institution
+        
+        return form
 
     def form_valid(self, form):
         try:
@@ -1256,6 +1298,12 @@ class PatientCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView)
                 # Create the Patient object
                 patient = form.save(commit=False)
                 patient.user = user
+                
+                # For providers, ensure the patient is created in their institution
+                user_institution = get_user_institution(self.request.user)
+                if user_institution:
+                    patient.institution = user_institution
+                
                 patient.save()
                 
                 messages.success(self.request, _('Patient created successfully.'))
@@ -1270,11 +1318,22 @@ class PatientCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView)
         context['title'] = _('Add New Patient')
         return context
 
-class PatientRestrictedUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class PatientRestrictedUpdateView(InstitutionFilterMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Patient
     form_class = PatientRestrictedUpdateForm
     template_name = 'patientapp/patient_restricted_update_form.html'
     permission_required = 'patientapp.change_patient' # Or a more specific permission
+
+    def get_form(self, form_class=None):
+        """Customize the form to limit institution choices for providers."""
+        form = super().get_form(form_class)
+        
+        # If user is a provider, limit institution choices to their institution
+        user_institution = get_user_institution(self.request.user)
+        if user_institution:
+            form.fields['institution'].queryset = Institution.objects.filter(id=user_institution.id)
+        
+        return form
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1284,6 +1343,11 @@ class PatientRestrictedUpdateView(LoginRequiredMixin, PermissionRequiredMixin, U
     def form_valid(self, form):
         try:
             with transaction.atomic():
+                # For providers, ensure the patient stays in their institution
+                user_institution = get_user_institution(self.request.user)
+                if user_institution:
+                    form.instance.institution = user_institution
+                
                 self.object = form.save()
                 messages.success(self.request, _('Patient basic details updated successfully.'))
                 return redirect(self.get_success_url())
@@ -1304,12 +1368,16 @@ class DiagnosisCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVie
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['patient'] = get_object_or_404(Patient, pk=self.kwargs['patient_pk'])
+        # Check patient access before showing the form
+        patient = get_accessible_patient_or_404(self.request.user, self.kwargs['patient_pk'])
+        context['patient'] = patient
         context['title'] = _('Add Diagnosis')
         return context
 
     def form_valid(self, form):
-        form.instance.patient = get_object_or_404(Patient, pk=self.kwargs['patient_pk'])
+        # Check patient access before saving
+        patient = get_accessible_patient_or_404(self.request.user, self.kwargs['patient_pk'])
+        form.instance.patient = patient
         messages.success(self.request, _('Diagnosis added successfully.'))
         return super().form_valid(form)
 
@@ -1321,6 +1389,13 @@ class DiagnosisUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
     form_class = DiagnosisForm
     template_name = 'patientapp/diagnosis_form.html'
     permission_required = 'patientapp.change_diagnosis'
+
+    def get_object(self, queryset=None):
+        """Get the diagnosis and check patient access."""
+        obj = super().get_object(queryset)
+        # Check that the user can access this patient
+        check_patient_access(self.request.user, obj.patient)
+        return obj
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1342,14 +1417,20 @@ class TreatmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVie
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['diagnosis'] = get_object_or_404(Diagnosis, pk=self.kwargs['diagnosis_pk'])
+        # Check patient access through diagnosis
+        diagnosis = get_object_or_404(Diagnosis, pk=self.kwargs['diagnosis_pk'])
+        check_patient_access(self.request.user, diagnosis.patient)
+        context['diagnosis'] = diagnosis
         context['treatment_types'] = TreatmentType.objects.all()
         context['treatment_intents'] = TreatmentIntentChoices.choices
         context['title'] = _('Add Treatment')
         return context
 
     def form_valid(self, form):
-        form.instance.diagnosis = get_object_or_404(Diagnosis, pk=self.kwargs['diagnosis_pk'])
+        # Check patient access before saving
+        diagnosis = get_object_or_404(Diagnosis, pk=self.kwargs['diagnosis_pk'])
+        check_patient_access(self.request.user, diagnosis.patient)
+        form.instance.diagnosis = diagnosis
         messages.success(self.request, _('Treatment added successfully.'))
         return super().form_valid(form)
 
@@ -1361,6 +1442,13 @@ class TreatmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
     form_class = TreatmentForm
     template_name = 'patientapp/treatment_form.html'
     permission_required = 'patientapp.change_treatment'
+
+    def get_object(self, queryset=None):
+        """Get the treatment and check patient access."""
+        obj = super().get_object(queryset)
+        # Check that the user can access this patient through the diagnosis
+        check_patient_access(self.request.user, obj.diagnosis.patient)
+        return obj
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
