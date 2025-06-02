@@ -3529,5 +3529,20 @@ class CompositeConstructScaleScoringDeleteView(LoginRequiredMixin, PermissionReq
         return super().delete(request, *args, **kwargs)
 
 
+class QuestionnaireGuidanceView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+    """
+    View for the questionnaire guidance page.
+    This page provides comprehensive explanations of all the key concepts
+    related to questionnaires, constructs, items, and scoring.
+    """
+    template_name = 'promapp/questionnaire_guidance.html'
+    permission_required = 'promapp.view_questionnaire'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Questionnaire Guidance'
+        return context
+
+
 
 

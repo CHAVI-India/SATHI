@@ -18,7 +18,8 @@ Patients can log into the system using an username and password and can see all 
 
 ## Patient Portal
 
-A patient portal is provided which can be accessed by the patients themselves. They can use this to keep track of their questionnaires, their responses and see a graphical representation of the key issues that have affected them based on the responses to the questionnaires. This allows them be participants and beneficiaries of their responses. 
+A patient portal is provided which can be accessed by the patients themselves. They can use this to keep track of their questionnaires, their responses and see a graphical representation of the key issues that have affected them based on the responses to the questionnaires. This allows them be participants in te system and be the beneficiaries from their own responses. 
+
 
 
 # Questionnaire designers
