@@ -68,6 +68,9 @@
             <a href="{% url 'my_questionnaire_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
               {% translate "Complete a Questionnaire" %}
             </a>
+            <a href="{% url 'patient_portal' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+              {% translate "My Portal" %}
+            </a>
             {% endif %}
           </div>
         </div>
@@ -195,6 +198,9 @@
       {% if user.is_authenticated and user.patient %}
       <a href="{% url 'my_questionnaire_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
         {% translate "Complete a Questionnaire" %}
+      </a>
+      <a href="{% url 'patient_portal' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
+        {% translate "My Portal" %}
       </a>
       {% endif %}
       

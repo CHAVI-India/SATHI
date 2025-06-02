@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.urls import reverse_lazy, reverse
 from django.utils.translation import gettext_lazy as _, gettext, get_language
+from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q, Count, Max
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
@@ -833,6 +834,230 @@ def prom_review_item_search(request, pk):
     }
     
     return render(request, 'promapp/partials/item_search_results.html', context)
+
+
+def patient_portal(request):
+    """Patient portal view for patients to see their own data and questionnaire responses."""
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    # Ensure the user is a patient
+    try:
+        patient = request.user.patient
+    except AttributeError:
+        messages.error(request, _('You do not have patient access.'))
+        return redirect('/')
+    
+    logger.info(f"Patient portal accessed by: {patient.name} (ID: {patient.id})")
+    
+    # Get item filter parameters for item selection
+    item_filter = request.GET.getlist('item_filter')
+    
+    # Get all questionnaire submissions for this patient
+    submissions = QuestionnaireSubmission.objects.filter(
+        patient=patient
+    ).select_related(
+        'patient_questionnaire',
+        'patient_questionnaire__questionnaire'
+    ).prefetch_related(
+        'patient_questionnaire__questionnaire__translations'
+    ).order_by('-submission_date')
+    
+    logger.info(f"Found {submissions.count()} total submissions for patient")
+    
+    # Get submission counts per questionnaire
+    questionnaire_submission_counts = {}
+    for submission in submissions:
+        q_id = submission.patient_questionnaire.questionnaire_id
+        questionnaire_submission_counts[q_id] = questionnaire_submission_counts.get(q_id, 0) + 1
+    
+    # Get all assigned questionnaires (available questionnaires)
+    assigned_questionnaires = PatientQuestionnaire.objects.filter(
+        patient=patient,
+        display_questionnaire=True  # Only show questionnaires that are supposed to be displayed
+    ).select_related(
+        'questionnaire'
+    ).prefetch_related(
+        'questionnaire__translations'
+    ).order_by('questionnaire__questionnaire_order')
+    
+    logger.info(f"Found {assigned_questionnaires.count()} assigned questionnaires")
+    
+    # Add submission information to each assigned questionnaire
+    for pq in assigned_questionnaires:
+        # Get the last submission for this questionnaire
+        last_submission = QuestionnaireSubmission.objects.filter(
+            patient_questionnaire=pq
+        ).order_by('-submission_date').first()
+        
+        pq.last_submission = last_submission
+        pq.submission_count = questionnaire_submission_counts.get(pq.questionnaire_id, 0)
+        
+        if last_submission:
+            # Calculate when the questionnaire can be answered next
+            interval_seconds = pq.questionnaire.questionnaire_answer_interval
+            
+            if interval_seconds == 0:
+                pq.next_available = last_submission.submission_date
+                pq.can_answer = True
+            elif interval_seconds < 0:
+                pq.next_available = last_submission.submission_date
+                pq.can_answer = True
+            else:
+                next_available = last_submission.submission_date + timezone.timedelta(seconds=interval_seconds)
+                pq.next_available = next_available
+                pq.can_answer = timezone.now() >= next_available
+        else:
+            pq.next_available = None
+            pq.can_answer = True
+    
+    # Get item responses for plotting - all responses from all submissions
+    item_responses = QuestionnaireItemResponse.objects.filter(
+        questionnaire_submission__patient=patient
+    ).select_related(
+        'questionnaire_item',
+        'questionnaire_item__item',
+        'questionnaire_item__item__likert_response',
+        'questionnaire_item__item__range_response',
+        'questionnaire_submission'
+    ).prefetch_related(
+        'questionnaire_item__item__likert_response__likertscaleresponseoption_set',
+        'questionnaire_item__item__likert_response__likertscaleresponseoption_set__translations'
+    )
+    
+    # Apply item filter if specified
+    if item_filter:
+        item_responses = item_responses.filter(
+            questionnaire_item__item_id__in=item_filter
+        )
+        logger.info(f"After applying item filter {item_filter}, found {item_responses.count()} item responses")
+    else:
+        logger.info(f"No item filter applied, found {item_responses.count()} total item responses")
+    
+    # Group responses by item for plotting
+    item_responses_by_item = {}
+    for response in item_responses:
+        item_id = response.questionnaire_item.item.id
+        if item_id not in item_responses_by_item:
+            item_responses_by_item[item_id] = {
+                'item': response.questionnaire_item.item,
+                'responses': []
+            }
+        item_responses_by_item[item_id]['responses'].append(response)
+    
+    # Process each item's responses and create plots
+    item_plots = []
+    for item_id, item_data in item_responses_by_item.items():
+        item = item_data['item']
+        responses = item_data['responses']
+        
+        # Sort responses by submission date (oldest first for plotting)
+        responses.sort(key=lambda r: r.questionnaire_submission.submission_date)
+        
+        # Calculate percentages and add option text for item responses
+        for response in responses:
+            current_value_for_change_calc = None
+            
+            # Type-specific processing
+            if response.questionnaire_item.item.response_type == 'Numeric' and response.questionnaire_item.item.range_response:
+                try:
+                    numeric_value = float(response.response_value) if response.response_value else None
+                    response.numeric_response = numeric_value
+                    current_value_for_change_calc = numeric_value
+                    response.percentage = calculate_percentage(numeric_value, response.questionnaire_item.item.range_response.max_value)
+                except (ValueError, TypeError):
+                    response.numeric_response = None
+                    response.percentage = 0
+            elif response.questionnaire_item.item.response_type == 'Likert' and response.questionnaire_item.item.likert_response:
+                try:
+                    likert_value = float(response.response_value) if response.response_value else None
+                    response.likert_response = likert_value
+                    current_value_for_change_calc = likert_value
+                    max_value = response.questionnaire_item.item.likert_response.likertscaleresponseoption_set.aggregate(
+                        max_value=Max('option_value')
+                    )['max_value']
+                    response.percentage = calculate_percentage(likert_value, max_value)
+                    
+                    likert_scale = response.questionnaire_item.item.likert_response
+                    better_direction = response.questionnaire_item.item.item_better_score_direction or 'Higher is Better'
+                    color_map = likert_scale.get_option_colors(better_direction)
+                    for option in likert_scale.likertscaleresponseoption_set.all():
+                        if str(option.option_value) == response.response_value:
+                            response.option_text = option.option_text
+                            response.option_color = color_map.get(str(option.option_value), '#ffffff')
+                            response.text_color = likert_scale.get_text_color(response.option_color)
+                            break
+                except (ValueError, TypeError) as e_likert_proc:
+                    logger.error(f"Error processing Likert item {response.questionnaire_item.item.id}: {e_likert_proc}", exc_info=True)
+                    response.likert_response = None
+                    response.percentage = 0
+        
+        # Create plot for this item using all historical responses
+        try:
+            plot_html = create_item_response_plot(
+                responses,
+                item,
+                patient,
+                'date_of_registration',  # Use registration date as reference
+                'weeks'  # Use weeks as time interval
+            )
+            
+            # Get the most recent response for display
+            most_recent_response = responses[-1] if responses else None
+            
+            item_plots.append({
+                'item': item,
+                'plot_html': plot_html,
+                'responses': responses,
+                'most_recent_response': most_recent_response,
+                'response_count': len(responses)
+            })
+        except Exception as e_plot_gen:
+            logger.error(f"Error generating plot for item {item.id}: {e_plot_gen}", exc_info=True)
+    
+    # Get available items for the filter
+    available_items_query = Item.objects.select_related('construct_scale').prefetch_related('translations')
+    
+    # Get items from all assigned questionnaires
+    questionnaire_ids = assigned_questionnaires.values_list('questionnaire_id', flat=True)
+    available_items_query = available_items_query.filter(
+        questionnaireitem__questionnaire_id__in=questionnaire_ids
+    ).distinct()
+    
+    available_items = available_items_query.order_by('construct_scale__name', 'item_number')
+    
+    # Get selected item details for proper initialization
+    selected_items_data = []
+    if item_filter:
+        selected_items = Item.objects.filter(id__in=item_filter).prefetch_related('translations')
+        selected_items_data = [{'id': str(item.id), 'name': item.name} for item in selected_items]
+
+    # Get Bokeh resources
+    bokeh_css = CDN.render_css()
+    bokeh_js = CDN.render_js()
+    
+    # Get patient's diagnoses and treatments for display
+    diagnoses = patient.diagnosis_set.all().order_by('-date_of_diagnosis')
+    
+    context = {
+        'patient': patient,
+        'submissions': submissions,
+        'assigned_questionnaires': assigned_questionnaires,
+        'questionnaire_submission_counts': questionnaire_submission_counts,
+        'item_plots': item_plots,
+        'available_items': available_items,
+        'selected_items_data': selected_items_data,
+        'item_filter': item_filter,
+        'bokeh_css': bokeh_css,
+        'bokeh_js': bokeh_js,
+        'diagnoses': diagnoses,
+    }
+    
+    # If this is an HTMX request for item filter update, only return the plots section
+    if request.headers.get('HX-Request'):
+        return render(request, 'patientapp/partials/patient_portal_plots.html', context)
+    
+    return render(request, 'patientapp/patient_portal.html', context)
 
 
 def patient_list(request):

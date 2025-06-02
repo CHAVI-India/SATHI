@@ -1,0 +1,472 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% translate "My Portal" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/prom_review.css' %}">
+{{ bokeh_css|safe }}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{% translate "My Portal" %}</h1>
+                    <p class="text-gray-600 mt-1">{% translate "Welcome" %} {{ patient.name|default:user.username }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-500">{% translate "Patient ID" %}: {{ patient.patient_id|default:"N/A" }}</p>
+                    {% if patient.date_of_registration %}
+                    <p class="text-sm text-gray-500">{% translate "Registered" %}: {{ patient.date_of_registration|date:"d M Y" }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Patient Basic Info -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                {% if patient.age %}
+                <div class="text-center">
+                    <div class="text-2xl font-semibold text-blue-600">{{ patient.age }}</div>
+                    <div class="text-sm text-gray-600">{% translate "Years Old" %}</div>
+                </div>
+                {% endif %}
+                {% if patient.gender %}
+                <div class="text-center">
+                    <div class="text-lg font-medium text-gray-800">{{ patient.gender }}</div>
+                    <div class="text-sm text-gray-600">{% translate "Gender" %}</div>
+                </div>
+                {% endif %}
+                <div class="text-center">
+                    <div class="text-2xl font-semibold text-green-600">{{ submissions.count }}</div>
+                    <div class="text-sm text-gray-600">{% translate "Total Responses" %}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clinical Information -->
+    {% if diagnoses %}
+    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+        <div class="p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                <svg class="w-5 h-5 inline mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                {% translate "Clinical Information" %}
+            </h2>
+            <div class="space-y-3">
+                {% for diagnosis in diagnoses %}
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <div class="font-medium text-gray-900">
+                        {{ diagnosis.diagnosis.diagnosis|default:"Unknown Diagnosis" }}
+                    </div>
+                    {% if diagnosis.date_of_diagnosis %}
+                    <div class="text-sm text-gray-600">
+                        {% translate "Diagnosed on" %}: {{ diagnosis.date_of_diagnosis|date:"d M Y" }}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Treatments for this diagnosis -->
+                    {% if diagnosis.treatment_set.exists %}
+                    <div class="mt-2 pl-4">
+                        {% for treatment in diagnosis.treatment_set.all %}
+                        <div class="text-sm">
+                            <span class="text-gray-700">{% translate "Treatment" %}:</span>
+                            {% for treatment_type in treatment.treatment_type.all %}
+                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-1">
+                                    {{ treatment_type.treatment_type }}
+                                </span>
+                            {% endfor %}
+                            {% if treatment.date_of_start_of_treatment %}
+                            <span class="text-gray-500 ml-2">
+                                {% translate "Started" %}: {{ treatment.date_of_start_of_treatment|date:"d M Y" }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Available Questionnaires -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-900">
+                    <svg class="w-5 h-5 inline mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    {% translate "Available Questionnaires" %}
+                </h2>
+                <!-- Prominent Complete Questionnaire Button -->
+                <a href="{% url 'my_questionnaire_list' %}" 
+                   class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-150 ease-in-out shadow-lg">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    {% translate "Complete Questionnaire" %}
+                </a>
+            </div>
+            
+            {% if assigned_questionnaires %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for pq in assigned_questionnaires %}
+                <div class="border border-gray-200 rounded-lg p-4 {% if not pq.can_answer %}bg-gray-50{% else %}bg-white hover:shadow-md transition-shadow{% endif %}">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-medium text-gray-900 truncate">{{ pq.questionnaire.name }}</h3>
+                        <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+                            {{ pq.submission_count }} {% translate "completed" %}
+                        </span>
+                    </div>
+                    
+                    {% if pq.last_submission %}
+                    <p class="text-sm text-gray-600 mb-2">
+                        {% translate "Last completed" %}: {{ pq.last_submission.submission_date|date:"d M Y" }}
+                    </p>
+                    {% endif %}
+                    
+                    <div class="flex items-center justify-between">
+                        {% if pq.can_answer %}
+                        <span class="text-green-600 text-sm font-medium">
+                            <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            {% translate "Available now" %}
+                        </span>
+                        {% else %}
+                        <span class="text-gray-500 text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                            </svg>
+                            {% if pq.next_available %}
+                                {% translate "Next available" %}: {{ pq.next_available|date:"d M Y" }}
+                            {% else %}
+                                {% translate "Not available" %}
+                            {% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                <p>{% translate "No questionnaires are currently available for you." %}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Questionnaire Response History -->
+    {% if submissions %}
+    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+        <div class="p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                <svg class="w-5 h-5 inline mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                {% translate "Response History" %}
+            </h2>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {% translate "Questionnaire" %}
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {% translate "Completed Date" %}
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {% translate "Time Ago" %}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for submission in submissions|slice:":10" %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ submission.patient_questionnaire.questionnaire.name }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                {{ submission.submission_date|date:"d M Y, H:i" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ submission.submission_date|timesince }} {% translate "ago" %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                {% if submissions.count > 10 %}
+                <div class="px-6 py-3 bg-gray-50 text-center">
+                    <p class="text-sm text-gray-600">
+                        {% blocktrans count counter=submissions.count %}
+                        Showing 10 of {{ counter }} response
+                        {% plural %}
+                        Showing 10 of {{ counter }} responses
+                        {% endblocktrans %}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Item Response Plots -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">
+                    <svg class="w-5 h-5 inline mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    {% translate "My Response Trends" %}
+                </h2>
+                
+                <!-- Item Filter -->
+                <div class="relative">
+                    <button id="item-filter-button" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z"></path>
+                        </svg>
+                        {% translate "Filter Items" %}
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    
+                    <!-- Dropdown -->
+                    <div id="item-filter-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                        <div class="p-4">
+                            <div class="mb-3">
+                                <input type="text" 
+                                       id="item-search" 
+                                       placeholder="{% translate 'Search items...' %}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            
+                            <!-- Selected items summary -->
+                            <div id="selected-items-summary" class="mb-3 p-2 bg-blue-50 rounded text-sm">
+                                {% if selected_items_data %}
+                                    <span class="text-blue-600">
+                                        {{ selected_items_data|length }} {% translate "item" %}{% if selected_items_data|length != 1 %}s{% endif %} {% translate "selected" %}
+                                    </span>
+                                {% else %}
+                                    <span class="text-gray-500">{% translate "All items shown" %}</span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Available items list -->
+                            <div class="max-h-60 overflow-y-auto">
+                                {% for item in available_items %}
+                                <div class="item-option cursor-pointer p-2 hover:bg-gray-100 rounded text-sm border-b border-gray-100 last:border-b-0"
+                                     data-item-id="{{ item.id }}"
+                                     data-item-name="{{ item.name }}">
+                                    <div class="font-medium">{{ item.name }}</div>
+                                    {% if item.construct_scale %}
+                                    <div class="text-xs text-gray-500">{{ item.construct_scale.name }}</div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Apply/Clear buttons -->
+                            <div class="mt-3 flex space-x-2">
+                                <button id="apply-filter" class="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700">
+                                    {% translate "Apply Filter" %}
+                                </button>
+                                <button id="clear-filter" class="flex-1 bg-gray-200 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-300">
+                                    {% translate "Clear All" %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hidden inputs for item filter -->
+            <div id="item-filter-inputs">
+                {% for item_data in selected_items_data %}
+                <input type="hidden" name="item_filter" value="{{ item_data.id }}" data-item-name="{{ item_data.name }}">
+                {% endfor %}
+            </div>
+
+            <!-- Plots Container -->
+            <div id="plots-container">
+                {% include "patientapp/partials/patient_portal_plots.html" %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ bokeh_js|safe }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const itemFilterButton = document.getElementById('item-filter-button');
+        const itemFilterDropdown = document.getElementById('item-filter-dropdown');
+        const itemSearch = document.getElementById('item-search');
+        const selectedItemsSummary = document.getElementById('selected-items-summary');
+        const applyFilterButton = document.getElementById('apply-filter');
+        const clearFilterButton = document.getElementById('clear-filter');
+
+        // Toggle dropdown
+        itemFilterButton.addEventListener('click', function() {
+            itemFilterDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!itemFilterButton.contains(event.target) && !itemFilterDropdown.contains(event.target)) {
+                itemFilterDropdown.classList.add('hidden');
+            }
+        });
+
+        // Search functionality
+        itemSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const items = document.querySelectorAll('.item-option');
+            
+            items.forEach(item => {
+                const itemName = item.getAttribute('data-item-name').toLowerCase();
+                const constructName = item.querySelector('.text-xs') ? item.querySelector('.text-xs').textContent.toLowerCase() : '';
+                
+                if (itemName.includes(searchTerm) || constructName.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Item selection
+        document.addEventListener('click', function(event) {
+            if (event.target.closest('.item-option')) {
+                const itemOption = event.target.closest('.item-option');
+                const itemId = itemOption.getAttribute('data-item-id');
+                const itemName = itemOption.getAttribute('data-item-name');
+                
+                // Check if item is already selected
+                const existingInput = document.querySelector(`#item-filter-inputs input[value="${itemId}"]`);
+                
+                if (existingInput) {
+                    // Remove selection
+                    existingInput.remove();
+                    itemOption.classList.remove('bg-blue-100', 'text-blue-700');
+                } else {
+                    // Add selection
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'item_filter';
+                    hiddenInput.value = itemId;
+                    hiddenInput.setAttribute('data-item-name', itemName);
+                    document.getElementById('item-filter-inputs').appendChild(hiddenInput);
+                    
+                    itemOption.classList.add('bg-blue-100', 'text-blue-700');
+                }
+                
+                updateSelectedItemsSummary();
+            }
+        });
+
+        // Update selected items summary
+        function updateSelectedItemsSummary() {
+            const selectedInputs = document.querySelectorAll('#item-filter-inputs input[type="hidden"]');
+            const count = selectedInputs.length;
+            
+            if (count === 0) {
+                selectedItemsSummary.innerHTML = '<span class="text-gray-500">{% translate "All items shown" %}</span>';
+            } else {
+                const itemNames = Array.from(selectedInputs).map(input => input.getAttribute('data-item-name')).slice(0, 3);
+                let summaryText = `${count} {% translate "item" %}${count !== 1 ? 's' : ''} {% translate "selected" %}`;
+                if (count <= 3) {
+                    summaryText += `: ${itemNames.join(', ')}`;
+                } else {
+                    summaryText += `: ${itemNames.join(', ')} + ${count - 3} {% translate "more" %}`;
+                }
+                selectedItemsSummary.innerHTML = `<span class="text-blue-600">${summaryText}</span>`;
+            }
+        }
+
+        // Apply filter
+        applyFilterButton.addEventListener('click', function() {
+            const selectedInputs = document.querySelectorAll('#item-filter-inputs input[type="hidden"]');
+            const itemIds = Array.from(selectedInputs).map(input => input.value);
+            
+            // Build URL with item filter parameters
+            const url = new URL(window.location);
+            url.searchParams.delete('item_filter'); // Remove existing
+            
+            itemIds.forEach(id => {
+                url.searchParams.append('item_filter', id);
+            });
+            
+            // Use HTMX to update only the plots container
+            htmx.ajax('GET', url.toString(), {
+                target: '#plots-container',
+                swap: 'innerHTML'
+            });
+            
+            itemFilterDropdown.classList.add('hidden');
+        });
+
+        // Clear filter
+        clearFilterButton.addEventListener('click', function() {
+            // Remove all selected items
+            const selectedInputs = document.querySelectorAll('#item-filter-inputs input[type="hidden"]');
+            selectedInputs.forEach(input => input.remove());
+            
+            // Remove visual selection indicators
+            const selectedOptions = document.querySelectorAll('.item-option.bg-blue-100');
+            selectedOptions.forEach(option => {
+                option.classList.remove('bg-blue-100', 'text-blue-700');
+            });
+            
+            updateSelectedItemsSummary();
+            
+            // Update plots to show all items
+            const url = new URL(window.location);
+            url.searchParams.delete('item_filter');
+            
+            htmx.ajax('GET', url.toString(), {
+                target: '#plots-container',
+                swap: 'innerHTML'
+            });
+            
+            itemFilterDropdown.classList.add('hidden');
+        });
+
+        // Initialize selected items display
+        const existingSelections = document.querySelectorAll('#item-filter-inputs input[type="hidden"]');
+        existingSelections.forEach(input => {
+            const itemId = input.value;
+            const itemOption = document.querySelector(`.item-option[data-item-id="${itemId}"]`);
+            if (itemOption) {
+                itemOption.classList.add('bg-blue-100', 'text-blue-700');
+            }
+        });
+        
+        updateSelectedItemsSummary();
+    });
+</script>
+{% endblock %} 
