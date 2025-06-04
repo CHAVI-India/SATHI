@@ -24,23 +24,23 @@ msgstr ""
 
 #: patientapp/forms.py:21
 msgid "Repeat Password"
-msgstr "পাসওয়ার্ড আবার লিখুন"
+msgstr ""
 
 #: patientapp/forms.py:27
 msgid "Groups"
-msgstr "সমষ্টি"
+msgstr ""
 
 #: patientapp/forms.py:84
 msgid "Passwords don't match"
-msgstr "পাসওয়ার্ড এক নয়"
+msgstr ""
 
 #: patientapp/forms.py:90
 msgid "A user with that username already exists."
-msgstr "সিস্টেম এ এই নামের ব্যবহারকারী আগের থেকে আছে "
+msgstr ""
 
 #: patientapp/forms.py:96
 msgid "A user with that email already exists."
-msgstr "এই ইমেইলের ব্যবহারকারী আগের থেকে আছে"
+msgstr ""
 
 #: patientapp/views.py:619 templates/promapp/components/filters_section.html:76
 msgid "3 submissions"
@@ -63,10 +63,8 @@ msgid "All submissions"
 msgstr ""
 
 #: patientapp/views.py:870
-#, fuzzy
-#| msgid "You do not have permission to submit responses."
 msgid "You do not have patient access."
-msgstr "আপনাকে উত্তর দেয়ার অনুমতি দেয়া হয়ে নি "
+msgstr ""
 
 #: patientapp/views.py:1207 promapp/views.py:1708
 msgid "None"
@@ -106,85 +104,79 @@ msgstr ""
 
 #: patientapp/views.py:1309
 msgid "Patient created successfully."
-msgstr "রুগীর নাম নথিভুক্ত করা হলো "
+msgstr ""
 
 #: patientapp/views.py:1313
 msgid "An error occurred while creating the patient."
-msgstr "রুগীর নাম নথিভুক্ত করার সময় একটি ভুল হয়েছে"
+msgstr ""
 
 #: patientapp/views.py:1318
 msgid "Add New Patient"
-msgstr "নতুন রুগী যোগ করুন "
+msgstr ""
 
 #: patientapp/views.py:1340 templates/patientapp/patient_detail.html:26
 #: templates/patientapp/patient_restricted_update_form.html:44
-#, fuzzy
-#| msgid "Edit Treatment Type"
 msgid "Edit Patient Details"
-msgstr "চিকিৎসার ধরণ বদলান "
+msgstr ""
 
 #: patientapp/views.py:1352
-#, fuzzy
-#| msgid "Patient created successfully."
 msgid "Patient basic details updated successfully."
-msgstr "রুগীর নাম নথিভুক্ত করা হলো "
+msgstr ""
 
 #: patientapp/views.py:1356
-#, fuzzy
-#| msgid "An error occurred while creating the patient."
 msgid "An error occurred while updating the patient basic details."
-msgstr "রুগীর নাম নথিভুক্ত করার সময় একটি ভুল হয়েছে"
+msgstr ""
 
 #: patientapp/views.py:1374 templates/patientapp/diagnosis_form.html:11
 #: templates/patientapp/patient_detail.html:97
 msgid "Add Diagnosis"
-msgstr "রোগ নির্ণয় যোগ করুন"
+msgstr ""
 
 #: patientapp/views.py:1381
 msgid "Diagnosis added successfully."
-msgstr "রোগ নির্ণয় সফলভাবে যোগ করা হয়েছে "
+msgstr ""
 
 #: patientapp/views.py:1402 templates/patientapp/diagnosis_form.html:11
 #: templates/patientapp/patient_detail.html:125
 msgid "Edit Diagnosis"
-msgstr "রোগ নির্ণয় বদলান "
+msgstr ""
 
 #: patientapp/views.py:1426 templates/patientapp/patient_detail.html:130
 msgid "Add Treatment"
-msgstr "চিকিৎসা যোগ করুন "
+msgstr ""
 
 #: patientapp/views.py:1434
 msgid "Treatment added successfully."
-msgstr "চিকিৎসা সফলভাবে যোগ করা হয়েছে "
+msgstr ""
 
 #: patientapp/views.py:1457
 msgid "Edit Treatment"
-msgstr "চিকিৎসা বদলান "
+msgstr ""
 
 #: patientapp/views.py:1483 templates/patientapp/treatment_type_form.html:11
 #: templates/patientapp/treatment_type_list.html:13
 msgid "Add Treatment Type"
-msgstr "চিকিৎসার ধরন যোগ করুন"
+msgstr ""
 
 #: patientapp/views.py:1513 templates/patientapp/treatment_type_form.html:11
 msgid "Edit Treatment Type"
-msgstr "চিকিৎসার ধরণ বদলান "
+msgstr ""
 
 #: patientapp/views.py:1525 templates/patientapp/treatment_type_list.html:10
 msgid "Treatment Types"
-msgstr "চিকিৎসার ধরণ"
+msgstr ""
 
 #: promapp/forms.py:100
 msgid "Select Items for Questionnaire"
-msgstr "প্রশ্নাবলীর জন্যে প্রশ্ন নির্বাচন করুন"
+msgstr ""
 
 #: promapp/forms.py:376 templates/promapp/questionnaire_response.html:100
 msgid "Enter your response here..."
-msgstr "এখানে আপনার উত্তর দিন  ..."
+msgstr ""
 
 #: promapp/forms.py:384 templates/promapp/questionnaire_response.html:109
 msgid "Enter a number..."
-msgstr "এখানে একটি সংখ্যা লিখুন  ..."
+msgstr ""
 
 #: promapp/forms.py:610
 #: templates/promapp/questionnaire_item_rule_group_form.html:99
@@ -193,17 +185,15 @@ msgstr ""
 
 #: promapp/forms.py:667 promapp/views.py:2093
 msgid "All rules must belong to the same questionnaire item."
-msgstr "প্রত্যেকটা নিয়ম একই প্রশ্নাবলীর প্রশ্নের সঙ্গে যোগ রাখতে হবে "
+msgstr ""
 
 #: promapp/forms.py:823
 msgid "Search..."
-msgstr "খুজুন .."
+msgstr ""
 
 #: promapp/forms.py:846
-#, fuzzy
-#| msgid "Select Language"
 msgid "All Languages"
-msgstr "ভাষা নির্বাচন করুন "
+msgstr ""
 
 #: promapp/forms.py:849
 #, python-brace-format
@@ -221,191 +211,178 @@ msgid ""
 "You cannot answer this questionnaire yet. You can answer it again in "
 "%(time)s."
 msgstr ""
-"আপনি এখন এই প্রশ্নাবলীর উত্তর দিতে পারবেন না।  আপনি আবার এই প্রস্বাবলীর উত্তর দিতে "
-"পারবেন %(time)s পরে."
 
 #: promapp/views.py:1426
 msgid "You do not have permission to submit responses."
-msgstr "আপনাকে উত্তর দেয়ার অনুমতি দেয়া হয়ে নি "
+msgstr ""
 
 #: promapp/views.py:1460
 msgid "Your responses have been saved successfully."
-msgstr "আপনার উত্তর আমরা সফলভাবে সংরক্ষণ করে নিয়েছি। "
+msgstr ""
 
 #: promapp/views.py:1463
-#, fuzzy, python-format
-#| msgid "An error occurred while saving your responses. Please try again."
+#, python-format
 msgid "An error occurred while saving your responses: %s"
-msgstr "আপনার উত্তর সংরক্ষণ করার সময় একটি ভুল হয়েছে।  আর একবার চেষ্টা করুন "
+msgstr ""
 
 #: promapp/views.py:1469
-#, fuzzy
-#| msgid "An error occurred while saving your responses. Please try again."
 msgid "There was an error saving your responses. Please try again."
-msgstr "আপনার উত্তর সংরক্ষণ করার সময় একটি ভুল হয়েছে।  আর একবার চেষ্টা করুন "
+msgstr ""
 
 #: promapp/views.py:1594
 msgid "Questionnaire assigned successfully."
-msgstr "প্রশ্নাবলী সফলভাবে নির্ধারণ করা হয়েছে "
+msgstr ""
 
 #: promapp/views.py:1602
 msgid "Questionnaire unassigned successfully."
-msgstr "প্রশ্নাবলী সফলভাবে বাদ দেয়া হয়েছে "
+msgstr ""
 
 #: promapp/views.py:1613
 #, python-brace-format
 msgid "Questionnaire is now {status}."
-msgstr "প্রশ্নাবলী এখন {status}."
+msgstr ""
 
 #: promapp/views.py:1616
 msgid "Questionnaire not found."
-msgstr "প্রশ্নাবলী খুঁজে পাওয়া যাই নি "
+msgstr ""
 
 #: promapp/views.py:1618
 msgid "Questionnaire assignment not found."
-msgstr "প্রশ্নাবলীর নির্ধারণ খুঁজে পাওয়া যাই নি "
+msgstr ""
 
 #: promapp/views.py:1620
 msgid "An error occurred. Please try again."
-msgstr "একটি ভুল হয়েছে।  আবার চেষ্টা করুন "
+msgstr ""
 
 #: promapp/views.py:1973
 msgid "Please select a dependent item."
-msgstr "একটি প্রশ্ন যেটি এর ওপর নির্ভর করে সেটি নির্বাচন করুন "
+msgstr ""
 
 #: promapp/views.py:1977
 msgid "Selected item: {}"
-msgstr "নির্বাচিত প্রশ্ন : {}"
+msgstr ""
 
 #: promapp/views.py:1979
 msgid "Invalid item selected."
-msgstr "ভুল প্রশ্ন নির্বাচিত করা হয়েছে "
+msgstr ""
 
 #: promapp/views.py:1987
 msgid "Please select an operator."
-msgstr "অপারেটর নির্বাচন করুন "
+msgstr ""
 
 #: promapp/views.py:1995
 msgid "Valid operator for numeric comparison."
-msgstr "সংখ্যা তুলনা করার জন্যে বৈধ অপারেটর "
+msgstr ""
 
 #: promapp/views.py:1997
 msgid "Valid operator for text comparison."
-msgstr "শব্দের তুলনা করার জন্যে বৈধ অপারেটর"
+msgstr ""
 
 #: promapp/views.py:1999 promapp/views.py:2044
 msgid "Invalid dependent item."
-msgstr "ভুল নির্ভরশীল প্রশ্ন "
+msgstr ""
 
 #: promapp/views.py:2007
 msgid "Please enter a comparison value."
-msgstr "দয়া করে একটি তুলনা মান লিখুন।"
+msgstr ""
 
 #: promapp/views.py:2016
 msgid "Valid numeric value."
-msgstr "বৈধ সংখ্যা"
+msgstr ""
 
 #: promapp/views.py:2018 promapp/views.py:2029 promapp/views.py:2040
 #: promapp/views.py:2064 promapp/views.py:2077
 msgid "Please enter a valid number."
-msgstr "দয়া করে বৈধ সংখ্যা লিখুন  "
+msgstr ""
 
 #: promapp/views.py:2025
 msgid "Valid Likert scale value."
-msgstr "বৈধ লিকার্ট স্কেল মান।"
+msgstr ""
 
 #: promapp/views.py:2027
 msgid "Please enter a valid Likert scale value."
-msgstr "দয়া করে একটি বৈধ লিকার্ট স্কেল মান লিখুন"
+msgstr ""
 
 #: promapp/views.py:2035
 msgid "Valid range value."
-msgstr "বৈধ রেঞ্জ মান"
+msgstr ""
 
 #: promapp/views.py:2037
 msgid "Value must be between {} and {}."
-msgstr "মান {} এবং {} মধ্যে থাকতে হবে। "
+msgstr ""
 
 #: promapp/views.py:2042
 msgid "Valid text value."
-msgstr "বৈধ শব্দ মান "
+msgstr ""
 
 #: promapp/views.py:2050
 msgid "Please select a logical operator."
-msgstr "দয়া করে একটি লজিক্যাল অপারেটর নির্বাচন করুন।"
+msgstr ""
 
 #: promapp/views.py:2051
 msgid "Valid logical operator."
-msgstr "বৈধ লজিকাল অপারেটর "
+msgstr ""
 
 #: promapp/views.py:2057
 msgid "Please enter a rule order."
-msgstr "দয়া করে নিয়মক্রম লিখুন  "
+msgstr ""
 
 #: promapp/views.py:2061 promapp/views.py:2074
 msgid "Order must be greater than 0."
-msgstr "ক্রম ০ এর বেশি হতে হবে "
+msgstr ""
 
 #: promapp/views.py:2062
 msgid "Valid rule order."
-msgstr "বৈধ নিয়মক্রম "
+msgstr ""
 
 #: promapp/views.py:2070
 msgid "Please enter a group order."
-msgstr "দয়া করে একটি সমষ্টিক্রম লিখুন "
+msgstr ""
 
 #: promapp/views.py:2075
 msgid "Valid group order."
-msgstr "বৈধ সমষ্টিক্রম "
+msgstr ""
 
 #: promapp/views.py:2083
 msgid "Please select at least one rule."
-msgstr "দয়া করে একটি নিয়ম নির্বাচন করুন "
+msgstr ""
 
 #: promapp/views.py:2088
 msgid "One or more invalid rules selected."
-msgstr "এক বা তার বেশি অবৈধ নিয়ম নির্বাচন করা হয়েছে "
+msgstr ""
 
 #: promapp/views.py:2095
 msgid "Valid rule selection."
-msgstr "বৈধ নিয়ম নির্বাচন "
+msgstr ""
 
 #: promapp/views.py:2097
 msgid "Error validating rules."
-msgstr "নিয়মের বৈধতা যাচাইকরণ এ ভুল হয়েছে "
+msgstr ""
 
 #: promapp/views.py:2479 promapp/views.py:2681 promapp/views.py:2883
 #: promapp/views.py:3054
 msgid "Translation saved successfully."
-msgstr "অনুবাদ সফলভাবে সংরক্ষণ করা হয়েছে।"
+msgstr ""
 
 #: promapp/views.py:3292
-#, fuzzy
-#| msgid "Translation saved successfully."
 msgid "Equation saved successfully."
-msgstr "অনুবাদ সফলভাবে সংরক্ষণ করা হয়েছে।"
+msgstr ""
 
 #: promapp/views.py:3331
-#, fuzzy
-#| msgid "Patient created successfully."
 msgid "Construct scale updated successfully."
-msgstr "রুগীর নাম নথিভুক্ত করা হলো "
+msgstr ""
 
 #: promapp/views.py:3345
-#, fuzzy
-#| msgid "Patient created successfully."
 msgid "Construct scale deleted successfully."
-msgstr "রুগীর নাম নথিভুক্ত করা হলো "
+msgstr ""
 
 #: promapp/views.py:3488
-#, fuzzy
-#| msgid "Patient created successfully."
 msgid "Composite construct scale scoring created successfully."
-msgstr "রুগীর নাম নথিভুক্ত করা হলো "
+msgstr ""
 
 #: promapp/views.py:3492 promapp/views.py:3513
 msgid "Please correct the errors below."
-msgstr "নিচে দেয়া ভুল গুলি সংশোধন করুন "
+msgstr ""
 
 #: promapp/views.py:3509
 msgid "Composite construct scale scoring updated successfully."
@@ -417,7 +394,7 @@ msgstr ""
 
 #: templates/base.html:27
 msgid "Select Language"
-msgstr "ভাষা নির্বাচন করুন "
+msgstr ""
 
 #: templates/cotton/action_buttons.html:16 templates/cotton/view_button.html:14
 #: templates/promapp/partials/questionnaire_list_table.html:15
@@ -536,15 +513,15 @@ msgstr ""
 
 #: templates/cotton/view_results_button.html:13 templates/index.html:33
 msgid "View Results"
-msgstr "ফলাফল দেখুন "
+msgstr ""
 
 #: templates/index.html:4
 msgid "Welcome to Chavi PROM Application"
-msgstr "ছবি PROM এ আপনাকে স্বাগত জানাই "
+msgstr ""
 
 #: templates/index.html:10
 msgid "Patient Reported Outcome Monitoring"
-msgstr "রোগীর নিজের বলা অসুবিধের পর্যবেক্ষণ "
+msgstr ""
 
 #: templates/index.html:14
 msgid ""
@@ -555,44 +532,35 @@ msgid ""
 "application also provides users with an easy way to view responses to the "
 "questions."
 msgstr ""
-"CHAVI-এর জন্য রোগীর রিপোর্ট করা ফলাফল পর্যবেক্ষণ অ্যাপ্লিকেশনে স্বাগতম।এই ওপেন সোর্স "
-"অ্যাপ্লিকেশনটি রোগীদের রিপোর্ট করার জন্য ডিজাইন করা হয়েছেবৈজ্ঞানিক মানসম্মত "
-"প্রশ্নাবলী ব্যবহার করে তাদের সমস্যা এবং উদ্বেগগুলি বর্ণনা করার জন্যে।প্রশ্নাবলী একাধিক "
-"ভাষায় অনুবাদ করা যেতে পারে। এছাড়া,অ্যাপ্লিকেশনটি ব্যবহারকারীদের উত্তর দেখার একটি "
-"সহজ উপায়ও প্রদান করে"
 
 #: templates/index.html:19
 msgid "For Patients"
-msgstr "রুগীদের জন্যে "
+msgstr ""
 
 #: templates/index.html:20
 msgid ""
 "Complete questionnaires about your health and well-being. Your feedback "
 "helps healthcare providers understand your needs better."
 msgstr ""
-"আপনার স্বাস্থ্য এবং সুস্থতা সম্পর্কে প্রশ্নাবলীর উত্তর দিন । আপনার উত্তর স্বাস্থ্যসেবা "
-"প্রদানকারীদের আপনার চাহিদা আরও ভালভাবে বুঝতে সাহায্য করে।"
 
 #: templates/index.html:23 templates/navbar.html:93 templates/navbar.html:222
 #: templates/patientapp/partials/patient_portal_plots.html:117
 msgid "Complete a Questionnaire"
-msgstr "প্রশ্নাবলী সম্পূর্ণ করুন "
+msgstr ""
 
 #: templates/index.html:29
 msgid "For Healthcare Providers"
-msgstr "স্বাস্থসেবকদের জন্যে "
+msgstr ""
 
 #: templates/index.html:30
 msgid ""
 "Review patient-reported outcomes and gain insights into patient health "
 "status and treatment effectiveness."
 msgstr ""
-"রোগীর রিপোর্ট করা ফলাফল পর্যালোচনা করুন এবং রোগীর স্বাস্থ্যের অবস্থা এবং চিকিৎসার "
-"কার্যকারিতা সম্পর্কে অন্তর্দৃষ্টি অর্জন করুন।"
 
 #: templates/index.html:40
 msgid "Key Features"
-msgstr "মূল বৈশিষ্ট্য"
+msgstr ""
 
 #: templates/index.html:42
 msgid "Multilingual support for questionnaires"
@@ -680,10 +648,8 @@ msgstr ""
 #: templates/navbar.html:67 templates/navbar.html:201
 #: templates/promapp/questionnaire_guidance.html:5
 #: templates/promapp/questionnaire_guidance.html:12
-#, fuzzy
-#| msgid "Questionnaire not found."
 msgid "Questionnaire Guidance"
-msgstr "প্রশ্নাবলী খুঁজে পাওয়া যাই নি "
+msgstr ""
 
 #: templates/navbar.html:75 templates/navbar.html:208
 msgid "Manage Questionnaire"
@@ -826,16 +792,12 @@ msgid ""
 msgstr ""
 
 #: templates/patientapp/partials/patient_table.html:31
-#, fuzzy
-#| msgid "Questionnaire not found."
 msgid "questionnaires"
-msgstr "প্রশ্নাবলী খুঁজে পাওয়া যাই নি "
+msgstr ""
 
 #: templates/patientapp/partials/patient_table.html:44
-#, fuzzy
-#| msgid "Add New Patient"
 msgid "View Patient"
-msgstr "নতুন রুগী যোগ করুন "
+msgstr ""
 
 #: templates/patientapp/partials/patient_table.html:48
 #: templates/patientapp/patient_detail.html:17
@@ -844,10 +806,8 @@ msgid "Manage Questionnaires"
 msgstr ""
 
 #: templates/patientapp/partials/patient_table.html:52
-#, fuzzy
-#| msgid "View Results"
 msgid "View Responses"
-msgstr "ফলাফল দেখুন "
+msgstr ""
 
 #: templates/patientapp/partials/patient_table.html:64
 #: templates/patientapp/patient_detail.html:103
@@ -872,16 +832,12 @@ msgid "No treatments recorded"
 msgstr ""
 
 #: templates/patientapp/partials/patient_table.html:101
-#, fuzzy
-#| msgid "Complete a Questionnaire"
 msgid "Assigned Questionnaires"
-msgstr "প্রশ্নাবলী সম্পূর্ণ করুন "
+msgstr ""
 
 #: templates/patientapp/partials/patient_table.html:111
-#, fuzzy
-#| msgid "Questionnaire assignment not found."
 msgid "No questionnaires assigned"
-msgstr "প্রশ্নাবলীর নির্ধারণ খুঁজে পাওয়া যাই নি "
+msgstr ""
 
 #: templates/patientapp/partials/patient_table.html:127
 msgid "No patients found"
@@ -942,10 +898,8 @@ msgid "Date of Registration"
 msgstr ""
 
 #: templates/patientapp/patient_detail.html:118
-#, fuzzy
-#| msgid "Add Diagnosis"
 msgid "Diagnosed"
-msgstr "রোগ নির্ণয় যোগ করুন"
+msgstr ""
 
 #: templates/patientapp/patient_detail.html:152
 #: templates/promapp/components/construct_scores_section.html:74
@@ -968,10 +922,8 @@ msgid "User Groups"
 msgstr ""
 
 #: templates/patientapp/patient_form.html:82
-#, fuzzy
-#| msgid "Add New Patient"
 msgid "Update Patient"
-msgstr "নতুন রুগী যোগ করুন "
+msgstr ""
 
 #: templates/patientapp/patient_form.html:82
 msgid "Create Patient"
@@ -990,20 +942,16 @@ msgid "Search by Name"
 msgstr ""
 
 #: templates/patientapp/patient_list.html:66
-#, fuzzy
-#| msgid "Enter a number..."
 msgid "Enter exact name..."
-msgstr "এখানে একটি সংখ্যা লিখুন  ..."
+msgstr ""
 
 #: templates/patientapp/patient_list.html:73
 msgid "Search by ID"
 msgstr ""
 
 #: templates/patientapp/patient_list.html:84
-#, fuzzy
-#| msgid "Enter a number..."
 msgid "Enter exact ID..."
-msgstr "এখানে একটি সংখ্যা লিখুন  ..."
+msgstr ""
 
 #: templates/patientapp/patient_list.html:95
 msgid "All Institutions"
@@ -1066,10 +1014,8 @@ msgid "Diagnosed on"
 msgstr ""
 
 #: templates/patientapp/patient_portal.html:79
-#, fuzzy
-#| msgid "Add Treatment"
 msgid "Treatment"
-msgstr "চিকিৎসা যোগ করুন "
+msgstr ""
 
 #: templates/patientapp/patient_portal.html:109
 #: templates/promapp/my_questionnaire_list.html:20
@@ -1077,10 +1023,8 @@ msgid "Available Questionnaires"
 msgstr ""
 
 #: templates/patientapp/patient_portal.html:117
-#, fuzzy
-#| msgid "Complete a Questionnaire"
 msgid "Complete Questionnaire"
-msgstr "প্রশ্নাবলী সম্পূর্ণ করুন "
+msgstr ""
 
 #: templates/patientapp/patient_portal.html:128
 msgid "completed"
@@ -1118,10 +1062,8 @@ msgid "Questionnaire"
 msgstr ""
 
 #: templates/patientapp/patient_portal.html:192
-#, fuzzy
-#| msgid "Complete a Questionnaire"
 msgid "Completed Date"
-msgstr "প্রশ্নাবলী সম্পূর্ণ করুন "
+msgstr ""
 
 #: templates/patientapp/patient_portal.html:195
 msgid "Time Ago"
@@ -1153,10 +1095,8 @@ msgid "Filter Items"
 msgstr ""
 
 #: templates/patientapp/patient_portal.html:263
-#, fuzzy
-#| msgid "Search..."
 msgid "Search items..."
-msgstr "খুজুন .."
+msgstr ""
 
 #: templates/patientapp/patient_portal.html:271
 #: templates/patientapp/patient_portal.html:401
@@ -1304,16 +1244,12 @@ msgid "Match"
 msgstr ""
 
 #: templates/promapp/components/aggregated_results_section.html:101
-#, fuzzy
-#| msgid "Add Diagnosis"
 msgid "Diagnosis:"
-msgstr "রোগ নির্ণয় যোগ করুন"
+msgstr ""
 
 #: templates/promapp/components/aggregated_results_section.html:114
-#, fuzzy
-#| msgid "Add Treatment"
 msgid "Treatment:"
-msgstr "চিকিৎসা যোগ করুন "
+msgstr ""
 
 #: templates/promapp/components/aggregated_results_section.html:128
 msgid "Coverage:"
@@ -1331,10 +1267,8 @@ msgstr ""
 
 #: templates/promapp/components/aggregation_metadata_card.html:27
 #: templates/promapp/components/aggregation_metadata_card.html:75
-#, fuzzy
-#| msgid "Treatment Types"
 msgid "Start Date Type"
-msgstr "চিকিৎসার ধরণ"
+msgstr ""
 
 #: templates/promapp/components/aggregation_metadata_card.html:31
 #: templates/promapp/components/aggregation_metadata_card.html:79
@@ -1413,10 +1347,8 @@ msgid "Patient Contribution Details"
 msgstr ""
 
 #: templates/promapp/components/aggregation_metadata_card.html:181
-#, fuzzy
-#| msgid "For Patients"
 msgid "Contributing Patients"
-msgstr "রুগীদের জন্যে "
+msgstr ""
 
 #: templates/promapp/components/aggregation_metadata_card.html:215
 msgid "Non-Contributing Patients"
@@ -1531,10 +1463,8 @@ msgid "Population Comparison Filters"
 msgstr ""
 
 #: templates/promapp/components/filters_section.html:119
-#, fuzzy
-#| msgid "Add Treatment Type"
 msgid "Aggregation Type"
-msgstr "চিকিৎসার ধরন যোগ করুন"
+msgstr ""
 
 #: templates/promapp/components/filters_section.html:130
 msgid "Median with IQR (25th-75th percentile)"
@@ -1566,10 +1496,8 @@ msgstr ""
 #: templates/promapp/components/filters_section.html:199
 #: templates/promapp/components/filters_section.html:233
 #: templates/promapp/components/filters_section.html:235
-#, fuzzy
-#| msgid "For Patients"
 msgid "Match Patient"
-msgstr "রুগীদের জন্যে "
+msgstr ""
 
 #: templates/promapp/components/filters_section.html:154
 msgid "Male"
@@ -1584,32 +1512,24 @@ msgid "Other"
 msgstr ""
 
 #: templates/promapp/components/filters_section.html:163
-#, fuzzy
-#| msgid "Add Diagnosis"
 msgid "Diagnosis Filter"
-msgstr "রোগ নির্ণয় যোগ করুন"
+msgstr ""
 
 #: templates/promapp/components/filters_section.html:187
-#, fuzzy
-#| msgid "Treatment Types"
 msgid "Treatment Filter"
-msgstr "চিকিৎসার ধরণ"
+msgstr ""
 
 #: templates/promapp/components/filters_section.html:198
-#, fuzzy
-#| msgid "Add Treatment"
 msgid "All Treatments"
-msgstr "চিকিৎসা যোগ করুন "
+msgstr ""
 
 #: templates/promapp/components/filters_section.html:215
 msgid "Age Group Filter"
 msgstr ""
 
 #: templates/promapp/components/filters_section.html:217
-#, fuzzy
-#| msgid "For Patients"
 msgid "Patient age"
-msgstr "রুগীদের জন্যে "
+msgstr ""
 
 #: templates/promapp/components/filters_section.html:224
 msgid "Age Match"
@@ -1642,10 +1562,8 @@ msgid "Data Filters"
 msgstr ""
 
 #: templates/promapp/components/filters_section.html:310
-#, fuzzy
-#| msgid "Complete a Questionnaire"
 msgid "All Questionnaires"
-msgstr "প্রশ্নাবলী সম্পূর্ণ করুন "
+msgstr ""
 
 #: templates/promapp/components/filters_section.html:332
 #: templates/promapp/components/filters_section.html:464
@@ -1662,10 +1580,8 @@ msgid "Updating results..."
 msgstr ""
 
 #: templates/promapp/components/filters_section.html:471
-#, fuzzy
-#| msgid "Invalid item selected."
 msgid "items selected"
-msgstr "ভুল প্রশ্ন নির্বাচিত করা হয়েছে "
+msgstr ""
 
 #: templates/promapp/components/filters_section.html:499
 msgid "days"
@@ -1693,10 +1609,8 @@ msgstr ""
 
 #: templates/promapp/components/item_results_section.html:5
 #: templates/promapp/components/results_container.html:28
-#, fuzzy
-#| msgid "View Results"
 msgid "Item-wise Results"
-msgstr "ফলাফল দেখুন "
+msgstr ""
 
 #: templates/promapp/components/item_results_section.html:19
 #: templates/promapp/partials/item_list_table.html:97
@@ -1708,27 +1622,21 @@ msgid "Reg. Date"
 msgstr ""
 
 #: templates/promapp/components/questionnaire_overview_card.html:6
-#, fuzzy
-#| msgid "Questionnaire is now {status}."
 msgid "Questionnaire Overview"
-msgstr "প্রশ্নাবলী এখন {status}."
+msgstr ""
 
 #: templates/promapp/components/questionnaire_overview_card.html:31
 msgid "Awaiting submission"
 msgstr ""
 
 #: templates/promapp/components/questionnaire_overview_card.html:39
-#, fuzzy
-#| msgid "The next questionnaire is not available for you at this time."
 msgid "No questionnaires available for this patient."
-msgstr "পরের প্রশ্নাবলী এই সময় আপনার জন্যে উপলব্ধ নেই "
+msgstr ""
 
 #: templates/promapp/components/results_container.html:6
 #: templates/promapp/components/topline_results_section.html:7
-#, fuzzy
-#| msgid "View Results"
 msgid "Topline Results"
-msgstr "ফলাফল দেখুন "
+msgstr ""
 
 #: templates/promapp/components/results_container.html:13
 msgid "Submission Date"
@@ -1888,10 +1796,8 @@ msgstr ""
 
 #: templates/promapp/construct_equation_form.html:78
 #: templates/promapp/construct_equation_form.html:300
-#, fuzzy
-#| msgid "Valid text value."
 msgid "No Valid Items Available"
-msgstr "বৈধ শব্দ মান "
+msgstr ""
 
 #: templates/promapp/construct_equation_form.html:82
 #: templates/promapp/construct_equation_form.html:304
@@ -1942,16 +1848,12 @@ msgid "Absolute value"
 msgstr ""
 
 #: templates/promapp/construct_equation_form.html:135
-#, fuzzy
-#| msgid "Valid numeric value."
 msgid "Minimum value"
-msgstr "বৈধ সংখ্যা"
+msgstr ""
 
 #: templates/promapp/construct_equation_form.html:136
-#, fuzzy
-#| msgid "Valid numeric value."
 msgid "Maximum value"
-msgstr "বৈধ সংখ্যা"
+msgstr ""
 
 #: templates/promapp/construct_equation_form.html:137
 msgid "Sum of values"
@@ -2049,10 +1951,8 @@ msgid "Save Equation"
 msgstr ""
 
 #: templates/promapp/construct_equation_form.html:249
-#, fuzzy
-#| msgid "Select Items for Questionnaire"
 msgid "Valid Items for Equation"
-msgstr "প্রশ্নাবলীর জন্যে প্রশ্ন নির্বাচন করুন"
+msgstr ""
 
 #: templates/promapp/construct_equation_form.html:257
 msgid "How to add items:"
@@ -2130,10 +2030,8 @@ msgid "Back to Items"
 msgstr ""
 
 #: templates/promapp/item_create.html:75 templates/promapp/item_update.html:75
-#, fuzzy
-#| msgid "Please correct the errors below."
 msgid "Please correct the following errors:"
-msgstr "নিচে দেয়া ভুল গুলি সংশোধন করুন "
+msgstr ""
 
 #: templates/promapp/item_create.html:90 templates/promapp/item_update.html:90
 msgid "Item Details"
@@ -2354,10 +2252,8 @@ msgstr ""
 #: templates/promapp/likert_scale_response_option_translation_form.html:17
 #: templates/promapp/questionnaire_translation_form.html:18
 #: templates/promapp/range_scale_translation_form.html:18
-#, fuzzy
-#| msgid "Select Language"
 msgid "Languages"
-msgstr "ভাষা নির্বাচন করুন "
+msgstr ""
 
 #: templates/promapp/item_translation_form.html:42
 #: templates/promapp/likert_scale_response_option_translation_form.html:41
@@ -2377,10 +2273,8 @@ msgstr ""
 #: templates/promapp/likert_scale_response_option_translation_form.html:76
 #: templates/promapp/questionnaire_translation_form.html:77
 #: templates/promapp/range_scale_translation_form.html:77
-#, fuzzy
-#| msgid "Edit Treatment"
 msgid "Editing Translation"
-msgstr "চিকিৎসা বদলান "
+msgstr ""
 
 #: templates/promapp/item_translation_form.html:80
 #: templates/promapp/likert_scale_response_option_translation_form.html:79
@@ -2756,10 +2650,8 @@ msgstr ""
 #: templates/promapp/partials/item_list_table.html:79
 #: templates/promapp/partials/range_scale_list_table.html:63
 #: templates/promapp/questionnaire_detail.html:66
-#, fuzzy
-#| msgid "Translation saved successfully."
 msgid "Translation Status"
-msgstr "অনুবাদ সফলভাবে সংরক্ষণ করা হয়েছে।"
+msgstr ""
 
 #: templates/promapp/partials/item_search_results.html:29
 msgid "No items found matching"
@@ -2782,32 +2674,24 @@ msgid "No response options defined"
 msgstr ""
 
 #: templates/promapp/partials/likert_scale_list_table.html:88
-#, fuzzy
-#| msgid "Valid Likert scale value."
 msgid "No likert scales available."
-msgstr "বৈধ লিকার্ট স্কেল মান।"
+msgstr ""
 
 #: templates/promapp/partials/questionnaire_list_table.html:14
-#, fuzzy
-#| msgid "View Results"
 msgid "View details"
-msgstr "ফলাফল দেখুন "
+msgstr ""
 
 #: templates/promapp/partials/questionnaire_list_table.html:17
-#, fuzzy
-#| msgid "Complete a Questionnaire"
 msgid "Edit questionnaire"
-msgstr "প্রশ্নাবলী সম্পূর্ণ করুন "
+msgstr ""
 
 #: templates/promapp/partials/questionnaire_list_table.html:20
 msgid "Manage translations"
 msgstr ""
 
 #: templates/promapp/partials/questionnaire_list_table.html:32
-#, fuzzy
-#| msgid "Translation saved successfully."
 msgid "Translation Status:"
-msgstr "অনুবাদ সফলভাবে সংরক্ষণ করা হয়েছে।"
+msgstr ""
 
 #: templates/promapp/partials/questionnaire_list_table.html:51
 msgid "items"
@@ -3037,28 +2921,20 @@ msgid "View Composite Scores"
 msgstr ""
 
 #: templates/promapp/questionnaire_guidance.html:44
-#, fuzzy
-#| msgid "View Results"
 msgid "View Items"
-msgstr "ফলাফল দেখুন "
+msgstr ""
 
 #: templates/promapp/questionnaire_guidance.html:53
-#, fuzzy
-#| msgid "Valid Likert scale value."
 msgid "View Likert Scales"
-msgstr "বৈধ লিকার্ট স্কেল মান।"
+msgstr ""
 
 #: templates/promapp/questionnaire_guidance.html:62
-#, fuzzy
-#| msgid "Valid range value."
 msgid "View Range Scales"
-msgstr "বৈধ রেঞ্জ মান"
+msgstr ""
 
 #: templates/promapp/questionnaire_guidance.html:71
-#, fuzzy
-#| msgid "Complete a Questionnaire"
 msgid "View Questionnaires"
-msgstr "প্রশ্নাবলী সম্পূর্ণ করুন "
+msgstr ""
 
 #: templates/promapp/questionnaire_guidance.html:89
 msgid ""
@@ -3074,10 +2950,8 @@ msgstr ""
 #: templates/promapp/questionnaire_guidance.html:211
 #: templates/promapp/questionnaire_guidance.html:257
 #: templates/promapp/questionnaire_guidance.html:302
-#, fuzzy
-#| msgid "Key Features"
 msgid "Key Features:"
-msgstr "মূল বৈশিষ্ট্য"
+msgstr ""
 
 #: templates/promapp/questionnaire_guidance.html:94
 msgid "Defines the conceptual framework for measurement"
@@ -3276,10 +3150,8 @@ msgid "Common Scale Types:"
 msgstr ""
 
 #: templates/promapp/questionnaire_guidance.html:222
-#, fuzzy
-#| msgid "Add Treatment"
 msgid "Agreement:"
-msgstr "চিকিৎসা যোগ করুন "
+msgstr ""
 
 #: templates/promapp/questionnaire_guidance.html:222
 msgid "Strongly Disagree to Strongly Agree"
@@ -3463,10 +3335,8 @@ msgid "Maintains versioning and change control"
 msgstr ""
 
 #: templates/promapp/questionnaire_guidance.html:312
-#, fuzzy
-#| msgid "Complete a Questionnaire"
 msgid "Types of Questionnaires:"
-msgstr "প্রশ্নাবলী সম্পূর্ণ করুন "
+msgstr ""
 
 #: templates/promapp/questionnaire_guidance.html:314
 msgid "Generic:"
@@ -3605,10 +3475,8 @@ msgstr ""
 
 #: templates/promapp/questionnaire_item_rule_form.html:74
 #: templates/promapp/questionnaire_item_rule_group_form.html:74
-#, fuzzy
-#| msgid "Selected item: {}"
 msgid "Save the item"
-msgstr "নির্বাচিত প্রশ্ন : {}"
+msgstr ""
 
 #: templates/promapp/questionnaire_item_rule_form.html:75
 msgid "Return here to create visibility rules"
@@ -3688,10 +3556,8 @@ msgstr ""
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:37
 #: templates/promapp/questionnaire_item_rules_list.html:37
-#, fuzzy
-#| msgid "Select Items for Questionnaire"
 msgid "Back to Questionnaire Rules"
-msgstr "প্রশ্নাবলীর জন্যে প্রশ্ন নির্বাচন করুন"
+msgstr ""
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:45
 #: templates/promapp/questionnaire_item_rule_groups_list.html:52
@@ -3808,16 +3674,12 @@ msgid "Add First Rule"
 msgstr ""
 
 #: templates/promapp/questionnaire_list.html:52
-#, fuzzy
-#| msgid "The next questionnaire is not available for you at this time."
 msgid "No questionnaires available yet."
-msgstr "পরের প্রশ্নাবলী এই সময় আপনার জন্যে উপলব্ধ নেই "
+msgstr ""
 
 #: templates/promapp/questionnaire_list.html:54
-#, fuzzy
-#| msgid "Complete a Questionnaire"
 msgid "Create First Questionnaire"
-msgstr "প্রশ্নাবলী সম্পূর্ণ করুন "
+msgstr ""
 
 #: templates/promapp/questionnaire_response.html:5
 msgid "Questionnaire Response"
@@ -3920,20 +3782,16 @@ msgid "Update Questionnaire"
 msgstr ""
 
 #: templates/promapp/questionnaire_update.html:46
-#, fuzzy
-#| msgid "Select Items for Questionnaire"
 msgid "Back to Questionnaires"
-msgstr "প্রশ্নাবলীর জন্যে প্রশ্ন নির্বাচন করুন"
+msgstr ""
 
 #: templates/promapp/questionnaire_update.html:116
 msgid "No construct scale"
 msgstr ""
 
 #: templates/promapp/questionnaire_update.html:212
-#, fuzzy
-#| msgid "Complete a Questionnaire"
 msgid "View Questionnaire"
-msgstr "প্রশ্নাবলী সম্পূর্ণ করুন "
+msgstr ""
 
 #: templates/promapp/questionnaireitemrule_confirm_delete.html:4
 msgid "Delete Rule"
@@ -4111,29 +3969,21 @@ msgid "That page contains no results"
 msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/core/validators.py:22
-#, fuzzy
-#| msgid "Please enter a valid number."
 msgid "Enter a valid value."
-msgstr "দয়া করে বৈধ সংখ্যা লিখুন  "
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/core/validators.py:70
-#, fuzzy
-#| msgid "Please enter a valid number."
 msgid "Enter a valid domain name."
-msgstr "দয়া করে বৈধ সংখ্যা লিখুন  "
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/core/validators.py:153
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:775
-#, fuzzy
-#| msgid "Please enter a valid number."
 msgid "Enter a valid URL."
-msgstr "দয়া করে বৈধ সংখ্যা লিখুন  "
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/core/validators.py:200
-#, fuzzy
-#| msgid "Please enter a valid number."
 msgid "Enter a valid integer."
-msgstr "দয়া করে বৈধ সংখ্যা লিখুন  "
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/core/validators.py:211
 msgid "Enter a valid email address."
@@ -4228,10 +4078,8 @@ msgstr[1] ""
 #: venv/lib/python3.11/site-packages/django/core/validators.py:514
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:366
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:405
-#, fuzzy
-#| msgid "Enter a number..."
 msgid "Enter a number."
-msgstr "এখানে একটি সংখ্যা লিখুন  ..."
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/core/validators.py:516
 #, python-format
@@ -4273,10 +4121,9 @@ msgid "and"
 msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/db/models/base.py:1602
-#, fuzzy, python-format
-#| msgid "A user with that email already exists."
+#, python-format
 msgid "%(model_name)s with this %(field_labels)s already exists."
-msgstr "এই ইমেইলের ব্যবহারকারী আগের থেকে আছে"
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/db/models/constraints.py:22
 #, python-format
@@ -4297,10 +4144,9 @@ msgid "This field cannot be blank."
 msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:137
-#, fuzzy, python-format
-#| msgid "A user with that email already exists."
+#, python-format
 msgid "%(model_name)s with this %(field_label)s already exists."
-msgstr "এই ইমেইলের ব্যবহারকারী আগের থেকে আছে"
+msgstr ""
 
 #. Translators: The 'lookup_type' is one of 'date', 'year' or
 #. 'month'. Eg: "Title must be unique for pub_date year"
@@ -4512,10 +4358,8 @@ msgid "A JSON object"
 msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/db/models/fields/json.py:26
-#, fuzzy
-#| msgid "Value must be between {} and {}."
 msgid "Value must be valid JSON."
-msgstr "মান {} এবং {} মধ্যে থাকতে হবে। "
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/db/models/fields/related.py:978
 #, python-format
@@ -4555,42 +4399,31 @@ msgid "This field is required."
 msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:315
-#, fuzzy
-#| msgid "Enter a number..."
 msgid "Enter a whole number."
-msgstr "এখানে একটি সংখ্যা লিখুন  ..."
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:486
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:1267
-#, fuzzy
-#| msgid "Please enter a valid number."
 msgid "Enter a valid date."
-msgstr "দয়া করে বৈধ সংখ্যা লিখুন  "
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:509
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:1268
-#, fuzzy
-#| msgid "Please enter a valid number."
 msgid "Enter a valid time."
-msgstr "দয়া করে বৈধ সংখ্যা লিখুন  "
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:536
-#, fuzzy
-#| msgid "Please enter a valid number."
 msgid "Enter a valid date/time."
-msgstr "দয়া করে বৈধ সংখ্যা লিখুন  "
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:570
-#, fuzzy
-#| msgid "Please enter a valid number."
 msgid "Enter a valid duration."
-msgstr "দয়া করে বৈধ সংখ্যা লিখুন  "
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:571
-#, fuzzy, python-brace-format
-#| msgid "Value must be between {} and {}."
+#, python-brace-format
 msgid "The number of days must be between {min_days} and {max_days}."
-msgstr "মান {} এবং {} মধ্যে থাকতে হবে। "
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:640
 msgid "No file was submitted. Check the encoding type on the form."
@@ -4632,16 +4465,12 @@ msgstr ""
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:977
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:1096
 #: venv/lib/python3.11/site-packages/django/forms/models.py:1590
-#, fuzzy
-#| msgid "Please enter a comparison value."
 msgid "Enter a list of values."
-msgstr "দয়া করে একটি তুলনা মান লিখুন।"
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:1097
-#, fuzzy
-#| msgid "Please enter a comparison value."
 msgid "Enter a complete value."
-msgstr "দয়া করে একটি তুলনা মান লিখুন।"
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/forms/fields.py:1339
 msgid "Enter a valid UUID."
@@ -4676,18 +4505,16 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: venv/lib/python3.11/site-packages/django/forms/formsets.py:70
-#, fuzzy, python-format
-#| msgid "Please select at least one rule."
+#, python-format
 msgid "Please submit at least %(num)d form."
 msgid_plural "Please submit at least %(num)d forms."
-msgstr[0] "দয়া করে একটি নিয়ম নির্বাচন করুন "
-msgstr[1] "দয়া করে একটি নিয়ম নির্বাচন করুন "
+msgstr[0] ""
+msgstr[1] ""
 
 #: venv/lib/python3.11/site-packages/django/forms/models.py:901
-#, fuzzy, python-format
-#| msgid "Please correct the errors below."
+#, python-format
 msgid "Please correct the duplicate data for %(field)s."
-msgstr "নিচে দেয়া ভুল গুলি সংশোধন করুন "
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/forms/models.py:906
 #, python-format
@@ -4702,10 +4529,8 @@ msgid ""
 msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/forms/models.py:922
-#, fuzzy
-#| msgid "Please correct the errors below."
 msgid "Please correct the duplicate values below."
-msgstr "নিচে দেয়া ভুল গুলি সংশোধন করুন "
+msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/forms/models.py:1359
 msgid "The inline value did not match the parent instance."
