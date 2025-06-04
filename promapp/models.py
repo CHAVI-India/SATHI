@@ -520,6 +520,85 @@ class Item(TranslatableModel):
             'equation': self.construct_scale.scale_equation if is_referenced else None,
             'construct_name': self.construct_scale.name if is_referenced else None
         }
+    
+    def get_media_type(self, media_file=None):
+        """
+        Determine the media type based on file extension.
+        
+        Args:
+            media_file: Optional media file object. If not provided, uses self.media
+        
+        Returns:
+            str: 'audio', 'video', 'image', or 'other'
+        """
+        media = media_file or self.media
+        if not media:
+            return None
+            
+        try:
+            file_name = str(media.name).lower()
+            
+            # Audio file extensions
+            audio_extensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac']
+            if any(file_name.endswith(ext) for ext in audio_extensions):
+                return 'audio'
+            
+            # Video file extensions (excluding .ogg which is handled by audio)
+            video_extensions = ['.mp4', '.webm', '.avi', '.mov', '.wmv', '.mkv']
+            if any(file_name.endswith(ext) for ext in video_extensions):
+                return 'video'
+            
+            # Image file extensions
+            image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.tiff', '.ico']
+            if any(file_name.endswith(ext) for ext in image_extensions):
+                return 'image'
+            
+            # If no match found, return 'other'
+            return 'other'
+            
+        except (AttributeError, TypeError):
+            return None
+    
+    def get_media_info(self):
+        """
+        Get comprehensive media information for template use.
+        Handles translatable media fields with proper fallback.
+        
+        Returns:
+            dict: Contains media_type, url, name, and has_media
+        """
+        # Simple approach: check if media exists using the same logic as template
+        if self.media:
+            try:
+                return {
+                    'has_media': True,
+                    'media_type': self.get_media_type(),
+                    'url': self.media.url,
+                    'name': self.media.name
+                }
+            except (AttributeError, ValueError):
+                pass
+        
+        # Fallback: try to find media in any translation
+        for translation in self.translations.all():
+            if translation.media:
+                try:
+                    return {
+                        'has_media': True,
+                        'media_type': self.get_media_type(translation.media),
+                        'url': translation.media.url,
+                        'name': translation.media.name
+                    }
+                except (AttributeError, ValueError):
+                    continue
+        
+        # No media found
+        return {
+            'has_media': False,
+            'media_type': None,
+            'url': None,
+            'name': None
+        }
 
 class Questionnaire(TranslatableModel):
     '''

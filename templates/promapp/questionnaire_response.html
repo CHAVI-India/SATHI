@@ -81,11 +81,118 @@
                   {% endif %}
                 {% endwith %}
               </h3>
-              {% if qi.item.media %}
-                <div class="mb-4">
-                  <img src="{{ qi.item.media.url }}" alt="{{ qi.item.name|default:qi.item.translations.all.0.name }}" class="max-w-full h-auto rounded">
-                </div>
-              {% endif %}
+                            {% comment %}Media display for item{% endcomment %}
+              {% with item=qi.item %}
+                {% if item.media %}
+                  {% with media_url=item.media.url media_name=item.media.name media_type=item.get_media_type %}
+                    <div class="mb-4">
+                      {% if media_type == 'audio' %}
+                        <audio controls class="w-full max-w-md">
+                          <source src="{{ media_url }}" type="audio/mpeg">
+                          Your browser does not support the audio element.
+                        </audio>
+                      {% elif media_type == 'video' %}
+                        <video controls class="w-full max-w-md h-auto rounded">
+                          <source src="{{ media_url }}" type="video/mp4">
+                          Your browser does not support the video element.
+                        </video>
+                      {% elif media_type == 'image' %}
+                        <img src="{{ media_url }}" alt="{{ qi.item.name|default:qi.item.translations.all.0.name }}" class="max-w-full h-auto rounded">
+                      {% else %}
+                        <div class="p-4 border border-gray-300 rounded">
+                          <a href="{{ media_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                            📎 {{ media_name|default:"Download media file" }}
+                          </a>
+                        </div>
+                      {% endif %}
+                    </div>
+                  {% endwith %}
+                {% else %}
+                  {% with item_translation=item.translations.language %}
+                    {% if item_translation and item_translation.media %}
+                      {% with media_url=item_translation.media.url media_name=item_translation.media.name media_type=item.get_media_type|default:'other' %}
+                        <div class="mb-4">
+                          {% if media_type == 'audio' %}
+                            <audio controls class="w-full max-w-md">
+                              <source src="{{ media_url }}" type="audio/mpeg">
+                              Your browser does not support the audio element.
+                            </audio>
+                          {% elif media_type == 'video' %}
+                            <video controls class="w-full max-w-md h-auto rounded">
+                              <source src="{{ media_url }}" type="video/mp4">
+                              Your browser does not support the video element.
+                            </video>
+                          {% elif media_type == 'image' %}
+                            <img src="{{ media_url }}" alt="{{ qi.item.name|default:qi.item.translations.all.0.name }}" class="max-w-full h-auto rounded">
+                          {% else %}
+                            <div class="p-4 border border-gray-300 rounded">
+                              <a href="{{ media_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                📎 {{ media_name|default:"Download media file" }}
+                              </a>
+                            </div>
+                          {% endif %}
+                        </div>
+                      {% endwith %}
+                    {% else %}
+                      {% with en_translation=item.translations.language %}
+                        {% if en_translation and en_translation.media %}
+                          {% with media_url=en_translation.media.url media_name=en_translation.media.name media_type=item.get_media_type|default:'other' %}
+                            <div class="mb-4">
+                              {% if media_type == 'audio' %}
+                                <audio controls class="w-full max-w-md">
+                                  <source src="{{ media_url }}" type="audio/mpeg">
+                                  Your browser does not support the audio element.
+                                </audio>
+                              {% elif media_type == 'video' %}
+                                <video controls class="w-full max-w-md h-auto rounded">
+                                  <source src="{{ media_url }}" type="video/mp4">
+                                  Your browser does not support the video element.
+                                </video>
+                              {% elif media_type == 'image' %}
+                                <img src="{{ media_url }}" alt="{{ qi.item.name|default:qi.item.translations.all.0.name }}" class="max-w-full h-auto rounded">
+                              {% else %}
+                                <div class="p-4 border border-gray-300 rounded">
+                                  <a href="{{ media_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                    📎 {{ media_name|default:"Download media file" }}
+                                  </a>
+                                </div>
+                              {% endif %}
+                            </div>
+                          {% endwith %}
+                        {% else %}
+                          {% with first_translation=item.translations.all.0 %}
+                            {% if first_translation and first_translation.media %}
+                              {% with media_url=first_translation.media.url media_name=first_translation.media.name media_type=item.get_media_type|default:'other' %}
+                                <div class="mb-4">
+                                  {% if media_type == 'audio' %}
+                                    <audio controls class="w-full max-w-md">
+                                      <source src="{{ media_url }}" type="audio/mpeg">
+                                      Your browser does not support the audio element.
+                                    </audio>
+                                  {% elif media_type == 'video' %}
+                                    <video controls class="w-full max-w-md h-auto rounded">
+                                      <source src="{{ media_url }}" type="video/mp4">
+                                      Your browser does not support the video element.
+                                    </video>
+                                  {% elif media_type == 'image' %}
+                                    <img src="{{ media_url }}" alt="{{ qi.item.name|default:qi.item.translations.all.0.name }}" class="max-w-full h-auto rounded">
+                                  {% else %}
+                                    <div class="p-4 border border-gray-300 rounded">
+                                      <a href="{{ media_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                        📎 {{ media_name|default:"Download media file" }}
+                                      </a>
+                                    </div>
+                                  {% endif %}
+                                </div>
+                              {% endwith %}
+                            {% endif %}
+                          {% endwith %}
+                        {% endif %}
+                      {% endwith %}
+                    {% endif %}
+                  {% endwith %}
+                {% endif %}
+              {% endwith %}
             </div>
           </div>
 
