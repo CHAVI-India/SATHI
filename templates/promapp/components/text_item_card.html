@@ -1,42 +1,17 @@
-{% extends "promapp/components/item_card_base.html" %}
 {% load i18n %}
 
-{% block item_value %}
-<div class="flex items-baseline">
-    <span class="text-xl font-bold text-gray-900">{{ item_response.response_value }}</span>
-</div>
-{% endblock %}
-
-{% block item_plot %}
-<div class="mt-4">
-    <div class="flex justify-between items-center mb-2">
-        <h6 class="text-sm font-medium text-gray-700">{% translate "Previous Responses" %}</h6>
-        <div class="flex gap-2">
-            <button class="text-sm text-blue-600 hover:text-blue-800" 
-                    hx-get="{% url 'get_previous_response' item_response.id %}"
-                    hx-target="#previous-responses-{{ item_response.id }}"
-                    hx-swap="innerHTML">
-                {% translate "Previous" %}
-            </button>
-            <button class="text-sm text-blue-600 hover:text-blue-800"
-                    hx-get="{% url 'get_next_response' item_response.id %}"
-                    hx-target="#previous-responses-{{ item_response.id }}"
-                    hx-swap="innerHTML">
-                {% translate "Next" %}
-            </button>
-        </div>
+<div class="bg-white rounded-lg shadow p-4">
+    <!-- Title at the top -->
+    <div class="mb-3">
+        <h3 class="text-sm font-bold text-gray-900">{{ item_response.questionnaire_item.item.name }}</h3>
     </div>
-    <div id="previous-responses-{{ item_response.id }}" class="text-sm text-gray-600">
-        {% if item_response.previous_responses %}
-            {% for response in item_response.previous_responses %}
-                <div class="mb-2">
-                    <p class="text-gray-500 text-xs">{{ response.response_date|date:"d M Y" }}</p>
-                    <p>{{ response.response_value }}</p>
-                </div>
-            {% endfor %}
+    
+    <!-- Response area at the bottom -->
+    <div class="border rounded-md p-3 bg-gray-50 max-h-32 overflow-y-auto">
+        {% if item_response.response_value %}
+            <div class="text-sm text-gray-900 whitespace-pre-wrap">{{ item_response.response_value }}</div>
         {% else %}
-            <p class="text-gray-500">{% translate "No previous responses" %}</p>
+            <div class="text-sm text-gray-400 italic">{% translate "No response provided" %}</div>
         {% endif %}
     </div>
-</div>
-{% endblock %} 
+</div> 

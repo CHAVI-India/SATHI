@@ -137,5 +137,19 @@
             }, 200);
         });
     });
+
+    // Function to toggle full text display for text responses
+    function toggleFullText(elementId) {
+        const element = document.getElementById(elementId);
+        const toggleButton = element.previousElementSibling;
+        
+        if (element.classList.contains('hidden')) {
+            element.classList.remove('hidden');
+            toggleButton.textContent = '{% translate "Show less" %}';
+        } else {
+            element.classList.add('hidden');
+            toggleButton.textContent = '{% translate "Show more" %}';
+        }
+    }
 </script>
 {% endblock %}
