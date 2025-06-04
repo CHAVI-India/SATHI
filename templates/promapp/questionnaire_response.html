@@ -216,12 +216,20 @@
               </svg>
               {% translate "Previous Question" %}
             </button>
-            <button type="button" class="next-btn px-4 py-2 text-base font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center">
-              {% translate "Next Question" %}
-              <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
-            </button>
+            <div class="flex space-x-3">
+              <button type="button" class="next-btn px-4 py-2 text-base font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center">
+                {% translate "Next Question" %}
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
+              <button type="button" class="skip-to-submit-btn px-4 py-2 text-base font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 flex items-center" style="display: none;">
+                {% translate "Skip to Submit" %}
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5-5 5M6 12h12"></path>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
         {% endwith %}
@@ -312,16 +320,19 @@
       // Update button visibility for current question
       const prevBtn = newQuestion.querySelector('.prev-btn');
       const nextBtn = newQuestion.querySelector('.next-btn');
+      const skipBtn = newQuestion.querySelector('.skip-to-submit-btn');
       
       // Enable/disable Previous button based on index
       prevBtn.disabled = index === 0;
       prevBtn.style.display = 'flex';  // Always show Previous button
       
-      // Show/hide Next button based on index - hide on last question since it will auto-advance
+      // Show/hide Next button and Skip to Submit button based on index
       if (index === questions.length - 1) {
         nextBtn.style.display = 'none';
+        skipBtn.style.display = 'flex';  // Show Skip to Submit button on last question
       } else {
         nextBtn.style.display = 'flex';
+        skipBtn.style.display = 'none';  // Hide Skip to Submit button on other questions
       }
     }
 
@@ -414,6 +425,7 @@
     questions.forEach((question, index) => {
       const prevBtn = question.querySelector('.prev-btn');
       const nextBtn = question.querySelector('.next-btn');
+      const skipBtn = question.querySelector('.skip-to-submit-btn');
 
       prevBtn.addEventListener('click', () => {
         if (currentQuestionIndex > 0) {
@@ -425,6 +437,10 @@
         if (currentQuestionIndex < questions.length - 1) {
           showQuestion(currentQuestionIndex + 1);
         }
+      });
+
+      skipBtn.addEventListener('click', () => {
+        showThankYouSection();
       });
     });
 
