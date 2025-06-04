@@ -325,6 +325,44 @@ class LikertScaleResponseOption(TranslatableModel):
     def __str__(self):
         return self.option_text
 
+    def get_media_type(self, media_file=None):
+        """
+        Determine the media type based on file extension.
+        
+        Args:
+            media_file: Optional media file object. If not provided, uses self.option_media
+        
+        Returns:
+            str: 'audio', 'video', 'image', or 'other'
+        """
+        media = media_file or self.option_media
+        if not media:
+            return None
+            
+        try:
+            file_name = str(media.name).lower()
+            
+            # Audio file extensions
+            audio_extensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac']
+            if any(file_name.endswith(ext) for ext in audio_extensions):
+                return 'audio'
+            
+            # Video file extensions (excluding .ogg which is handled by audio)
+            video_extensions = ['.mp4', '.webm', '.avi', '.mov', '.wmv', '.mkv']
+            if any(file_name.endswith(ext) for ext in video_extensions):
+                return 'video'
+            
+            # Image file extensions
+            image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.tiff', '.ico']
+            if any(file_name.endswith(ext) for ext in image_extensions):
+                return 'image'
+            
+            # If no match found, return 'other'
+            return 'other'
+            
+        except (AttributeError, TypeError):
+            return None
+
 class RangeScale(TranslatableModel):
     '''
     Range scale model. This is used to store the range of values for a range scale.

@@ -234,9 +234,119 @@
                                    name="response_{{ qi.id }}" 
                                    value="{{ option.option_value }}"
                                    class="peer sr-only">
-                            <div class="option-content p-2 min-w-[120px] h-full flex items-center justify-center text-center border-2 rounded-md cursor-pointer bg-blue-50 border-blue-200 text-blue-700 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white hover:bg-blue-100 peer-checked:hover:bg-green-700 transition-colors duration-200">
+                            <div class="option-content p-2 min-w-[120px] h-full flex flex-col items-center justify-center text-center border-2 rounded-md cursor-pointer bg-blue-50 border-blue-200 text-blue-700 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white hover:bg-blue-100 peer-checked:hover:bg-green-700 transition-colors duration-200">
+                              {% comment %}Option media display with translation fallback{% endcomment %}
                               {% if option.option_media %}
-                                <img src="{{ option.option_media.url }}" alt="{{ option.option_text }}" class="w-12 h-12 mx-auto mb-2">
+                                {% with media_url=option.option_media.url media_name=option.option_media.name media_type=option.get_media_type %}
+                                  <div class="mb-2">
+                                    {% if media_type == 'image' %}
+                                      <img src="{{ media_url }}" alt="{{ option.option_text }}" class="w-12 h-12 object-cover rounded">
+                                    {% elif media_type == 'audio' %}
+                                      <audio controls class="w-full max-w-[100px]">
+                                        <source src="{{ media_url }}" type="audio/mpeg">
+                                        Your browser does not support the audio element.
+                                      </audio>
+                                    {% elif media_type == 'video' %}
+                                      <video controls class="w-full max-w-[100px] h-auto rounded">
+                                        <source src="{{ media_url }}" type="video/mp4">
+                                        Your browser does not support the video element.
+                                      </video>
+                                    {% else %}
+                                      <div class="p-1 border border-gray-300 rounded text-xs">
+                                        <a href="{{ media_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                          📎 {{ media_name|default:"Media"|truncatechars:10 }}
+                                        </a>
+                                      </div>
+                                    {% endif %}
+                                  </div>
+                                {% endwith %}
+                              {% else %}
+                                {% comment %}Fallback to current language translation{% endcomment %}
+                                {% with option_translation=option.translations.language %}
+                                  {% if option_translation and option_translation.option_media %}
+                                    {% with media_url=option_translation.option_media.url media_name=option_translation.option_media.name media_type=option.get_media_type|default:'other' %}
+                                      <div class="mb-2">
+                                        {% if media_type == 'image' %}
+                                          <img src="{{ media_url }}" alt="{{ option.option_text }}" class="w-12 h-12 object-cover rounded">
+                                        {% elif media_type == 'audio' %}
+                                          <audio controls class="w-full max-w-[100px]">
+                                            <source src="{{ media_url }}" type="audio/mpeg">
+                                            Your browser does not support the audio element.
+                                          </audio>
+                                        {% elif media_type == 'video' %}
+                                          <video controls class="w-full max-w-[100px] h-auto rounded">
+                                            <source src="{{ media_url }}" type="video/mp4">
+                                            Your browser does not support the video element.
+                                          </video>
+                                        {% else %}
+                                          <div class="p-1 border border-gray-300 rounded text-xs">
+                                            <a href="{{ media_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                              📎 {{ media_name|default:"Media"|truncatechars:10 }}
+                                            </a>
+                                          </div>
+                                        {% endif %}
+                                      </div>
+                                    {% endwith %}
+                                  {% else %}
+                                    {% comment %}Fallback to English translation{% endcomment %}
+                                    {% with en_translation=option.translations.language %}
+                                      {% if en_translation and en_translation.option_media %}
+                                        {% with media_url=en_translation.option_media.url media_name=en_translation.option_media.name media_type=option.get_media_type|default:'other' %}
+                                          <div class="mb-2">
+                                            {% if media_type == 'image' %}
+                                              <img src="{{ media_url }}" alt="{{ option.option_text }}" class="w-12 h-12 object-cover rounded">
+                                            {% elif media_type == 'audio' %}
+                                              <audio controls class="w-full max-w-[100px]">
+                                                <source src="{{ media_url }}" type="audio/mpeg">
+                                                Your browser does not support the audio element.
+                                              </audio>
+                                            {% elif media_type == 'video' %}
+                                              <video controls class="w-full max-w-[100px] h-auto rounded">
+                                                <source src="{{ media_url }}" type="video/mp4">
+                                                Your browser does not support the video element.
+                                              </video>
+                                            {% else %}
+                                              <div class="p-1 border border-gray-300 rounded text-xs">
+                                                <a href="{{ media_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                                  📎 {{ media_name|default:"Media"|truncatechars:10 }}
+                                                </a>
+                                              </div>
+                                            {% endif %}
+                                          </div>
+                                        {% endwith %}
+                                      {% else %}
+                                        {% comment %}Fallback to first available translation{% endcomment %}
+                                        {% with first_translation=option.translations.all.0 %}
+                                          {% if first_translation and first_translation.option_media %}
+                                            {% with media_url=first_translation.option_media.url media_name=first_translation.option_media.name media_type=option.get_media_type|default:'other' %}
+                                              <div class="mb-2">
+                                                {% if media_type == 'image' %}
+                                                  <img src="{{ media_url }}" alt="{{ option.option_text }}" class="w-12 h-12 object-cover rounded">
+                                                {% elif media_type == 'audio' %}
+                                                  <audio controls class="w-full max-w-[100px]">
+                                                    <source src="{{ media_url }}" type="audio/mpeg">
+                                                    Your browser does not support the audio element.
+                                                  </audio>
+                                                {% elif media_type == 'video' %}
+                                                  <video controls class="w-full max-w-[100px] h-auto rounded">
+                                                    <source src="{{ media_url }}" type="video/mp4">
+                                                    Your browser does not support the video element.
+                                                  </video>
+                                                {% else %}
+                                                  <div class="p-1 border border-gray-300 rounded text-xs">
+                                                    <a href="{{ media_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                                      📎 {{ media_name|default:"Media"|truncatechars:10 }}
+                                                    </a>
+                                                  </div>
+                                                {% endif %}
+                                              </div>
+                                            {% endwith %}
+                                          {% endif %}
+                                        {% endwith %}
+                                      {% endif %}
+                                    {% endwith %}
+                                  {% endif %}
+                                {% endwith %}
                               {% endif %}
                               <span class="text-2xl font-medium">
                                 {% if option.option_emoji %}
@@ -263,9 +373,119 @@
                                    name="response_{{ qi.id }}" 
                                    value="{{ option.option_value }}"
                                    class="peer sr-only">
-                            <div class="option-content p-2 min-w-[120px] h-full flex items-center justify-center text-center border-2 rounded-md cursor-pointer bg-blue-50 border-blue-200 text-blue-700 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white hover:bg-blue-100 peer-checked:hover:bg-green-700 transition-colors duration-200">
+                            <div class="option-content p-2 min-w-[120px] h-full flex flex-col items-center justify-center text-center border-2 rounded-md cursor-pointer bg-blue-50 border-blue-200 text-blue-700 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white hover:bg-blue-100 peer-checked:hover:bg-green-700 transition-colors duration-200">
+                              {% comment %}Option media display with translation fallback{% endcomment %}
                               {% if option.option_media %}
-                                <img src="{{ option.option_media.url }}" alt="{{ option.option_text }}" class="w-12 h-12 mx-auto mb-2">
+                                {% with media_url=option.option_media.url media_name=option.option_media.name media_type=option.get_media_type %}
+                                  <div class="mb-2">
+                                    {% if media_type == 'image' %}
+                                      <img src="{{ media_url }}" alt="{{ option.option_text }}" class="w-12 h-12 object-cover rounded">
+                                    {% elif media_type == 'audio' %}
+                                      <audio controls class="w-full max-w-[100px]">
+                                        <source src="{{ media_url }}" type="audio/mpeg">
+                                        Your browser does not support the audio element.
+                                      </audio>
+                                    {% elif media_type == 'video' %}
+                                      <video controls class="w-full max-w-[100px] h-auto rounded">
+                                        <source src="{{ media_url }}" type="video/mp4">
+                                        Your browser does not support the video element.
+                                      </video>
+                                    {% else %}
+                                      <div class="p-1 border border-gray-300 rounded text-xs">
+                                        <a href="{{ media_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                          📎 {{ media_name|default:"Media"|truncatechars:10 }}
+                                        </a>
+                                      </div>
+                                    {% endif %}
+                                  </div>
+                                {% endwith %}
+                              {% else %}
+                                {% comment %}Fallback to current language translation{% endcomment %}
+                                {% with option_translation=option.translations.language %}
+                                  {% if option_translation and option_translation.option_media %}
+                                    {% with media_url=option_translation.option_media.url media_name=option_translation.option_media.name media_type=option.get_media_type|default:'other' %}
+                                      <div class="mb-2">
+                                        {% if media_type == 'image' %}
+                                          <img src="{{ media_url }}" alt="{{ option.option_text }}" class="w-12 h-12 object-cover rounded">
+                                        {% elif media_type == 'audio' %}
+                                          <audio controls class="w-full max-w-[100px]">
+                                            <source src="{{ media_url }}" type="audio/mpeg">
+                                            Your browser does not support the audio element.
+                                          </audio>
+                                        {% elif media_type == 'video' %}
+                                          <video controls class="w-full max-w-[100px] h-auto rounded">
+                                            <source src="{{ media_url }}" type="video/mp4">
+                                            Your browser does not support the video element.
+                                          </video>
+                                        {% else %}
+                                          <div class="p-1 border border-gray-300 rounded text-xs">
+                                            <a href="{{ media_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                              📎 {{ media_name|default:"Media"|truncatechars:10 }}
+                                            </a>
+                                          </div>
+                                        {% endif %}
+                                      </div>
+                                    {% endwith %}
+                                  {% else %}
+                                    {% comment %}Fallback to English translation{% endcomment %}
+                                    {% with en_translation=option.translations.language %}
+                                      {% if en_translation and en_translation.option_media %}
+                                        {% with media_url=en_translation.option_media.url media_name=en_translation.option_media.name media_type=option.get_media_type|default:'other' %}
+                                          <div class="mb-2">
+                                            {% if media_type == 'image' %}
+                                              <img src="{{ media_url }}" alt="{{ option.option_text }}" class="w-12 h-12 object-cover rounded">
+                                            {% elif media_type == 'audio' %}
+                                              <audio controls class="w-full max-w-[100px]">
+                                                <source src="{{ media_url }}" type="audio/mpeg">
+                                                Your browser does not support the audio element.
+                                              </audio>
+                                            {% elif media_type == 'video' %}
+                                              <video controls class="w-full max-w-[100px] h-auto rounded">
+                                                <source src="{{ media_url }}" type="video/mp4">
+                                                Your browser does not support the video element.
+                                              </video>
+                                            {% else %}
+                                              <div class="p-1 border border-gray-300 rounded text-xs">
+                                                <a href="{{ media_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                                  📎 {{ media_name|default:"Media"|truncatechars:10 }}
+                                                </a>
+                                              </div>
+                                            {% endif %}
+                                          </div>
+                                        {% endwith %}
+                                      {% else %}
+                                        {% comment %}Fallback to first available translation{% endcomment %}
+                                        {% with first_translation=option.translations.all.0 %}
+                                          {% if first_translation and first_translation.option_media %}
+                                            {% with media_url=first_translation.option_media.url media_name=first_translation.option_media.name media_type=option.get_media_type|default:'other' %}
+                                              <div class="mb-2">
+                                                {% if media_type == 'image' %}
+                                                  <img src="{{ media_url }}" alt="{{ option.option_text }}" class="w-12 h-12 object-cover rounded">
+                                                {% elif media_type == 'audio' %}
+                                                  <audio controls class="w-full max-w-[100px]">
+                                                    <source src="{{ media_url }}" type="audio/mpeg">
+                                                    Your browser does not support the audio element.
+                                                  </audio>
+                                                {% elif media_type == 'video' %}
+                                                  <video controls class="w-full max-w-[100px] h-auto rounded">
+                                                    <source src="{{ media_url }}" type="video/mp4">
+                                                    Your browser does not support the video element.
+                                                  </video>
+                                                {% else %}
+                                                  <div class="p-1 border border-gray-300 rounded text-xs">
+                                                    <a href="{{ media_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                                      📎 {{ media_name|default:"Media"|truncatechars:10 }}
+                                                    </a>
+                                                  </div>
+                                                {% endif %}
+                                              </div>
+                                            {% endwith %}
+                                          {% endif %}
+                                        {% endwith %}
+                                      {% endif %}
+                                    {% endwith %}
+                                  {% endif %}
+                                {% endwith %}
                               {% endif %}
                               <span class="text-2xl font-medium">
                                 {% if option.option_emoji %}
