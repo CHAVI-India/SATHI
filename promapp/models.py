@@ -378,7 +378,10 @@ class Item(TranslatableModel):
     construct_scale = models.ForeignKey(ConstructScale, on_delete=models.CASCADE, db_index=True, help_text = "Each item can belong to a construct scale which is designed to measure a construct or domain related to the Patient Reported Outcome.")
     translations = TranslatedFields(
         name = models.CharField(max_length=255,null=True, blank=True, help_text = "The name of the item which will be displayed to the patient", db_index=True),
-        media = models.FileField(upload_to='item_media/', null=True, blank=True, help_text = "The media to display for the item. This will be an audio, video or image.")
+        media = models.FileField(upload_to='item_media/', 
+        null=True, 
+        blank=True, 
+        help_text = "The media to display for the item. This will be an audio, video or image. Allowed files are <br> <ul> <li>Audio: .mp3, .wav, .m4a, .ogg, .flac, .aac</li> <li>Video: .mp4, .mov, .avi, .wmv, .flv, .mkv</li> <li>Image: .jpg, .jpeg, .png, .gif, .bmp, .tiff, .webp</li> </ul> ")
     )
     item_number = models.IntegerField(null=True, blank=True, help_text = "The number of the item in the construct scale")
     response_type = models.CharField(max_length=255, choices=ResponseTypeChoices.choices, db_index=True, help_text = "The type of response for the item")
