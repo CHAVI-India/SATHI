@@ -6,8 +6,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CHAVI PROM App{% endblock %}</title>
+    
+    <!-- Dynamic Google Fonts based on current language -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="{{ GOOGLE_FONTS_URL }}" rel="stylesheet">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configure Tailwind to use the dynamic font
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'primary': ['{{ CURRENT_FONT_DISPLAY }}', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://unpkg.com/htmx.org@1.9.9"></script>
+    
+    <style>
+        /* Apply the font to the entire body */
+        body {
+            font-family: '{{ CURRENT_FONT_DISPLAY }}', system-ui, sans-serif;
+        }
+        
+        /* Custom CSS for better font rendering */
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50 min-h-screen">

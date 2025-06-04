@@ -22,6 +22,11 @@ DJANGO_TIME_ZONE=Asia/Kolkata
 # Please ensure that the first language in the list should match the language code above
 DJANGO_LANGUAGES=en-gb:English,bn:Bangla,hi:Hindi
 
+# Font configuration for different languages
+# Use Google Fonts names with + for spaces (e.g., Noto+Sans+Bengali)
+# Format: language_code:Google_Font_Name
+DJANGO_LANGUAGE_FONTS=en-gb:Roboto,bn:Noto+Sans+Bengali,hi:Noto+Sans+Devanagari
+DJANGO_DEFAULT_FONT=Roboto
 
 # Parler Language settings. This should mimic the Django languages setting above.
 # See https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes for codes.

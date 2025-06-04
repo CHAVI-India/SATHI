@@ -89,6 +89,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'chaviprom.context_processors.language_fonts',
             ],
         },
     },
@@ -157,6 +158,19 @@ LANGUAGES = [
     for lang in language_settings.split(',')
     for code, name in [lang.split(':', 1)]
 ]
+
+# Font configuration for different languages
+# Parse font settings from environment variable
+# Format in .env should be: en-gb:Roboto,bn:Noto+Sans+Bengali,hi:Noto+Sans+Devanagari
+font_settings = os.getenv('DJANGO_LANGUAGE_FONTS', 'en-gb:Roboto')
+LANGUAGE_FONTS = {}
+for font_entry in font_settings.split(','):
+    if ':' in font_entry:
+        lang_code, font_name = font_entry.split(':', 1)
+        LANGUAGE_FONTS[lang_code.strip()] = font_name.strip()
+
+# Default font fallback
+DEFAULT_FONT = os.getenv('DJANGO_DEFAULT_FONT', 'Roboto')
 
 
 # Parler Settings
