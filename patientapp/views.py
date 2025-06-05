@@ -211,7 +211,8 @@ def prom_review(request, pk):
         'questionnaire_item',
         'questionnaire_item__item',
         'questionnaire_item__item__likert_response',
-        'questionnaire_item__item__range_response'
+        'questionnaire_item__item__range_response',
+        'questionnaire_submission'  # Add this for submission date access
     ).prefetch_related(
         'questionnaire_item__item__likert_response__likertscaleresponseoption_set',
         'questionnaire_item__item__likert_response__likertscaleresponseoption_set__translations'
@@ -232,8 +233,72 @@ def prom_review(request, pk):
     else:
         logger.info(f"No item filter applied, found {item_responses.count()} total item responses")
     
+    # === OPTIMIZATION: Bulk fetch previous responses for all items ===
+    item_response_list = list(item_responses)
+    previous_responses_map = {}
+    historical_responses_map = {}
+    
+    if item_response_list:
+        # Get all questionnaire items that have responses
+        questionnaire_item_ids = [resp.questionnaire_item.id for resp in item_response_list]
+        
+        # Bulk fetch all previous responses for these items
+        all_previous_responses = QuestionnaireItemResponse.objects.filter(
+            questionnaire_item__id__in=questionnaire_item_ids,
+            questionnaire_submission__patient=patient
+        ).select_related(
+            'questionnaire_submission',
+            'questionnaire_item'
+        ).order_by('questionnaire_item', '-questionnaire_submission__submission_date')
+        
+        # Group previous responses by questionnaire item
+        responses_by_item = {}
+        for response in all_previous_responses:
+            item_id = response.questionnaire_item.id
+            if item_id not in responses_by_item:
+                responses_by_item[item_id] = []
+            responses_by_item[item_id].append(response)
+        
+        # Find previous response for each current response
+        for current_response in item_response_list:
+            item_id = current_response.questionnaire_item.id
+            item_responses_list = responses_by_item.get(item_id, [])
+            
+            # Find the response that comes before the current one
+            for response in item_responses_list:
+                if response.questionnaire_submission.submission_date < current_response.questionnaire_submission.submission_date:
+                    previous_responses_map[current_response.id] = response
+                    break
+            
+            # Store historical responses for plotting (apply filters)
+            historical_responses_for_item = item_responses_list.copy()
+            
+            # Apply max time interval filter if specified
+            if max_time_interval_value is not None and patient_start_date:
+                filtered_historical = []
+                for hist_response in historical_responses_for_item:
+                    interval_value = calculate_time_interval_value(
+                        hist_response.questionnaire_submission.submission_date,
+                        patient_start_date,
+                        time_interval
+                    )
+                    if interval_value <= max_time_interval_value:
+                        filtered_historical.append(hist_response)
+                historical_responses_for_item = filtered_historical
+            
+            # Take only the submission_count most recent
+            historical_responses_for_item = historical_responses_for_item[:submission_count]
+            
+            # Filter out responses with negative time intervals
+            if patient_start_date:
+                historical_responses_for_item = filter_positive_intervals(
+                    historical_responses_for_item, patient_start_date, time_interval
+                )
+            
+            historical_responses_map[current_response.id] = historical_responses_for_item
+    
     # Calculate percentages and add option text for item responses
-    for response in item_responses:
+    for response in item_response_list:
         current_value_for_change_calc = None
         response.bokeh_plot = None # Initialize bokeh_plot for all responses
 
@@ -252,15 +317,31 @@ def prom_review(request, pk):
                 likert_value = float(response.response_value) if response.response_value else None
                 response.likert_response = likert_value
                 current_value_for_change_calc = likert_value
-                max_value = response.questionnaire_item.item.likert_response.likertscaleresponseoption_set.aggregate(
-                    max_value=Max('option_value')
-                )['max_value']
+                
+                # Use prefetched options to calculate max value
+                options_list = list(response.questionnaire_item.item.likert_response.likertscaleresponseoption_set.all())
+                max_value = max(option.option_value for option in options_list) if options_list else None
                 response.percentage = calculate_percentage(likert_value, max_value)
                 
                 likert_scale = response.questionnaire_item.item.likert_response
                 better_direction = response.questionnaire_item.item.item_better_score_direction or 'Higher is Better'
-                color_map = likert_scale.get_option_colors(better_direction)
-                for option in likert_scale.likertscaleresponseoption_set.all():
+                
+                # Calculate color map directly to avoid additional queries
+                if options_list:
+                    sorted_options = sorted(options_list, key=lambda x: x.option_value)
+                    n_options = len(sorted_options)
+                    colors = likert_scale.get_viridis_colors(n_options)
+                    color_map = {}
+                    for i, option in enumerate(sorted_options):
+                        if better_direction == 'Higher is Better':
+                            color_map[str(option.option_value)] = colors[i]
+                        else:
+                            color_map[str(option.option_value)] = colors[-(i+1)]
+                else:
+                    color_map = {}
+                
+                # Use the already fetched options_list instead of calling all() again
+                for option in options_list:
                     if str(option.option_value) == response.response_value:
                         response.option_text = option.option_text
                         response.option_color = color_map.get(str(option.option_value), '#ffffff')
@@ -271,16 +352,11 @@ def prom_review(request, pk):
                 response.likert_response = None
                 response.percentage = 0
         
-        # Common: Get previous response for change calculation (for both Numeric and Likert)
+        # Get previous response for change calculation using the bulk-fetched data
         response.previous_value = None
         response.value_change = None
         if current_value_for_change_calc is not None:
-            previous_response_obj = QuestionnaireItemResponse.objects.filter(
-                questionnaire_item=response.questionnaire_item,
-                questionnaire_submission__patient=patient,
-                questionnaire_submission__submission_date__lt=response.questionnaire_submission.submission_date
-            ).order_by('-questionnaire_submission__submission_date').first()
-
+            previous_response_obj = previous_responses_map.get(response.id)
             if previous_response_obj and previous_response_obj.response_value:
                 try:
                     previous_value_float = float(previous_response_obj.response_value)
@@ -289,43 +365,9 @@ def prom_review(request, pk):
                 except (ValueError, TypeError):
                     logger.warning(f"Could not parse previous value for item {response.questionnaire_item.item.id} (Response ID {response.id})")
 
-        # Common: Get historical responses for plotting (for both Numeric and Likert)
+        # Get historical responses for plotting using the bulk-fetched data
         try:
-            # Fetch historical responses for the plot, respecting max_time_interval filter
-            base_item_historical_qs = QuestionnaireItemResponse.objects.filter(
-                questionnaire_item=response.questionnaire_item,
-                questionnaire_submission__patient=patient
-            )
-
-            # Apply max time interval filter if specified
-            if max_time_interval_value is not None and patient_start_date:
-                # Filter based on relative time intervals
-                filtered_response_ids = []
-                for hist_response in base_item_historical_qs.select_related('questionnaire_submission'):
-                    interval_value = calculate_time_interval_value(
-                        hist_response.questionnaire_submission.submission_date,
-                        patient_start_date,
-                        time_interval
-                    )
-                    if interval_value <= max_time_interval_value:
-                        filtered_response_ids.append(hist_response.id)
-                
-                base_item_historical_qs = base_item_historical_qs.filter(id__in=filtered_response_ids)
-            
-            # Get the 'submission_count' most recent responses within the (optional) time interval filter.
-            # Bokeh plotting functions in utils.py use reversed(historical_responses),
-            # so historical_responses should be in descending order (latest first) here.
-            historical_responses_for_plot = list(
-                base_item_historical_qs.select_related(
-                    'questionnaire_submission'
-                ).order_by('-questionnaire_submission__submission_date')[:submission_count]
-            )
-            
-            # Filter out responses with negative time intervals
-            if patient_start_date:
-                historical_responses_for_plot = filter_positive_intervals(
-                    historical_responses_for_plot, patient_start_date, time_interval
-                )
+            historical_responses_for_plot = historical_responses_map.get(response.id, [])
             
             logger.debug(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): Found {len(historical_responses_for_plot)} historical responses for plot after filtering (submission_count: {submission_count}, max_time_interval: {max_time_interval_value}).")
 
@@ -344,13 +386,14 @@ def prom_review(request, pk):
         except Exception as e_plot_gen:
             logger.error(f"Error generating plot for item {response.questionnaire_item.item.id} (Response ID {response.id}): {e_plot_gen}", exc_info=True)
     
-    logger.info(f"Found {item_responses.count()} item responses")
+    logger.info(f"Found {len(item_response_list)} item responses")
     
     # Get construct scores for the latest submissions
     construct_scores = QuestionnaireConstructScore.objects.filter(
         questionnaire_submission__in=latest_submissions.values()
     ).select_related(
-        'construct'
+        'construct',
+        'questionnaire_submission'  # Add this for submission date access
     )
     
     # Apply questionnaire filter to construct scores if specified
@@ -365,7 +408,8 @@ def prom_review(request, pk):
     composite_construct_scores = QuestionnaireConstructScoreComposite.objects.filter(
         questionnaire_submission__in=latest_submissions.values()
     ).select_related(
-        'composite_construct_scale'
+        'composite_construct_scale',
+        'questionnaire_submission'  # Add this for submission date access
     )
     
     # Apply questionnaire filter to composite construct scores if specified
@@ -376,29 +420,119 @@ def prom_review(request, pk):
     
     logger.info(f"Found {composite_construct_scores.count()} composite construct scores")
 
-    # Add historical data to construct scores
-    for construct_score in construct_scores:
-        # Get previous score for change calculation
-        previous_score_obj = QuestionnaireConstructScore.objects.filter(
-            questionnaire_submission__patient=patient,
-            construct=construct_score.construct,
-            questionnaire_submission__submission_date__lt=construct_score.questionnaire_submission.submission_date
-        ).order_by('-questionnaire_submission__submission_date').first()
+    # === OPTIMIZATION: Bulk fetch previous construct scores ===
+    construct_scores_list = list(construct_scores)
+    previous_construct_scores_map = {}
+    historical_construct_scores_map = {}
+    
+    if construct_scores_list:
+        # Get all constructs that have scores
+        construct_ids = [cs.construct.id for cs in construct_scores_list]
         
+        # Bulk fetch all construct scores for these constructs
+        all_construct_scores = QuestionnaireConstructScore.objects.filter(
+            construct__id__in=construct_ids,
+            questionnaire_submission__patient=patient
+        ).select_related(
+            'questionnaire_submission',
+            'construct'
+        ).order_by('construct', '-questionnaire_submission__submission_date')
+        
+        # Group construct scores by construct
+        scores_by_construct = {}
+        for score in all_construct_scores:
+            construct_id = score.construct.id
+            if construct_id not in scores_by_construct:
+                scores_by_construct[construct_id] = []
+            scores_by_construct[construct_id].append(score)
+        
+        # Find previous score for each current score
+        for current_score in construct_scores_list:
+            construct_id = current_score.construct.id
+            construct_scores_list_for_construct = scores_by_construct.get(construct_id, [])
+            
+            # Find the score that comes before the current one
+            for score in construct_scores_list_for_construct:
+                if score.questionnaire_submission.submission_date < current_score.questionnaire_submission.submission_date:
+                    previous_construct_scores_map[current_score.id] = score
+                    break
+            
+            # Store historical scores for plotting (apply filters)
+            historical_scores_for_construct = construct_scores_list_for_construct.copy()
+            
+            # Apply max time interval filter if specified
+            if max_time_interval_value is not None and patient_start_date:
+                filtered_historical = []
+                for hist_score in historical_scores_for_construct:
+                    interval_value = calculate_time_interval_value(
+                        hist_score.questionnaire_submission.submission_date,
+                        patient_start_date,
+                        time_interval
+                    )
+                    if interval_value <= max_time_interval_value:
+                        filtered_historical.append(hist_score)
+                historical_scores_for_construct = filtered_historical
+            
+            # Take only the submission_count most recent
+            historical_scores_for_construct = historical_scores_for_construct[:submission_count]
+            
+            # Filter out scores with negative time intervals
+            if patient_start_date:
+                historical_scores_for_construct = filter_positive_intervals_construct(
+                    historical_scores_for_construct, patient_start_date, time_interval
+                )
+            
+            historical_construct_scores_map[current_score.id] = historical_scores_for_construct
+
+    # Add historical data to construct scores using bulk-fetched data
+    for construct_score in construct_scores_list:
+        # Get previous score for change calculation using bulk-fetched data
+        previous_score_obj = previous_construct_scores_map.get(construct_score.id)
         construct_score.previous_score = previous_score_obj.score if previous_score_obj else None
         construct_score.score_change = None
         if construct_score.score is not None and construct_score.previous_score is not None:
             construct_score.score_change = construct_score.score - construct_score.previous_score
 
-    # Add historical data to composite construct scores
-    for composite_score in composite_construct_scores:
-        # Get previous composite score for change calculation
-        previous_composite_obj = QuestionnaireConstructScoreComposite.objects.filter(
-            questionnaire_submission__patient=patient,
-            composite_construct_scale=composite_score.composite_construct_scale,
-            questionnaire_submission__submission_date__lt=composite_score.questionnaire_submission.submission_date
-        ).order_by('-questionnaire_submission__submission_date').first()
+    # === OPTIMIZATION: Bulk fetch previous composite construct scores ===
+    composite_construct_scores_list = list(composite_construct_scores)
+    previous_composite_scores_map = {}
+    
+    if composite_construct_scores_list:
+        # Get all composite constructs that have scores
+        composite_construct_ids = [cs.composite_construct_scale.id for cs in composite_construct_scores_list]
         
+        # Bulk fetch all composite construct scores for these constructs
+        all_composite_scores = QuestionnaireConstructScoreComposite.objects.filter(
+            composite_construct_scale__id__in=composite_construct_ids,
+            questionnaire_submission__patient=patient
+        ).select_related(
+            'questionnaire_submission',
+            'composite_construct_scale'
+        ).order_by('composite_construct_scale', '-questionnaire_submission__submission_date')
+        
+        # Group composite scores by composite construct
+        composite_scores_by_construct = {}
+        for score in all_composite_scores:
+            construct_id = score.composite_construct_scale.id
+            if construct_id not in composite_scores_by_construct:
+                composite_scores_by_construct[construct_id] = []
+            composite_scores_by_construct[construct_id].append(score)
+        
+        # Find previous score for each current score
+        for current_score in composite_construct_scores_list:
+            construct_id = current_score.composite_construct_scale.id
+            composite_scores_list_for_construct = composite_scores_by_construct.get(construct_id, [])
+            
+            # Find the score that comes before the current one
+            for score in composite_scores_list_for_construct:
+                if score.questionnaire_submission.submission_date < current_score.questionnaire_submission.submission_date:
+                    previous_composite_scores_map[current_score.id] = score
+                    break
+
+    # Add historical data to composite construct scores using bulk-fetched data
+    for composite_score in composite_construct_scores_list:
+        # Get previous composite score for change calculation using bulk-fetched data
+        previous_composite_obj = previous_composite_scores_map.get(composite_score.id)
         composite_score.previous_score = previous_composite_obj.score if previous_composite_obj else None
         composite_score.score_change = None
         if composite_score.score is not None and composite_score.previous_score is not None:
@@ -410,46 +544,14 @@ def prom_review(request, pk):
     
     # Log plotting session start
     from patientapp.utils import log_plotting_session_start
-    log_plotting_session_start(patient.name, construct_scores.count())
+    log_plotting_session_start(patient.name, len(construct_scores_list))
     
-    for construct_score in construct_scores:
+    for construct_score in construct_scores_list:
         construct = construct_score.construct
         logger.info(f"Processing construct: {construct.name}")
         
-        # Get historical scores for this construct's plot, respecting max_time_interval filter
-        base_construct_historical_qs = QuestionnaireConstructScore.objects.filter(
-            questionnaire_submission__patient=patient,
-            construct=construct
-        )
-
-        # Apply max time interval filter if specified
-        if max_time_interval_value is not None and patient_start_date:
-            # Filter based on relative time intervals
-            filtered_score_ids = []
-            for hist_score in base_construct_historical_qs.select_related('questionnaire_submission'):
-                interval_value = calculate_time_interval_value(
-                    hist_score.questionnaire_submission.submission_date,
-                    patient_start_date,
-                    time_interval
-                )
-                if interval_value <= max_time_interval_value:
-                    filtered_score_ids.append(hist_score.id)
-            
-            base_construct_historical_qs = base_construct_historical_qs.filter(id__in=filtered_score_ids)
-
-        # Get the 'submission_count' most recent scores within the (optional) time interval filter.
-        # ConstructScoreData._create_bokeh_plot in utils.py also uses reversed(historical_scores).
-        historical_scores_for_plot = list(
-            base_construct_historical_qs.select_related(
-                'questionnaire_submission'
-            ).order_by('-questionnaire_submission__submission_date')[:submission_count]
-        )
-        
-        # Filter out scores with negative time intervals
-        if patient_start_date:
-            historical_scores_for_plot = filter_positive_intervals_construct(
-                historical_scores_for_plot, patient_start_date, time_interval
-            )
+        # Get historical scores for this construct's plot using bulk-fetched data
+        historical_scores_for_plot = historical_construct_scores_map.get(construct_score.id, [])
         
         logger.debug(f"Found {len(historical_scores_for_plot)} historical scores for {construct.name} plot after filtering (submission_count: {submission_count}, max_time_interval: {max_time_interval_value}).")
 
@@ -578,7 +680,7 @@ def prom_review(request, pk):
     # Filter out important construct scores from the main construct_scores list
     # to avoid duplication between topline results and construct scores section
     important_construct_ids = {score_data.construct.id for score_data in important_construct_scores}
-    other_construct_scores = [cs for cs in construct_scores if cs.construct.id not in important_construct_ids]
+    other_construct_scores = [cs for cs in construct_scores_list if cs.construct.id not in important_construct_ids]
     
     logger.info(f"Found {len(other_construct_scores)} other construct scores (excluding important ones)")
     
@@ -779,10 +881,10 @@ def prom_review(request, pk):
         'submissions': submissions,
         'latest_submissions': latest_submissions,
         'assigned_questionnaires': assigned_questionnaires, # Still needed for other parts of the template
-        'item_responses': item_responses,
-        'construct_scores': construct_scores,
+        'item_responses': item_response_list,  # Use the list instead of queryset
+        'construct_scores': construct_scores_list,  # Use the list instead of queryset
         'other_construct_scores': other_construct_scores,
-        'composite_construct_scores': composite_construct_scores,
+        'composite_construct_scores': composite_construct_scores_list,  # Use the list instead of queryset
         'questionnaire_submission_counts': questionnaire_submission_counts,
         'important_construct_scores': important_construct_scores,
         'available_items': available_items,
@@ -995,15 +1097,36 @@ def patient_portal(request):
                     likert_value = float(response.response_value) if response.response_value else None
                     response.likert_response = likert_value
                     current_value_for_change_calc = likert_value
-                    max_value = response.questionnaire_item.item.likert_response.likertscaleresponseoption_set.aggregate(
-                        max_value=Max('option_value')
-                    )['max_value']
+                    
+                    # Use prefetched options to calculate max value
+                    options_list = list(response.questionnaire_item.item.likert_response.likertscaleresponseoption_set.all())
+                    max_value = max(option.option_value for option in options_list) if options_list else None
                     response.percentage = calculate_percentage(likert_value, max_value)
                     
                     likert_scale = response.questionnaire_item.item.likert_response
                     better_direction = response.questionnaire_item.item.item_better_score_direction or 'Higher is Better'
-                    color_map = likert_scale.get_option_colors(better_direction)
-                    for option in likert_scale.likertscaleresponseoption_set.all():
+                    
+                    # === OPTIMIZATION: Calculate colors in Python instead of using get_option_colors ===
+                    # Avoid additional database query by calculating colors directly
+                    n_options = len(options_list)
+                    if n_options > 0:
+                        # Get colors from viridis palette
+                        colors = likert_scale.get_viridis_colors(n_options)
+                        
+                        # Create mapping of option values to colors
+                        color_map = {}
+                        for i, option in enumerate(options_list):
+                            if better_direction == 'Higher is Better':
+                                # Higher values get lighter colors
+                                color_map[str(option.option_value)] = colors[i]
+                            else:
+                                # Lower values get lighter colors
+                                color_map[str(option.option_value)] = colors[-(i+1)]
+                    else:
+                        color_map = {}
+                    
+                    # Use the already fetched options_list instead of calling all() again
+                    for option in options_list:
                         if str(option.option_value) == response.response_value:
                             response.option_text = option.option_text
                             response.option_color = color_map.get(str(option.option_value), '#ffffff')

@@ -1049,9 +1049,25 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
     option_map = {str(opt.option_value): opt.option_text for opt in options}
     y_range = [opt.option_text for opt in options]
     
-    # Get color map for options
+    # === OPTIMIZATION: Calculate colors in Python instead of using get_option_colors ===
+    # Avoid additional database query by calculating colors directly
     better_direction = item.item_better_score_direction or 'Higher is Better'
-    color_map = item.likert_response.get_option_colors(better_direction)
+    n_options = len(options)
+    if n_options > 0:
+        # Get colors from viridis palette
+        colors = item.likert_response.get_viridis_colors(n_options)
+        
+        # Create mapping of option values to colors
+        color_map = {}
+        for i, option in enumerate(options):
+            if better_direction == 'Higher is Better':
+                # Higher values get lighter colors
+                color_map[str(option.option_value)] = colors[i]
+            else:
+                # Lower values get lighter colors
+                color_map[str(option.option_value)] = colors[-(i+1)]
+    else:
+        color_map = {}
     
     # Get start date for the patient
     start_date = None
