@@ -238,6 +238,30 @@ def prom_review(request, pk):
     previous_responses_map = {}
     historical_responses_map = {}
     
+    # === OPTIMIZATION: Bulk fetch all Likert scale options to avoid N+1 queries ===
+    likert_options_map = {}
+    if item_response_list:
+        # Get all unique Likert scale IDs from the items
+        likert_scale_ids = set()
+        for response in item_response_list:
+            if (response.questionnaire_item.item.response_type == 'Likert' and 
+                response.questionnaire_item.item.likert_response_id):
+                likert_scale_ids.add(response.questionnaire_item.item.likert_response_id)
+        
+        if likert_scale_ids:
+            # Bulk fetch all Likert scale options for these scales
+            from promapp.models import LikertScaleResponseOption
+            all_likert_options = LikertScaleResponseOption.objects.filter(
+                likert_scale_id__in=likert_scale_ids
+            ).select_related('likert_scale').prefetch_related('translations').order_by('likert_scale_id', 'option_value')
+            
+            # Group options by likert_scale_id
+            for option in all_likert_options:
+                scale_id = option.likert_scale_id
+                if scale_id not in likert_options_map:
+                    likert_options_map[scale_id] = []
+                likert_options_map[scale_id].append(option)
+    
     if item_response_list:
         # Get all questionnaire items that have responses
         questionnaire_item_ids = [resp.questionnaire_item.id for resp in item_response_list]
@@ -318,15 +342,16 @@ def prom_review(request, pk):
                 response.likert_response = likert_value
                 current_value_for_change_calc = likert_value
                 
-                # Use prefetched options to calculate max value
-                options_list = list(response.questionnaire_item.item.likert_response.likertscaleresponseoption_set.all())
+                # Use bulk-fetched options to calculate max value
+                likert_scale_id = response.questionnaire_item.item.likert_response_id
+                options_list = likert_options_map.get(likert_scale_id, [])
                 max_value = max(option.option_value for option in options_list) if options_list else None
                 response.percentage = calculate_percentage(likert_value, max_value)
                 
                 likert_scale = response.questionnaire_item.item.likert_response
                 better_direction = response.questionnaire_item.item.item_better_score_direction or 'Higher is Better'
                 
-                # Calculate color map directly to avoid additional queries
+                # Calculate color map directly using bulk-fetched options
                 if options_list:
                     sorted_options = sorted(options_list, key=lambda x: x.option_value)
                     n_options = len(sorted_options)
@@ -340,7 +365,7 @@ def prom_review(request, pk):
                 else:
                     color_map = {}
                 
-                # Use the already fetched options_list instead of calling all() again
+                # Use the bulk-fetched options_list
                 for option in options_list:
                     if str(option.option_value) == response.response_value:
                         response.option_text = option.option_text
@@ -1058,6 +1083,30 @@ def patient_portal(request):
     else:
         logger.info(f"No item filter applied, found {item_responses.count()} total item responses")
     
+    # === OPTIMIZATION: Bulk fetch all Likert scale options to avoid N+1 queries ===
+    likert_options_map = {}
+    if item_responses:
+        # Get all unique Likert scale IDs from the items
+        likert_scale_ids = set()
+        for response in item_responses:
+            if (response.questionnaire_item.item.response_type == 'Likert' and 
+                response.questionnaire_item.item.likert_response_id):
+                likert_scale_ids.add(response.questionnaire_item.item.likert_response_id)
+        
+        if likert_scale_ids:
+            # Bulk fetch all Likert scale options for these scales
+            from promapp.models import LikertScaleResponseOption
+            all_likert_options = LikertScaleResponseOption.objects.filter(
+                likert_scale_id__in=likert_scale_ids
+            ).select_related('likert_scale').prefetch_related('translations').order_by('likert_scale_id', 'option_value')
+            
+            # Group options by likert_scale_id
+            for option in all_likert_options:
+                scale_id = option.likert_scale_id
+                if scale_id not in likert_options_map:
+                    likert_options_map[scale_id] = []
+                likert_options_map[scale_id].append(option)
+
     # Group responses by item for plotting
     item_responses_by_item = {}
     for response in item_responses:
@@ -1098,24 +1147,27 @@ def patient_portal(request):
                     response.likert_response = likert_value
                     current_value_for_change_calc = likert_value
                     
-                    # Use prefetched options to calculate max value
-                    options_list = list(response.questionnaire_item.item.likert_response.likertscaleresponseoption_set.all())
+                    # Use bulk-fetched options to calculate max value
+                    likert_scale_id = response.questionnaire_item.item.likert_response_id
+                    options_list = likert_options_map.get(likert_scale_id, [])
                     max_value = max(option.option_value for option in options_list) if options_list else None
                     response.percentage = calculate_percentage(likert_value, max_value)
                     
                     likert_scale = response.questionnaire_item.item.likert_response
                     better_direction = response.questionnaire_item.item.item_better_score_direction or 'Higher is Better'
                     
-                    # === OPTIMIZATION: Calculate colors in Python instead of using get_option_colors ===
+                    # === OPTIMIZATION: Calculate colors in Python using bulk-fetched options ===
                     # Avoid additional database query by calculating colors directly
                     n_options = len(options_list)
                     if n_options > 0:
+                        # Sort options for consistent color mapping
+                        sorted_options = sorted(options_list, key=lambda x: x.option_value)
                         # Get colors from viridis palette
                         colors = likert_scale.get_viridis_colors(n_options)
                         
                         # Create mapping of option values to colors
                         color_map = {}
-                        for i, option in enumerate(options_list):
+                        for i, option in enumerate(sorted_options):
                             if better_direction == 'Higher is Better':
                                 # Higher values get lighter colors
                                 color_map[str(option.option_value)] = colors[i]
@@ -1125,7 +1177,7 @@ def patient_portal(request):
                     else:
                         color_map = {}
                     
-                    # Use the already fetched options_list instead of calling all() again
+                    # Use the bulk-fetched options_list
                     for option in options_list:
                         if str(option.option_value) == response.response_value:
                             response.option_text = option.option_text
