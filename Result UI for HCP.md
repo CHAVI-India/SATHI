@@ -188,3 +188,93 @@ How aggregation will be done:
 Missing values for the given construct score / item response will be discarded for the computation. However if the patient response is such that one construct score is missing or one item value is missing while others are avaialble then all available values will be used for computation. 
 
 It is important to remember that we would want the index patients responses to be always removed. 
+
+
+
+
+# Score Interpretation
+
+Interpretation will be provided for the construct scores : 
+
+The focus of the interpretation will be on two aspects -
+1. The current score
+2. Change with respect to the previous score
+
+
+Clinical importance of the current score for the construct scores will be determined according to the following rules:
+
+## Direction: Higher is better
+
+Check if normative score, standard deviation of normative score, threshold score and minimal important difference (MID) are available.
+
+| Threshold Score | MID | Normative Score | SD of Normative Score | Interpretation |
+| ------- | ------ | ------| ------ | ----- |
+| Available | Available | Available | Available | Score <= threshold score by MID or more is significant |
+| Available | Available | NA | NA | As above |
+| Available | NA | Available | Available | Score <= normative score by 0.5SD or more is significant |
+| NA | NA | Available | Avialable | Score <= normative by 0.5SD or more is significant |
+| Available | NA | Available | NA | Score < threshold score (any value) is significant |
+| NA | NA | Available | NA | Score < normative score (any value is significant) |
+| NA | NA | NA | NA | NA |
+
+For the last clause the construct score will not be included in the significance section. 
+
+## Direction Lower is better
+
+Check if normative score, standard deviation of normative score, threshold score and minimal important difference (MID) are available.
+
+| Threshold Score | MID | Normative Score | SD of Normative Score | Interpretation |
+| ------- | ------ | ------| ------ | ----- |
+| Available | Available | Available | Available | Score >= threshold score by MID or more is significant |
+| Available | Available | NA | NA | As above |
+| Available | NA | Available | Available | Score >= normative score by 0.5SD or more is significant |
+| NA | NA | Available | Avialable | Score >= normative by 0.5SD or more is significant |
+| Available | NA | Available | NA | Score > threshold score (any value) is significant |
+| NA | NA | Available | NA | Score > normative score (any value is significant) |
+| NA | NA | NA | NA | NA |
+
+For the last clause the construct score will not be included in the significance section. 
+
+
+## Direction Middle is better 
+
+Check if normative score, standard deviation of normative score, threshold score and minimal important difference (MID) are available.
+
+| Threshold Score | MID | Normative Score | SD of Normative Score | Interpretation |
+| ------- | ------ | ------| ------ | ----- |
+| Available | Available | Available | Available | Score which is > or < threshold score by MID or more is significant |
+| Available | Available | NA | NA | As above |
+| Available | NA | Available | Available | Score > or < than normative score by 0.5SD or more is significant |
+| NA | NA | Available | Avialable | Score > or < than normative by 0.5SD or more is significant |
+| Available | NA | Available | NA | Score > or < than threshold score (any value) is significant |
+| NA | NA | Available | NA | Score > or < than  normative score (any value is significant) |
+| NA | NA | NA | NA | NA |
+
+For the last clause the construct score will not be included in the significance section. 
+
+For each of the construct score we will also determine the change with respect to a previous score if available based on the following rules
+
+## Direction Higher is Better
+
+If MID is available then check the difference between the current score and the previous score. If the current score is lower than the previous score by a value greater than the MID then it is clinical important. 
+If SD of Normative score is available then check the difference between the current score and the previous score. If the current score is lower than the previous score by a value more than 1 SD then it is clinically important
+If both of these are available the MID takes precedence. If none are available then the score change exceeding 10% (that is if current score is lower than the previous score by 10% or more) will be considered clinically important. 
+
+## Direction Lower is Better
+
+If MID is available then check the difference between the current score and the previous score. If the current score is higher than the previous score by a value greater than the MID then it is clinical important. 
+If SD of Normative score is available then check the difference between the current score and the previous score. If the current score is higher than the previous score by a value more than 1 SD then it is clinically important
+If both of these are available the MID takes precedence. If none are available then the score change exceeding 10% (that is if current score is higher than the previous score by 10% or more) will be considered clinically important. 
+
+## Direction Middle is Better
+
+If MID is available then check the difference between the current score and the previous score. If the current score is higher or lower than the previous score by a value greater than the MID then it is clinical important. 
+If SD of Normative score is available then check the difference between the current score and the previous score. If the current score is higher or lower than the previous score by a value more than 1 SD then it is clinically important
+If both of these are available the MID takes precedence. If none are available then the score change exceeding 10% (that is if current score is higher or lower than the previous score by 10% or more) will be considered clinically important. 
+
+All construct scores which meet either the criteria for clinical importance based on current score or change from previous score or both will be grouped. Note that if a score meets both criteria it takes precedence in the order. Remaining ordering will be done alphabetically.
+
+The statement of clinical significance for the construct scores will read as follows:
+
+On <date> the following construct scores would be considered to have clinically significant deterioraation: <construct_scale 1> (reason: current score exceeds <threshold score / normative score> by x times the <MID / SD>. ), <construct_scale 2> (reason: Current score change w.r.t previous score is x times <MID/SD> value ) and so on. 
+

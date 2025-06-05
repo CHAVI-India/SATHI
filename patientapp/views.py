@@ -557,7 +557,7 @@ def prom_review(request, pk):
         score_data = ConstructScoreData(
             construct=construct, # construct_score.construct
             current_score=construct_score.score, # This is from the main construct_scores list, respecting filters for card display
-            previous_score=previous_score_for_plot_context, # Previous score in the context of the plot data
+            previous_score=construct_score.previous_score, # Use the actual previous score for change calculations
             historical_scores=historical_scores_for_plot, # Filtered and sliced list for the plot
             patient=patient,
             start_date_reference=start_date_reference,

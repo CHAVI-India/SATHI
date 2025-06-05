@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Tuple
 from promapp.models import *
 import logging
 from bokeh.plotting import figure
@@ -319,6 +319,12 @@ class ConstructScoreData:
         self.aggregated_statistics = aggregated_statistics or {}
         self.aggregation_metadata = aggregation_metadata or {}
         self.bokeh_plot = self._create_bokeh_plot(historical_scores)
+        
+        # Generate clinical significance explanations
+        self.current_score_explanation = self._generate_current_score_explanation()
+        self.score_change_explanation = self._generate_score_change_explanation()
+        self.clinical_significance_summary = self._generate_clinical_significance_summary()
+        
         logger.info(f"Created ConstructScoreData for {construct.name}: score={current_score}, previous={previous_score}, aggregated_intervals={len(self.aggregated_statistics)}, has_metadata={bool(self.aggregation_metadata)}")
 
     def _calculate_score_change(self) -> Optional[float]:
@@ -328,6 +334,362 @@ class ConstructScoreData:
             return change
         logger.debug(f"No score change calculated for {self.construct.name} - missing current or previous score")
         return None
+
+    def _is_current_score_clinically_significant(self) -> Tuple[bool, str]:
+        """
+        Determine if the current score is clinically significant based on the rules.
+        Returns (is_significant, explanation)
+        """
+        if not self.score:
+            return False, ""
+        
+        score = float(self.score)
+        direction = self.construct.scale_better_score_direction or 'Higher is Better'
+        
+        # Get available parameters
+        threshold = self.construct.scale_threshold_score
+        mid = self.construct.scale_minimum_clinical_important_difference
+        normative = self.construct.scale_normative_score_mean
+        normative_sd = self.construct.scale_normative_score_standard_deviation
+        
+        logger.debug(f"Checking current score significance for {self.construct.name}: score={score}, direction={direction}, threshold={threshold}, mid={mid}, normative={normative}, sd={normative_sd}")
+        
+        # Apply rules based on direction
+        if direction == 'Higher is Better':
+            return self._check_higher_is_better_current(score, threshold, mid, normative, normative_sd)
+        elif direction == 'Lower is Better':
+            return self._check_lower_is_better_current(score, threshold, mid, normative, normative_sd)
+        elif direction == 'Middle is Better':
+            return self._check_middle_is_better_current(score, threshold, mid, normative, normative_sd)
+        
+        return False, ""
+
+    def _check_higher_is_better_current(self, score, threshold, mid, normative, normative_sd):
+        """Check current score significance for 'Higher is Better' direction"""
+        
+        # Rule 1: Threshold + MID + Normative + SD available
+        if threshold and mid and normative and normative_sd:
+            threshold_val = float(threshold)
+            mid_val = float(mid)
+            threshold_with_mid = threshold_val - mid_val
+            if score <= threshold_with_mid:
+                difference = threshold_val - score
+                times_mid = difference / mid_val
+                return True, f"Current score ({score:.1f}) is below threshold ({threshold_val:.1f}) by {difference:.1f}, which is {times_mid:.2f} times the MID ({mid_val:.1f})"
+        
+        # Rule 2: Threshold + MID available (Normative NA)
+        elif threshold and mid:
+            threshold_val = float(threshold)
+            mid_val = float(mid)
+            threshold_with_mid = threshold_val - mid_val
+            if score <= threshold_with_mid:
+                difference = threshold_val - score
+                times_mid = difference / mid_val
+                return True, f"Current score ({score:.1f}) is below threshold ({threshold_val:.1f}) by {difference:.1f}, which is {times_mid:.2f} times the MID ({mid_val:.1f})"
+        
+        # Rule 3: Threshold + Normative + SD available (MID NA)
+        elif threshold and normative and normative_sd:
+            normative_val = float(normative)
+            sd_val = float(normative_sd)
+            threshold_with_sd = normative_val - 0.5 * sd_val
+            if score <= threshold_with_sd:
+                difference = normative_val - score
+                times_sd = difference / sd_val
+                return True, f"Current score ({score:.1f}) is below normative mean ({normative_val:.1f}) by {difference:.1f}, which is {times_sd:.2f} times the SD ({sd_val:.1f})"
+        
+        # Rule 4: Normative + SD available (Threshold + MID NA)
+        elif normative and normative_sd:
+            normative_val = float(normative)
+            sd_val = float(normative_sd)
+            threshold_with_sd = normative_val - 0.5 * sd_val
+            if score <= threshold_with_sd:
+                difference = normative_val - score
+                times_sd = difference / sd_val
+                return True, f"Current score ({score:.1f}) is below normative mean ({normative_val:.1f}) by {difference:.1f}, which is {times_sd:.2f} times the SD ({sd_val:.1f})"
+        
+        # Rule 5: Threshold + Normative available (MID + SD NA)
+        elif threshold and normative:
+            threshold_val = float(threshold)
+            if score < threshold_val:
+                difference = threshold_val - score
+                return True, f"Current score ({score:.1f}) is below threshold ({threshold_val:.1f}) by {difference:.1f}"
+        
+        # Rule 6: Normative available (Threshold + MID + SD NA)
+        elif normative:
+            normative_val = float(normative)
+            if score < normative_val:
+                difference = normative_val - score
+                return True, f"Current score ({score:.1f}) is below normative mean ({normative_val:.1f}) by {difference:.1f}"
+        
+        return False, ""
+
+    def _check_lower_is_better_current(self, score, threshold, mid, normative, normative_sd):
+        """Check current score significance for 'Lower is Better' direction"""
+        
+        # Rule 1: Threshold + MID + Normative + SD available
+        if threshold and mid and normative and normative_sd:
+            threshold_val = float(threshold)
+            mid_val = float(mid)
+            threshold_with_mid = threshold_val + mid_val
+            if score >= threshold_with_mid:
+                difference = score - threshold_val
+                times_mid = difference / mid_val
+                return True, f"Current score ({score:.1f}) is above threshold ({threshold_val:.1f}) by {difference:.1f}, which is {times_mid:.2f} times the MID ({mid_val:.1f})"
+        
+        # Rule 2: Threshold + MID available (Normative NA)
+        elif threshold and mid:
+            threshold_val = float(threshold)
+            mid_val = float(mid)
+            threshold_with_mid = threshold_val + mid_val
+            if score >= threshold_with_mid:
+                difference = score - threshold_val
+                times_mid = difference / mid_val
+                return True, f"Current score ({score:.1f}) is above threshold ({threshold_val:.1f}) by {difference:.1f}, which is {times_mid:.2f} times the MID ({mid_val:.1f})"
+        
+        # Rule 3: Threshold + Normative + SD available (MID NA)
+        elif threshold and normative and normative_sd:
+            normative_val = float(normative)
+            sd_val = float(normative_sd)
+            threshold_with_sd = normative_val + 0.5 * sd_val
+            if score >= threshold_with_sd:
+                difference = score - normative_val
+                times_sd = difference / sd_val
+                return True, f"Current score ({score:.1f}) is above normative mean ({normative_val:.1f}) by {difference:.1f}, which is {times_sd:.2f} times the SD ({sd_val:.1f})"
+        
+        # Rule 4: Normative + SD available (Threshold + MID NA)
+        elif normative and normative_sd:
+            normative_val = float(normative)
+            sd_val = float(normative_sd)
+            threshold_with_sd = normative_val + 0.5 * sd_val
+            if score >= threshold_with_sd:
+                difference = score - normative_val
+                times_sd = difference / sd_val
+                return True, f"Current score ({score:.1f}) is above normative mean ({normative_val:.1f}) by {difference:.1f}, which is {times_sd:.2f} times the SD ({sd_val:.1f})"
+        
+        # Rule 5: Threshold + Normative available (MID + SD NA)
+        elif threshold and normative:
+            threshold_val = float(threshold)
+            if score > threshold_val:
+                difference = score - threshold_val
+                return True, f"Current score ({score:.1f}) is above threshold ({threshold_val:.1f}) by {difference:.1f}"
+        
+        # Rule 6: Normative available (Threshold + MID + SD NA)
+        elif normative:
+            normative_val = float(normative)
+            if score > normative_val:
+                difference = score - normative_val
+                return True, f"Current score ({score:.1f}) is above normative mean ({normative_val:.1f}) by {difference:.1f}"
+        
+        return False, ""
+
+    def _check_middle_is_better_current(self, score, threshold, mid, normative, normative_sd):
+        """Check current score significance for 'Middle is Better' direction"""
+        
+        # Rule 1: Threshold + MID + Normative + SD available
+        if threshold and mid and normative and normative_sd:
+            threshold_val = float(threshold)
+            mid_val = float(mid)
+            difference = abs(score - threshold_val)
+            if difference >= mid_val:
+                times_mid = difference / mid_val
+                direction = "above" if score > threshold_val else "below"
+                return True, f"Current score ({score:.1f}) is {direction} threshold ({threshold_val:.1f}) by {difference:.1f}, which is {times_mid:.2f} times the MID ({mid_val:.1f})"
+        
+        # Rule 2: Threshold + MID available (Normative NA)
+        elif threshold and mid:
+            threshold_val = float(threshold)
+            mid_val = float(mid)
+            difference = abs(score - threshold_val)
+            if difference >= mid_val:
+                times_mid = difference / mid_val
+                direction = "above" if score > threshold_val else "below"
+                return True, f"Current score ({score:.1f}) is {direction} threshold ({threshold_val:.1f}) by {difference:.1f}, which is {times_mid:.2f} times the MID ({mid_val:.1f})"
+        
+        # Rule 3: Threshold + Normative + SD available (MID NA)
+        elif threshold and normative and normative_sd:
+            normative_val = float(normative)
+            sd_val = float(normative_sd)
+            difference = abs(score - normative_val)
+            if difference >= (0.5 * sd_val):
+                times_sd = difference / sd_val
+                direction = "above" if score > normative_val else "below"
+                return True, f"Current score ({score:.1f}) is {direction} normative mean ({normative_val:.1f}) by {difference:.1f}, which is {times_sd:.2f} times the SD ({sd_val:.1f})"
+        
+        # Rule 4: Normative + SD available (Threshold + MID NA)
+        elif normative and normative_sd:
+            normative_val = float(normative)
+            sd_val = float(normative_sd)
+            difference = abs(score - normative_val)
+            if difference >= (0.5 * sd_val):
+                times_sd = difference / sd_val
+                direction = "above" if score > normative_val else "below"
+                return True, f"Current score ({score:.1f}) is {direction} normative mean ({normative_val:.1f}) by {difference:.1f}, which is {times_sd:.2f} times the SD ({sd_val:.1f})"
+        
+        # Rule 5: Threshold + Normative available (MID + SD NA)
+        elif threshold and normative:
+            threshold_val = float(threshold)
+            if score != threshold_val:  # Any difference
+                difference = abs(score - threshold_val)
+                direction = "above" if score > threshold_val else "below"
+                return True, f"Current score ({score:.1f}) is {direction} threshold ({threshold_val:.1f}) by {difference:.1f}"
+        
+        # Rule 6: Normative available (Threshold + MID + SD NA)
+        elif normative:
+            normative_val = float(normative)
+            if score != normative_val:  # Any difference
+                difference = abs(score - normative_val)
+                direction = "above" if score > normative_val else "below"
+                return True, f"Current score ({score:.1f}) is {direction} normative mean ({normative_val:.1f}) by {difference:.1f}"
+        
+        return False, ""
+
+    def _is_score_change_clinically_significant(self) -> Tuple[bool, str]:
+        """
+        Determine if the score change is clinically significant based on the rules.
+        Returns (is_significant, explanation)
+        """
+        if not self.score_change or not self.previous_score:
+            return False, ""
+        
+        direction = self.construct.scale_better_score_direction or 'Higher is Better'
+        mid = self.construct.scale_minimum_clinical_important_difference
+        normative_sd = self.construct.scale_normative_score_standard_deviation
+        
+        change = abs(self.score_change)
+        prev_score = float(self.previous_score)
+        
+        logger.debug(f"Checking score change significance for {self.construct.name}: change={self.score_change}, direction={direction}, mid={mid}, sd={normative_sd}")
+        
+        # Apply rules based on direction
+        if direction == 'Higher is Better':
+            return self._check_higher_is_better_change(prev_score, mid, normative_sd)
+        elif direction == 'Lower is Better':
+            return self._check_lower_is_better_change(prev_score, mid, normative_sd)
+        elif direction == 'Middle is Better':
+            return self._check_middle_is_better_change(prev_score, mid, normative_sd)
+        
+        return False, ""
+
+    def _check_higher_is_better_change(self, prev_score, mid, normative_sd):
+        """Check score change significance for 'Higher is Better' direction"""
+        change = self.score_change
+        change_magnitude = abs(change)
+        
+        # MID takes precedence if available
+        if mid:
+            mid_val = float(mid)
+            if change < -mid_val:  # Current score is lower than previous by MID or more
+                times_mid = change_magnitude / mid_val
+                return True, f"Score decreased by {change_magnitude:.1f}, which is {times_mid:.2f} times the MID ({mid_val:.1f})"
+        
+        # Use 1 SD if MID not available but SD is available
+        elif normative_sd:
+            sd_val = float(normative_sd)
+            if change < -sd_val:  # Current score is lower than previous by 1 SD or more
+                times_sd = change_magnitude / sd_val
+                return True, f"Score decreased by {change_magnitude:.1f}, which is {times_sd:.2f} times the SD ({sd_val:.1f})"
+        
+        # Use 10% change if neither MID nor SD available
+        else:
+            threshold_change = abs(prev_score * 0.1)
+            if change < -threshold_change:  # Current score is lower by 10% or more
+                percent_change = abs(change/prev_score*100)
+                return True, f"Score decreased by {change_magnitude:.1f} ({percent_change:.1f}%), exceeding 10% threshold ({threshold_change:.1f})"
+        
+        return False, ""
+
+    def _check_lower_is_better_change(self, prev_score, mid, normative_sd):
+        """Check score change significance for 'Lower is Better' direction"""
+        change = self.score_change
+        change_magnitude = abs(change)
+        
+        # MID takes precedence if available
+        if mid:
+            mid_val = float(mid)
+            if change > mid_val:  # Current score is higher than previous by MID or more
+                times_mid = change / mid_val
+                return True, f"Score increased by {change:.1f}, which is {times_mid:.2f} times the MID ({mid_val:.1f})"
+        
+        # Use 1 SD if MID not available but SD is available
+        elif normative_sd:
+            sd_val = float(normative_sd)
+            if change > sd_val:  # Current score is higher than previous by 1 SD or more
+                times_sd = change / sd_val
+                return True, f"Score increased by {change:.1f}, which is {times_sd:.2f} times the SD ({sd_val:.1f})"
+        
+        # Use 10% change if neither MID nor SD available
+        else:
+            threshold_change = abs(prev_score * 0.1)
+            if change > threshold_change:  # Current score is higher by 10% or more
+                percent_change = change/prev_score*100
+                return True, f"Score increased by {change:.1f} ({percent_change:.1f}%), exceeding 10% threshold ({threshold_change:.1f})"
+        
+        return False, ""
+
+    def _check_middle_is_better_change(self, prev_score, mid, normative_sd):
+        """Check score change significance for 'Middle is Better' direction"""
+        change = self.score_change
+        change_magnitude = abs(change)
+        
+        # MID takes precedence if available
+        if mid:
+            mid_val = float(mid)
+            if change_magnitude >= mid_val:  # Change in either direction by MID or more
+                times_mid = change_magnitude / mid_val
+                direction = "increased" if change > 0 else "decreased"
+                return True, f"Score {direction} by {change_magnitude:.1f}, which is {times_mid:.2f} times the MID ({mid_val:.1f})"
+        
+        # Use 1 SD if MID not available but SD is available
+        elif normative_sd:
+            sd_val = float(normative_sd)
+            if change_magnitude >= sd_val:  # Change in either direction by 1 SD or more
+                times_sd = change_magnitude / sd_val
+                direction = "increased" if change > 0 else "decreased"
+                return True, f"Score {direction} by {change_magnitude:.1f}, which is {times_sd:.2f} times the SD ({sd_val:.1f})"
+        
+        # Use 10% change if neither MID nor SD available
+        else:
+            threshold_change = abs(prev_score * 0.1)
+            if change_magnitude >= threshold_change:  # Change in either direction by 10% or more
+                percent_change = abs(change/prev_score*100)
+                direction = "increased" if change > 0 else "decreased"
+                return True, f"Score {direction} by {change_magnitude:.1f} ({percent_change:.1f}%), exceeding 10% threshold ({threshold_change:.1f})"
+        
+        return False, ""
+
+    def _generate_current_score_explanation(self) -> str:
+        """Generate explanation for why the current score is clinically significant"""
+        is_significant, explanation = self._is_current_score_clinically_significant()
+        return explanation if is_significant else ""
+
+    def _generate_score_change_explanation(self) -> str:
+        """Generate explanation for why the score change is clinically significant"""
+        is_significant, explanation = self._is_score_change_clinically_significant()
+        return explanation if is_significant else ""
+
+    def _generate_clinical_significance_summary(self) -> str:
+        """Generate a comprehensive clinical significance summary"""
+        current_significant, current_explanation = self._is_current_score_clinically_significant()
+        change_significant, change_explanation = self._is_score_change_clinically_significant()
+        
+        explanations = []
+        
+        if current_significant:
+            explanations.append(current_explanation)
+        
+        if change_significant:
+            explanations.append(change_explanation)
+        
+        if explanations:
+            return ". ".join(explanations) + "."
+        
+        return ""
+
+    def is_clinically_significant(self) -> bool:
+        """Check if this construct score is clinically significant for any reason"""
+        current_significant, _ = self._is_current_score_clinically_significant()
+        change_significant, _ = self._is_score_change_clinically_significant()
+        return current_significant or change_significant
 
     def _create_bokeh_plot(self, historical_scores: List[QuestionnaireConstructScore]) -> str:
         # Get start date for the patient
@@ -625,62 +987,28 @@ class ConstructScoreData:
 
     @staticmethod
     def is_important_construct(construct: ConstructScale, current_score: Optional[Decimal]) -> bool:
+        """
+        Determine if a construct is important based on the comprehensive clinical significance rules.
+        This method creates a temporary ConstructScoreData object to leverage the full significance logic.
+        """
         logger.info(f"Checking if construct {construct.name} is important (score={current_score})")
         
         if not current_score:
             logger.info(f"Construct {construct.name} not important - no current score")
             return False
 
-        score = float(current_score)
-        logger.debug(f"Processing construct {construct.name}: score={score}, direction={construct.scale_better_score_direction}")
+        # Create a temporary ConstructScoreData instance to use the comprehensive significance logic
+        temp_score_data = ConstructScoreData.__new__(ConstructScoreData)
+        temp_score_data.construct = construct
+        temp_score_data.score = current_score
+        temp_score_data.previous_score = None  # We don't have previous score context here
+        temp_score_data.score_change = None
         
-        # Check threshold score first
-        if construct.scale_threshold_score:
-            threshold = float(construct.scale_threshold_score)
-            logger.debug(f"Using threshold score: {threshold}")
-            
-            if construct.scale_better_score_direction == 'Higher is Better':
-                is_important = score <= threshold
-                logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'<=' if is_important else '>'} threshold {threshold}")
-                return is_important
-            elif construct.scale_better_score_direction == 'Lower is Better':
-                is_important = score >= threshold
-                logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'>=' if is_important else '<'} threshold {threshold}")
-                return is_important
+        # Check if the current score is clinically significant
+        is_significant, explanation = temp_score_data._is_current_score_clinically_significant()
         
-        # Check normative score if threshold not available
-        elif construct.scale_normative_score_mean:
-            normative = float(construct.scale_normative_score_mean)
-            logger.debug(f"Using normative score: {normative}")
-            
-            # If standard deviation available, use ±1/2 SD
-            if construct.scale_normative_score_standard_deviation:
-                sd = float(construct.scale_normative_score_standard_deviation)
-                sd_threshold = sd / 2
-                logger.debug(f"Using standard deviation: {sd}, threshold: ±{sd_threshold}")
-                
-                if construct.scale_better_score_direction == 'Higher is Better':
-                    is_important = score <= (normative + sd_threshold)
-                    logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'<=' if is_important else '>'} normative+sd_threshold {normative + sd_threshold}")
-                    return is_important
-                elif construct.scale_better_score_direction == 'Lower is Better':
-                    is_important = score >= (normative - sd_threshold)
-                    logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'>=' if is_important else '<'} normative-sd_threshold {normative - sd_threshold}")
-                    return is_important
-            
-            # If no standard deviation, just compare with mean
-            else:
-                if construct.scale_better_score_direction == 'Higher is Better':
-                    is_important = score <= normative
-                    logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'<=' if is_important else '>'} normative {normative}")
-                    return is_important
-                elif construct.scale_better_score_direction == 'Lower is Better':
-                    is_important = score >= normative
-                    logger.info(f"Construct {construct.name} {'is' if is_important else 'is not'} important - score {score} {'>=' if is_important else '<'} normative {normative}")
-                    return is_important
-        
-        logger.info(f"Construct {construct.name} not important - no applicable criteria met")
-        return False
+        logger.info(f"Construct {construct.name} {'is' if is_significant else 'is not'} important - {explanation if explanation else 'no applicable criteria met'}")
+        return is_significant
 
 def create_item_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item',
                              patient=None, start_date_reference='date_of_registration', time_interval='weeks') -> str:
