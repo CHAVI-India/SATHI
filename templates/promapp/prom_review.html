@@ -118,24 +118,28 @@
         });
 
         // Show/hide dropdown on focus/blur
-        itemSearchInput.addEventListener('focus', function() {
-            itemDropdown.classList.remove('hidden');
-        });
+        if (itemSearchInput) {
+            itemSearchInput.addEventListener('focus', function() {
+                itemDropdown.classList.remove('hidden');
+            });
+        }
 
         document.addEventListener('click', function(event) {
-            if (!itemSearchInput.contains(event.target) && !itemDropdown.contains(event.target)) {
+            if (itemSearchInput && !itemSearchInput.contains(event.target) && !itemDropdown.contains(event.target)) {
                 itemDropdown.classList.add('hidden');
             }
         });
 
         // Clear search when dropdown is hidden
-        itemSearchInput.addEventListener('blur', function() {
-            setTimeout(() => {
-                if (!itemDropdown.matches(':hover')) {
-                    itemSearchInput.value = '';
-                }
-            }, 200);
-        });
+        if (itemSearchInput) {
+            itemSearchInput.addEventListener('blur', function() {
+                setTimeout(() => {
+                    if (!itemDropdown.matches(':hover')) {
+                        itemSearchInput.value = '';
+                    }
+                }, 200);
+            });
+        }
     });
 
     // Function to toggle full text display for text responses
@@ -149,6 +153,48 @@
         } else {
             element.classList.add('hidden');
             toggleButton.textContent = '{% translate "Show more" %}';
+        }
+    }
+
+    // Function to toggle filters section
+    function toggleFilters() {
+        const content = document.getElementById('filters-content');
+        const chevron = document.getElementById('filters-chevron');
+        
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            chevron.classList.add('rotate-180');
+        } else {
+            content.classList.add('hidden');
+            chevron.classList.remove('rotate-180');
+        }
+    }
+
+    // Function to toggle population comparison section
+    function togglePopulationComparison() {
+        const content = document.getElementById('population-content');
+        const chevron = document.getElementById('population-chevron');
+        
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            chevron.classList.add('rotate-180');
+        } else {
+            content.classList.add('hidden');
+            chevron.classList.remove('rotate-180');
+        }
+    }
+
+    // Function to toggle patient details within population comparison
+    function togglePatientDetails() {
+        const details = document.getElementById('patient-details');
+        const chevron = document.getElementById('chevron-icon');
+        
+        if (details.classList.contains('hidden')) {
+            details.classList.remove('hidden');
+            chevron.classList.add('rotate-90');
+        } else {
+            details.classList.add('hidden');
+            chevron.classList.remove('rotate-90');
         }
     }
 </script>
