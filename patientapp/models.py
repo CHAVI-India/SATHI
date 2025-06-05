@@ -38,13 +38,13 @@ class Patient(models.Model):
     Patient model.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE, db_index=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = secured_fields.EncryptedCharField(max_length=255, searchable=True, null=True, blank=True)
     patient_id = secured_fields.EncryptedCharField(max_length=255, searchable=True, null=True, blank=True)
     date_of_registration = secured_fields.EncryptedDateField(verbose_name="Date of Registration",null=True, blank=True, searchable=True)
-    age = models.PositiveIntegerField(null=True, blank=True)
-    gender = models.CharField(max_length=255, choices=GenderChoices.choices, null=True, blank=True)
+    age = models.PositiveIntegerField(null=True, blank=True, db_index=True)
+    gender = models.CharField(max_length=255, choices=GenderChoices.choices, null=True, blank=True, db_index=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
@@ -52,6 +52,11 @@ class Patient(models.Model):
         ordering = ['-created_date']
         verbose_name = 'Patient'
         verbose_name_plural = 'Patients'
+        indexes = [
+            models.Index(fields=['institution', 'gender'], name='patient_inst_gender_idx'),
+            models.Index(fields=['institution', 'age'], name='patient_inst_age_idx'),
+            models.Index(fields=['institution', 'created_date'], name='patient_inst_created_idx'),
+        ]
 
     def __str__(self):
         return self.name
@@ -81,8 +86,8 @@ class Diagnosis(models.Model):
     Diagnosis model.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    diagnosis = models.ForeignKey(DiagnosisList,on_delete=models.CASCADE,null=True, blank=True,help_text="Select the Diagnosis from the list",related_name="diagnosis_list")
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, db_index=True)
+    diagnosis = models.ForeignKey(DiagnosisList,on_delete=models.CASCADE,null=True, blank=True,help_text="Select the Diagnosis from the list",related_name="diagnosis_list", db_index=True)
     date_of_diagnosis = secured_fields.EncryptedDateField(verbose_name="Date of Diagnosis",null=True,blank=True,searchable=True, help_text="Select the Date of Diagnosis from the calendar")
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
@@ -91,6 +96,10 @@ class Diagnosis(models.Model):
         ordering = ['-created_date']
         verbose_name = 'Diagnosis'
         verbose_name_plural = 'Diagnoses'
+        indexes = [
+            models.Index(fields=['patient', 'date_of_diagnosis'], name='diag_patient_date_idx'),
+            models.Index(fields=['diagnosis', 'date_of_diagnosis'], name='diag_type_date_idx'),
+        ]
 
     def __str__(self):
         return self.patient.patient_id

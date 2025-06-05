@@ -442,6 +442,10 @@ class Item(TranslatableModel):
         ordering = ['-created_date']
         verbose_name = 'Item'
         verbose_name_plural = 'Items'
+        indexes = [
+            models.Index(fields=['construct_scale', 'response_type'], name='item_construct_resptype_idx'),
+            models.Index(fields=['construct_scale', 'item_number'], name='item_construct_number_idx'),
+        ]
 
     def save(self, *args, **kwargs):
         # Check if we're updating an existing item 
@@ -711,16 +715,21 @@ class PatientQuestionnaire(models.Model):
     Patient Questionnaire model. This is used to store the questionnaire available for a patient.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, help_text = "The patient to which the questionnaire belongs")
-    questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE, help_text = "The questionnaire to which the patient belongs")
-    display_questionnaire = models.BooleanField(default=False, help_text = "If True, the questionnaire is currently will be displayed for the patient")
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, help_text = "The patient to which the questionnaire belongs", db_index=True)
+    questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE, help_text = "The questionnaire to which the patient belongs", db_index=True)
+    display_questionnaire = models.BooleanField(default=False, help_text = "If True, the questionnaire is currently will be displayed for the patient", db_index=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-created_date']
         verbose_name = 'Patient Questionnaire'
-        verbose_name_plural = 'Patient Questionnaires'  
+        verbose_name_plural = 'Patient Questionnaires'
+        indexes = [
+            models.Index(fields=['patient', 'display_questionnaire'], name='pq_patient_display_idx'),
+            models.Index(fields=['patient', 'questionnaire'], name='pq_patient_quest_idx'),
+        ]
+        
     def __str__(self):
         return f"{self.patient.name} - {self.questionnaire.name}"
 
@@ -735,10 +744,17 @@ class QuestionnaireSubmission(models.Model):
     submission_date = models.DateTimeField(help_text = "The date and time of the submission",auto_now_add=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
+    
     class Meta:
         ordering = ['-submission_date']
         verbose_name = 'Questionnaire Submission'
         verbose_name_plural = 'Questionnaire Submissions'
+        indexes = [
+            models.Index(fields=['patient', 'submission_date'], name='qsub_patient_date_idx'),
+            models.Index(fields=['patient_questionnaire', 'submission_date'], name='qsub_pq_date_idx'),
+            models.Index(fields=['submission_date'], name='qsub_date_idx'),
+        ]
+    
     def __str__(self):
         return f"{self.patient.name} - {self.patient_questionnaire.questionnaire.name}"
 
@@ -755,10 +771,15 @@ class QuestionnaireConstructScore(models.Model):
     calculation_log = models.TextField(help_text = "The log of the equation processing", null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
+    
     class Meta:
         ordering = ['-created_date']
         verbose_name = 'Questionnaire Construct Score'
         verbose_name_plural = 'Questionnaire Construct Scores'
+        indexes = [
+            models.Index(fields=['questionnaire_submission', 'construct'], name='qcs_submission_construct_idx'),
+            models.Index(fields=['construct', 'questionnaire_submission'], name='qcs_construct_submission_idx'),
+        ]
 
 class QuestionnaireConstructScoreComposite(models.Model):
     '''
@@ -793,6 +814,11 @@ class QuestionnaireItemResponse(models.Model):
         ordering = ['-response_date']
         verbose_name = 'Questionnaire Response'
         verbose_name_plural = 'Questionnaire Responses'
+        indexes = [
+            models.Index(fields=['questionnaire_submission', 'questionnaire_item'], name='qir_submission_item_idx'),
+            models.Index(fields=['questionnaire_item', 'questionnaire_submission'], name='qir_item_submission_idx'),
+            models.Index(fields=['response_date'], name='qir_response_date_idx'),
+        ]
 
     def __str__(self):
         return f"{self.questionnaire_submission.patient.name} - {self.questionnaire_item.item.name}"
