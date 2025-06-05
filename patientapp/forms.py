@@ -135,12 +135,16 @@ class PatientRestrictedUpdateForm(forms.ModelForm):
 class TreatmentForm(forms.ModelForm):
     class Meta:
         model = Treatment
-        fields = ['treatment_type', 'treatment_intent', 'date_of_start_of_treatment']
+        fields = ['treatment_type', 'treatment_intent', 'date_of_start_of_treatment', 'currently_ongoing_treatment', 'date_of_end_of_treatment']
         widgets = {
             'date_of_start_of_treatment': forms.DateInput(attrs={'type': 'date'}),
+            'date_of_end_of_treatment': forms.DateInput(attrs={'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk and self.instance.date_of_start_of_treatment:
-            self.initial['date_of_start_of_treatment'] = self.instance.date_of_start_of_treatment.strftime('%Y-%m-%d')
+        if self.instance and self.instance.pk:
+            if self.instance.date_of_start_of_treatment:
+                self.initial['date_of_start_of_treatment'] = self.instance.date_of_start_of_treatment.strftime('%Y-%m-%d')
+            if self.instance.date_of_end_of_treatment:
+                self.initial['date_of_end_of_treatment'] = self.instance.date_of_end_of_treatment.strftime('%Y-%m-%d')

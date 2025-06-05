@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 import secured_fields
 import uuid
 
@@ -119,14 +121,15 @@ class TreatmentType(models.Model):
 
 class Treatment(models.Model):
     '''
-    Treatment model.
+    Treatment model. Use this to specify the treatments delivered to the specific diagnosis. As patients may have multiple treatments over a period of time, this form allows us to capture treatments delivered synchronously. If treatments are delivered sequentially, then add another entry of the form for the diagnosis. This also allows for data to be updated longitudinally.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     diagnosis = models.ForeignKey(Diagnosis, on_delete=models.CASCADE)
-    treatment_type = models.ManyToManyField(TreatmentType, blank=True)
+    treatment_type = models.ManyToManyField(TreatmentType, blank=True,help_text="Select the Treatment Type(s) from the list. Please select treatments that have been delivered synchronously.Please add another treatment entry form if there were sequential treatments delivered.")
     treatment_intent = models.CharField(max_length=255, choices=TreatmentIntentChoices.choices, null=True, blank=True)
-    date_of_start_of_treatment = models.DateField(null=True, blank=True)
-    date_of_end_of_treatment = models.DateField(null=True, blank=True)
+    date_of_start_of_treatment = secured_fields.EncryptedDateField(null=True, blank=True,help_text="Select the Date of Start of Treatment from the calendar",searchable=True)
+    currently_ongoing_treatment = models.BooleanField(default=False,help_text="Select this if the treatment is currently ongoing. This will be used to indicate that the treatment is ongoing and not yet completed.")
+    date_of_end_of_treatment = secured_fields.EncryptedDateField(null=True, blank=True,help_text="Select the Date of End of Treatment from the calendar",searchable=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
@@ -134,3 +137,39 @@ class Treatment(models.Model):
         ordering = ['-created_date']
         verbose_name = 'Treatment'
         verbose_name_plural = 'Treatments'
+
+    def clean(self):
+        """
+        Custom validation for Treatment model.
+        """
+        super().clean()
+        errors = {}
+        
+        # Get today's date for future date validation
+        today = timezone.now().date()
+        
+        # Validate start date is not in the future
+        if self.date_of_start_of_treatment and self.date_of_start_of_treatment > today:
+            errors['date_of_start_of_treatment'] = _('Start date cannot be in the future.')
+        
+        # Validate end date is not in the future
+        if self.date_of_end_of_treatment and self.date_of_end_of_treatment > today:
+            errors['date_of_end_of_treatment'] = _('End date cannot be in the future.')
+        
+        # Validate end date is not before start date
+        if (self.date_of_start_of_treatment and self.date_of_end_of_treatment and 
+            self.date_of_end_of_treatment < self.date_of_start_of_treatment):
+            errors['date_of_end_of_treatment'] = _('End date cannot be before the start date.')
+        
+        # Validate that if currently_ongoing_treatment is True, end date should be empty
+        if self.currently_ongoing_treatment and self.date_of_end_of_treatment:
+            errors['date_of_end_of_treatment'] = _('End date should not be specified for ongoing treatments.')
+        
+        # Validate that if currently_ongoing_treatment is False and we have a start date, we should have an end date
+        if (not self.currently_ongoing_treatment and self.date_of_start_of_treatment and 
+            not self.date_of_end_of_treatment):
+            errors['date_of_end_of_treatment'] = _('End date is required when treatment is not ongoing.')
+        
+        if errors:
+            raise ValidationError(errors)
+    

@@ -93,10 +93,11 @@ The system allows users to add translations for questionnaires, items, and optio
 
 The ability to add translations is provided for the users with appropriate permissions. 
 
+It is possible to dynamically change the display font to one more suitable for the language and use different types of google fonts for different langugages. This allows text to be properly legible across langugages. 
 
 # Security
 
-Patient identifies are securekly encrypted in the database. 
+Patient identifies are securely encrypted in the database. 
 
 # Item Import/Export Guide
 
