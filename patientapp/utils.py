@@ -71,17 +71,32 @@ def get_patient_available_start_dates(patient):
                 diagnosis.date_of_diagnosis
             ))
         
-        # Add all treatment start dates
+        # Add all treatment start dates and end dates
         for diagnosis in patient.diagnosis_set.all():
             diagnosis_name = diagnosis.diagnosis.diagnosis if diagnosis.diagnosis else "Unknown Diagnosis"
-            treatments = diagnosis.treatment_set.filter(date_of_start_of_treatment__isnull=False).order_by('date_of_start_of_treatment')
+            treatments = diagnosis.treatment_set.filter(
+                models.Q(date_of_start_of_treatment__isnull=False) |
+                models.Q(date_of_end_of_treatment__isnull=False)
+            ).order_by('date_of_start_of_treatment')
+            
             for i, treatment in enumerate(treatments):
                 treatment_types = ", ".join([tt.treatment_type for tt in treatment.treatment_type.all()]) if treatment.treatment_type.exists() else f"Treatment {i+1}"
-                available_dates.append((
-                    f'date_of_start_of_treatment_{treatment.id}',
-                    f'Start of Treatment: {treatment_types} ({diagnosis_name})',
-                    treatment.date_of_start_of_treatment
-                ))
+                
+                # Add start date if available
+                if treatment.date_of_start_of_treatment:
+                    available_dates.append((
+                        f'date_of_start_of_treatment_{treatment.id}',
+                        f'Start of Treatment: {treatment_types} ({diagnosis_name})',
+                        treatment.date_of_start_of_treatment
+                    ))
+                
+                # Add end date if available
+                if treatment.date_of_end_of_treatment:
+                    available_dates.append((
+                        f'date_of_end_of_treatment_{treatment.id}',
+                        f'End of Treatment: {treatment_types} ({diagnosis_name})',
+                        treatment.date_of_end_of_treatment
+                    ))
         
         # Sort by date
         available_dates.sort(key=lambda x: x[2])
@@ -117,6 +132,15 @@ def get_patient_start_date(patient, start_date_reference='date_of_registration')
                 treatment = diagnosis.treatment_set.filter(id=treatment_id, date_of_start_of_treatment__isnull=False).first()
                 if treatment:
                     return treatment.date_of_start_of_treatment
+            return None
+        elif start_date_reference.startswith('date_of_end_of_treatment_'):
+            # Extract treatment ID from reference
+            treatment_id = start_date_reference.replace('date_of_end_of_treatment_', '')
+            # Find treatment across all diagnoses
+            for diagnosis in patient.diagnosis_set.all():
+                treatment = diagnosis.treatment_set.filter(id=treatment_id, date_of_end_of_treatment__isnull=False).first()
+                if treatment:
+                    return treatment.date_of_end_of_treatment
             return None
         else:
             # Fallback to registration date
@@ -1044,6 +1068,27 @@ def get_patient_start_date_for_aggregation(patient, start_date_reference='date_o
                     ).order_by('date_of_start_of_treatment').first()
                     if patient_treatment:
                         return patient_treatment.date_of_start_of_treatment
+                return None
+            except:
+                # If we can't find the specific treatment type, return None
+                return None
+        elif start_date_reference.startswith('date_of_end_of_treatment_'):
+            # Extract the treatment ID from the reference to get the treatment type
+            treatment_id = start_date_reference.replace('date_of_end_of_treatment_', '')
+            try:
+                # Get the treatment types from the reference treatment
+                from promapp.models import Treatment
+                reference_treatment = Treatment.objects.get(id=treatment_id)
+                treatment_type_ids = list(reference_treatment.treatment_type.values_list('id', flat=True))
+                
+                # Find this patient's treatment with the same types
+                for diagnosis in patient.diagnosis_set.all():
+                    patient_treatment = diagnosis.treatment_set.filter(
+                        treatment_type__id__in=treatment_type_ids,
+                        date_of_end_of_treatment__isnull=False
+                    ).order_by('date_of_end_of_treatment').first()
+                    if patient_treatment:
+                        return patient_treatment.date_of_end_of_treatment
                 return None
             except:
                 # If we can't find the specific treatment type, return None
