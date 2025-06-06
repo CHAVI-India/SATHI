@@ -130,21 +130,25 @@ def get_patient_start_date(patient, start_date_reference='date_of_registration')
         elif start_date_reference.startswith('date_of_start_of_treatment_'):
             # Extract treatment ID from reference
             treatment_id = start_date_reference.replace('date_of_start_of_treatment_', '')
-            # Find treatment across all diagnoses
-            for diagnosis in patient.diagnosis_set.all():
-                treatment = diagnosis.treatment_set.filter(id=treatment_id, date_of_start_of_treatment__isnull=False).first()
-                if treatment:
-                    return treatment.date_of_start_of_treatment
-            return None
+            # Direct query with JOIN to avoid N+1 problem
+            from promapp.models import Treatment
+            treatment = Treatment.objects.filter(
+                id=treatment_id,
+                diagnosis__patient=patient,
+                date_of_start_of_treatment__isnull=False
+            ).first()
+            return treatment.date_of_start_of_treatment if treatment else None
         elif start_date_reference.startswith('date_of_end_of_treatment_'):
             # Extract treatment ID from reference
             treatment_id = start_date_reference.replace('date_of_end_of_treatment_', '')
-            # Find treatment across all diagnoses
-            for diagnosis in patient.diagnosis_set.all():
-                treatment = diagnosis.treatment_set.filter(id=treatment_id, date_of_end_of_treatment__isnull=False).first()
-                if treatment:
-                    return treatment.date_of_end_of_treatment
-            return None
+            # Direct query with JOIN to avoid N+1 problem
+            from promapp.models import Treatment
+            treatment = Treatment.objects.filter(
+                id=treatment_id,
+                diagnosis__patient=patient,
+                date_of_end_of_treatment__isnull=False
+            ).first()
+            return treatment.date_of_end_of_treatment if treatment else None
         else:
             # Fallback to registration date
             return patient.date_of_registration
