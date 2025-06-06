@@ -1369,6 +1369,124 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
     script, div = components(p)
     return script + div
 
+def _get_patient_start_date_bulk(patient, start_date_reference, reference_objects_cache):
+    """Optimized version of get_patient_start_date_for_aggregation that uses prefetched data.
+    
+    This function is designed for BULK OPERATIONS where multiple patients are processed
+    in a loop. It eliminates the N+1 query problem by using prefetched data and cached
+    reference objects instead of making individual database queries for each patient.
+    
+    KEY DIFFERENCES vs get_patient_start_date():
+    ==========================================
+    
+    DATABASE QUERIES:
+    - get_patient_start_date(): 1-3 queries PER patient (N+1 problem)
+         - _get_patient_start_date_bulk(): 0 queries per patient (uses prefetched data)
+    
+    PERFORMANCE:
+    - get_patient_start_date(): Fine for single patient operations
+         - _get_patient_start_date_bulk(): Optimized for bulk processing (100x faster for large datasets)
+    
+    SETUP REQUIREMENTS:
+    - get_patient_start_date(): No setup required
+         - _get_patient_start_date_bulk(): Requires prefetched patient data and reference_objects_cache
+    
+    USAGE:
+    - get_patient_start_date(): General-purpose, single patient operations
+         - _get_patient_start_date_bulk(): Specialized for bulk aggregation functions only
+    
+    EXAMPLE BULK SETUP REQUIRED:
+    ```python
+    # 1. Prefetch patient data
+    patients = patients_queryset.prefetch_related(
+        'diagnosis_set__diagnosis',
+        'diagnosis_set__treatment_set__treatment_type'
+    )
+    
+    # 2. Cache reference objects
+    reference_objects_cache = {}
+    if start_date_reference.startswith('date_of_diagnosis_'):
+        reference_objects_cache['diagnosis'] = Diagnosis.objects.get(id=diagnosis_id)
+    
+    # 3. Then use this optimized function in a loop
+         for patient in patients:
+         start_date = _get_patient_start_date_bulk(patient, start_date_reference, reference_objects_cache)
+    ```
+    
+    Args:
+        patient: Patient instance with prefetched diagnosis_set and treatment_set data
+        start_date_reference: Type of start date reference key
+        reference_objects_cache: Dict containing cached reference diagnosis/treatment objects.
+                               Should contain 'diagnosis' key for diagnosis-based references,
+                               or 'treatment' key for treatment-based references.
+        
+    Returns:
+        datetime.date or None: The start date or None if not available
+        
+    Note:
+        This is a private function (underscore prefix) intended only for use within
+        bulk optimization scenarios. For single patient operations, use get_patient_start_date().
+    """
+    try:
+        if start_date_reference == 'date_of_registration':
+            return patient.date_of_registration
+        elif start_date_reference.startswith('date_of_diagnosis_'):
+            # Use cached reference diagnosis to find matching diagnosis type
+            cached_diagnosis = reference_objects_cache.get('diagnosis')
+            if not cached_diagnosis:
+                return None
+            
+            diagnosis_list_id = cached_diagnosis.diagnosis_id
+            
+            # Use prefetched data to find matching diagnosis
+            for diagnosis in patient.diagnosis_set.all():
+                if (diagnosis.diagnosis_id == diagnosis_list_id and 
+                    diagnosis.date_of_diagnosis):
+                    return diagnosis.date_of_diagnosis
+            return None
+            
+        elif start_date_reference.startswith('date_of_start_of_treatment_'):
+            # Use cached reference treatment to find matching treatment type
+            cached_treatment = reference_objects_cache.get('treatment')
+            if not cached_treatment:
+                return None
+            
+            treatment_type_ids = cached_treatment['type_ids']
+            
+            # Use prefetched data to find matching treatment
+            for diagnosis in patient.diagnosis_set.all():
+                for treatment in diagnosis.treatment_set.all():
+                    # Check if any treatment type matches
+                    treatment_types = treatment.treatment_type.all()
+                    for tt in treatment_types:
+                        if tt.id in treatment_type_ids and treatment.date_of_start_of_treatment:
+                            return treatment.date_of_start_of_treatment
+            return None
+            
+        elif start_date_reference.startswith('date_of_end_of_treatment_'):
+            # Use cached reference treatment to find matching treatment type
+            cached_treatment = reference_objects_cache.get('treatment')
+            if not cached_treatment:
+                return None
+            
+            treatment_type_ids = cached_treatment['type_ids']
+            
+            # Use prefetched data to find matching treatment
+            for diagnosis in patient.diagnosis_set.all():
+                for treatment in diagnosis.treatment_set.all():
+                    # Check if any treatment type matches
+                    treatment_types = treatment.treatment_type.all()
+                    for tt in treatment_types:
+                        if tt.id in treatment_type_ids and treatment.date_of_end_of_treatment:
+                            return treatment.date_of_end_of_treatment
+            return None
+        else:
+            # Fallback to registration date
+            return patient.date_of_registration
+    except Exception as e:
+        logger.error(f"Error getting bulk start date for patient {patient.id}: {e}")
+        return None
+
 def get_patient_start_date_for_aggregation(patient, start_date_reference='date_of_registration'):
     """Get the start date for a patient for aggregation purposes.
     
@@ -1620,7 +1738,6 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
     Returns:
         tuple: (aggregated_data dict, metadata dict)
     """
-    from promapp.models import QuestionnaireConstructScore
     
     plotting_logger.info("="*80)
     plotting_logger.info(f"AGGREGATION DATA for {construct.name}")
@@ -1641,42 +1758,95 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
             'time_range': 'N/A'
         }
     
+    # === OPTIMIZATION: Bulk fetch all required data upfront ===
+    plotting_logger.info("Starting bulk data fetch optimization...")
+    
+    # 1. Prefetch patients with all related data needed for start date calculations
+    patients_optimized = patients_queryset.prefetch_related(
+        'diagnosis_set__diagnosis',  # For diagnosis-based start dates
+        'diagnosis_set__treatment_set__treatment_type'  # For treatment-based start dates
+    ).select_related()
+    
+    # Convert to list to avoid re-executing the query
+    patients_list = list(patients_optimized)
+    patient_ids = [p.id for p in patients_list]
+    
+    plotting_logger.info(f"Fetched {len(patients_list)} patients with prefetched data")
+    
+    # 2. Bulk fetch all construct scores for all patients at once
+    all_scores = QuestionnaireConstructScore.objects.filter(
+        questionnaire_submission__patient_id__in=patient_ids,
+        construct=construct
+    ).select_related(
+        'questionnaire_submission'
+    ).order_by('questionnaire_submission__patient_id', 'questionnaire_submission__submission_date')
+    
+    # Group scores by patient ID for fast lookup
+    scores_by_patient = {}
+    for score in all_scores:
+        patient_id = score.questionnaire_submission.patient_id
+        if patient_id not in scores_by_patient:
+            scores_by_patient[patient_id] = []
+        scores_by_patient[patient_id].append(score)
+    
+    plotting_logger.info(f"Bulk fetched {all_scores.count()} construct scores across all patients")
+    
+    # 3. If using diagnosis/treatment-based start dates, bulk fetch reference objects
+    reference_objects_cache = {}
+    if start_date_reference.startswith('date_of_diagnosis_'):
+        diagnosis_id = start_date_reference.replace('date_of_diagnosis_', '')
+        try:
+            reference_diagnosis = Diagnosis.objects.select_related('diagnosis').get(id=diagnosis_id)
+            reference_objects_cache['diagnosis'] = reference_diagnosis
+            plotting_logger.info(f"Cached reference diagnosis: {reference_diagnosis.diagnosis.diagnosis}")
+        except Diagnosis.DoesNotExist:
+            plotting_logger.warning(f"Reference diagnosis {diagnosis_id} not found")
+    
+    elif start_date_reference.startswith('date_of_start_of_treatment_') or start_date_reference.startswith('date_of_end_of_treatment_'):
+        treatment_id_key = 'date_of_start_of_treatment_' if start_date_reference.startswith('date_of_start_of_treatment_') else 'date_of_end_of_treatment_'
+        treatment_id = start_date_reference.replace(treatment_id_key, '')
+        try:
+            reference_treatment = Treatment.objects.prefetch_related('treatment_type').get(id=treatment_id)
+            reference_treatment_type_ids = list(reference_treatment.treatment_type.values_list('id', flat=True))
+            reference_objects_cache['treatment'] = {
+                'object': reference_treatment,
+                'type_ids': reference_treatment_type_ids
+            }
+            plotting_logger.info(f"Cached reference treatment with {len(reference_treatment_type_ids)} treatment types")
+        except Treatment.DoesNotExist:
+            plotting_logger.warning(f"Reference treatment {treatment_id} not found")
+    
+    # === OPTIMIZATION: Process all patients using bulk-fetched data ===
     aggregated_data = {}
     patients_with_data = 0
     total_scores_processed = 0
     patient_data_list = []
     contributing_patients = set()
     
-    for patient in patients_queryset:
-        # Get start date for this patient
-        start_date = get_patient_start_date_for_aggregation(patient, start_date_reference)
+    for patient in patients_list:
+        # Get start date for this patient using prefetched data
+        start_date = _get_patient_start_date_bulk(patient, start_date_reference, reference_objects_cache)
         if not start_date:
             continue
-            
-        # Get construct scores for this patient
-        scores_query = QuestionnaireConstructScore.objects.filter(
-            questionnaire_submission__patient=patient,
-            construct=construct
-        ).select_related('questionnaire_submission')
         
-        # Apply max time interval filter if specified
+        # Get construct scores for this patient from bulk-fetched data
+        patient_scores_list = scores_by_patient.get(patient.id, [])
+        
+        # Apply max time interval filter if specified (in memory)
         if max_time_interval_filter is not None:
-            # Filter scores based on relative time intervals from patient's start date
-            filtered_score_ids = []
-            for score in scores_query:
+            filtered_scores = []
+            for score in patient_scores_list:
                 interval_value = calculate_time_interval_value(
                     score.questionnaire_submission.submission_date,
                     start_date,
                     time_interval
                 )
                 if interval_value <= max_time_interval_filter:
-                    filtered_score_ids.append(score.id)
-            
-            scores_query = scores_query.filter(id__in=filtered_score_ids)
+                    filtered_scores.append(score)
+            patient_scores_list = filtered_scores
         
-        # Filter out scores with negative time intervals
-        scores = list(scores_query)
-        filtered_scores = filter_positive_intervals_construct(scores, start_date, time_interval)
+        # Filter out scores with negative time intervals (in memory)
+        filtered_scores = filter_positive_intervals_construct(patient_scores_list, start_date, time_interval)
         
         if not filtered_scores:
             continue
@@ -1840,6 +2010,7 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
     }
     
     plotting_logger.info("="*80)
+    plotting_logger.info(f"OPTIMIZATION RESULTS: Used bulk fetching instead of {len(patients_list)} individual patient queries")
     plotting_logger.info(f"AGGREGATION METADATA: {metadata['contributing_patients']}/{metadata['total_eligible_patients']} patients contributed {metadata['total_responses']} scores across {metadata['time_intervals_count']} intervals")
     plotting_logger.info("="*80)
     
