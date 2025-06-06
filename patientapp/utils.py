@@ -176,47 +176,33 @@ def calculate_time_interval_value(submission_date, start_date, interval_type='we
     else:
         submission_date_only = submission_date
     
-    # Calculate the difference
-    if interval_type in ['seconds', 'minutes', 'hours', 'days', 'weeks']:
-        # Use timedelta for these intervals
-        delta = submission_date_only - start_date
-        total_seconds = delta.total_seconds()
-        
-        if interval_type == 'seconds':
-            return total_seconds
-        elif interval_type == 'minutes':
-            return total_seconds / 60
-        elif interval_type == 'hours':
-            return total_seconds / 3600
-        elif interval_type == 'days':
-            return delta.days
-        elif interval_type == 'weeks':
-            return delta.days / 7
+    # Calculate the difference using relativedelta for all interval types
+    delta = relativedelta(submission_date_only, start_date)
     
-    elif interval_type in ['months', 'years']:
-        # Use relativedelta for months and years
-        if interval_type == 'months':
-            # Calculate months difference
-            months = (submission_date_only.year - start_date.year) * 12 + (submission_date_only.month - start_date.month)
-            # Add fractional part based on days
-            days_in_month = 30.44  # Average days per month
-            day_fraction = (submission_date_only.day - start_date.day) / days_in_month
-            return months + day_fraction
-        elif interval_type == 'years':
-            # Calculate years difference
-            years = submission_date_only.year - start_date.year
-            # Add fractional part based on days
-            start_of_year = start_date.replace(year=submission_date_only.year)
-            if start_of_year <= submission_date_only:
-                days_diff = (submission_date_only - start_of_year).days
-            else:
-                # Submission is before the anniversary date
-                start_of_year = start_date.replace(year=submission_date_only.year - 1)
-                days_diff = (submission_date_only - start_of_year).days
-                years -= 1
-            
-            days_in_year = 365.25  # Average days per year
-            return years + (days_diff / days_in_year)
+    # Convert to total days for time-based calculations
+    total_days = delta.years * 365.25 + delta.months * 30.44 + delta.days
+    
+    if interval_type == 'seconds':
+        return total_days * 24 * 60 * 60
+    elif interval_type == 'minutes':
+        return total_days * 24 * 60
+    elif interval_type == 'hours':
+        return total_days * 24
+    elif interval_type == 'days':
+        return total_days
+    elif interval_type == 'weeks':
+        return total_days / 7
+    elif interval_type == 'months':
+        # Calculate total months with fractional part for days
+        total_months = delta.years * 12 + delta.months
+        day_fraction = delta.days / 30.44
+        return total_months + day_fraction
+    elif interval_type == 'years':
+        # Calculate total years with fractional part for months and days
+        total_years = delta.years
+        month_fraction = delta.months / 12.0
+        day_fraction = delta.days / 365.25
+        return total_years + month_fraction + day_fraction
     
     return 0
 
