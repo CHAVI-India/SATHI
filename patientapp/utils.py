@@ -18,7 +18,7 @@ import pandas as pd
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
-from .models import Patient, Institution
+from patientapp.models import Patient, Institution, Diagnosis, Treatment, TreatmentType, TreatmentIntentChoices
 
 # Set up plotting data logger
 plotting_logger = logging.getLogger('plotting_data')
@@ -1392,7 +1392,6 @@ def get_patient_start_date_for_aggregation(patient, start_date_reference='date_o
             diagnosis_id = start_date_reference.replace('date_of_diagnosis_', '')
             try:
                 # Get the diagnosis type from the reference diagnosis
-                from promapp.models import Diagnosis
                 reference_diagnosis = Diagnosis.objects.get(id=diagnosis_id)
                 diagnosis_list_id = reference_diagnosis.diagnosis_id
                 
@@ -1411,19 +1410,17 @@ def get_patient_start_date_for_aggregation(patient, start_date_reference='date_o
             treatment_id = start_date_reference.replace('date_of_start_of_treatment_', '')
             try:
                 # Get the treatment types from the reference treatment
-                from promapp.models import Treatment
                 reference_treatment = Treatment.objects.get(id=treatment_id)
                 treatment_type_ids = list(reference_treatment.treatment_type.values_list('id', flat=True))
                 
-                # Find this patient's treatment with the same types
-                for diagnosis in patient.diagnosis_set.all():
-                    patient_treatment = diagnosis.treatment_set.filter(
-                        treatment_type__id__in=treatment_type_ids,
-                        date_of_start_of_treatment__isnull=False
-                    ).order_by('date_of_start_of_treatment').first()
-                    if patient_treatment:
-                        return patient_treatment.date_of_start_of_treatment
-                return None
+                # Find this patient's treatment with the same types using a single optimized query
+                patient_treatment = Treatment.objects.filter(
+                    diagnosis__patient=patient,
+                    treatment_type__id__in=treatment_type_ids,
+                    date_of_start_of_treatment__isnull=False
+                ).order_by('date_of_start_of_treatment').first()
+                
+                return patient_treatment.date_of_start_of_treatment if patient_treatment else None
             except:
                 # If we can't find the specific treatment type, return None
                 return None
@@ -1432,19 +1429,17 @@ def get_patient_start_date_for_aggregation(patient, start_date_reference='date_o
             treatment_id = start_date_reference.replace('date_of_end_of_treatment_', '')
             try:
                 # Get the treatment types from the reference treatment
-                from promapp.models import Treatment
                 reference_treatment = Treatment.objects.get(id=treatment_id)
                 treatment_type_ids = list(reference_treatment.treatment_type.values_list('id', flat=True))
                 
-                # Find this patient's treatment with the same types
-                for diagnosis in patient.diagnosis_set.all():
-                    patient_treatment = diagnosis.treatment_set.filter(
-                        treatment_type__id__in=treatment_type_ids,
-                        date_of_end_of_treatment__isnull=False
-                    ).order_by('date_of_end_of_treatment').first()
-                    if patient_treatment:
-                        return patient_treatment.date_of_end_of_treatment
-                return None
+                # Find this patient's treatment with the same types using a single optimized query
+                patient_treatment = Treatment.objects.filter(
+                    diagnosis__patient=patient,
+                    treatment_type__id__in=treatment_type_ids,
+                    date_of_end_of_treatment__isnull=False
+                ).order_by('date_of_end_of_treatment').first()
+                
+                return patient_treatment.date_of_end_of_treatment if patient_treatment else None
             except:
                 # If we can't find the specific treatment type, return None
                 return None
