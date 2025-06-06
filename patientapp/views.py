@@ -690,7 +690,8 @@ def prom_review(request, pk):
             start_date_reference=start_date_reference,
             time_interval=time_interval,
             aggregated_statistics=aggregated_statistics,  # Pass aggregated statistics
-            aggregation_metadata=aggregation_metadata  # Pass aggregation metadata
+            aggregation_metadata=aggregation_metadata,  # Pass aggregation metadata
+            aggregation_type=aggregation_type  # Pass aggregation type for tooltips
         )
 
         # Only include if it's an important construct

@@ -308,7 +308,7 @@ class ConstructScoreData:
     def __init__(self, construct: ConstructScale, current_score: Optional[Decimal],
                  previous_score: Optional[Decimal], historical_scores: List[QuestionnaireConstructScore],
                  patient=None, start_date_reference='date_of_registration', time_interval='weeks',
-                 aggregated_statistics=None, aggregation_metadata=None):
+                 aggregated_statistics=None, aggregation_metadata=None, aggregation_type='median_iqr'):
         self.construct = construct
         self.score = current_score
         self.previous_score = previous_score
@@ -318,6 +318,7 @@ class ConstructScoreData:
         self.time_interval = time_interval
         self.aggregated_statistics = aggregated_statistics or {}
         self.aggregation_metadata = aggregation_metadata or {}
+        self.aggregation_type = aggregation_type
         self.bokeh_plot = self._create_bokeh_plot(historical_scores)
         
         # Generate clinical significance explanations
@@ -691,6 +692,18 @@ class ConstructScoreData:
         change_significant, _ = self._is_score_change_clinically_significant()
         return current_significant or change_significant
 
+    def _get_aggregation_display_name(self) -> str:
+        """Get a user-friendly display name for the aggregation type."""
+        aggregation_names = {
+            'median_iqr': 'Median with IQR',
+            'mean_95ci': 'Mean with 95% CI',
+            'mean_0.5sd': 'Mean ± 0.5 SD',
+            'mean_1sd': 'Mean ± 1 SD',
+            'mean_2sd': 'Mean ± 2 SD',
+            'mean_2.5sd': 'Mean ± 2.5 SD'
+        }
+        return aggregation_names.get(self.aggregation_type, 'Population Data')
+
     def _create_bokeh_plot(self, historical_scores: List[QuestionnaireConstructScore]) -> str:
         # Get start date for the patient
         start_date = None
@@ -903,7 +916,7 @@ class ConstructScoreData:
             )
             
             # Add aggregated points
-            p.scatter(
+            agg_scatter = p.scatter(
                 x='time_intervals',
                 y='central',
                 source=agg_source,
@@ -928,18 +941,22 @@ class ConstructScoreData:
             
             plotting_logger.info("Added population line, points, and error bars")
             
+            # Determine aggregation display name
+            aggregation_display_name = self._get_aggregation_display_name()
+            
             # Add hover tool for aggregated data
             agg_hover = HoverTool(
                 tooltips=[
-                    ('Time Interval', '@time_intervals{0.0}'),
-                    ('Population Central', '@central{0.0}'),
-                    ('Lower Bound', '@lower{0.0}'),
-                    ('Upper Bound', '@upper{0.0}'),
-                    ('Sample Size', '@n')
+                    ('Time Interval', f'@time_intervals{{0.1}} {get_interval_label(self.time_interval).lower()}'),
+                    ('Aggregation Type', aggregation_display_name),
+                    ('Central Value', '@central{0.1}'),
+                    ('Lower Bound', '@lower{0.1}'),
+                    ('Upper Bound', '@upper{0.1}'),
+                    ('Sample Size', '@n patients')
                 ],
                 mode='mouse',
                 point_policy='follow_mouse',
-                renderers=[p.scatter(x='time_intervals', y='central', source=agg_source, size=0, alpha=0)]
+                renderers=[agg_scatter]
             )
             p.add_tools(agg_hover)
 
@@ -953,7 +970,7 @@ class ConstructScoreData:
         )
         
         # Add scatter points
-        p.scatter(
+        individual_scatter = p.scatter(
             x='time_intervals',
             y='scores',
             source=source,
@@ -965,16 +982,17 @@ class ConstructScoreData:
         plotting_logger.info("Added individual patient line and points (black)")
 
         # Configure hover tool for individual data
-        hover = HoverTool(
+        individual_hover = HoverTool(
             tooltips=[
                 ('Submission Date', '@submission_dates'),
-                ('Time Interval', '@time_intervals{0.0}'),
-                ('Score', '@scores{0.0}')
+                ('Time Interval', f'@time_intervals{{0.1}} {get_interval_label(self.time_interval).lower()}'),
+                ('Score', '@scores{0.1}')
             ],
             mode='mouse',
-            point_policy='follow_mouse'
+            point_policy='follow_mouse',
+            renderers=[individual_scatter]
         )
-        p.add_tools(hover)
+        p.add_tools(individual_hover)
         
         plotting_logger.info("Added hover tooltips for individual data")
         plotting_logger.info("="*80)
