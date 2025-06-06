@@ -6,11 +6,6 @@
     <div class="p-4 border-b border-gray-200">
         <button 
             class="w-full flex items-center justify-between text-left group hover:bg-gray-50 -m-2 p-2 rounded-lg transition-colors duration-200"
-            hx-get="{% url 'prom_review' patient.id %}"
-            hx-target="#filters-content"
-            hx-include="[name='questionnaire_filter'], [name='max_time_interval'], [name='time_range'], [name='item_filter'], [name='start_date_reference'], [name='time_interval'], [name='aggregation_type'], [name='patient_filter_gender'], [name='patient_filter_diagnosis'], [name='patient_filter_treatment'], [name='patient_filter_min_age'], [name='patient_filter_max_age']"
-            hx-indicator="#filters-loading"
-            hx-swap="none"
             onclick="toggleFilters()"
         >
             <div class="flex items-center gap-2">
