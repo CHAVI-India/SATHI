@@ -24,6 +24,8 @@ from .utils import (
 )
 import logging
 from bokeh.resources import CDN
+from patientapp.utils import get_filtered_patients_for_aggregation
+
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +90,6 @@ def prom_review(request, pk):
     logger.info(f"Aggregation settings: show_aggregated={show_aggregated}, type={aggregation_type}, gender={patient_filter_gender}, diagnosis={patient_filter_diagnosis}, treatment={patient_filter_treatment}, min_age={min_age_value}, max_age={max_age_value}")
     
     # Always get aggregated patients to show patient counts, regardless of whether aggregation is enabled
-    from patientapp.utils import get_filtered_patients_for_aggregation
     aggregated_patients = get_filtered_patients_for_aggregation(
         exclude_patient=patient,
         patient_filter_gender=patient_filter_gender,
