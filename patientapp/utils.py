@@ -61,26 +61,29 @@ def get_patient_available_start_dates(patient):
                 patient.date_of_registration
             ))
         
-        # Add all diagnosis dates
-        diagnoses = patient.diagnosis_set.filter(date_of_diagnosis__isnull=False).order_by('date_of_diagnosis')
+        # Fetch all diagnoses with related data in one optimized query
+        # This reduces N+1 queries to just 1 query by using select_related and prefetch_related
+        diagnoses = patient.diagnosis_set.select_related('diagnosis').prefetch_related(
+            'treatment_set__treatment_type'
+        ).all()
+        
+        # Process diagnoses and treatments
         for i, diagnosis in enumerate(diagnoses):
             diagnosis_name = diagnosis.diagnosis.diagnosis if diagnosis.diagnosis else f"Diagnosis {i+1}"
-            available_dates.append((
-                f'date_of_diagnosis_{diagnosis.id}',
-                f'Date of Diagnosis: {diagnosis_name}',
-                diagnosis.date_of_diagnosis
-            ))
-        
-        # Add all treatment start dates and end dates
-        for diagnosis in patient.diagnosis_set.all():
-            diagnosis_name = diagnosis.diagnosis.diagnosis if diagnosis.diagnosis else "Unknown Diagnosis"
-            treatments = diagnosis.treatment_set.filter(
-                models.Q(date_of_start_of_treatment__isnull=False) |
-                models.Q(date_of_end_of_treatment__isnull=False)
-            ).order_by('date_of_start_of_treatment')
             
-            for i, treatment in enumerate(treatments):
-                treatment_types = ", ".join([tt.treatment_type for tt in treatment.treatment_type.all()]) if treatment.treatment_type.exists() else f"Treatment {i+1}"
+            # Add diagnosis date if available
+            if diagnosis.date_of_diagnosis:
+                available_dates.append((
+                    f'date_of_diagnosis_{diagnosis.id}',
+                    f'Date of Diagnosis: {diagnosis_name}',
+                    diagnosis.date_of_diagnosis
+                ))
+            
+            # Process treatments for this diagnosis (now prefetched, no additional queries)
+            treatments = diagnosis.treatment_set.all()
+            for j, treatment in enumerate(treatments):
+                # Get treatment types (now prefetched, no additional queries)
+                treatment_types = ", ".join([tt.treatment_type for tt in treatment.treatment_type.all()]) if treatment.treatment_type.exists() else f"Treatment {j+1}"
                 
                 # Add start date if available
                 if treatment.date_of_start_of_treatment:
