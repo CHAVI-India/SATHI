@@ -274,7 +274,5 @@ If both of these are available the MID takes precedence. If none are available t
 
 All construct scores which meet either the criteria for clinical importance based on current score or change from previous score or both will be grouped. Note that if a score meets both criteria it takes precedence in the order. Remaining ordering will be done alphabetically.
 
-The statement of clinical significance for the construct scores will read as follows:
 
-On <date> the following construct scores would be considered to have clinically significant deterioraation: <construct_scale 1> (reason: current score exceeds <threshold score / normative score> by x times the <MID / SD>. ), <construct_scale 2> (reason: Current score change w.r.t previous score is x times <MID/SD> value ) and so on. 
 
