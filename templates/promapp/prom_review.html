@@ -47,46 +47,40 @@
             }
         });
 
+        // Initialize item filter functionality
+        initializeItemFilter();
+    });
+    
+    // Add HTMX event listener to reinitialize after content updates
+    document.addEventListener('htmx:afterSwap', function(event) {
+        if (event.detail.target.id === 'main-content') {
+            // Reinitialize item filter functionality after HTMX content swap
+            initializeItemFilter();
+        }
+    });
+    
+    function initializeItemFilter() {
         // Item filter functionality
         const itemSearchInput = document.getElementById('item-filter-search');
         const itemDropdown = document.getElementById('item-filter-dropdown');
         const selectedItemsSummary = document.getElementById('selected-items-summary');
 
-        // Initialize selected items summary
-        updateSelectedItemsSummary();
 
-        // Function to update the selected items summary
-        function updateSelectedItemsSummary() {
-            const selectedInputs = document.querySelectorAll('#item-filter-inputs input[type="hidden"]');
-            const count = selectedInputs.length;
-            
-            if (count === 0) {
-                selectedItemsSummary.innerHTML = '<span class="text-gray-500">{% translate "All items shown" %}</span>';
-            } else {
-                const itemNames = Array.from(selectedInputs).map(input => input.getAttribute('data-item-name')).slice(0, 3);
-                let summaryText = `${count} {% translate "item" %}${count !== 1 ? 's' : ''} {% translate "selected" %}`;
-                if (count <= 3) {
-                    summaryText += `: ${itemNames.join(', ')}`;
-                } else {
-                    summaryText += `: ${itemNames.join(', ')} + ${count - 3} {% translate "more" %}`;
-                }
-                selectedItemsSummary.innerHTML = `<span class="text-blue-600">${summaryText}</span>`;
-            }
-        }
 
         // Handle item selection from dropdown
         document.addEventListener('click', function(event) {
-            if (event.target.matches('.item-option')) {
-                const itemId = event.target.getAttribute('data-item-id');
-                const itemName = event.target.getAttribute('data-item-name');
+            if (event.target.matches('.item-option') || event.target.closest('.item-option')) {
+                const itemOption = event.target.matches('.item-option') ? event.target : event.target.closest('.item-option');
+                const itemId = itemOption.getAttribute('data-item-id');
+                const itemName = itemOption.getAttribute('data-item-name');
                 
                 // Check if item is already selected
                 const existingInput = document.querySelector(`#item-filter-inputs input[value="${itemId}"]`);
                 if (existingInput) {
                     // Remove if already selected
                     existingInput.remove();
-                    event.target.classList.remove('bg-blue-50', 'text-blue-600');
-                    event.target.classList.add('hover:bg-gray-50');
+                    itemOption.classList.remove('bg-blue-50', 'text-blue-600');
+                    itemOption.classList.add('hover:bg-gray-50');
                 } else {
                     // Add new selection
                     const hiddenInput = document.createElement('input');
@@ -96,30 +90,72 @@
                     hiddenInput.setAttribute('data-item-name', itemName);
                     document.getElementById('item-filter-inputs').appendChild(hiddenInput);
                     
-                    event.target.classList.add('bg-blue-50', 'text-blue-600');
-                    event.target.classList.remove('hover:bg-gray-50');
+                    itemOption.classList.add('bg-blue-50', 'text-blue-600');
+                    itemOption.classList.remove('hover:bg-gray-50');
                 }
                 
                 updateSelectedItemsSummary();
                 
-                // Trigger HTMX update
-                const form = document.createElement('form');
-                const inputs = document.querySelectorAll('#item-filter-inputs input, [name="questionnaire_filter"], [name="time_range"], [name="submission_date"], [name="start_date_reference"], [name="time_interval"], [name="aggregation_type"], [name="patient_filter_gender"], [name="patient_filter_diagnosis"], [name="patient_filter_treatment"], [name="patient_filter_min_age"], [name="patient_filter_max_age"]');
+                // Trigger HTMX update using the form elements
+                const inputs = document.querySelectorAll('#item-filter-inputs input, [name="questionnaire_filter"], [name="time_range"], [name="submission_date"], [name="start_date_reference"], [name="time_interval"], [name="aggregation_type"], [name="patient_filter_gender"], [name="patient_filter_diagnosis"], [name="patient_filter_treatment"], [name="patient_filter_min_age"], [name="patient_filter_max_age"], [name="max_time_interval"]');
+                
+                // Create URLSearchParams for the GET request
+                const params = new URLSearchParams();
                 inputs.forEach(input => {
-                    const clone = input.cloneNode(true);
-                    form.appendChild(clone);
+                    if (input.value && input.value.trim() !== '') {
+                        params.append(input.name, input.value);
+                    }
                 });
                 
-                htmx.ajax('GET', "{% url 'prom_review' patient.id %}", {
-                    source: form,
-                    target: '#main-content'
+                const url = "{% url 'prom_review' patient.id %}" + '?' + params.toString();
+                
+                htmx.ajax('GET', url, {
+                    target: '#main-content',
+                    indicator: '#filters-loading'
                 });
             }
         });
 
-        // Show/hide dropdown on focus/blur
-        if (itemSearchInput) {
+        // Show/hide dropdown on focus/blur and add search functionality
+        if (itemSearchInput && itemDropdown) {
+            // Show dropdown on focus
             itemSearchInput.addEventListener('focus', function() {
+                // If dropdown is empty, trigger HTMX to load items
+                const existingItems = itemDropdown.querySelectorAll('.item-option');
+                if (existingItems.length === 0) {
+                    // Trigger the HTMX search to populate dropdown
+                    const questionnaireFilter = document.querySelector('[name="questionnaire_filter"]');
+                    const params = new URLSearchParams();
+                    if (questionnaireFilter && questionnaireFilter.value) {
+                        params.append('questionnaire_filter', questionnaireFilter.value);
+                    }
+                    params.append('item-filter-search', ''); // Empty search to get all items
+                    
+                    const url = itemSearchInput.getAttribute('hx-get') + '?' + params.toString();
+                    htmx.ajax('GET', url, {
+                        target: itemDropdown
+                    });
+                }
+                itemDropdown.classList.remove('hidden');
+            });
+            
+            // Add search functionality to filter the dropdown items
+            itemSearchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const items = itemDropdown.querySelectorAll('.item-option');
+                
+                items.forEach(item => {
+                    const itemName = item.getAttribute('data-item-name').toLowerCase();
+                    const constructName = item.querySelector('.text-xs') ? item.querySelector('.text-xs').textContent.toLowerCase() : '';
+                    
+                    if (itemName.includes(searchTerm) || constructName.includes(searchTerm)) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                // Show dropdown when typing
                 itemDropdown.classList.remove('hidden');
             });
         }
@@ -140,7 +176,40 @@
                 }, 200);
             });
         }
-    });
+        
+        // Update selected items summary on initialization
+        if (selectedItemsSummary) {
+            updateSelectedItemsSummary();
+        }
+        
+        // Debug: Check if dropdown has items after initialization
+        if (itemDropdown) {
+            const existingItems = itemDropdown.querySelectorAll('.item-option');
+            console.log('Item filter initialized. Available items:', existingItems.length);
+            
+            // If dropdown has items but is hidden, this is expected behavior
+            // Items will show when user clicks on search input
+        }
+        
+        // Function to update the selected items summary (moved inside initializeItemFilter)
+        function updateSelectedItemsSummary() {
+            const selectedInputs = document.querySelectorAll('#item-filter-inputs input[type="hidden"]');
+            const count = selectedInputs.length;
+            
+            if (count === 0) {
+                selectedItemsSummary.innerHTML = '<span class="text-gray-500">{% translate "All items shown" %}</span>';
+            } else {
+                const itemNames = Array.from(selectedInputs).map(input => input.getAttribute('data-item-name')).slice(0, 3);
+                let summaryText = `${count} {% translate "item" %}${count !== 1 ? 's' : ''} {% translate "selected" %}`;
+                if (count <= 3) {
+                    summaryText += `: ${itemNames.join(', ')}`;
+                } else {
+                    summaryText += `: ${itemNames.join(', ')} + ${count - 3} {% translate "more" %}`;
+                }
+                selectedItemsSummary.innerHTML = `<span class="text-blue-600">${summaryText}</span>`;
+            }
+        }
+    }
 
     // Function to toggle full text display for text responses
     function toggleFullText(elementId) {

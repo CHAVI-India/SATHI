@@ -307,6 +307,11 @@
                                 placeholder="{% translate 'Search and select items...' %}"
                                 class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 autocomplete="off"
+                                hx-get="{% url 'prom_review_item_search' patient.id %}"
+                                hx-target="#item-filter-dropdown"
+                                hx-trigger="keyup changed delay:300ms, focus"
+                                hx-include="[name='questionnaire_filter']"
+                                name="item-filter-search"
                             >
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -320,7 +325,7 @@
                             {% for item_id in request.GET.item_filter %}
                                 {% for item in available_items %}
                                     {% if item.id|stringformat:"s" == item_id %}
-                                        <input type="hidden" name="item_filter" value="{{ item.id }}" data-item-name="{{ item.text|truncatechars:50 }}">
+                                        <input type="hidden" name="item_filter" value="{{ item.id }}" data-item-name="{{ item.name|truncatechars:50 }}">
                                     {% endif %}
                                 {% endfor %}
                             {% endfor %}
@@ -334,9 +339,11 @@
                             {% for item in available_items %}
                                 <div class="item-option px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 {% if item.id|stringformat:'s' in request.GET.item_filter %}bg-blue-50 text-blue-600{% endif %}" 
                                      data-item-id="{{ item.id }}" 
-                                     data-item-name="{{ item.text|truncatechars:50 }}">
-                                    <div class="text-sm font-medium">{{ item.text|truncatechars:50 }}</div>
-                                    <div class="text-xs text-gray-500">{{ item.questionnaire.name }}</div>
+                                     data-item-name="{{ item.name|truncatechars:50 }}">
+                                    <div class="text-sm font-medium">{{ item.name|truncatechars:50 }}</div>
+                                    {% if item.construct_scale %}
+                                        <div class="text-xs text-gray-500">{{ item.construct_scale.name }}</div>
+                                    {% endif %}
                                 </div>
                             {% endfor %}
                         </div>
@@ -351,91 +358,7 @@
 // Patient age data
 var PATIENT_AGE = {% if patient_current_age %}{{ patient_current_age }}{% else %}null{% endif %};
 
-// Item filter dropdown functionality
-function toggleItemDropdown() {
-    const dropdown = document.getElementById('item-filter-options');
-    const arrow = document.getElementById('item-dropdown-arrow');
-    
-    if (dropdown.classList.contains('hidden')) {
-        dropdown.classList.remove('hidden');
-        arrow.style.transform = 'rotate(180deg)';
-        // Close dropdown when clicking outside
-        document.addEventListener('click', closeItemDropdownOnOutsideClick);
-    } else {
-        dropdown.classList.add('hidden');
-        arrow.style.transform = 'rotate(0deg)';
-        document.removeEventListener('click', closeItemDropdownOnOutsideClick);
-    }
-}
-
-function closeItemDropdownOnOutsideClick(event) {
-    const dropdown = document.getElementById('item-filter-options');
-    const button = document.getElementById('item-filter-dropdown');
-    
-    if (!dropdown.contains(event.target) && !button.contains(event.target)) {
-        dropdown.classList.add('hidden');
-        document.getElementById('item-dropdown-arrow').style.transform = 'rotate(0deg)';
-        document.removeEventListener('click', closeItemDropdownOnOutsideClick);
-    }
-}
-
-function updateItemSelection() {
-    // Update hidden inputs for HTMX
-    const checkboxes = document.querySelectorAll('.item-checkbox:checked');
-    const hiddenContainer = document.getElementById('item-filter-hidden-inputs');
-    
-    // Clear existing hidden inputs
-    hiddenContainer.innerHTML = '';
-    
-    // Add hidden inputs for checked items
-    checkboxes.forEach(checkbox => {
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'item_filter';
-        hiddenInput.value = checkbox.value;
-        hiddenInput.className = 'item-hidden-input';
-        hiddenContainer.appendChild(hiddenInput);
-    });
-    
-    // Update display text
-    updateItemDisplayText();
-    
-    // Trigger HTMX request
-    triggerItemFilterUpdate();
-}
-
-function updateItemDisplayText() {
-    const checkboxes = document.querySelectorAll('.item-checkbox:checked');
-    const display = document.getElementById('item-filter-display');
-    
-    if (checkboxes.length === 0) {
-        display.textContent = '{% translate "Select Items" %}';
-        display.className = 'text-gray-500';
-    } else if (checkboxes.length === 1) {
-        const label = checkboxes[0].closest('label').querySelector('.font-medium').textContent;
-        display.textContent = label;
-        display.className = 'text-gray-900';
-    } else {
-        display.textContent = `${checkboxes.length} {% translate "items selected" %}`;
-        display.className = 'text-gray-900';
-    }
-}
-
-function selectAllItems() {
-    const checkboxes = document.querySelectorAll('.item-checkbox');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = true;
-    });
-    updateItemSelection();
-}
-
-function clearAllItems() {
-    const checkboxes = document.querySelectorAll('.item-checkbox');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = false;
-    });
-    updateItemSelection();
-}
+// Item filter functionality is handled in prom_review.html
 
 function updateTimeIntervalDisplay() {
     const timeIntervalSelect = document.getElementById('time-interval');
@@ -453,60 +376,7 @@ function updateTimeIntervalDisplay() {
     }
 }
 
-function triggerItemFilterUpdate() {
-    // Get all form elements that should be included
-    const formData = new FormData();
-    
-    // Add all filter parameters
-    const questionnaire = document.querySelector('[name="questionnaire_filter"]');
-    if (questionnaire && questionnaire.value) formData.append('questionnaire_filter', questionnaire.value);
-    
-    const maxTimeInterval = document.querySelector('[name="max_time_interval"]');
-    if (maxTimeInterval && maxTimeInterval.value) formData.append('max_time_interval', maxTimeInterval.value);
-    
-    const timeRange = document.querySelector('[name="time_range"]');
-    if (timeRange && timeRange.value) formData.append('time_range', timeRange.value);
-    
-    const startDateRef = document.querySelector('[name="start_date_reference"]');
-    if (startDateRef && startDateRef.value) formData.append('start_date_reference', startDateRef.value);
-    
-    const timeInterval = document.querySelector('[name="time_interval"]');
-    if (timeInterval && timeInterval.value) formData.append('time_interval', timeInterval.value);
-    
-    const aggregationType = document.querySelector('[name="aggregation_type"]');
-    if (aggregationType && aggregationType.value) formData.append('aggregation_type', aggregationType.value);
-    
-    const genderFilter = document.querySelector('[name="patient_filter_gender"]');
-    if (genderFilter && genderFilter.value) formData.append('patient_filter_gender', genderFilter.value);
-    
-    const diagnosisFilter = document.querySelector('[name="patient_filter_diagnosis"]');
-    if (diagnosisFilter && diagnosisFilter.value) formData.append('patient_filter_diagnosis', diagnosisFilter.value);
-    
-    const treatmentFilter = document.querySelector('[name="patient_filter_treatment"]');
-    if (treatmentFilter && treatmentFilter.value) formData.append('patient_filter_treatment', treatmentFilter.value);
-    
-    const minAgeFilter = document.querySelector('[name="patient_filter_min_age"]');
-    if (minAgeFilter && minAgeFilter.value) formData.append('patient_filter_min_age', minAgeFilter.value);
-    
-    const maxAgeFilter = document.querySelector('[name="patient_filter_max_age"]');
-    if (maxAgeFilter && maxAgeFilter.value) formData.append('patient_filter_max_age', maxAgeFilter.value);
-    
-    // Add all selected item filters
-    const hiddenInputs = document.querySelectorAll('#item-filter-hidden-inputs input[name="item_filter"]');
-    hiddenInputs.forEach(input => {
-        formData.append('item_filter', input.value);
-    });
-    
-    // Build query string
-    const params = new URLSearchParams(formData);
-    const url = '{% url "prom_review" patient.id %}?' + params.toString();
-    
-    // Trigger HTMX request
-    htmx.ajax('GET', url, {
-        target: '#main-content',
-        indicator: '#loading-indicator'
-    });
-}
+// Item filter update functionality is handled in prom_review.html
 
 // Age filter helper function
 function matchPatientAge() {
