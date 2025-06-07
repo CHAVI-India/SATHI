@@ -1,0 +1,121 @@
+{% load i18n %}
+
+<!-- Item Header -->
+<div class="mb-4">
+    <div class="flex justify-between items-start">
+        <div class="flex-1">
+            <h3 class="text-lg font-medium text-gray-900 mb-1">
+                {{ media_data.item.name }}
+            </h3>
+            {% if media_data.item.construct_scale %}
+            <p class="text-sm text-gray-600">
+                {% translate "Construct" %}: {{ media_data.item.construct_scale.name }}
+            </p>
+            {% endif %}
+        </div>
+        <div class="text-right text-sm text-gray-500">
+            <div class="font-medium">{{ media_data.response_count }}</div>
+            <div>{% blocktrans count counter=media_data.response_count %}response{% plural %}responses{% endblocktrans %}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Most Recent Media Response -->
+{% if media_data.most_recent_response %}
+<div class="mb-4 p-3 bg-blue-50 rounded-lg">
+    <div class="flex justify-between items-center mb-3">
+        <span class="text-sm font-medium text-blue-900">{% translate "Latest Media Response" %}:</span>
+        <div class="text-sm text-blue-600">
+            {{ media_data.most_recent_response.questionnaire_submission.submission_date|date:"d M Y" }}
+        </div>
+    </div>
+    
+    <!-- Media Display -->
+    <div class="bg-white rounded-md p-3">
+        {% if media_data.most_recent_response.response_media %}
+            {% with media_type=media_data.most_recent_response.media_type %}
+                {% if media_type == 'audio' %}
+                    <!-- Audio Player -->
+                    <div class="audio-player">
+                        <audio controls class="w-full">
+                            <source src="{{ media_data.most_recent_response.response_media.url }}" type="audio/mpeg">
+                            <source src="{{ media_data.most_recent_response.response_media.url }}" type="audio/wav">
+                            <source src="{{ media_data.most_recent_response.response_media.url }}" type="audio/ogg">
+                            <source src="{{ media_data.most_recent_response.response_media.url }}" type="audio/m4a">
+                            {% translate "Your browser does not support the audio element." %}
+                        </audio>
+                        <div class="mt-2 text-xs text-gray-500">
+                            <i class="fas fa-music mr-1"></i>
+                            {% translate "Audio Response" %}
+                        </div>
+                    </div>
+                {% elif media_type == 'video' %}
+                    <!-- Video Player -->
+                    <div class="video-player">
+                        <video controls class="w-full max-h-48 rounded">
+                            <source src="{{ media_data.most_recent_response.response_media.url }}" type="video/mp4">
+                            <source src="{{ media_data.most_recent_response.response_media.url }}" type="video/webm">
+                            <source src="{{ media_data.most_recent_response.response_media.url }}" type="video/ogg">
+                            {% translate "Your browser does not support the video element." %}
+                        </video>
+                        <div class="mt-2 text-xs text-gray-500">
+                            <i class="fas fa-video mr-1"></i>
+                            {% translate "Video Response" %}
+                        </div>
+                    </div>
+                {% elif media_type == 'image' %}
+                    <!-- Image Display -->
+                    <div class="image-display">
+                        <img src="{{ media_data.most_recent_response.response_media.url }}" 
+                             alt="{% translate 'Image Response' %}" 
+                             class="w-full max-h-48 object-contain rounded cursor-pointer"
+                             onclick="openImageModal('{{ media_data.most_recent_response.response_media.url }}', 'Image Response')">
+                        <div class="mt-2 text-xs text-gray-500">
+                            <i class="fas fa-image mr-1"></i>
+                            {% translate "Image Response" %} • {% translate "Click to enlarge" %}
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Generic Media File -->
+                    <div class="file-display">
+                        <div class="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded">
+                            <div class="text-center">
+                                <i class="fas fa-file-alt text-2xl text-gray-400 mb-2"></i>
+                                <p class="text-sm text-gray-600">
+                                    <a href="{{ media_data.most_recent_response.response_media.url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                        {% translate "Download Media File" %}
+                                    </a>
+                                </p>
+                                <div class="mt-1 text-xs text-gray-500">
+                                    <i class="fas fa-file mr-1"></i>
+                                    {% translate "Media Response" %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endwith %}
+        {% else %}
+            <div class="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded">
+                <div class="text-center">
+                    <i class="fas fa-file-alt text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-sm text-gray-400 italic">{% translate "No media response provided" %}</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="p-3 bg-gray-50 rounded-lg text-center">
+    <i class="fas fa-file-alt text-2xl text-gray-400 mb-2"></i>
+    <p class="text-sm text-gray-500">{% translate "No responses yet" %}</p>
+</div>
+{% endif %}
+
+<!-- Response Type Info -->
+<div class="mt-3 pt-3 border-t border-gray-100">
+    <div class="flex justify-between items-center text-xs text-gray-500">
+        <span>{{ media_data.item.get_response_type_display }}</span>
+        <span>{% translate "Latest response shown" %}</span>
+    </div>
+</div> 

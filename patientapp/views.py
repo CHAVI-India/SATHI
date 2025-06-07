@@ -1156,6 +1156,8 @@ def patient_portal(request):
     
     # Process each item's responses and create plots
     item_plots = []
+    media_items = []
+    
     for item_id, item_data in item_responses_by_item.items():
         item = item_data['item']
         responses = item_data['responses']
@@ -1254,28 +1256,37 @@ def patient_portal(request):
                     logger.error(f"Error processing Media item {response.questionnaire_item.item.id}: {e_media_proc}", exc_info=True)
                     response.media_type = None
         
-        # Create plot for this item using all historical responses
-        try:
-            plot_html = create_item_response_plot(
-                responses,
-                item,
-                patient,
-                'date_of_registration',  # Use registration date as reference
-                'weeks'  # Use weeks as time interval
-            )
-            
-            # Get the most recent response for display
-            most_recent_response = responses[-1] if responses else None
-            
-            item_plots.append({
+        # Get the most recent response for display
+        most_recent_response = responses[-1] if responses else None
+        
+        # Handle media items separately (don't create plots for them)
+        if item.response_type == 'Media':
+            media_items.append({
                 'item': item,
-                'plot_html': plot_html,
                 'responses': responses,
                 'most_recent_response': most_recent_response,
                 'response_count': len(responses)
             })
-        except Exception as e_plot_gen:
-            logger.error(f"Error generating plot for item {item.id}: {e_plot_gen}", exc_info=True)
+        else:
+            # Create plot for this item using all historical responses
+            try:
+                plot_html = create_item_response_plot(
+                    responses,
+                    item,
+                    patient,
+                    'date_of_registration',  # Use registration date as reference
+                    'weeks'  # Use weeks as time interval
+                )
+                
+                item_plots.append({
+                    'item': item,
+                    'plot_html': plot_html,
+                    'responses': responses,
+                    'most_recent_response': most_recent_response,
+                    'response_count': len(responses)
+                })
+            except Exception as e_plot_gen:
+                logger.error(f"Error generating plot for item {item.id}: {e_plot_gen}", exc_info=True)
     
     # Get available items for the filter
     available_items_query = Item.objects.select_related('construct_scale').prefetch_related('translations')
@@ -1307,6 +1318,7 @@ def patient_portal(request):
         'assigned_questionnaires': assigned_questionnaires,
         'questionnaire_submission_counts': questionnaire_submission_counts,
         'item_plots': item_plots,
+        'media_items': media_items,
         'available_items': available_items,
         'selected_items_data': selected_items_data,
         'item_filter': item_filter,

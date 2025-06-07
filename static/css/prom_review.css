@@ -229,3 +229,55 @@
         background: #718096;
     }
 }
+
+/* Media Response Card Styles */
+.audio-player audio,
+.video-player video {
+    transition: all 0.2s ease-in-out;
+    border-radius: 0.375rem;
+}
+
+.audio-player audio:focus,
+.video-player video:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.video-player video {
+    background-color: #000;
+}
+
+.image-display img {
+    transition: transform 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.image-display img:hover {
+    transform: scale(1.02);
+}
+
+/* Media type icons */
+.audio-player .fas.fa-music,
+.video-player .fas.fa-video,
+.image-display .fas.fa-image,
+.file-display .fas.fa-file {
+    color: #6b7280;
+}
+
+/* Download link styling */
+.file-display a {
+    transition: all 0.2s ease-in-out;
+}
+
+.file-display a:hover {
+    transform: translateY(-1px);
+}
+
+/* Media response placeholder */
+.media-placeholder {
+    transition: all 0.2s ease-in-out;
+}
+
+.media-placeholder:hover {
+    background-color: #f9fafb;
+}

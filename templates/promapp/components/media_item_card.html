@@ -39,13 +39,16 @@
                             {% translate "Video Response" %}
                         </div>
                     </div>
-                {% elif media_type == 'image' %}
+                                 {% elif media_type == 'image' %}
                     <!-- Image Display -->
                     <div class="image-display">
-                        <img src="{{ item_response.response_media.url }}" alt="{% translate 'Image Response' %}" class="w-full max-h-48 object-contain rounded">
+                        <img src="{{ item_response.response_media.url }}" 
+                             alt="{% translate 'Image Response' %}" 
+                             class="w-full max-h-48 object-contain rounded cursor-pointer"
+                             onclick="openImageModal('{{ item_response.response_media.url }}', 'Image Response')">
                         <div class="mt-2 text-xs text-gray-500">
                             <i class="fas fa-image mr-1"></i>
-                            {% translate "Image Response" %}
+                            {% translate "Image Response" %} • {% translate "Click to enlarge" %}
                         </div>
                     </div>
                 {% else %}
