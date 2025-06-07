@@ -7,15 +7,11 @@
             <h3 class="text-lg font-medium text-gray-900 mb-1">
                 {{ media_data.item.name }}
             </h3>
-            {% if media_data.item.construct_scale %}
-            <p class="text-sm text-gray-600">
-                {% translate "Construct" %}: {{ media_data.item.construct_scale.name }}
-            </p>
-            {% endif %}
         </div>
-        <div class="text-right text-sm text-gray-500">
-            <div class="font-medium">{{ media_data.response_count }}</div>
-            <div>{% blocktrans count counter=media_data.response_count %}response{% plural %}responses{% endblocktrans %}</div>
+        <div class="flex items-center">
+            <div class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-medium">
+                {{ media_data.response_count }}
+            </div>
         </div>
     </div>
 </div>
