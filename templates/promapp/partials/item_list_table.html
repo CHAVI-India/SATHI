@@ -101,14 +101,120 @@
 
   <!-- Pagination -->
   {% if is_paginated %}
-    <c-paginator 
-      :page_obj="page_obj"
-      :paginator="paginator"
-      base_url="{% url 'item_list' %}"
-      :extra_params="{'search': search_query, 'construct_scale': selected_construct_scale, 'response_type': selected_response_type}"
-      hx_target="#items-container"
-      hx_indicator="#loading-indicator"
-      class="mt-6">
-    </c-paginator>
+    <div class="mt-6 bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-b-lg">
+        <!-- Mobile pagination (Previous/Next only) -->
+        <div class="flex-1 flex justify-between sm:hidden">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
+               hx-get="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
+               hx-target="#items-container"
+               hx-indicator="#loading-indicator"
+               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
+                {% load i18n %}{% translate "Previous" %}
+            </a>
+            {% else %}
+            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-50 cursor-not-allowed">
+                {% load i18n %}{% translate "Previous" %}
+            </span>
+            {% endif %}
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
+               hx-get="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
+               hx-target="#items-container"
+               hx-indicator="#loading-indicator"
+               class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
+                {% load i18n %}{% translate "Next" %}
+            </a>
+            {% else %}
+            <span class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-50 cursor-not-allowed">
+                {% load i18n %}{% translate "Next" %}
+            </span>
+            {% endif %}
+        </div>
+        
+        <!-- Desktop pagination (Full pagination with page numbers) -->
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <!-- Results info -->
+            <div>
+                <p class="text-sm text-gray-700">
+                    {% load i18n %}
+                    {% translate "Showing" %}
+                    <span class="font-medium">{{ page_obj.start_index }}</span>
+                    {% translate "to" %}
+                    <span class="font-medium">{{ page_obj.end_index }}</span>
+                    {% translate "of" %}
+                    <span class="font-medium">{{ paginator.count }}</span>
+                    {% translate "results" %}
+                </p>
+            </div>
+            
+            <!-- Page navigation -->
+            <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <!-- Previous button with icon -->
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
+                       hx-get="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
+                       hx-target="#items-container"
+                       hx-indicator="#loading-indicator"
+                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
+                        <span class="sr-only">{% translate "Previous" %}</span>
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    {% else %}
+                    <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-400 cursor-not-allowed">
+                        <span class="sr-only">{% translate "Previous" %}</span>
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    {% endif %}
+
+                    <!-- Page numbers -->
+                    {% for num in paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <!-- Current page -->
+                        <span class="relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-50 text-sm font-medium text-blue-600" aria-current="page">
+                            {{ num }}
+                        </span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <!-- Visible page numbers within range -->
+                        <a href="?page={{ num }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
+                           hx-get="?page={{ num }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
+                           hx-target="#items-container"
+                           hx-indicator="#loading-indicator"
+                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                            {{ num }}
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+
+                    <!-- Next button with icon -->
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
+                       hx-get="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
+                       hx-target="#items-container"
+                       hx-indicator="#loading-indicator"
+                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
+                        <span class="sr-only">{% translate "Next" %}</span>
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    {% else %}
+                    <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-400 cursor-not-allowed">
+                        <span class="sr-only">{% translate "Next" %}</span>
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </div>
   {% endif %}
 {% endif %} 
