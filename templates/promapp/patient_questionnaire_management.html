@@ -60,12 +60,12 @@
           <tbody class="bg-white divide-y divide-gray-200">
             {% for qs in questionnaires_with_status %}
               <tr class="{% if qs.is_assigned %}bg-blue-50{% endif %}">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">
+                <td class="px-6 py-4">
+                  <div class="text-sm font-medium text-gray-900 break-words">
                     {{ qs.questionnaire.name }}
                   </div>
                   {% if qs.questionnaire.description %}
-                    <div class="text-sm text-gray-500">
+                    <div class="text-sm text-gray-500 break-words">
                       {{ qs.questionnaire.description|truncatechars:100 }}
                     </div>
                   {% endif %}
