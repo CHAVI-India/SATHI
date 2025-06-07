@@ -189,7 +189,7 @@ def prom_review(request, pk):
             logger.info(f"Latest submission for questionnaire {q_id}: {submission.submission_date}")
     
     # Get all assigned questionnaires
-    assigned_questionnaires = PatientQuestionnaire.objects.filter(
+    all_assigned_questionnaires = PatientQuestionnaire.objects.filter(
         patient=patient
     ).select_related(
         'questionnaire'
@@ -197,7 +197,10 @@ def prom_review(request, pk):
         'questionnaire__translations'
     )
     
-    # Apply questionnaire filter to assigned questionnaires if specified
+    # Keep a reference to all questionnaires for dropdown options
+    assigned_questionnaires = all_assigned_questionnaires
+    
+    # Apply questionnaire filter to assigned questionnaires if specified for data filtering
     if questionnaire_filter:
         assigned_questionnaires = assigned_questionnaires.filter(
             questionnaire_id=questionnaire_filter
@@ -725,7 +728,7 @@ def prom_review(request, pk):
         ).distinct()
     else:
         # Get items from all assigned questionnaires
-        questionnaire_ids = assigned_questionnaires.values_list('questionnaire_id', flat=True)
+        questionnaire_ids = all_assigned_questionnaires.values_list('questionnaire_id', flat=True)
         available_items_query = available_items_query.filter(
             questionnaireitem__questionnaire_id__in=questionnaire_ids
         ).distinct()
@@ -741,7 +744,7 @@ def prom_review(request, pk):
     # Prepare options for Cotton dropdowns
     questionnaire_options_for_cotton = [
         {'id': str(pq.questionnaire.id), 'name': pq.questionnaire.name}
-        for pq in assigned_questionnaires  # Use the already filtered or full list
+        for pq in all_assigned_questionnaires  # Use the unfiltered list for dropdown options
     ]
 
     time_range_options_for_cotton = [
@@ -907,7 +910,9 @@ def prom_review(request, pk):
         'patient': patient,
         'submissions': submissions,
         'latest_submissions': latest_submissions,
-        'assigned_questionnaires': assigned_questionnaires, # Still needed for other parts of the template
+        'assigned_questionnaires': assigned_questionnaires, # Filtered questionnaires for data display
+        'all_assigned_questionnaires': all_assigned_questionnaires, # Unfiltered questionnaires for other template needs
+        'available_questionnaires': [pq.questionnaire for pq in all_assigned_questionnaires], # For the questionnaire filter dropdown
         'item_responses': item_response_list,  # Use the list instead of queryset
         'construct_scores': construct_scores_list,  # Use the list instead of queryset
         'other_construct_scores': other_construct_scores,
