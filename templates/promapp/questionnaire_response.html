@@ -42,7 +42,7 @@
         {% blocktrans %}You cannot answer this questionnaire yet. You can answer it again in {{ next_available|timeuntil }}.{% endblocktrans %}
     </div>
     {% endif %}
-    <form method="post" id="questionnaire-form" class="space-y-8" {% if not can_answer %}disabled{% endif %}>
+    <form method="post" id="questionnaire-form" class="space-y-8" enctype="multipart/form-data" {% if not can_answer %}disabled{% endif %}>
       {% csrf_token %}
       
       {% for item_data in items_with_translations %}
@@ -532,6 +532,12 @@
                   </span>
                 </div>
               </div>
+
+            {% elif qi.item.response_type == 'Media' %}
+              <div class="form-group">
+                {{ form.response_qi.id }}
+                {% include 'promapp/components/media_recorder.html' with question_id=qi.id %}
+              </div>
             {% endif %}
           </div>
 
@@ -600,6 +606,8 @@
 </div>
 
 {% block extra_js %}
+{% include 'promapp/components/media_recorder_script.html' %}
+
 <script>
   // Get the rule evaluation URL template with a dummy UUID
   const ruleEvalBase = "{% url 'evaluate_question_rules' '00000000-0000-0000-0000-000000000000' %}";
@@ -738,10 +746,16 @@
       inputs.forEach(input => {
         input.addEventListener('change', async function() {
           const questionId = question.dataset.questionId;
-          responses[questionId] = this.value;
           
-          // Auto-advance if this is the current question
-          if (questions[currentQuestionIndex] === question) {
+          // Handle file inputs differently
+          if (this.type === 'file' && this.files && this.files.length > 0) {
+            responses[questionId] = 'media_file_uploaded';
+          } else {
+            responses[questionId] = this.value;
+          }
+          
+          // Auto-advance if this is the current question and we have a response
+          if (questions[currentQuestionIndex] === question && responses[questionId]) {
             await handleQuestionAnswer();
           }
         });
@@ -778,8 +792,60 @@
     document.getElementById('questionnaire-form').addEventListener('submit', function(e) {
       e.preventDefault();
       
-      // Submit the form without validation
-      this.submit();
+      // Create FormData to handle file uploads
+      const formData = new FormData();
+      
+      // Add CSRF token
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      formData.append('csrfmiddlewaretoken', csrfToken);
+      
+      // Add all responses
+      questions.forEach(question => {
+        const questionId = question.dataset.questionId;
+        const inputs = question.querySelectorAll('input[name^="response_"], textarea[name^="response_"]');
+        
+        inputs.forEach(input => {
+          if (input.type === 'file' && input.files && input.files.length > 0) {
+            // Add file input with the correct name expected by the backend
+            formData.append(input.name, input.files[0]);
+          } else if (input.type === 'radio' && input.checked) {
+            // Add selected radio value
+            formData.append(input.name, input.value);
+          } else if (input.type !== 'radio' && input.type !== 'file' && input.value) {
+            // Add other input types with values (excluding file inputs without files)
+            formData.append(input.name, input.value);
+          }
+        });
+      });
+      
+      // Submit with fetch API to handle file uploads
+      fetch(this.action || window.location.href, {
+        method: 'POST',
+        body: formData,
+      }).then(response => {
+        if (response.redirected) {
+          // Handle redirects from Django
+          window.location.href = response.url;
+        } else if (response.ok) {
+          // Handle successful submission without redirect
+          return response.text().then(html => {
+            // If the response contains HTML, it might be a form with errors
+            if (html.includes('class="alert') || html.includes('error')) {
+              // Reload the page to show errors
+              window.location.reload();
+            } else {
+              // Success - redirect to questionnaire list
+              window.location.href = '/questionnaires/my/';
+            }
+          });
+        } else {
+          console.error('Form submission failed:', response);
+          alert('There was an error submitting your responses. Please try again.');
+        }
+      }).catch(error => {
+        console.error('Form submission error:', error);
+        alert('There was an error submitting your responses. Please try again.');
+      });
     });
 
     // Show the first question

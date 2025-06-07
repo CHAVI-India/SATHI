@@ -1432,8 +1432,8 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
         # Get all items for this questionnaire with translations
         questionnaire_items, items_with_translations = self.get_translated_items(patient_questionnaire.questionnaire)
         
-        # Create the form with the questionnaire items
-        form = QuestionnaireResponseForm(request.POST, questionnaire_items=questionnaire_items)
+        # Create the form with the questionnaire items and file uploads
+        form = QuestionnaireResponseForm(request.POST, request.FILES, questionnaire_items=questionnaire_items)
         
         if form.is_valid():
             try:
@@ -1447,11 +1447,21 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
                     # Create responses for all items, including unanswered ones
                     for qi in questionnaire_items:
                         response_value = form.cleaned_data.get(f'response_{qi.id}')
+                        response_media = None
+                        
+                        # Handle media files for Media response type
+                        if qi.item.response_type == 'Media':
+                            # Check if there's a media file for this question
+                            media_field_name = f'response_media_{qi.id}'
+                            if media_field_name in request.FILES:
+                                response_media = request.FILES[media_field_name]
+                        
                         # Create record for every question, even if unanswered
                         QuestionnaireItemResponse.objects.create(
                             questionnaire_submission=submission,
                             questionnaire_item=qi,
-                            response_value=str(response_value) if response_value is not None else None
+                            response_value=str(response_value) if response_value is not None else None,
+                            response_media=response_media
                         )
                     
                     # If there are construct scales, calculate and store their scores

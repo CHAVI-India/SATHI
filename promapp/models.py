@@ -405,6 +405,7 @@ class ResponseTypeChoices(models.TextChoices):
     NUMBER = 'Number', 'Numeric Response'
     LIKERT = 'Likert', 'Likert Scale'
     RANGE = 'Range', 'Range Response'
+    MEDIA = 'Media', 'Media Response'
 
 
 class Item(TranslatableModel):
@@ -807,6 +808,7 @@ class QuestionnaireItemResponse(models.Model):
     questionnaire_item = models.ForeignKey(QuestionnaireItem, on_delete=models.CASCADE, help_text = "The item to which the response belongs")
     response_date = models.DateTimeField(help_text = "The date and time of the response",auto_now_add=True)
     response_value = models.CharField(max_length=255, help_text = "The response value",null=True, blank=True)
+    response_media = models.FileField(upload_to='questionnaire_responses/', help_text = "The media response",null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True,editable=False)
     modified_date = models.DateTimeField(auto_now=True,editable=False)
 

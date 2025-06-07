@@ -414,6 +414,13 @@ class QuestionnaireResponseForm(forms.Form):
                         'step': qi.item.range_response.increment
                     })
                 )
+            elif qi.item.response_type == 'Media':
+                # For media responses, we'll handle file uploads in the template/JavaScript
+                # This field is just for tracking that a media response was provided
+                self.fields[f'response_{qi.id}'] = forms.CharField(
+                    required=False,
+                    widget=forms.HiddenInput()
+                )
 
     def clean(self):
         cleaned_data = super().clean()

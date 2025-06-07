@@ -1,0 +1,319 @@
+<script>
+class MediaRecorderComponent {
+  constructor(containerId) {
+    this.container = document.getElementById(containerId);
+    this.questionId = this.container.dataset.questionId;
+    this.mediaType = 'audio'; // default
+    this.mediaRecorder = null;
+    this.stream = null;
+    this.recordedChunks = [];
+    this.isRecording = false;
+    this.isPaused = false;
+    this.recordingStartTime = null;
+    this.timerInterval = null;
+    this.recordedBlob = null;
+    
+    this.initializeElements();
+    this.attachEventListeners();
+  }
+  
+  initializeElements() {
+    // Get all the DOM elements
+    this.mediaTypeBtns = this.container.querySelectorAll('.media-type-btn');
+    this.videoPreview = this.container.querySelector('.video-preview');
+    this.audioVisualizer = this.container.querySelector('.audio-visualizer');
+    this.recordBtn = this.container.querySelector('.record-btn');
+    this.stopBtn = this.container.querySelector('.stop-btn');
+    this.pauseBtn = this.container.querySelector('.pause-btn');
+    this.playBtn = this.container.querySelector('.play-btn');
+    this.deleteBtn = this.container.querySelector('.delete-btn');
+    this.statusText = this.container.querySelector('.status-text');
+    this.timerDisplay = this.container.querySelector('.timer-display');
+    this.secondaryControls = this.container.querySelector('.secondary-controls');
+    this.recordingArea = this.container.querySelector('.recording-area');
+    this.permissionStatus = this.container.querySelector('.permission-status');
+    this.fileInput = this.container.querySelector('.media-file-input');
+    this.uploadProgress = this.container.querySelector('.upload-progress');
+  }
+  
+  attachEventListeners() {
+    // Media type selection
+    this.mediaTypeBtns.forEach(btn => {
+      btn.addEventListener('click', () => this.selectMediaType(btn.dataset.type));
+    });
+    
+    // Recording controls
+    this.recordBtn.addEventListener('click', () => this.startRecording());
+    this.stopBtn.addEventListener('click', () => this.stopRecording());
+    this.pauseBtn.addEventListener('click', () => this.pauseRecording());
+    this.playBtn.addEventListener('click', () => this.playRecording());
+    this.deleteBtn.addEventListener('click', () => this.deleteRecording());
+  }
+  
+  selectMediaType(type) {
+    this.mediaType = type;
+    
+    // Update button states
+    this.mediaTypeBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.type === type);
+    });
+    
+    // Show/hide appropriate preview
+    if (type === 'video') {
+      this.videoPreview.style.display = 'block';
+      this.audioVisualizer.style.display = 'none';
+    } else {
+      this.videoPreview.style.display = 'none';
+      this.audioVisualizer.style.display = 'flex';
+    }
+    
+    // Stop any existing stream
+    this.stopStream();
+    this.updateStatus('Ready to record ' + type);
+  }
+  
+  async startRecording() {
+    try {
+      // Request media permissions
+      const constraints = this.mediaType === 'video' 
+        ? { video: true, audio: true }
+        : { audio: true };
+      
+      this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      // Setup preview
+      if (this.mediaType === 'video') {
+        this.videoPreview.srcObject = this.stream;
+      }
+      
+      // Create MediaRecorder
+      const options = {
+        mimeType: this.mediaType === 'video' 
+          ? 'video/webm;codecs=vp9' 
+          : 'audio/webm;codecs=opus'
+      };
+      
+             // Fallback for browser compatibility
+       if (!window.MediaRecorder.isTypeSupported(options.mimeType)) {
+         options.mimeType = this.mediaType === 'video' ? 'video/webm' : 'audio/webm';
+       }
+       
+       this.mediaRecorder = new window.MediaRecorder(this.stream, options);
+      this.recordedChunks = [];
+      
+      // Event handlers
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          this.recordedChunks.push(event.data);
+        }
+      };
+      
+      this.mediaRecorder.onstop = () => {
+        this.handleRecordingComplete();
+      };
+      
+      // Start recording
+      this.mediaRecorder.start();
+      this.isRecording = true;
+      this.recordingStartTime = Date.now();
+      
+      // Update UI
+      this.updateRecordingUI();
+      this.startTimer();
+      this.updateStatus('Recording...');
+      
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      this.updateStatus('Error: Could not access ' + this.mediaType + ' device');
+      this.permissionStatus.textContent = 'Please allow ' + this.mediaType + ' access and try again.';
+    }
+  }
+  
+  stopRecording() {
+    if (this.mediaRecorder && this.isRecording) {
+      this.mediaRecorder.stop();
+      this.isRecording = false;
+      this.isPaused = false;
+      this.stopTimer();
+      this.stopStream();
+    }
+  }
+  
+  pauseRecording() {
+    if (this.mediaRecorder && this.isRecording) {
+      if (this.isPaused) {
+        this.mediaRecorder.resume();
+        this.isPaused = false;
+        this.pauseBtn.innerHTML = `
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <rect x="6" y="4" width="4" height="16"/>
+            <rect x="14" y="4" width="4" height="16"/>
+          </svg>
+        `;
+        this.recordingArea.classList.remove('paused');
+        this.updateStatus('Recording...');
+      } else {
+        this.mediaRecorder.pause();
+        this.isPaused = true;
+        this.pauseBtn.innerHTML = `
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <polygon points="5,3 19,12 5,21"/>
+          </svg>
+        `;
+        this.recordingArea.classList.add('paused');
+        this.updateStatus('Recording paused');
+      }
+    }
+  }
+  
+  handleRecordingComplete() {
+    // Create blob from recorded chunks
+    const mimeType = this.mediaType === 'video' ? 'video/webm' : 'audio/webm';
+    this.recordedBlob = new Blob(this.recordedChunks, { type: mimeType });
+    
+    // Create file and add to form
+    this.createFileFromBlob();
+    
+    // Update UI
+    this.updateCompletedUI();
+    this.updateStatus('Recording complete');
+    this.permissionStatus.textContent = 'Recording saved. You can play it back or record again.';
+  }
+  
+  createFileFromBlob() {
+    // Create a File object from the blob
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const extension = this.mediaType === 'video' ? 'webm' : 'webm';
+    const filename = `recording-${this.questionId}-${timestamp}.${extension}`;
+    
+    const file = new File([this.recordedBlob], filename, {
+      type: this.recordedBlob.type
+    });
+    
+    // Create a new FileList and assign to input
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    this.fileInput.files = dataTransfer.files;
+    
+    // Trigger change event so the form knows about the file
+    this.fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  
+  playRecording() {
+    if (!this.recordedBlob) return;
+    
+    const url = URL.createObjectURL(this.recordedBlob);
+    
+    if (this.mediaType === 'video') {
+      // Use the video preview element
+      this.videoPreview.srcObject = null;
+      this.videoPreview.src = url;
+      this.videoPreview.play();
+    } else {
+      // Create a temporary audio element
+      const audio = new Audio(url);
+      audio.play();
+    }
+  }
+  
+  deleteRecording() {
+    // Clear the recording
+    this.recordedBlob = null;
+    this.recordedChunks = [];
+    
+    // Clear the file input
+    this.fileInput.value = '';
+    this.fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    
+    // Reset UI
+    this.resetUI();
+    this.updateStatus('Ready to record ' + this.mediaType);
+    this.permissionStatus.textContent = 'Click record to start. Make sure to allow microphone/camera access.';
+  }
+  
+  updateRecordingUI() {
+    this.recordBtn.style.display = 'none';
+    this.stopBtn.style.display = 'block';
+    this.pauseBtn.style.display = 'block';
+    this.recordingArea.classList.add('recording');
+    this.recordBtn.classList.add('recording');
+    this.timerDisplay.style.display = 'block';
+  }
+  
+  updateCompletedUI() {
+    this.recordBtn.style.display = 'block';
+    this.stopBtn.style.display = 'none';
+    this.pauseBtn.style.display = 'none';
+    this.secondaryControls.style.display = 'flex';
+    this.recordingArea.classList.remove('recording', 'paused');
+    this.recordBtn.classList.remove('recording');
+    this.timerDisplay.style.display = 'none';
+  }
+  
+  resetUI() {
+    this.recordBtn.style.display = 'block';
+    this.stopBtn.style.display = 'none';
+    this.pauseBtn.style.display = 'none';
+    this.secondaryControls.style.display = 'none';
+    this.recordingArea.classList.remove('recording', 'paused');
+    this.recordBtn.classList.remove('recording');
+    this.timerDisplay.style.display = 'none';
+  }
+  
+  startTimer() {
+    this.timerInterval = setInterval(() => {
+      if (this.recordingStartTime && !this.isPaused) {
+        const elapsed = Date.now() - this.recordingStartTime;
+        const minutes = Math.floor(elapsed / 60000);
+        const seconds = Math.floor((elapsed % 60000) / 1000);
+        this.timerDisplay.textContent = 
+          `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }
+    }, 1000);
+  }
+  
+  stopTimer() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+  }
+  
+  stopStream() {
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+      this.stream = null;
+    }
+    
+    if (this.videoPreview.srcObject) {
+      this.videoPreview.srcObject = null;
+    }
+  }
+  
+  updateStatus(message) {
+    this.statusText.textContent = message;
+  }
+  
+  cleanup() {
+    this.stopStream();
+    this.stopTimer();
+  }
+}
+
+// Initialize media recorders when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+  const mediaRecorderContainers = document.querySelectorAll('.media-recorder-container');
+  const mediaRecorders = [];
+  
+  mediaRecorderContainers.forEach((container, index) => {
+    container.id = `media-recorder-${index}`;
+    const recorder = new MediaRecorderComponent(container.id);
+    mediaRecorders.push(recorder);
+  });
+  
+  // Cleanup when page is unloaded
+  window.addEventListener('beforeunload', () => {
+    mediaRecorders.forEach(recorder => recorder.cleanup());
+  });
+});
+</script> 
