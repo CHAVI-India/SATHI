@@ -1,0 +1,80 @@
+{% load i18n %}
+
+<div class="bg-white rounded-lg shadow p-4">
+    <!-- Title at the top -->
+    <div class="mb-3">
+        <h3 class="text-sm font-bold text-gray-900">{{ item_response.questionnaire_item.item.name }}</h3>
+    </div>
+    
+    <!-- Media player area at the bottom -->
+    <div class="border rounded-md p-3 bg-gray-50">
+        {% if item_response.response_media %}
+            {% with media_type=item_response.media_type %}
+                {% if media_type == 'audio' %}
+                    <!-- Audio Player -->
+                    <div class="audio-player">
+                        <audio controls class="w-full">
+                            <source src="{{ item_response.response_media.url }}" type="audio/mpeg">
+                            <source src="{{ item_response.response_media.url }}" type="audio/wav">
+                            <source src="{{ item_response.response_media.url }}" type="audio/ogg">
+                            <source src="{{ item_response.response_media.url }}" type="audio/m4a">
+                            {% translate "Your browser does not support the audio element." %}
+                        </audio>
+                        <div class="mt-2 text-xs text-gray-500">
+                            <i class="fas fa-music mr-1"></i>
+                            {% translate "Audio Response" %}
+                        </div>
+                    </div>
+                {% elif media_type == 'video' %}
+                    <!-- Video Player -->
+                    <div class="video-player">
+                        <video controls class="w-full max-h-48 rounded">
+                            <source src="{{ item_response.response_media.url }}" type="video/mp4">
+                            <source src="{{ item_response.response_media.url }}" type="video/webm">
+                            <source src="{{ item_response.response_media.url }}" type="video/ogg">
+                            {% translate "Your browser does not support the video element." %}
+                        </video>
+                        <div class="mt-2 text-xs text-gray-500">
+                            <i class="fas fa-video mr-1"></i>
+                            {% translate "Video Response" %}
+                        </div>
+                    </div>
+                {% elif media_type == 'image' %}
+                    <!-- Image Display -->
+                    <div class="image-display">
+                        <img src="{{ item_response.response_media.url }}" alt="{% translate 'Image Response' %}" class="w-full max-h-48 object-contain rounded">
+                        <div class="mt-2 text-xs text-gray-500">
+                            <i class="fas fa-image mr-1"></i>
+                            {% translate "Image Response" %}
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Generic Media File -->
+                    <div class="file-display">
+                        <div class="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded">
+                            <div class="text-center">
+                                <i class="fas fa-file-alt text-2xl text-gray-400 mb-2"></i>
+                                <p class="text-sm text-gray-600">
+                                    <a href="{{ item_response.response_media.url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                                        {% translate "Download Media File" %}
+                                    </a>
+                                </p>
+                                <div class="mt-1 text-xs text-gray-500">
+                                    <i class="fas fa-file mr-1"></i>
+                                    {% translate "Media Response" %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endwith %}
+        {% else %}
+            <div class="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded">
+                <div class="text-center">
+                    <i class="fas fa-file-alt text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-sm text-gray-400 italic">{% translate "No media response provided" %}</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div> 

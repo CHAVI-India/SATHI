@@ -380,6 +380,35 @@ def prom_review(request, pk):
                 logger.error(f"Error processing Likert item {response.questionnaire_item.item.id} (Response ID {response.id}): {e_likert_proc}", exc_info=True)
                 response.likert_response = None
                 response.percentage = 0
+        elif response.questionnaire_item.item.response_type == 'Media':
+            # Handle media responses
+            try:
+                if response.response_media:
+                    # Determine media type using the existing get_media_type method
+                    media_type = None
+                    if hasattr(response.response_media, 'name') and response.response_media.name:
+                        file_name = str(response.response_media.name).lower()
+                        
+                        # Audio file extensions
+                        audio_extensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac']
+                        if any(file_name.endswith(ext) for ext in audio_extensions):
+                            media_type = 'audio'
+                        # Video file extensions
+                        elif any(file_name.endswith(ext) for ext in ['.mp4', '.webm', '.avi', '.mov', '.wmv', '.mkv']):
+                            media_type = 'video'
+                        # Image file extensions
+                        elif any(file_name.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.tiff', '.ico']):
+                            media_type = 'image'
+                        # Default to 'other' if no match
+                        else:
+                            media_type = 'other'
+                    
+                    response.media_type = media_type or 'other'
+                else:
+                    response.media_type = None
+            except Exception as e_media_proc:
+                logger.error(f"Error processing Media item {response.questionnaire_item.item.id} (Response ID {response.id}): {e_media_proc}", exc_info=True)
+                response.media_type = None
         
         # Get previous response for change calculation using the bulk-fetched data
         response.previous_value = None
@@ -1195,6 +1224,35 @@ def patient_portal(request):
                     logger.error(f"Error processing Likert item {response.questionnaire_item.item.id}: {e_likert_proc}", exc_info=True)
                     response.likert_response = None
                     response.percentage = 0
+            elif response.questionnaire_item.item.response_type == 'Media':
+                # Handle media responses
+                try:
+                    if response.response_media:
+                        # Determine media type
+                        media_type = None
+                        if hasattr(response.response_media, 'name') and response.response_media.name:
+                            file_name = str(response.response_media.name).lower()
+                            
+                            # Audio file extensions
+                            audio_extensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac']
+                            if any(file_name.endswith(ext) for ext in audio_extensions):
+                                media_type = 'audio'
+                            # Video file extensions
+                            elif any(file_name.endswith(ext) for ext in ['.mp4', '.webm', '.avi', '.mov', '.wmv', '.mkv']):
+                                media_type = 'video'
+                            # Image file extensions
+                            elif any(file_name.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.tiff', '.ico']):
+                                media_type = 'image'
+                            # Default to 'other' if no match
+                            else:
+                                media_type = 'other'
+                        
+                        response.media_type = media_type or 'other'
+                    else:
+                        response.media_type = None
+                except Exception as e_media_proc:
+                    logger.error(f"Error processing Media item {response.questionnaire_item.item.id}: {e_media_proc}", exc_info=True)
+                    response.media_type = None
         
         # Create plot for this item using all historical responses
         try:

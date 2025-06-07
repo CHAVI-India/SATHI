@@ -13,6 +13,8 @@
                 {% include "promapp/components/likert_item_card.html" %}
             {% elif item_response.questionnaire_item.item.response_type in 'Number,Range' %}
                 {% include "promapp/components/numeric_item_card.html" %}
+            {% elif item_response.questionnaire_item.item.response_type == 'Media' %}
+                {% include "promapp/components/media_item_card.html" %}
             {% endif %}
         {% empty %}
             <div class="col-span-3 text-center py-4">
