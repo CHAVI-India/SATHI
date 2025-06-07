@@ -22,9 +22,15 @@
                 </div>
             </div>
 
+            <!-- Filters Section (outside of main-content to prevent replacement) -->
+            {% include "promapp/components/filters_section.html" %}
+            
             <!-- Main Content -->
             <div id="main-content" class="space-y-6">
-                {% include "promapp/components/main_content.html" %}
+                <!-- Content that gets updated by filters -->
+                <div id="filterable-content">
+                    {% include "promapp/components/main_content.html" %}
+                </div>
             </div>
         </div>
     </div>
@@ -49,11 +55,17 @@
 
         // Initialize item filter functionality
         initializeItemFilter();
+        
+        // Restore filter state on page load
+        restoreFilterState();
+        
+        // Restore population comparison state on page load
+        restorePopulationState();
     });
     
     // Add HTMX event listener to reinitialize after content updates
     document.addEventListener('htmx:afterSwap', function(event) {
-        if (event.detail.target.id === 'main-content') {
+        if (event.detail.target.id === 'filterable-content') {
             // Reinitialize item filter functionality after HTMX content swap
             initializeItemFilter();
         }
@@ -110,7 +122,7 @@
                 const url = "{% url 'prom_review' patient.id %}" + '?' + params.toString();
                 
                 htmx.ajax('GET', url, {
-                    target: '#main-content',
+                    target: '#filterable-content',
                     indicator: '#filters-loading'
                 });
             }
@@ -233,9 +245,23 @@
         if (content.classList.contains('hidden')) {
             content.classList.remove('hidden');
             chevron.classList.add('rotate-180');
+            localStorage.setItem('filters-expanded', 'true');
         } else {
             content.classList.add('hidden');
             chevron.classList.remove('rotate-180');
+            localStorage.setItem('filters-expanded', 'false');
+        }
+    }
+
+    // Function to restore filter state
+    function restoreFilterState() {
+        const isExpanded = localStorage.getItem('filters-expanded') === 'true';
+        const content = document.getElementById('filters-content');
+        const chevron = document.getElementById('filters-chevron');
+        
+        if (isExpanded && content && chevron) {
+            content.classList.remove('hidden');
+            chevron.classList.add('rotate-180');
         }
     }
 
@@ -247,9 +273,23 @@
         if (content.classList.contains('hidden')) {
             content.classList.remove('hidden');
             chevron.classList.add('rotate-180');
+            localStorage.setItem('population-expanded', 'true');
         } else {
             content.classList.add('hidden');
             chevron.classList.remove('rotate-180');
+            localStorage.setItem('population-expanded', 'false');
+        }
+    }
+
+    // Function to restore population comparison state
+    function restorePopulationState() {
+        const isExpanded = localStorage.getItem('population-expanded') === 'true';
+        const content = document.getElementById('population-content');
+        const chevron = document.getElementById('population-chevron');
+        
+        if (isExpanded && content && chevron) {
+            content.classList.remove('hidden');
+            chevron.classList.add('rotate-180');
         }
     }
 
