@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-04 08:29+0530\n"
+"POT-Creation-Date: 2025-06-08 11:28+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -42,47 +42,67 @@ msgstr ""
 msgid "A user with that email already exists."
 msgstr ""
 
-#: patientapp/views.py:619 templates/promapp/components/filters_section.html:76
+#: patientapp/models.py:162
+msgid "Start date cannot be in the future."
+msgstr ""
+
+#: patientapp/models.py:166
+msgid "End date cannot be in the future."
+msgstr ""
+
+#: patientapp/models.py:171
+msgid "End date cannot be before the start date."
+msgstr ""
+
+#: patientapp/models.py:175
+msgid "End date should not be specified for ongoing treatments."
+msgstr ""
+
+#: patientapp/models.py:180
+msgid "End date is required when treatment is not ongoing."
+msgstr ""
+
+#: patientapp/views.py:780 templates/promapp/components/filters_section.html:94
 msgid "3 submissions"
 msgstr ""
 
-#: patientapp/views.py:620 templates/promapp/components/filters_section.html:77
+#: patientapp/views.py:781 templates/promapp/components/filters_section.html:95
 msgid "5 submissions"
 msgstr ""
 
-#: patientapp/views.py:621 templates/promapp/components/filters_section.html:78
+#: patientapp/views.py:782 templates/promapp/components/filters_section.html:96
 msgid "10 submissions"
 msgstr ""
 
-#: patientapp/views.py:622 templates/promapp/components/filters_section.html:79
+#: patientapp/views.py:783 templates/promapp/components/filters_section.html:97
 msgid "15 submissions"
 msgstr ""
 
-#: patientapp/views.py:623 templates/promapp/components/filters_section.html:80
+#: patientapp/views.py:784 templates/promapp/components/filters_section.html:98
 msgid "All submissions"
 msgstr ""
 
-#: patientapp/views.py:870
+#: patientapp/views.py:1033
 msgid "You do not have patient access."
 msgstr ""
 
-#: patientapp/views.py:1207 promapp/views.py:1708
+#: patientapp/views.py:1459 promapp/views.py:1754
 msgid "None"
 msgstr ""
 
-#: patientapp/views.py:1208 promapp/views.py:1709
+#: patientapp/views.py:1460 promapp/views.py:1755
 msgid "1-5"
 msgstr ""
 
-#: patientapp/views.py:1209 promapp/views.py:1710
+#: patientapp/views.py:1461 promapp/views.py:1756
 msgid "6-10"
 msgstr ""
 
-#: patientapp/views.py:1210 promapp/views.py:1711
+#: patientapp/views.py:1462 promapp/views.py:1757
 msgid "10+"
 msgstr ""
 
-#: patientapp/views.py:1214 promapp/views.py:1715
+#: patientapp/views.py:1466 promapp/views.py:1761
 #: templates/patientapp/patient_detail.html:58
 #: templates/patientapp/patient_list.html:135
 #: templates/promapp/item_translation_form.html:131
@@ -90,79 +110,79 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: patientapp/views.py:1215 promapp/views.py:1716
+#: patientapp/views.py:1467 promapp/views.py:1762
 msgid "Name (Z-A)"
 msgstr ""
 
-#: patientapp/views.py:1216 promapp/views.py:1717
+#: patientapp/views.py:1468 promapp/views.py:1763
 msgid "Questionnaire Count"
 msgstr ""
 
-#: patientapp/views.py:1217 promapp/views.py:1718
+#: patientapp/views.py:1469 promapp/views.py:1764
 msgid "Questionnaire Count (High-Low)"
 msgstr ""
 
-#: patientapp/views.py:1309
+#: patientapp/views.py:1561
 msgid "Patient created successfully."
 msgstr ""
 
-#: patientapp/views.py:1313
+#: patientapp/views.py:1565
 msgid "An error occurred while creating the patient."
 msgstr ""
 
-#: patientapp/views.py:1318
+#: patientapp/views.py:1570
 msgid "Add New Patient"
 msgstr ""
 
-#: patientapp/views.py:1340 templates/patientapp/patient_detail.html:26
+#: patientapp/views.py:1592 templates/patientapp/patient_detail.html:26
 #: templates/patientapp/patient_restricted_update_form.html:44
 msgid "Edit Patient Details"
 msgstr ""
 
-#: patientapp/views.py:1352
+#: patientapp/views.py:1604
 msgid "Patient basic details updated successfully."
 msgstr ""
 
-#: patientapp/views.py:1356
+#: patientapp/views.py:1608
 msgid "An error occurred while updating the patient basic details."
 msgstr ""
 
-#: patientapp/views.py:1374 templates/patientapp/diagnosis_form.html:11
+#: patientapp/views.py:1626 templates/patientapp/diagnosis_form.html:11
 #: templates/patientapp/patient_detail.html:97
 msgid "Add Diagnosis"
 msgstr ""
 
-#: patientapp/views.py:1381
+#: patientapp/views.py:1633
 msgid "Diagnosis added successfully."
 msgstr ""
 
-#: patientapp/views.py:1402 templates/patientapp/diagnosis_form.html:11
+#: patientapp/views.py:1654 templates/patientapp/diagnosis_form.html:11
 #: templates/patientapp/patient_detail.html:125
 msgid "Edit Diagnosis"
 msgstr ""
 
-#: patientapp/views.py:1426 templates/patientapp/patient_detail.html:130
+#: patientapp/views.py:1678 templates/patientapp/patient_detail.html:130
 msgid "Add Treatment"
 msgstr ""
 
-#: patientapp/views.py:1434
+#: patientapp/views.py:1686
 msgid "Treatment added successfully."
 msgstr ""
 
-#: patientapp/views.py:1457
+#: patientapp/views.py:1709
 msgid "Edit Treatment"
 msgstr ""
 
-#: patientapp/views.py:1483 templates/patientapp/treatment_type_form.html:11
+#: patientapp/views.py:1735 templates/patientapp/treatment_type_form.html:11
 #: templates/patientapp/treatment_type_list.html:13
 msgid "Add Treatment Type"
 msgstr ""
 
-#: patientapp/views.py:1513 templates/patientapp/treatment_type_form.html:11
+#: patientapp/views.py:1765 templates/patientapp/treatment_type_form.html:11
 msgid "Edit Treatment Type"
 msgstr ""
 
-#: patientapp/views.py:1525 templates/patientapp/treatment_type_list.html:10
+#: patientapp/views.py:1777 templates/patientapp/treatment_type_list.html:10
 msgid "Treatment Types"
 msgstr ""
 
@@ -170,229 +190,229 @@ msgstr ""
 msgid "Select Items for Questionnaire"
 msgstr ""
 
-#: promapp/forms.py:376 templates/promapp/questionnaire_response.html:100
+#: promapp/forms.py:376 templates/promapp/questionnaire_response.html:208
 msgid "Enter your response here..."
 msgstr ""
 
-#: promapp/forms.py:384 templates/promapp/questionnaire_response.html:109
+#: promapp/forms.py:384 templates/promapp/questionnaire_response.html:217
 msgid "Enter a number..."
 msgstr ""
 
-#: promapp/forms.py:610
+#: promapp/forms.py:617
 #: templates/promapp/questionnaire_item_rule_group_form.html:99
 msgid "Select Rules"
 msgstr ""
 
-#: promapp/forms.py:667 promapp/views.py:2093
+#: promapp/forms.py:674 promapp/views.py:2139
 msgid "All rules must belong to the same questionnaire item."
 msgstr ""
 
-#: promapp/forms.py:823
+#: promapp/forms.py:830
 msgid "Search..."
 msgstr ""
 
-#: promapp/forms.py:846
+#: promapp/forms.py:853
 msgid "All Languages"
 msgstr ""
 
-#: promapp/forms.py:849
+#: promapp/forms.py:856
 #, python-brace-format
 msgid "{lang_name} (Translated)"
 msgstr ""
 
-#: promapp/forms.py:850
+#: promapp/forms.py:857
 #, python-brace-format
 msgid "{lang_name} (Not Translated)"
 msgstr ""
 
-#: promapp/views.py:1340
+#: promapp/views.py:1376
 #, python-format
 msgid ""
 "You cannot answer this questionnaire yet. You can answer it again in "
 "%(time)s."
 msgstr ""
 
-#: promapp/views.py:1426
+#: promapp/views.py:1462
 msgid "You do not have permission to submit responses."
 msgstr ""
 
-#: promapp/views.py:1460
+#: promapp/views.py:1506
 msgid "Your responses have been saved successfully."
 msgstr ""
 
-#: promapp/views.py:1463
+#: promapp/views.py:1509
 #, python-format
 msgid "An error occurred while saving your responses: %s"
 msgstr ""
 
-#: promapp/views.py:1469
+#: promapp/views.py:1515
 msgid "There was an error saving your responses. Please try again."
 msgstr ""
 
-#: promapp/views.py:1594
+#: promapp/views.py:1640
 msgid "Questionnaire assigned successfully."
 msgstr ""
 
-#: promapp/views.py:1602
+#: promapp/views.py:1648
 msgid "Questionnaire unassigned successfully."
 msgstr ""
 
-#: promapp/views.py:1613
+#: promapp/views.py:1659
 #, python-brace-format
 msgid "Questionnaire is now {status}."
 msgstr ""
 
-#: promapp/views.py:1616
+#: promapp/views.py:1662
 msgid "Questionnaire not found."
 msgstr ""
 
-#: promapp/views.py:1618
+#: promapp/views.py:1664
 msgid "Questionnaire assignment not found."
 msgstr ""
 
-#: promapp/views.py:1620
+#: promapp/views.py:1666
 msgid "An error occurred. Please try again."
 msgstr ""
 
-#: promapp/views.py:1973
+#: promapp/views.py:2019
 msgid "Please select a dependent item."
 msgstr ""
 
-#: promapp/views.py:1977
+#: promapp/views.py:2023
 msgid "Selected item: {}"
 msgstr ""
 
-#: promapp/views.py:1979
+#: promapp/views.py:2025
 msgid "Invalid item selected."
 msgstr ""
 
-#: promapp/views.py:1987
+#: promapp/views.py:2033
 msgid "Please select an operator."
 msgstr ""
 
-#: promapp/views.py:1995
+#: promapp/views.py:2041
 msgid "Valid operator for numeric comparison."
 msgstr ""
 
-#: promapp/views.py:1997
+#: promapp/views.py:2043
 msgid "Valid operator for text comparison."
 msgstr ""
 
-#: promapp/views.py:1999 promapp/views.py:2044
+#: promapp/views.py:2045 promapp/views.py:2090
 msgid "Invalid dependent item."
 msgstr ""
 
-#: promapp/views.py:2007
+#: promapp/views.py:2053
 msgid "Please enter a comparison value."
 msgstr ""
 
-#: promapp/views.py:2016
+#: promapp/views.py:2062
 msgid "Valid numeric value."
 msgstr ""
 
-#: promapp/views.py:2018 promapp/views.py:2029 promapp/views.py:2040
-#: promapp/views.py:2064 promapp/views.py:2077
+#: promapp/views.py:2064 promapp/views.py:2075 promapp/views.py:2086
+#: promapp/views.py:2110 promapp/views.py:2123
 msgid "Please enter a valid number."
 msgstr ""
 
-#: promapp/views.py:2025
+#: promapp/views.py:2071
 msgid "Valid Likert scale value."
 msgstr ""
 
-#: promapp/views.py:2027
+#: promapp/views.py:2073
 msgid "Please enter a valid Likert scale value."
 msgstr ""
 
-#: promapp/views.py:2035
+#: promapp/views.py:2081
 msgid "Valid range value."
 msgstr ""
 
-#: promapp/views.py:2037
+#: promapp/views.py:2083
 msgid "Value must be between {} and {}."
 msgstr ""
 
-#: promapp/views.py:2042
+#: promapp/views.py:2088
 msgid "Valid text value."
 msgstr ""
 
-#: promapp/views.py:2050
+#: promapp/views.py:2096
 msgid "Please select a logical operator."
 msgstr ""
 
-#: promapp/views.py:2051
+#: promapp/views.py:2097
 msgid "Valid logical operator."
 msgstr ""
 
-#: promapp/views.py:2057
+#: promapp/views.py:2103
 msgid "Please enter a rule order."
 msgstr ""
 
-#: promapp/views.py:2061 promapp/views.py:2074
+#: promapp/views.py:2107 promapp/views.py:2120
 msgid "Order must be greater than 0."
 msgstr ""
 
-#: promapp/views.py:2062
+#: promapp/views.py:2108
 msgid "Valid rule order."
 msgstr ""
 
-#: promapp/views.py:2070
+#: promapp/views.py:2116
 msgid "Please enter a group order."
 msgstr ""
 
-#: promapp/views.py:2075
+#: promapp/views.py:2121
 msgid "Valid group order."
 msgstr ""
 
-#: promapp/views.py:2083
+#: promapp/views.py:2129
 msgid "Please select at least one rule."
 msgstr ""
 
-#: promapp/views.py:2088
+#: promapp/views.py:2134
 msgid "One or more invalid rules selected."
 msgstr ""
 
-#: promapp/views.py:2095
+#: promapp/views.py:2141
 msgid "Valid rule selection."
 msgstr ""
 
-#: promapp/views.py:2097
+#: promapp/views.py:2143
 msgid "Error validating rules."
 msgstr ""
 
-#: promapp/views.py:2479 promapp/views.py:2681 promapp/views.py:2883
-#: promapp/views.py:3054
+#: promapp/views.py:2525 promapp/views.py:2727 promapp/views.py:2929
+#: promapp/views.py:3100
 msgid "Translation saved successfully."
 msgstr ""
 
-#: promapp/views.py:3292
+#: promapp/views.py:3338
 msgid "Equation saved successfully."
 msgstr ""
 
-#: promapp/views.py:3331
+#: promapp/views.py:3377
 msgid "Construct scale updated successfully."
 msgstr ""
 
-#: promapp/views.py:3345
+#: promapp/views.py:3391
 msgid "Construct scale deleted successfully."
 msgstr ""
 
-#: promapp/views.py:3488
+#: promapp/views.py:3543
 msgid "Composite construct scale scoring created successfully."
 msgstr ""
 
-#: promapp/views.py:3492 promapp/views.py:3513
+#: promapp/views.py:3547 promapp/views.py:3568
 msgid "Please correct the errors below."
 msgstr ""
 
-#: promapp/views.py:3509
+#: promapp/views.py:3564
 msgid "Composite construct scale scoring updated successfully."
 msgstr ""
 
-#: promapp/views.py:3528
+#: promapp/views.py:3583
 msgid "Composite construct scale scoring deleted successfully."
 msgstr ""
 
-#: templates/base.html:27
+#: templates/base.html:59
 msgid "Select Language"
 msgstr ""
 
@@ -402,7 +422,7 @@ msgid "View"
 msgstr ""
 
 #: templates/cotton/action_buttons.html:29 templates/cotton/edit_button.html:13
-#: templates/patientapp/patient_detail.html:162
+#: templates/patientapp/patient_detail.html:179
 #: templates/patientapp/treatment_type_list.html:61
 #: templates/promapp/partials/composite_construct_scale_scoring_list_table.html:18
 #: templates/promapp/partials/construct_scale_list_table.html:18
@@ -427,6 +447,7 @@ msgstr ""
 #: templates/patientapp/diagnosis_confirm_delete.html:29
 #: templates/patientapp/treatment_confirm_delete.html:34
 #: templates/patientapp/treatment_type_confirm_delete.html:29
+#: templates/promapp/components/media_recorder.html:90
 #: templates/promapp/likert_scale_form.html:136
 #: templates/promapp/partials/composite_construct_scale_scoring_list_table.html:23
 #: templates/promapp/questionnaire_item_rule_groups_list.html:107
@@ -476,30 +497,40 @@ msgstr[1] ""
 
 #: templates/cotton/paginator.html:42 templates/cotton/paginator.html:46
 #: templates/cotton/paginator.html:92 templates/cotton/paginator.html:99
-#: templates/promapp/components/text_item_card.html:19
+#: templates/promapp/partials/item_list_table.html:113
+#: templates/promapp/partials/item_list_table.html:117
+#: templates/promapp/partials/item_list_table.html:162
+#: templates/promapp/partials/item_list_table.html:169
 msgid "Previous"
 msgstr ""
 
 #: templates/cotton/paginator.html:55 templates/cotton/paginator.html:59
 #: templates/cotton/paginator.html:130 templates/cotton/paginator.html:137
-#: templates/promapp/components/text_item_card.html:25
+#: templates/promapp/partials/item_list_table.html:127
+#: templates/promapp/partials/item_list_table.html:131
+#: templates/promapp/partials/item_list_table.html:202
+#: templates/promapp/partials/item_list_table.html:209
 msgid "Next"
 msgstr ""
 
 #: templates/cotton/paginator.html:71
+#: templates/promapp/partials/item_list_table.html:142
 msgid "Showing"
 msgstr ""
 
 #: templates/cotton/paginator.html:73
+#: templates/promapp/partials/item_list_table.html:144
 msgid "to"
 msgstr ""
 
 #: templates/cotton/paginator.html:75
+#: templates/promapp/partials/item_list_table.html:146
 #: templates/promapp/questionnaire_response.html:19
 msgid "of"
 msgstr ""
 
 #: templates/cotton/paginator.html:77
+#: templates/promapp/partials/item_list_table.html:148
 msgid "results"
 msgstr ""
 
@@ -544,7 +575,7 @@ msgid ""
 msgstr ""
 
 #: templates/index.html:23 templates/navbar.html:93 templates/navbar.html:222
-#: templates/patientapp/partials/patient_portal_plots.html:117
+#: templates/patientapp/partials/patient_portal_plots.html:138
 msgid "Complete a Questionnaire"
 msgstr ""
 
@@ -589,9 +620,9 @@ msgstr ""
 #: templates/navbar.html:14 templates/navbar.html:158
 #: templates/patientapp/patient_list.html:6
 #: templates/patientapp/patient_list.html:14
-#: templates/promapp/components/aggregation_metadata_card.html:32
-#: templates/promapp/components/aggregation_metadata_card.html:80
-#: templates/promapp/components/aggregation_metadata_card.html:123
+#: templates/promapp/components/aggregation_metadata_card.html:69
+#: templates/promapp/components/aggregation_metadata_card.html:109
+#: templates/promapp/components/aggregation_metadata_card.html:144
 msgid "Patients"
 msgstr ""
 
@@ -617,7 +648,6 @@ msgid "Composite Construct Scales"
 msgstr ""
 
 #: templates/navbar.html:42 templates/navbar.html:178
-#: templates/promapp/components/filters_section.html:322
 #: templates/promapp/item_list.html:5 templates/promapp/item_list.html:12
 msgid "Items"
 msgstr ""
@@ -665,7 +695,6 @@ msgstr ""
 
 #: templates/navbar.html:96 templates/navbar.html:225
 #: templates/patientapp/patient_portal.html:5
-#: templates/patientapp/patient_portal.html:19
 msgid "My Portal"
 msgstr ""
 
@@ -702,7 +731,7 @@ msgstr ""
 #: templates/patientapp/patient_form.html:79
 #: templates/patientapp/patient_restricted_update_form.html:41
 #: templates/patientapp/treatment_confirm_delete.html:37
-#: templates/patientapp/treatment_form.html:52
+#: templates/patientapp/treatment_form.html:98
 #: templates/patientapp/treatment_type_confirm_delete.html:26
 #: templates/patientapp/treatment_type_form.html:20
 #: templates/promapp/composite_construct_scale_scoring_form.html:53
@@ -725,67 +754,124 @@ msgid "Cancel"
 msgstr ""
 
 #: templates/patientapp/diagnosis_form.html:23
-#: templates/patientapp/treatment_form.html:55
+#: templates/patientapp/treatment_form.html:101
 #: templates/patientapp/treatment_type_form.html:23
 msgid "Update"
 msgstr ""
 
 #: templates/patientapp/diagnosis_form.html:23
 #: templates/patientapp/partials/treatment_type_form_modal.html:21
-#: templates/patientapp/treatment_form.html:55
+#: templates/patientapp/treatment_form.html:101
 #: templates/patientapp/treatment_type_form.html:23
 msgid "Add"
 msgstr ""
 
-#: templates/patientapp/partials/patient_portal_plots.html:16
-msgid "Construct"
+#: templates/patientapp/partials/patient_portal_media_card.html:23
+msgid "Latest Media Response"
 msgstr ""
 
-#: templates/patientapp/partials/patient_portal_plots.html:22
-msgid "response"
-msgid_plural "responses"
-msgstr[0] ""
-msgstr[1] ""
+#: templates/patientapp/partials/patient_portal_media_card.html:41
+#: templates/promapp/components/media_item_card.html:21
+msgid "Your browser does not support the audio element."
+msgstr ""
 
-#: templates/patientapp/partials/patient_portal_plots.html:32
+#: templates/patientapp/partials/patient_portal_media_card.html:45
+#: templates/promapp/components/media_item_card.html:25
+msgid "Audio Response"
+msgstr ""
+
+#: templates/patientapp/partials/patient_portal_media_card.html:55
+#: templates/promapp/components/media_item_card.html:35
+msgid "Your browser does not support the video element."
+msgstr ""
+
+#: templates/patientapp/partials/patient_portal_media_card.html:59
+#: templates/promapp/components/media_item_card.html:39
+msgid "Video Response"
+msgstr ""
+
+#: templates/patientapp/partials/patient_portal_media_card.html:66
+#: templates/patientapp/partials/patient_portal_media_card.html:71
+#: templates/promapp/components/media_item_card.html:46
+#: templates/promapp/components/media_item_card.html:51
+msgid "Image Response"
+msgstr ""
+
+#: templates/patientapp/partials/patient_portal_media_card.html:71
+#: templates/promapp/components/media_item_card.html:51
+msgid "Click to enlarge"
+msgstr ""
+
+#: templates/patientapp/partials/patient_portal_media_card.html:82
+#: templates/promapp/components/media_item_card.html:62
+msgid "Download Media File"
+msgstr ""
+
+#: templates/patientapp/partials/patient_portal_media_card.html:87
+#: templates/promapp/components/media_item_card.html:67
+msgid "Media Response"
+msgstr ""
+
+#: templates/patientapp/partials/patient_portal_media_card.html:98
+#: templates/promapp/components/media_item_card.html:78
+msgid "No media response provided"
+msgstr ""
+
+#: templates/patientapp/partials/patient_portal_media_card.html:107
+msgid "No responses yet"
+msgstr ""
+
+#: templates/patientapp/partials/patient_portal_media_card.html:115
+msgid "Latest response shown"
+msgstr ""
+
+#: templates/patientapp/partials/patient_portal_plots.html:10
+msgid "Response Trends"
+msgstr ""
+
+#: templates/patientapp/partials/patient_portal_plots.html:36
 msgid "Latest Response"
 msgstr ""
 
-#: templates/patientapp/partials/patient_portal_plots.html:69
+#: templates/patientapp/partials/patient_portal_plots.html:72
 msgid "Plot Legend"
 msgstr ""
 
-#: templates/patientapp/partials/patient_portal_plots.html:73
+#: templates/patientapp/partials/patient_portal_plots.html:76
 msgid "Your responses"
 msgstr ""
 
-#: templates/patientapp/partials/patient_portal_plots.html:77
+#: templates/patientapp/partials/patient_portal_plots.html:80
 msgid "Threshold line (if available)"
 msgstr ""
 
-#: templates/patientapp/partials/patient_portal_plots.html:81
+#: templates/patientapp/partials/patient_portal_plots.html:84
 msgid "Normal range (if available)"
 msgstr ""
 
-#: templates/patientapp/partials/patient_portal_plots.html:85
+#: templates/patientapp/partials/patient_portal_plots.html:88
 msgid "Normal range band (if available)"
 msgstr ""
 
-#: templates/patientapp/partials/patient_portal_plots.html:99
+#: templates/patientapp/partials/patient_portal_plots.html:100
+msgid "Media Responses"
+msgstr ""
+
+#: templates/patientapp/partials/patient_portal_plots.html:120
 msgid "No responses for selected items"
 msgstr ""
 
-#: templates/patientapp/partials/patient_portal_plots.html:101
+#: templates/patientapp/partials/patient_portal_plots.html:122
 msgid ""
 "You haven't responded to the selected items yet, or try selecting different "
 "items to view your response trends."
 msgstr ""
 
-#: templates/patientapp/partials/patient_portal_plots.html:108
+#: templates/patientapp/partials/patient_portal_plots.html:129
 msgid "No response data yet"
 msgstr ""
 
-#: templates/patientapp/partials/patient_portal_plots.html:110
+#: templates/patientapp/partials/patient_portal_plots.html:131
 msgid ""
 "Complete some questionnaires to see your response trends and patterns over "
 "time."
@@ -815,7 +901,7 @@ msgid "Diagnoses"
 msgstr ""
 
 #: templates/patientapp/partials/patient_table.html:74
-#: templates/patientapp/patient_detail.html:177
+#: templates/patientapp/patient_detail.html:194
 #: templates/promapp/components/patient_info_card.html:103
 msgid "No diagnoses recorded"
 msgstr ""
@@ -826,7 +912,7 @@ msgid "Treatments"
 msgstr ""
 
 #: templates/patientapp/partials/patient_table.html:95
-#: templates/patientapp/patient_detail.html:170
+#: templates/patientapp/patient_detail.html:187
 #: templates/promapp/components/patient_info_card.html:93
 msgid "No treatments recorded"
 msgstr ""
@@ -853,7 +939,7 @@ msgid "Add Patient"
 msgstr ""
 
 #: templates/patientapp/partials/treatment_type_form_modal.html:9
-#: templates/patientapp/treatment_form.html:32
+#: templates/patientapp/treatment_form.html:55
 msgid "Add New Treatment Type"
 msgstr ""
 
@@ -873,7 +959,6 @@ msgid "Patient Information"
 msgstr ""
 
 #: templates/patientapp/patient_detail.html:52
-#: templates/patientapp/patient_portal.html:23
 msgid "Patient ID"
 msgstr ""
 
@@ -884,7 +969,6 @@ msgstr ""
 
 #: templates/patientapp/patient_detail.html:69
 #: templates/patientapp/patient_list.html:102
-#: templates/patientapp/patient_portal.html:41
 msgid "Gender"
 msgstr ""
 
@@ -908,9 +992,22 @@ msgstr ""
 msgid "N/A"
 msgstr ""
 
-#: templates/patientapp/patient_detail.html:155
-#: templates/patientapp/patient_portal.html:87
+#: templates/patientapp/patient_detail.html:158
+#: templates/patientapp/patient_portal.html:119
 msgid "Started"
+msgstr ""
+
+#: templates/patientapp/patient_detail.html:164
+#: templates/promapp/patient_questionnaire_management.html:50
+msgid "Status"
+msgstr ""
+
+#: templates/patientapp/patient_detail.html:166
+msgid "Ongoing"
+msgstr ""
+
+#: templates/patientapp/patient_detail.html:171
+msgid "Completed"
 msgstr ""
 
 #: templates/patientapp/patient_form.html:29
@@ -958,7 +1055,7 @@ msgid "All Institutions"
 msgstr ""
 
 #: templates/patientapp/patient_list.html:103
-#: templates/promapp/components/filters_section.html:152
+#: templates/promapp/components/filters_section.html:170
 msgid "All Genders"
 msgstr ""
 
@@ -971,7 +1068,7 @@ msgid "Diagnosis"
 msgstr ""
 
 #: templates/patientapp/patient_list.html:119
-#: templates/promapp/components/filters_section.html:174
+#: templates/promapp/components/filters_section.html:192
 msgid "All Diagnoses"
 msgstr ""
 
@@ -992,144 +1089,142 @@ msgstr ""
 msgid "Welcome"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:25
+#: templates/patientapp/patient_portal.html:22
+msgid "ID"
+msgstr ""
+
+#: templates/patientapp/patient_portal.html:24
 msgid "Registered"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:35
-msgid "Years Old"
+#: templates/patientapp/patient_portal.html:27
+#: templates/promapp/components/aggregated_results_section.html:51
+#: templates/promapp/components/aggregation_metadata_card.html:149
+msgid "Responses"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:46
-msgid "Total Responses"
+#: templates/patientapp/patient_portal.html:37
+msgid "Complete Questionnaires"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:60
-#: templates/promapp/components/patient_info_card.html:25
-msgid "Clinical Information"
-msgstr ""
-
-#: templates/patientapp/patient_portal.html:70
-msgid "Diagnosed on"
-msgstr ""
-
-#: templates/patientapp/patient_portal.html:79
-msgid "Treatment"
-msgstr ""
-
-#: templates/patientapp/patient_portal.html:109
+#: templates/patientapp/patient_portal.html:47
 #: templates/promapp/my_questionnaire_list.html:20
 msgid "Available Questionnaires"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:117
-msgid "Complete Questionnaire"
+#: templates/patientapp/patient_portal.html:68
+msgid "View all"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:128
-msgid "completed"
+#: templates/patientapp/patient_portal.html:77
+msgid "No questionnaires available"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:134
-msgid "Last completed"
+#: templates/patientapp/patient_portal.html:92
+#: templates/promapp/components/patient_info_card.html:25
+msgid "Clinical Information"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:144
-msgid "Available now"
+#: templates/patientapp/patient_portal.html:102
+msgid "Diagnosed on"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:152
-msgid "Next available"
+#: templates/patientapp/patient_portal.html:111
+msgid "Treatment"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:154
-msgid "Not available"
-msgstr ""
-
-#: templates/patientapp/patient_portal.html:167
-#: templates/promapp/my_questionnaire_list.html:70
-msgid "No questionnaires are currently available for you."
-msgstr ""
-
-#: templates/patientapp/patient_portal.html:181
+#: templates/patientapp/patient_portal.html:143
 msgid "Response History"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:189
-#: templates/promapp/components/filters_section.html:299
+#: templates/patientapp/patient_portal.html:144
+msgid "responses"
+msgstr ""
+
+#: templates/patientapp/patient_portal.html:154
+#: templates/patientapp/patient_portal.html:470
+#: templates/promapp/patient_questionnaire_management.html:105
+msgid "Show"
+msgstr ""
+
+#: templates/patientapp/patient_portal.html:164
 #: templates/promapp/patient_questionnaire_management.html:47
 msgid "Questionnaire"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:192
+#: templates/patientapp/patient_portal.html:167
 msgid "Completed Date"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:195
+#: templates/patientapp/patient_portal.html:170
 msgid "Time Ago"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:211
+#: templates/patientapp/patient_portal.html:186
 msgid "ago"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:221
+#: templates/patientapp/patient_portal.html:196
 #, python-format
 msgid ""
 "\n"
-"                        Showing 10 of %(counter)s response\n"
-"                        "
+"                            Showing 10 of %(counter)s response\n"
+"                            "
 msgid_plural ""
 "\n"
-"                        Showing 10 of %(counter)s responses\n"
-"                        "
+"                            Showing 10 of %(counter)s responses\n"
+"                            "
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/patientapp/patient_portal.html:242
+#: templates/patientapp/patient_portal.html:218
 msgid "My Response Trends"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:251
+#: templates/patientapp/patient_portal.html:227
 msgid "Filter Items"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:263
+#: templates/patientapp/patient_portal.html:239
 msgid "Search items..."
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:271
-#: templates/patientapp/patient_portal.html:401
-#: templates/promapp/prom_review.html:67
+#: templates/patientapp/patient_portal.html:247
+#: templates/patientapp/patient_portal.html:377
+#: templates/promapp/prom_review.html:215
 msgid "item"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:271
-#: templates/patientapp/patient_portal.html:401
-#: templates/promapp/prom_review.html:67
+#: templates/patientapp/patient_portal.html:247
+#: templates/patientapp/patient_portal.html:377
+#: templates/promapp/prom_review.html:215
 msgid "selected"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:274
-#: templates/patientapp/patient_portal.html:398
-#: templates/promapp/prom_review.html:64
+#: templates/patientapp/patient_portal.html:250
+#: templates/patientapp/patient_portal.html:374
+#: templates/promapp/prom_review.html:212
 msgid "All items shown"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:295
+#: templates/patientapp/patient_portal.html:271
 msgid "Apply Filter"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:298
-#: templates/promapp/components/filters_section.html:358
+#: templates/patientapp/patient_portal.html:274
 #: templates/promapp/questionnaire_create.html:180
 #: templates/promapp/questionnaire_update.html:189
 msgid "Clear All"
 msgstr ""
 
-#: templates/patientapp/patient_portal.html:405
-#: templates/promapp/prom_review.html:71
+#: templates/patientapp/patient_portal.html:381
+#: templates/promapp/prom_review.html:219
 msgid "more"
+msgstr ""
+
+#: templates/patientapp/patient_portal.html:464
+#: templates/promapp/patient_questionnaire_management.html:103
+msgid "Hide"
 msgstr ""
 
 #: templates/patientapp/treatment_confirm_delete.html:22
@@ -1139,6 +1234,10 @@ msgstr ""
 #: templates/patientapp/treatment_confirm_delete.html:26
 msgid ""
 "Are you sure you want to delete this treatment? This action cannot be undone."
+msgstr ""
+
+#: templates/patientapp/treatment_form.html:22
+msgid "Treatment Entry Guidelines"
 msgstr ""
 
 #: templates/patientapp/treatment_type_confirm_delete.html:15
@@ -1190,13 +1289,8 @@ msgid "Eligible"
 msgstr ""
 
 #: templates/promapp/components/aggregated_results_section.html:45
-#: templates/promapp/components/aggregation_metadata_card.html:122
+#: templates/promapp/components/aggregation_metadata_card.html:143
 msgid "Contributing"
-msgstr ""
-
-#: templates/promapp/components/aggregated_results_section.html:51
-#: templates/promapp/components/aggregation_metadata_card.html:128
-msgid "Responses"
 msgstr ""
 
 #: templates/promapp/components/aggregated_results_section.html:57
@@ -1255,102 +1349,107 @@ msgstr ""
 msgid "Coverage:"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:14
-#: templates/promapp/components/aggregation_metadata_card.html:62
+#: templates/promapp/components/aggregation_metadata_card.html:17
+#: templates/promapp/components/aggregation_metadata_card.html:22
 msgid "Population Comparison Not Available"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:26
-#: templates/promapp/components/aggregation_metadata_card.html:74
+#: templates/promapp/components/aggregation_metadata_card.html:27
+msgid "Population Comparison Active"
+msgstr ""
+
+#: templates/promapp/components/aggregation_metadata_card.html:29
+#: templates/promapp/components/filters_section.html:16
+msgid "Click to expand"
+msgstr ""
+
+#: templates/promapp/components/aggregation_metadata_card.html:63
+#: templates/promapp/components/aggregation_metadata_card.html:103
 msgid "With Selected"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:27
-#: templates/promapp/components/aggregation_metadata_card.html:75
+#: templates/promapp/components/aggregation_metadata_card.html:64
+#: templates/promapp/components/aggregation_metadata_card.html:104
 msgid "Start Date Type"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:31
-#: templates/promapp/components/aggregation_metadata_card.html:79
-#: templates/promapp/components/aggregation_metadata_card.html:127
+#: templates/promapp/components/aggregation_metadata_card.html:68
+#: templates/promapp/components/aggregation_metadata_card.html:108
+#: templates/promapp/components/aggregation_metadata_card.html:148
 msgid "Total"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:36
+#: templates/promapp/components/aggregation_metadata_card.html:73
 msgid "Minimum"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:37
+#: templates/promapp/components/aggregation_metadata_card.html:74
 msgid "Required"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:47
-#: templates/promapp/components/aggregation_metadata_card.html:95
+#: templates/promapp/components/aggregation_metadata_card.html:84
+#: templates/promapp/components/aggregation_metadata_card.html:124
 msgid "Suggestion"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:49
+#: templates/promapp/components/aggregation_metadata_card.html:86
 msgid ""
 "Try selecting 'Date of Registration' as the start date reference, or adjust "
 "the population filters to include more patients with the selected start date "
 "type."
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:84
+#: templates/promapp/components/aggregation_metadata_card.html:113
 msgid "With Data"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:85
+#: templates/promapp/components/aggregation_metadata_card.html:114
 msgid "In Time Range"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:97
+#: templates/promapp/components/aggregation_metadata_card.html:126
 msgid ""
 "Try extending the time range, adjusting the submission date filter, or "
 "selecting a different questionnaire to include more responses in the "
 "aggregation."
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:110
-msgid "Population Comparison Active"
-msgstr ""
-
-#: templates/promapp/components/aggregation_metadata_card.html:113
+#: templates/promapp/components/aggregation_metadata_card.html:136
 msgid ""
 "Individual results are shown with aggregated data from similar patients for "
 "comparison"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:132
+#: templates/promapp/components/aggregation_metadata_card.html:153
 #: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2534
 msgid "Time"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:133
+#: templates/promapp/components/aggregation_metadata_card.html:154
 msgid "Intervals"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:137
+#: templates/promapp/components/aggregation_metadata_card.html:158
 msgid "Range"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:148
+#: templates/promapp/components/aggregation_metadata_card.html:169
 msgid "Population data shown as "
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:150
+#: templates/promapp/components/aggregation_metadata_card.html:171
 msgid " dotted lines with error bars on plots"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:166
+#: templates/promapp/components/aggregation_metadata_card.html:187
 msgid "Patient Contribution Details"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:181
+#: templates/promapp/components/aggregation_metadata_card.html:202
 msgid "Contributing Patients"
 msgstr ""
 
-#: templates/promapp/components/aggregation_metadata_card.html:215
+#: templates/promapp/components/aggregation_metadata_card.html:236
 msgid "Non-Contributing Patients"
 msgstr ""
 
@@ -1408,187 +1507,158 @@ msgstr ""
 msgid "No construct scores available."
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:11
+#: templates/promapp/components/filters_section.html:15
 msgid "Filters"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:21
+#: templates/promapp/components/filters_section.html:39
 msgid "Start Date Reference"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:43
+#: templates/promapp/components/filters_section.html:61
 msgid "Up to"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:43
-#: templates/promapp/components/filters_section.html:500
-#: templates/promapp/components/filters_section.html:504
+#: templates/promapp/components/filters_section.html:61
+#: templates/promapp/components/filters_section.html:371
+#: templates/promapp/components/filters_section.html:375
 msgid "weeks"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:43
+#: templates/promapp/components/filters_section.html:61
 msgid "after start date"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:52
+#: templates/promapp/components/filters_section.html:70
 msgid "All data"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:65
+#: templates/promapp/components/filters_section.html:83
 msgid "Time Range"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:87
+#: templates/promapp/components/filters_section.html:105
 msgid "Time Interval"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:99
+#: templates/promapp/components/filters_section.html:117
 msgid "Days"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:100
+#: templates/promapp/components/filters_section.html:118
 msgid "Weeks"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:101
+#: templates/promapp/components/filters_section.html:119
 msgid "Months"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:102
+#: templates/promapp/components/filters_section.html:120
 msgid "Years"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:113
+#: templates/promapp/components/filters_section.html:131
 msgid "Population Comparison Filters"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:119
+#: templates/promapp/components/filters_section.html:137
 msgid "Aggregation Type"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:130
+#: templates/promapp/components/filters_section.html:148
 msgid "Median with IQR (25th-75th percentile)"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:131
+#: templates/promapp/components/filters_section.html:149
 #, python-format
 msgid "Mean with 95%% Confidence Interval"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:132
+#: templates/promapp/components/filters_section.html:150
 msgid "Mean ± 0.5 Standard Deviation"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:133
+#: templates/promapp/components/filters_section.html:151
 msgid "Mean ± 1 Standard Deviation"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:134
+#: templates/promapp/components/filters_section.html:152
 msgid "Mean ± 2 Standard Deviations"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:141
+#: templates/promapp/components/filters_section.html:159
 msgid "Gender Filter"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:153
-#: templates/promapp/components/filters_section.html:175
-#: templates/promapp/components/filters_section.html:199
-#: templates/promapp/components/filters_section.html:233
-#: templates/promapp/components/filters_section.html:235
+#: templates/promapp/components/filters_section.html:171
+#: templates/promapp/components/filters_section.html:193
+#: templates/promapp/components/filters_section.html:217
 msgid "Match Patient"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:154
+#: templates/promapp/components/filters_section.html:172
 msgid "Male"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:155
+#: templates/promapp/components/filters_section.html:173
 msgid "Female"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:156
+#: templates/promapp/components/filters_section.html:174
 msgid "Other"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:163
+#: templates/promapp/components/filters_section.html:181
 msgid "Diagnosis Filter"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:187
+#: templates/promapp/components/filters_section.html:205
 msgid "Treatment Filter"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:198
+#: templates/promapp/components/filters_section.html:216
 msgid "All Treatments"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:215
-msgid "Age Group Filter"
-msgstr ""
-
-#: templates/promapp/components/filters_section.html:217
-msgid "Patient age"
-msgstr ""
-
-#: templates/promapp/components/filters_section.html:224
-msgid "Age Match"
-msgstr ""
-
-#: templates/promapp/components/filters_section.html:233
-#: templates/promapp/components/filters_section.html:502
-msgid "years"
-msgstr ""
-
-#: templates/promapp/components/filters_section.html:235
-msgid "age unknown"
-msgstr ""
-
-#: templates/promapp/components/filters_section.html:243
+#: templates/promapp/components/filters_section.html:231
 msgid "Minimum Age"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:252
-#: templates/promapp/components/filters_section.html:274
-msgid "All ages"
+#: templates/promapp/components/filters_section.html:240
+#: templates/promapp/components/filters_section.html:260
+msgid "No limit"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:265
+#: templates/promapp/components/filters_section.html:251
 msgid "Maximum Age"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:293
-msgid "Data Filters"
+#: templates/promapp/components/filters_section.html:278
+msgid "Questionnaire Filter"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:310
+#: templates/promapp/components/filters_section.html:289
 msgid "All Questionnaires"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:332
-#: templates/promapp/components/filters_section.html:464
-#: templates/promapp/questionnaire_create.html:78
-msgid "Select Items"
+#: templates/promapp/components/filters_section.html:301
+msgid "Item Filter"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:351
-msgid "Select All"
+#: templates/promapp/components/filters_section.html:307
+msgid "Search and select items..."
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:397
-msgid "Updating results..."
-msgstr ""
-
-#: templates/promapp/components/filters_section.html:471
-msgid "items selected"
-msgstr ""
-
-#: templates/promapp/components/filters_section.html:499
+#: templates/promapp/components/filters_section.html:370
 msgid "days"
 msgstr ""
 
-#: templates/promapp/components/filters_section.html:501
+#: templates/promapp/components/filters_section.html:372
 msgid "months"
+msgstr ""
+
+#: templates/promapp/components/filters_section.html:373
+msgid "years"
 msgstr ""
 
 #: templates/promapp/components/important_construct_card.html:10
@@ -1612,9 +1682,37 @@ msgstr ""
 msgid "Item-wise Results"
 msgstr ""
 
-#: templates/promapp/components/item_results_section.html:19
+#: templates/promapp/components/item_results_section.html:21
 #: templates/promapp/partials/item_list_table.html:97
 msgid "No items available."
+msgstr ""
+
+#: templates/promapp/components/media_recorder.html:12
+msgid "Audio"
+msgstr ""
+
+#: templates/promapp/components/media_recorder.html:20
+msgid "Video"
+msgstr ""
+
+#: templates/promapp/components/media_recorder.html:43
+msgid "Audio Recording Area"
+msgstr ""
+
+#: templates/promapp/components/media_recorder.html:51
+msgid "Ready to record"
+msgstr ""
+
+#: templates/promapp/components/media_recorder.html:83
+msgid "Play"
+msgstr ""
+
+#: templates/promapp/components/media_recorder.html:97
+msgid "Click record to start. Make sure to allow microphone/camera access."
+msgstr ""
+
+#: templates/promapp/components/media_recorder.html:109
+msgid "Preparing recording..."
 msgstr ""
 
 #: templates/promapp/components/patient_info_card.html:14
@@ -1657,12 +1755,8 @@ msgstr ""
 msgid "Loading..."
 msgstr ""
 
-#: templates/promapp/components/text_item_card.html:13
-msgid "Previous Responses"
-msgstr ""
-
-#: templates/promapp/components/text_item_card.html:38
-msgid "No previous responses"
+#: templates/promapp/components/text_item_card.html:14
+msgid "No response provided"
 msgstr ""
 
 #: templates/promapp/components/topline_results_section.html:18
@@ -1721,7 +1815,11 @@ msgstr ""
 msgid "Normative mean reference line"
 msgstr ""
 
-#: templates/promapp/components/topline_results_section.html:164
+#: templates/promapp/components/topline_results_section.html:126
+msgid "Clinical Significance:"
+msgstr ""
+
+#: templates/promapp/components/topline_results_section.html:183
 msgid "No important construct scores available"
 msgstr ""
 
@@ -2573,6 +2671,10 @@ msgstr ""
 msgid "You can answer this questionnaire again in:"
 msgstr ""
 
+#: templates/promapp/my_questionnaire_list.html:70
+msgid "No questionnaires are currently available for you."
+msgstr ""
+
 #: templates/promapp/partials/composite_construct_scale_scoring_list_table.html:32
 msgid "Scoring Type:"
 msgstr ""
@@ -2653,11 +2755,11 @@ msgstr ""
 msgid "Translation Status"
 msgstr ""
 
-#: templates/promapp/partials/item_search_results.html:29
+#: templates/promapp/partials/item_search_results.html:17
 msgid "No items found matching"
 msgstr ""
 
-#: templates/promapp/partials/item_search_results.html:31
+#: templates/promapp/partials/item_search_results.html:19
 msgid "No items available"
 msgstr ""
 
@@ -2750,10 +2852,6 @@ msgstr ""
 msgid "Back to Patient List"
 msgstr ""
 
-#: templates/promapp/patient_questionnaire_management.html:50
-msgid "Status"
-msgstr ""
-
 #: templates/promapp/patient_questionnaire_management.html:53
 msgid "Assigned Date"
 msgstr ""
@@ -2768,14 +2866,6 @@ msgstr ""
 
 #: templates/promapp/patient_questionnaire_management.html:84
 msgid "Not Assigned"
-msgstr ""
-
-#: templates/promapp/patient_questionnaire_management.html:103
-msgid "Hide"
-msgstr ""
-
-#: templates/promapp/patient_questionnaire_management.html:105
-msgid "Show"
 msgstr ""
 
 #: templates/promapp/patient_questionnaire_management.html:113
@@ -2796,6 +2886,14 @@ msgstr ""
 
 #: templates/promapp/prom_review.html:6 templates/promapp/prom_review.html:21
 msgid "PRO Review"
+msgstr ""
+
+#: templates/promapp/prom_review.html:233
+msgid "Show less"
+msgstr ""
+
+#: templates/promapp/prom_review.html:236
+msgid "Show more"
 msgstr ""
 
 #: templates/promapp/questionnaire_create.html:42
@@ -2828,6 +2926,10 @@ msgstr ""
 #: templates/promapp/questionnaire_create.html:71
 #: templates/promapp/questionnaire_update.html:87
 msgid "Questionnaire to redirect to after completion"
+msgstr ""
+
+#: templates/promapp/questionnaire_create.html:78
+msgid "Select Items"
 msgstr ""
 
 #: templates/promapp/questionnaire_create.html:99
@@ -3692,15 +3794,19 @@ msgid ""
 "%(next_available|timeuntil)s."
 msgstr ""
 
-#: templates/promapp/questionnaire_response.html:217
+#: templates/promapp/questionnaire_response.html:559
 msgid "Previous Question"
 msgstr ""
 
-#: templates/promapp/questionnaire_response.html:220
+#: templates/promapp/questionnaire_response.html:563
 msgid "Next Question"
 msgstr ""
 
-#: templates/promapp/questionnaire_response.html:243
+#: templates/promapp/questionnaire_response.html:569
+msgid "Skip to Submit"
+msgstr ""
+
+#: templates/promapp/questionnaire_response.html:593
 #, python-format
 msgid ""
 "\n"
@@ -3708,18 +3814,18 @@ msgid ""
 "              "
 msgstr ""
 
-#: templates/promapp/questionnaire_response.html:248
+#: templates/promapp/questionnaire_response.html:598
 msgid ""
 "You may now submit your answers by clicking on the red submit button. If you "
 "wish to review your answers please click on the back to questionnaire button "
 "which will allow you to review all your responses."
 msgstr ""
 
-#: templates/promapp/questionnaire_response.html:255
+#: templates/promapp/questionnaire_response.html:605
 msgid "Submit Responses"
 msgstr ""
 
-#: templates/promapp/questionnaire_response.html:258
+#: templates/promapp/questionnaire_response.html:608
 #: templates/promapp/questionnaire_rules.html:35
 msgid "Back to Questionnaire"
 msgstr ""
