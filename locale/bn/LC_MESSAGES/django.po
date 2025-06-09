@@ -1,16 +1,16 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Santam Chakraborty <EMAIL@ADDRESS>, 2025.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-09 07:43+0530\n"
+"POT-Creation-Date: 2025-06-09 20:06+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Last-Translator: Santam Chakraborty <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
@@ -20,87 +20,92 @@ msgstr ""
 
 #: patientapp/forms.py:16 templates/patientapp/patient_form.html:43
 msgid "Password"
-msgstr ""
+msgstr "পাসওয়ার্ড"
 
 #: patientapp/forms.py:21
 msgid "Repeat Password"
-msgstr ""
+msgstr "পাসওয়ার্ড পুনরাবৃত্তি করুন"
 
 #: patientapp/forms.py:27
 msgid "Groups"
-msgstr ""
+msgstr "গ্রুপসমূহ"
 
 #: patientapp/forms.py:84
 msgid "Passwords don't match"
-msgstr ""
+msgstr "পাসওয়ার্ড মিলছে না"
 
 #: patientapp/forms.py:90
 msgid "A user with that username already exists."
-msgstr ""
+msgstr "এই ব্যবহারকারীর নাম দিয়ে ইতিমধ্যে একজন ব্যবহারকারী রয়েছে।"
 
 #: patientapp/forms.py:96
 msgid "A user with that email already exists."
-msgstr ""
+msgstr "এই ইমেইল দিয়ে ইতিমধ্যে একজন ব্যবহারকারী রয়েছে।"
 
 #: patientapp/models.py:162
 msgid "Start date cannot be in the future."
-msgstr ""
+msgstr "শুরুর তারিখ ভবিষ্যতে হতে পারে না।"
 
 #: patientapp/models.py:166
 msgid "End date cannot be in the future."
-msgstr ""
+msgstr "শেষের তারিখ ভবিষ্যতে হতে পারে না।"
 
 #: patientapp/models.py:171
 msgid "End date cannot be before the start date."
-msgstr ""
+msgstr "শেষের তারিখ শুরুর তারিখের আগে হতে পারে না।"
 
 #: patientapp/models.py:175
 msgid "End date should not be specified for ongoing treatments."
-msgstr ""
+msgstr "চলমান চিকিৎসার জন্য শেষের তারিখ নির্দিষ্ট করা উচিত নয়।"
 
 #: patientapp/models.py:180
 msgid "End date is required when treatment is not ongoing."
-msgstr ""
+msgstr "চিকিৎসা চলমান না থাকলে শেষের তারিখ প্রয়োজন।"
 
 #: patientapp/views.py:780 templates/promapp/components/filters_section.html:94
 msgid "3 submissions"
-msgstr ""
+msgstr "৩টি উত্তর"
 
 #: patientapp/views.py:781 templates/promapp/components/filters_section.html:95
 msgid "5 submissions"
-msgstr ""
+msgstr "৫টি উত্তর"
 
 #: patientapp/views.py:782 templates/promapp/components/filters_section.html:96
 msgid "10 submissions"
-msgstr ""
+msgstr "১০টি উত্তর"
+
 
 #: patientapp/views.py:783 templates/promapp/components/filters_section.html:97
 msgid "15 submissions"
-msgstr ""
+msgstr "১৫টি উত্তর"
+
 
 #: patientapp/views.py:784 templates/promapp/components/filters_section.html:98
 msgid "All submissions"
-msgstr ""
+msgstr "সব উত্তর"
+
 
 #: patientapp/views.py:1033
 msgid "You do not have patient access."
-msgstr ""
+msgstr "আপনার রুগীদের তথ্য দেখার অনুমতি নেই।"
+
 
 #: patientapp/views.py:1459 promapp/views.py:1754
 msgid "None"
-msgstr ""
+msgstr "কোনোটি নয়"
+
 
 #: patientapp/views.py:1460 promapp/views.py:1755
 msgid "1-5"
-msgstr ""
+msgstr "১-৫"
 
 #: patientapp/views.py:1461 promapp/views.py:1756
 msgid "6-10"
-msgstr ""
+msgstr "৬-১০"
 
 #: patientapp/views.py:1462 promapp/views.py:1757
 msgid "10+"
-msgstr ""
+msgstr "১০+"
 
 #: patientapp/views.py:1466 promapp/views.py:1761
 #: templates/patientapp/patient_detail.html:58
@@ -108,318 +113,311 @@ msgstr ""
 #: templates/promapp/item_translation_form.html:131
 #: templates/promapp/questionnaire_translation_form.html:131
 msgid "Name"
-msgstr ""
+msgstr "নাম"
 
 #: patientapp/views.py:1467 promapp/views.py:1762
 msgid "Name (Z-A)"
-msgstr ""
+msgstr "নাম (জ-অ)"
 
 #: patientapp/views.py:1468 promapp/views.py:1763
 msgid "Questionnaire Count"
-msgstr ""
+msgstr "প্রশ্নাবলীর সংখ্যা"
 
 #: patientapp/views.py:1469 promapp/views.py:1764
 msgid "Questionnaire Count (High-Low)"
-msgstr ""
+msgstr "প্রশ্নাবলীর সংখ্যা (বেশি-কম)"
 
 #: patientapp/views.py:1561
 msgid "Patient created successfully."
-msgstr ""
+msgstr "রোগী সফলভাবে তৈরি হয়েছে।"
 
 #: patientapp/views.py:1565
 msgid "An error occurred while creating the patient."
-msgstr ""
+msgstr "রোগী তৈরি করার সময় একটি ত্রুটি ঘটেছে।"
 
 #: patientapp/views.py:1570
 msgid "Add New Patient"
-msgstr ""
+msgstr "নতুন রোগী যোগ করুন"
 
 #: patientapp/views.py:1592 templates/patientapp/patient_detail.html:26
 #: templates/patientapp/patient_restricted_update_form.html:44
 msgid "Edit Patient Details"
-msgstr ""
+msgstr "রোগীর বিবরণ সম্পাদনা করুন"
 
 #: patientapp/views.py:1604
 msgid "Patient basic details updated successfully."
-msgstr ""
+msgstr "রোগীর মৌলিক বিবরণ সফলভাবে আপডেট হয়েছে।"
 
 #: patientapp/views.py:1608
 msgid "An error occurred while updating the patient basic details."
-msgstr ""
+msgstr "রোগীর মৌলিক বিবরণ আপডেট করার সময় একটি ত্রুটি ঘটেছে।"
 
 #: patientapp/views.py:1626 templates/patientapp/diagnosis_form.html:11
 #: templates/patientapp/patient_detail.html:97
 msgid "Add Diagnosis"
-msgstr ""
+msgstr "রোগ নির্ণয় যোগ করুন"
 
 #: patientapp/views.py:1633
 msgid "Diagnosis added successfully."
-msgstr ""
+msgstr "রোগ নির্ণয় সফলভাবে যোগ করা হয়েছে।"
 
 #: patientapp/views.py:1654 templates/patientapp/diagnosis_form.html:11
 #: templates/patientapp/patient_detail.html:125
 msgid "Edit Diagnosis"
-msgstr ""
+msgstr "রোগ নির্ণয় সম্পাদনা করুন"
 
 #: patientapp/views.py:1678 templates/patientapp/patient_detail.html:130
 msgid "Add Treatment"
-msgstr ""
+msgstr "চিকিৎসা যোগ করুন"
 
 #: patientapp/views.py:1686
 msgid "Treatment added successfully."
-msgstr ""
+msgstr "চিকিৎসা সফলভাবে যোগ করা হয়েছে।"
 
 #: patientapp/views.py:1709
 msgid "Edit Treatment"
-msgstr ""
+msgstr "চিকিৎসা সম্পাদনা করুন"
 
 #: patientapp/views.py:1735 templates/patientapp/treatment_type_form.html:11
 #: templates/patientapp/treatment_type_list.html:13
 msgid "Add Treatment Type"
-msgstr ""
+msgstr "চিকিৎসার ধরন যোগ করুন"
 
 #: patientapp/views.py:1765 templates/patientapp/treatment_type_form.html:11
 msgid "Edit Treatment Type"
-msgstr ""
+msgstr "চিকিৎসার ধরন সম্পাদনা করুন"
 
 #: patientapp/views.py:1777 templates/patientapp/treatment_type_list.html:10
 msgid "Treatment Types"
-msgstr ""
+msgstr "চিকিৎসার ধরনসমূহ"
 
 #: promapp/forms.py:100
 msgid "Select Items for Questionnaire"
-msgstr ""
+msgstr "প্রশ্নাবলীর জন্য আইটেম নির্বাচন করুন"
 
 #: promapp/forms.py:376 templates/promapp/questionnaire_response.html:208
 msgid "Enter your response here..."
-msgstr ""
+msgstr "এখানে আপনার উত্তর লিখুন..."
 
 #: promapp/forms.py:384 templates/promapp/questionnaire_response.html:217
 msgid "Enter a number..."
-msgstr ""
+msgstr "একটি সংখ্যা লিখুন..."
 
 #: promapp/forms.py:617
 #: templates/promapp/questionnaire_item_rule_group_form.html:99
 msgid "Select Rules"
-msgstr ""
+msgstr "নিয়ম নির্বাচন করুন"
 
 #: promapp/forms.py:674 promapp/views.py:2139
 msgid "All rules must belong to the same questionnaire item."
-msgstr ""
+msgstr "সমস্ত নিয়ম একই প্রশ্নাবলীর আইটেমের অন্তর্গত হতে হবে।"
 
 #: promapp/forms.py:830
 msgid "Search..."
-msgstr ""
+msgstr "অনুসন্ধান..."
 
 #: promapp/forms.py:853
 msgid "All Languages"
-msgstr ""
+msgstr "সকল ভাষা"
 
 #: promapp/forms.py:856
-#, python-brace-format
 msgid "{lang_name} (Translated)"
-msgstr ""
+msgstr "{lang_name} (অনুবাদিত)"
 
 #: promapp/forms.py:857
-#, python-brace-format
 msgid "{lang_name} (Not Translated)"
-msgstr ""
+msgstr "{lang_name} (অনুবাদিত নয়)"
 
 #: promapp/views.py:1376
-#, python-format
-msgid ""
-"You cannot answer this questionnaire yet. You can answer it again in "
-"%(time)s."
-msgstr ""
+msgid "You cannot answer this questionnaire yet. You can answer it again in %(time)s."
+msgstr "আপনি এখনও এই প্রশ্নাবলীর উত্তর দিতে পারবেন না। আপনি %(time)s পরে আবার উত্তর দিতে পারবেন।"
 
 #: promapp/views.py:1462
 msgid "You do not have permission to submit responses."
-msgstr ""
+msgstr "আপনার উত্তর জমা দেওয়ার অনুমতি নেই।"
 
 #: promapp/views.py:1506
 msgid "Your responses have been saved successfully."
-msgstr ""
+msgstr "আপনার উত্তরগুলি সফলভাবে সংরক্ষিত হয়েছে।"
 
 #: promapp/views.py:1509
-#, python-format
 msgid "An error occurred while saving your responses: %s"
-msgstr ""
+msgstr "আপনার উত্তর সংরক্ষণ করার সময় একটি ত্রুটি ঘটেছে: %s"
 
 #: promapp/views.py:1515
 msgid "There was an error saving your responses. Please try again."
-msgstr ""
+msgstr "আপনার উত্তর সংরক্ষণে ত্রুটি হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
 
 #: promapp/views.py:1640
 msgid "Questionnaire assigned successfully."
-msgstr ""
+msgstr "প্রশ্নাবলী সফলভাবে বরাদ্দ করা হয়েছে।"
 
 #: promapp/views.py:1648
 msgid "Questionnaire unassigned successfully."
-msgstr ""
+msgstr "প্রশ্নাবলী সফলভাবে বরাদ্দ বাতিল করা হয়েছে।"
 
 #: promapp/views.py:1659
-#, python-brace-format
 msgid "Questionnaire is now {status}."
-msgstr ""
+msgstr "প্রশ্নাবলী এখন {status}।"
 
 #: promapp/views.py:1662
 msgid "Questionnaire not found."
-msgstr ""
+msgstr "প্রশ্নাবলী পাওয়া যায়নি।"
 
 #: promapp/views.py:1664
 msgid "Questionnaire assignment not found."
-msgstr ""
+msgstr "প্রশ্নাবলী নির্ধারণ পাওয়া যায়নি।"
 
 #: promapp/views.py:1666
 msgid "An error occurred. Please try again."
-msgstr ""
+msgstr "একটি ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
 
 #: promapp/views.py:2019
 msgid "Please select a dependent item."
-msgstr ""
+msgstr "অনুগ্রহ করে একটি নির্ভরশীল আইটেম নির্বাচন করুন।"
 
 #: promapp/views.py:2023
 msgid "Selected item: {}"
-msgstr ""
+msgstr "নির্বাচিত আইটেম: {}"
 
 #: promapp/views.py:2025
 msgid "Invalid item selected."
-msgstr ""
+msgstr "অবৈধ আইটেম নির্বাচিত।"
 
 #: promapp/views.py:2033
 msgid "Please select an operator."
-msgstr ""
+msgstr "অনুগ্রহ করে একটি অপারেটর নির্বাচন করুন।"
 
 #: promapp/views.py:2041
 msgid "Valid operator for numeric comparison."
-msgstr ""
+msgstr "সংখ্যাগত তুলনার জন্য বৈধ অপারেটর।"
 
 #: promapp/views.py:2043
 msgid "Valid operator for text comparison."
-msgstr ""
+msgstr "পাঠ্য তুলনার জন্য বৈধ অপারেটর।"
 
 #: promapp/views.py:2045 promapp/views.py:2090
 msgid "Invalid dependent item."
-msgstr ""
+msgstr "অবৈধ নির্ভরশীল আইটেম।"
 
 #: promapp/views.py:2053
 msgid "Please enter a comparison value."
-msgstr ""
+msgstr "অনুগ্রহ করে একটি তুলনামূলক মান লিখুন।"
 
 #: promapp/views.py:2062
 msgid "Valid numeric value."
-msgstr ""
+msgstr "বৈধ সংখ্যাগত মান।"
 
 #: promapp/views.py:2064 promapp/views.py:2075 promapp/views.py:2086
 #: promapp/views.py:2110 promapp/views.py:2123
 msgid "Please enter a valid number."
-msgstr ""
+msgstr "অনুগ্রহ করে একটি বৈধ সংখ্যা লিখুন।"
 
 #: promapp/views.py:2071
 msgid "Valid Likert scale value."
-msgstr ""
+msgstr "বৈধ লিকার্ট স্কেল মান।"
 
 #: promapp/views.py:2073
 msgid "Please enter a valid Likert scale value."
-msgstr ""
+msgstr "অনুগ্রহ করে একটি বৈধ লিকার্ট স্কেল মান লিখুন।"
 
 #: promapp/views.py:2081
 msgid "Valid range value."
-msgstr ""
+msgstr "বৈধ পরিসীমা মান।"
 
 #: promapp/views.py:2083
 msgid "Value must be between {} and {}."
-msgstr ""
+msgstr "মান {} এবং {} এর মধ্যে হতে হবে।"
 
 #: promapp/views.py:2088
 msgid "Valid text value."
-msgstr ""
+msgstr "বৈধ পাঠ্য মান।"
 
 #: promapp/views.py:2096
 msgid "Please select a logical operator."
-msgstr ""
+msgstr "অনুগ্রহ করে একটি যুক্তিগত অপারেটর নির্বাচন করুন।"
 
 #: promapp/views.py:2097
 msgid "Valid logical operator."
-msgstr ""
+msgstr "বৈধ যুক্তিগত অপারেটর।"
 
 #: promapp/views.py:2103
 msgid "Please enter a rule order."
-msgstr ""
+msgstr "অনুগ্রহ করে একটি নিয়মের ক্রম লিখুন।"
 
 #: promapp/views.py:2107 promapp/views.py:2120
 msgid "Order must be greater than 0."
-msgstr ""
+msgstr "ক্রম ০ এর চেয়ে বড় হতে হবে।"
 
 #: promapp/views.py:2108
 msgid "Valid rule order."
-msgstr ""
+msgstr "বৈধ নিয়মের ক্রম।"
 
 #: promapp/views.py:2116
 msgid "Please enter a group order."
-msgstr ""
+msgstr "অনুগ্রহ করে একটি গ্রুপের ক্রম লিখুন।"
 
 #: promapp/views.py:2121
 msgid "Valid group order."
-msgstr ""
+msgstr "বৈধ গ্রুপের ক্রম।"
 
 #: promapp/views.py:2129
 msgid "Please select at least one rule."
-msgstr ""
+msgstr "অনুগ্রহ করে অন্তত একটি নিয়ম নির্বাচন করুন।"
 
 #: promapp/views.py:2134
 msgid "One or more invalid rules selected."
-msgstr ""
+msgstr "এক বা একাধিক অবৈধ নিয়ম নির্বাচিত।"
 
 #: promapp/views.py:2141
 msgid "Valid rule selection."
-msgstr ""
+msgstr "বৈধ নিয়ম নির্বাচন।"
 
 #: promapp/views.py:2143
 msgid "Error validating rules."
-msgstr ""
+msgstr "নিয়ম যাচাইকরণে ত্রুটি।"
 
 #: promapp/views.py:2525 promapp/views.py:2727 promapp/views.py:2929
 #: promapp/views.py:3100
 msgid "Translation saved successfully."
-msgstr ""
+msgstr "অনুবাদ সফলভাবে সংরক্ষিত হয়েছে।"
 
 #: promapp/views.py:3338
 msgid "Equation saved successfully."
-msgstr ""
+msgstr "সমীকরণ সফলভাবে সংরক্ষিত হয়েছে।"
 
 #: promapp/views.py:3377
 msgid "Construct scale updated successfully."
-msgstr ""
+msgstr "কনস্ট্রাক্ট স্কেল সফলভাবে আপডেট হয়েছে।"
 
 #: promapp/views.py:3391
 msgid "Construct scale deleted successfully."
-msgstr ""
+msgstr "কনস্ট্রাক্ট স্কেল সফলভাবে মুছে ফেলা হয়েছে।"
 
 #: promapp/views.py:3543
 msgid "Composite construct scale scoring created successfully."
-msgstr ""
+msgstr "যৌগিক কনস্ট্রাক্ট স্কেল স্কোরিং সফলভাবে তৈরি হয়েছে।"
 
 #: promapp/views.py:3547 promapp/views.py:3568
 msgid "Please correct the errors below."
-msgstr ""
+msgstr "অনুগ্রহ করে নিচের ত্রুটিগুলি সংশোধন করুন।"
 
 #: promapp/views.py:3564
 msgid "Composite construct scale scoring updated successfully."
-msgstr ""
+msgstr "যৌগিক কনস্ট্রাক্ট স্কেল স্কোরিং সফলভাবে আপডেট হয়েছে।"
 
 #: promapp/views.py:3583
 msgid "Composite construct scale scoring deleted successfully."
-msgstr ""
+msgstr "যৌগিক কনস্ট্রাক্ট স্কেল স্কোরিং সফলভাবে মুছে ফেলা হয়েছে।"
 
 #: templates/base.html:59
 msgid "Select Language"
-msgstr ""
+msgstr "ভাষা নির্বাচন করুন"
 
 #: templates/cotton/action_buttons.html:16 templates/cotton/view_button.html:14
 #: templates/promapp/partials/questionnaire_list_table.html:15
 msgid "View"
-msgstr ""
+msgstr "দেখুন"
 
 #: templates/cotton/action_buttons.html:29 templates/cotton/edit_button.html:13
 #: templates/patientapp/patient_detail.html:179
@@ -435,12 +433,12 @@ msgstr ""
 #: templates/promapp/questionnaire_item_rule_groups_list.html:104
 #: templates/promapp/questionnaire_item_rules_list.html:148
 msgid "Edit"
-msgstr ""
+msgstr "সম্পাদনা"
 
 #: templates/cotton/action_buttons.html:41
 #: templates/cotton/delete_button.html:11
 msgid "Are you sure you want to delete this item?"
-msgstr ""
+msgstr "আপনি কি নিশ্চিত যে এই আইটেমটি মুছে ফেলতে চান?"
 
 #: templates/cotton/action_buttons.html:48
 #: templates/cotton/delete_button.html:20
@@ -453,46 +451,45 @@ msgstr ""
 #: templates/promapp/questionnaire_item_rule_groups_list.html:107
 #: templates/promapp/questionnaire_item_rules_list.html:151
 msgid "Delete"
-msgstr ""
+msgstr "মুছে ফেলুন"
 
 #: templates/cotton/action_buttons.html:61
 #: templates/cotton/create_translations_button.html:13
 msgid "Create Translations"
-msgstr ""
+msgstr "অনুবাদ তৈরি করুন"
 
 #: templates/cotton/action_buttons.html:87 templates/cotton/save_button.html:26
 #: templates/promapp/questionnaire_item_rule_groups_list.html:83
 #: templates/promapp/questionnaire_item_rules_list.html:90
 msgid "Save"
-msgstr ""
+msgstr "সংরক্ষণ করুন"
 
 #: templates/cotton/action_buttons.html:100
 #: templates/cotton/create_rules_button.html:13
 msgid "Create Rules"
-msgstr ""
+msgstr "নিয়ম তৈরি করুন"
 
 #: templates/cotton/action_buttons.html:113
 #: templates/cotton/create_rulegroups_button.html:13
 msgid "Create Rule Groups"
-msgstr ""
+msgstr "নিয়ম গ্রুপ তৈরি করুন"
 
 #: templates/cotton/action_buttons.html:126
 #: templates/cotton/create_button.html:13
 msgid "Create"
-msgstr ""
+msgstr "তৈরি করুন"
 
 #: templates/cotton/list_card.html:78
-#, python-format
 msgid ""
-"\n"
-"                %(counter)s item\n"
+"                %(counter)s item"
 "              "
 msgid_plural ""
-"\n"
-"                %(counter)s items\n"
+"                %(counter)s items"
 "              "
 msgstr[0] ""
+"%(counter)s আইটেম"
 msgstr[1] ""
+"%(counter)s আইটেম"
 
 #: templates/cotton/paginator.html:42 templates/cotton/paginator.html:46
 #: templates/cotton/paginator.html:92 templates/cotton/paginator.html:99
@@ -501,7 +498,7 @@ msgstr[1] ""
 #: templates/promapp/partials/item_list_table.html:162
 #: templates/promapp/partials/item_list_table.html:169
 msgid "Previous"
-msgstr ""
+msgstr "পূর্ববর্তী"
 
 #: templates/cotton/paginator.html:55 templates/cotton/paginator.html:59
 #: templates/cotton/paginator.html:130 templates/cotton/paginator.html:137
@@ -510,111 +507,102 @@ msgstr ""
 #: templates/promapp/partials/item_list_table.html:202
 #: templates/promapp/partials/item_list_table.html:209
 msgid "Next"
-msgstr ""
+msgstr "পরবর্তী"
 
 #: templates/cotton/paginator.html:71
 #: templates/promapp/partials/item_list_table.html:142
 msgid "Showing"
-msgstr ""
+msgstr "দেখানো হচ্ছে"
 
 #: templates/cotton/paginator.html:73
 #: templates/promapp/partials/item_list_table.html:144
 msgid "to"
-msgstr ""
+msgstr "থেকে"
 
 #: templates/cotton/paginator.html:75
 #: templates/promapp/partials/item_list_table.html:146
 #: templates/promapp/questionnaire_response.html:19
 msgid "of"
-msgstr ""
+msgstr "এর"
 
 #: templates/cotton/paginator.html:77
 #: templates/promapp/partials/item_list_table.html:148
 msgid "results"
-msgstr ""
+msgstr "ফলাফল"
 
 #: templates/cotton/translation_indicator.html:22
 msgid "Translation available - click to edit"
-msgstr ""
+msgstr "অনুবাদ উপলব্ধ - সম্পাদনা করতে ক্লিক করুন"
 
 #: templates/cotton/translation_indicator.html:22
 msgid "No translation - click to add"
-msgstr ""
+msgstr "কোন অনুবাদ নেই - যোগ করতে ক্লিক করুন"
 
 #: templates/cotton/view_results_button.html:13 templates/index.html:33
 msgid "View Results"
-msgstr ""
+msgstr "ফলাফল দেখুন"
 
 #: templates/index.html:4
 msgid "Welcome to Chavi PROM Application"
-msgstr ""
+msgstr "CHAVI PROM অ্যাপ্লিকেশনে স্বাগতম"
 
 #: templates/index.html:10
 msgid "Patient Reported Outcome Monitoring"
-msgstr ""
+msgstr "রোগী কর্তৃক রিপোর্টকৃত ফলাফল পর্যবেক্ষণ"
 
 #: templates/index.html:14
-msgid ""
-"Welcome to the Patient Reported Outcome Monitoring Application for CHAVI. "
-"This open source application has been designed to allow patients to report "
-"their problems and concerns using standardized questionnaires. "
-"Questionnaires can be translated into multiple languages. Additionally, the "
-"application also provides users with an easy way to view responses to the "
-"questions."
-msgstr ""
+msgid "Welcome to the Patient Reported Outcome Monitoring Application for CHAVI. This open source application has been designed to allow patients to report their problems and concerns using standardized questionnaires. Questionnaires can be translated into multiple languages. Additionally, the application also provides users with an easy way to view responses to the questions."
+msgstr "CHAVI রোগী কর্তৃক রিপোর্টকৃত ফলাফল পর্যবেক্ষণ অ্যাপ্লিকেশনে স্বাগতম। এই ওপেন সোর্স অ্যাপ্লিকেশনটি রোগীদের মানসম্মত প্রশ্নাবলী ব্যবহার করে তাদের সমস্যা ও উদ্বেগ রিপোর্ট করার জন্য ডিজাইন করা হয়েছে। প্রশ্নাবলী একাধিক ভাষায় অনুবাদ করা যায়। উপরন্তু, অ্যাপ্লিকেশনটি ব্যবহারকারীদের প্রশ্নের উত্তর দেখার একটি সহজ উপায়ও প্রদান করে।"
+
 
 #: templates/index.html:19
 msgid "For Patients"
-msgstr ""
+msgstr "রোগীদের জন্য"
 
 #: templates/index.html:20
-msgid ""
-"Complete questionnaires about your health and well-being. Your feedback "
-"helps healthcare providers understand your needs better."
-msgstr ""
+msgid "Complete questionnaires about your health and well-being. Your feedback helps healthcare providers understand your needs better."
+msgstr "আপনার স্বাস্থ্য এবং কল্যাণ সম্পর্কে প্রশ্নাবলী পূরণ করুন। আপনার মতামত স্বাস্থ্যসেবা প্রদানকারীদের আপনার প্রয়োজন আরও ভালভাবে বুঝতে সাহায্য করে।"
 
 #: templates/index.html:23 templates/navbar.html:93 templates/navbar.html:222
 #: templates/patientapp/partials/patient_portal_plots.html:138
 msgid "Complete a Questionnaire"
-msgstr ""
+msgstr "একটি প্রশ্নাবলী পূরণ করুন"
 
 #: templates/index.html:29
 msgid "For Healthcare Providers"
-msgstr ""
+msgstr "স্বাস্থ্যসেবকদের জন্য"
 
 #: templates/index.html:30
-msgid ""
-"Review patient-reported outcomes and gain insights into patient health "
-"status and treatment effectiveness."
-msgstr ""
+msgid "Review patient-reported outcomes and gain insights into patient health status and treatment effectiveness."
+msgstr "রোগীর রিপোর্ট করা ফলাফল পর্যালোচনা করুন এবং রোগীর স্বাস্থ্য অবস্থা এবং চিকিৎসার কার্যকারিতা সম্পর্কে অন্তর্দৃষ্টি অর্জন করুন।"
 
 #: templates/index.html:40
 msgid "Key Features"
-msgstr ""
+msgstr "মূল বৈশিষ্ট্য"
 
 #: templates/index.html:42
 msgid "Multilingual support for questionnaires"
-msgstr ""
+msgstr "প্রশ্নাবলী বিভিন্ন ভাষায় অনুবাদ করা যায়"
 
 #: templates/index.html:43
 msgid "Standardized assessment tools"
-msgstr ""
+msgstr "মানসম্পন্ন মূল্যায়ন সরঞ্জাম"
 
 #: templates/index.html:44
 msgid "Secure data storage and privacy protection"
-msgstr ""
+msgstr "নিরাপদ ডেটা সংরক্ষণ এবং গোপনীয়তা সুরক্ষা"
 
 #: templates/index.html:45
 msgid "Easy-to-use interface for patients and providers"
-msgstr ""
+msgstr "রোগী এবং প্রদানকারীদের জন্য সহজ ব্যবহারযোগ্য ইন্টারফেস"
 
 #: templates/index.html:46
 msgid "Comprehensive reporting and visualization tools"
-msgstr ""
+msgstr "বিস্তৃত রিপোর্টিং এবং ভিজুয়ালাইজেশন সরঞ্জাম"
 
 #: templates/navbar.html:12 templates/navbar.html:156
 msgid "Home"
-msgstr ""
+msgstr "হোম"
 
 #: templates/navbar.html:14 templates/navbar.html:158
 #: templates/patientapp/patient_list.html:6
@@ -623,106 +611,105 @@ msgstr ""
 #: templates/promapp/components/aggregation_metadata_card.html:109
 #: templates/promapp/components/aggregation_metadata_card.html:144
 msgid "Patients"
-msgstr ""
+msgstr "রোগী"
 
 #: templates/navbar.html:19 templates/navbar.html:162
 msgid "Instruments"
-msgstr ""
+msgstr "যন্ত্র"
 
 #: templates/navbar.html:28 templates/navbar.html:165
 #: templates/patientapp/patient_list.html:27
 #: templates/promapp/questionnaire_create.html:6
 #: templates/promapp/questionnaire_create.html:210
 msgid "Create Questionnaire"
-msgstr ""
+msgstr "প্রশ্নাবলী তৈরি করুন"
 
 #: templates/navbar.html:32 templates/navbar.html:168
 #: templates/promapp/construct_scale_list.html:5
 #: templates/promapp/construct_scale_list.html:12
 msgid "Construct Scales"
-msgstr ""
+msgstr "স্কেল তৈরি করুন"
 
 #: templates/navbar.html:37 templates/navbar.html:173
 msgid "Composite Construct Scales"
-msgstr ""
+msgstr "যৌগিক কনস্ট্রাক্ট স্কেল"
 
 #: templates/navbar.html:42 templates/navbar.html:178
 #: templates/promapp/item_list.html:5 templates/promapp/item_list.html:12
 msgid "Items"
-msgstr ""
+msgstr "আইটেম"
 
 #: templates/navbar.html:46 templates/navbar.html:182
 #: templates/patientapp/patient_list.html:110
 #: templates/promapp/questionnaire_list.html:5
 #: templates/promapp/questionnaire_list.html:12
 msgid "Questionnaires"
-msgstr ""
+msgstr "প্রশ্নাবলী"
 
 #: templates/navbar.html:50 templates/navbar.html:186
 #: templates/promapp/likert_scale_list.html:5
 #: templates/promapp/likert_scale_list.html:12
 msgid "Likert Scales"
-msgstr ""
+msgstr "লিকার্ট স্কেল"
 
 #: templates/navbar.html:55 templates/navbar.html:191
 #: templates/promapp/range_scale_list.html:5
 #: templates/promapp/range_scale_list.html:12
 msgid "Range Scales"
-msgstr ""
+msgstr "পরিসীমা স্কেল"
 
 #: templates/navbar.html:64 templates/navbar.html:199
 msgid "Help & Guidance"
-msgstr ""
+msgstr "সহায়তা ও নির্দেশনা"
 
 #: templates/navbar.html:67 templates/navbar.html:201
 #: templates/promapp/questionnaire_guidance.html:5
 #: templates/promapp/questionnaire_guidance.html:12
 msgid "Questionnaire Guidance"
-msgstr ""
+msgstr "প্রশ্নাবলী নির্দেশনা"
 
 #: templates/navbar.html:75 templates/navbar.html:208
 msgid "Manage Questionnaire"
-msgstr ""
+msgstr "প্রশ্নাবলী পরিচালনা করুন"
 
 #: templates/navbar.html:79 templates/navbar.html:211
 msgid "Assign Questionnaire to Patient"
-msgstr ""
+msgstr "রোগীর কাছে প্রশ্নাবলী বরাদ্দ করুন"
 
 #: templates/navbar.html:89 templates/navbar.html:218
 msgid "Admin"
-msgstr ""
+msgstr "প্রশাসক"
 
 #: templates/navbar.html:96 templates/navbar.html:225
 #: templates/patientapp/patient_portal.html:5
 msgid "My Portal"
-msgstr ""
+msgstr "আমার পোর্টাল"
 
 #: templates/navbar.html:127 templates/navbar.html:252
 msgid "Logout"
-msgstr ""
+msgstr "লগআউট"
 
 #: templates/navbar.html:133 templates/navbar.html:257
 #: templates/registration/login.html:5 templates/registration/login.html:10
 #: templates/registration/login.html:20
 msgid "Login"
-msgstr ""
+msgstr "লগইন"
 
 #: templates/navbar.html:134 templates/navbar.html:258
 msgid "Register"
-msgstr ""
+msgstr "নিবন্ধন করুন"
 
 #: templates/navbar.html:144
 msgid "Open main menu"
-msgstr ""
+msgstr "প্রধান মেনু খুলুন"
 
 #: templates/patientapp/diagnosis_confirm_delete.html:15
 msgid "Delete Diagnosis"
-msgstr ""
+msgstr "রোগ নির্ণয় মুছে ফেলুন"
 
 #: templates/patientapp/diagnosis_confirm_delete.html:20
-msgid ""
-"Are you sure you want to delete this diagnosis? This action cannot be undone."
-msgstr ""
+msgid "Are you sure you want to delete this diagnosis? This action cannot be undone."
+msgstr "আপনি কি নিশ্চিত যে এই রোগ নির্ণয়টি মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।"
 
 #: templates/patientapp/diagnosis_confirm_delete.html:26
 #: templates/patientapp/diagnosis_form.html:20
@@ -750,1089 +737,1079 @@ msgstr ""
 #: templates/promapp/range_scale_form.html:113
 #: templates/promapp/range_scale_form.html:119
 msgid "Cancel"
-msgstr ""
+msgstr "বাতিল করুন"
 
 #: templates/patientapp/diagnosis_form.html:23
 #: templates/patientapp/treatment_form.html:101
 #: templates/patientapp/treatment_type_form.html:23
 msgid "Update"
-msgstr ""
+msgstr "আপডেট করুন"
 
 #: templates/patientapp/diagnosis_form.html:23
 #: templates/patientapp/partials/treatment_type_form_modal.html:21
 #: templates/patientapp/treatment_form.html:101
 #: templates/patientapp/treatment_type_form.html:23
 msgid "Add"
-msgstr ""
+msgstr "যোগ করুন"
 
 #: templates/patientapp/partials/patient_portal_media_card.html:23
 msgid "Latest Media Response"
-msgstr ""
+msgstr "সর্বশেষ মিডিয়া উত্তর"
 
 #: templates/patientapp/partials/patient_portal_media_card.html:41
 #: templates/promapp/components/media_item_card.html:21
 msgid "Your browser does not support the audio element."
-msgstr ""
+msgstr "আপনার ব্রাউজার অডিও দেখাতে পারে না।"
 
 #: templates/patientapp/partials/patient_portal_media_card.html:45
 #: templates/promapp/components/media_item_card.html:25
 msgid "Audio Response"
-msgstr ""
+msgstr "অডিও উত্তর"
 
 #: templates/patientapp/partials/patient_portal_media_card.html:55
 #: templates/promapp/components/media_item_card.html:35
 msgid "Your browser does not support the video element."
-msgstr ""
+msgstr "আপনার ব্রাউজার ভিডিও দেখাতে পারে না।"
 
 #: templates/patientapp/partials/patient_portal_media_card.html:59
 #: templates/promapp/components/media_item_card.html:39
 msgid "Video Response"
-msgstr ""
+msgstr "ভিডিও উত্তর"
 
 #: templates/patientapp/partials/patient_portal_media_card.html:66
 #: templates/patientapp/partials/patient_portal_media_card.html:71
 #: templates/promapp/components/media_item_card.html:46
 #: templates/promapp/components/media_item_card.html:51
 msgid "Image Response"
-msgstr ""
+msgstr "ছবির উত্তর"
 
 #: templates/patientapp/partials/patient_portal_media_card.html:71
 #: templates/promapp/components/media_item_card.html:51
 msgid "Click to enlarge"
-msgstr ""
+msgstr "বড় করতে ক্লিক করুন"
 
 #: templates/patientapp/partials/patient_portal_media_card.html:82
 #: templates/promapp/components/media_item_card.html:62
 msgid "Download Media File"
-msgstr ""
+msgstr "মিডিয়া ফাইল ডাউনলোড করুন"
 
 #: templates/patientapp/partials/patient_portal_media_card.html:87
 #: templates/promapp/components/media_item_card.html:67
 msgid "Media Response"
-msgstr ""
+msgstr "মিডিয়া প্রতিক্রিয়া"
 
 #: templates/patientapp/partials/patient_portal_media_card.html:98
 #: templates/promapp/components/media_item_card.html:78
 msgid "No media response provided"
-msgstr ""
+msgstr "কোন মিডিয়া প্রতিক্রিয়া প্রদান করা হয়নি"
 
 #: templates/patientapp/partials/patient_portal_media_card.html:107
 msgid "No responses yet"
-msgstr ""
+msgstr "এখনও কোন প্রতিক্রিয়া নেই"
 
 #: templates/patientapp/partials/patient_portal_media_card.html:115
 msgid "Latest response shown"
-msgstr ""
+msgstr "সর্বশেষ প্রতিক্রিয়া দেখানো হয়েছে"
 
 #: templates/patientapp/partials/patient_portal_plots.html:10
 msgid "Response Trends"
-msgstr ""
+msgstr "প্রতিক্রিয়ার ধরন"
 
 #: templates/patientapp/partials/patient_portal_plots.html:36
 msgid "Latest Response"
-msgstr ""
+msgstr "সর্বশেষ প্রতিক্রিয়া"
 
 #: templates/patientapp/partials/patient_portal_plots.html:72
 msgid "Plot Legend"
-msgstr ""
+msgstr "প্লট লেজেন্ড"
 
 #: templates/patientapp/partials/patient_portal_plots.html:76
 msgid "Your responses"
-msgstr ""
+msgstr "আপনার প্রতিক্রিয়াসমূহ"
 
 #: templates/patientapp/partials/patient_portal_plots.html:80
 msgid "Threshold line (if available)"
-msgstr ""
+msgstr "থ্রেশহোল্ড লাইন (যদি উপলব্ধ থাকে)"
 
 #: templates/patientapp/partials/patient_portal_plots.html:84
 msgid "Normal range (if available)"
-msgstr ""
+msgstr "স্বাভাবিক পরিসীমা (যদি উপলব্ধ থাকে)"
 
 #: templates/patientapp/partials/patient_portal_plots.html:88
 msgid "Normal range band (if available)"
-msgstr ""
+msgstr "স্বাভাবিক পরিসীমা ব্যান্ড (যদি উপলব্ধ থাকে)"
 
 #: templates/patientapp/partials/patient_portal_plots.html:100
 msgid "Media Responses"
-msgstr ""
+msgstr "মিডিয়া প্রতিক্রিয়াসমূহ"
 
 #: templates/patientapp/partials/patient_portal_plots.html:120
 msgid "No responses for selected items"
-msgstr ""
+msgstr "নির্বাচিত আইটেমগুলির জন্য কোন প্রতিক্রিয়া নেই"
 
 #: templates/patientapp/partials/patient_portal_plots.html:122
-msgid ""
-"You haven't responded to the selected items yet, or try selecting different "
-"items to view your response trends."
-msgstr ""
+msgid "You haven't responded to the selected items yet, or try selecting different items to view your response trends."
+msgstr "আপনি এখনও নির্বাচিত আইটেমগুলিতে প্রতিক্রিয়া জানাননি, অথবা আপনার প্রতিক্রিয়ার ধরন দেখতে বিভিন্ন আইটেম নির্বাচন করে দেখুন।"
 
 #: templates/patientapp/partials/patient_portal_plots.html:129
 msgid "No response data yet"
-msgstr ""
+msgstr "এখনও কোন প্রতিক্রিয়ার তথ্য নেই"
 
 #: templates/patientapp/partials/patient_portal_plots.html:131
-msgid ""
-"Complete some questionnaires to see your response trends and patterns over "
-"time."
-msgstr ""
+msgid "Complete some questionnaires to see your response trends and patterns over time."
+msgstr "সময়ের সাথে আপনার প্রতিক্রিয়ার ধরন এবং প্যাটার্ন দেখতে কিছু প্রশ্নাবলী সম্পূর্ণ করুন।"
 
 #: templates/patientapp/partials/patient_table.html:31
 msgid "questionnaires"
-msgstr ""
+msgstr "প্রশ্নাবলী"
 
 #: templates/patientapp/partials/patient_table.html:44
 msgid "View Patient"
-msgstr ""
+msgstr "রোগী দেখুন"
 
 #: templates/patientapp/partials/patient_table.html:48
 #: templates/patientapp/patient_detail.html:17
 #: templates/promapp/questionnaire_guidance.html:334
 msgid "Manage Questionnaires"
-msgstr ""
+msgstr "প্রশ্নাবলী পরিচালনা করুন"
 
 #: templates/patientapp/partials/patient_table.html:52
 msgid "View Responses"
-msgstr ""
+msgstr "উত্তর দেখুন"
 
 #: templates/patientapp/partials/patient_table.html:64
 #: templates/patientapp/patient_detail.html:103
 msgid "Diagnoses"
-msgstr ""
+msgstr "রোগ নির্ণয়সমূহ"
 
 #: templates/patientapp/partials/patient_table.html:74
 #: templates/patientapp/patient_detail.html:194
 #: templates/promapp/components/patient_info_card.html:103
 msgid "No diagnoses recorded"
-msgstr ""
+msgstr "কোন রোগ নির্ণয় রেকর্ড করা হয়নি"
 
 #: templates/patientapp/partials/patient_table.html:80
 #: templates/patientapp/patient_detail.html:142
 msgid "Treatments"
-msgstr ""
+msgstr "চিকিৎসাসমূহ"
 
 #: templates/patientapp/partials/patient_table.html:95
 #: templates/patientapp/patient_detail.html:187
 #: templates/promapp/components/patient_info_card.html:93
 msgid "No treatments recorded"
-msgstr ""
+msgstr "কোন চিকিৎসা রেকর্ড করা হয়নি"
 
 #: templates/patientapp/partials/patient_table.html:101
 msgid "Assigned Questionnaires"
-msgstr ""
+msgstr "বরাদ্দকৃত প্রশ্নাবলী"
 
 #: templates/patientapp/partials/patient_table.html:111
 msgid "No questionnaires assigned"
-msgstr ""
+msgstr "কোন প্রশ্নাবলী বরাদ্দ করা হয়নি"
 
 #: templates/patientapp/partials/patient_table.html:127
 msgid "No patients found"
-msgstr ""
+msgstr "কোন রোগী পাওয়া যায়নি"
 
 #: templates/patientapp/partials/patient_table.html:128
 msgid "Try adjusting your search or filter criteria"
-msgstr ""
+msgstr "আপনার অনুসন্ধান বা ফিল্টার মানদণ্ড সামঞ্জস্য করার চেষ্টা করুন"
 
 #: templates/patientapp/partials/patient_table.html:131
 #: templates/patientapp/patient_list.html:22
 msgid "Add Patient"
-msgstr ""
+msgstr "রোগী যোগ করুন"
 
 #: templates/patientapp/partials/treatment_type_form_modal.html:9
 #: templates/patientapp/treatment_form.html:55
 msgid "Add New Treatment Type"
-msgstr ""
+msgstr "নতুন চিকিৎসার ধরন যোগ করুন"
 
 #: templates/patientapp/patient_detail.html:6
 #: templates/patientapp/patient_detail.html:13
 msgid "Patient Details"
-msgstr ""
+msgstr "রোগীর বিবরণ"
 
 #: templates/patientapp/patient_detail.html:22
 msgid "View PRO Review"
-msgstr ""
+msgstr "PRO পর্যালোচনা দেখুন"
 
 #: templates/patientapp/patient_detail.html:45
 #: templates/patientapp/patient_form.html:53
 #: templates/patientapp/patient_restricted_update_form.html:29
 msgid "Patient Information"
-msgstr ""
+msgstr "রোগীর তথ্য"
 
 #: templates/patientapp/patient_detail.html:52
 msgid "Patient ID"
-msgstr ""
+msgstr "রোগীর আইডি"
 
 #: templates/patientapp/patient_detail.html:63
 #: templates/promapp/components/patient_info_card.html:11
 msgid "Age"
-msgstr ""
+msgstr "বয়স"
 
 #: templates/patientapp/patient_detail.html:69
 #: templates/patientapp/patient_list.html:102
 msgid "Gender"
-msgstr ""
+msgstr "লিঙ্গ"
 
 #: templates/patientapp/patient_detail.html:76
 #: templates/patientapp/patient_list.html:94
 msgid "Institution"
-msgstr ""
+msgstr "প্রতিষ্ঠান"
 
 #: templates/patientapp/patient_detail.html:82
 msgid "Date of Registration"
-msgstr ""
+msgstr "নিবন্ধনের তারিখ"
 
 #: templates/patientapp/patient_detail.html:118
 msgid "Diagnosed"
-msgstr ""
+msgstr "রোগ নির্ণয়ের তারিখ"
 
 #: templates/patientapp/patient_detail.html:152
 #: templates/promapp/components/construct_scores_section.html:74
 #: templates/promapp/components/construct_scores_section.html:138
 #: templates/promapp/components/patient_info_card.html:68
 msgid "N/A"
-msgstr ""
+msgstr "ব্যবহারকারীর অ্যাকাউন্ট তথ্য"
 
 #: templates/patientapp/patient_detail.html:158
 #: templates/patientapp/patient_portal.html:119
 msgid "Started"
-msgstr ""
+msgstr "ব্যবহারকারী গ্রুপ"
 
 #: templates/patientapp/patient_detail.html:164
 #: templates/promapp/patient_questionnaire_management.html:50
 msgid "Status"
-msgstr ""
+msgstr "রোগী আপডেট করুন"
 
 #: templates/patientapp/patient_detail.html:166
 msgid "Ongoing"
-msgstr ""
+msgstr "চলমান"
 
 #: templates/patientapp/patient_detail.html:171
 msgid "Completed"
-msgstr ""
+msgstr "সম্পন্ন"
 
 #: templates/patientapp/patient_form.html:29
 msgid "User Account Information"
-msgstr ""
+msgstr "ব্যবহারকারীর অ্যাকাউন্ট তথ্য"
 
 #: templates/patientapp/patient_form.html:70
 msgid "User Groups"
-msgstr ""
+msgstr "ব্যবহারকারী গ্রুপ"
 
 #: templates/patientapp/patient_form.html:82
 msgid "Update Patient"
-msgstr ""
+msgstr "রোগী আপডেট করুন"
 
 #: templates/patientapp/patient_form.html:82
 msgid "Create Patient"
-msgstr ""
+msgstr "রোগী তৈরি করুন"
 
 #: templates/patientapp/patient_list.html:16
 msgid "Manage patients and their questionnaires"
-msgstr ""
+msgstr "রোগী এবং তাদের প্রশ্নাবলী পরিচালনা করুন"
 
 #: templates/patientapp/patient_list.html:46
 msgid "Search & Filter"
-msgstr ""
+msgstr "খুঁজুন ও ফিল্টার"
 
 #: templates/patientapp/patient_list.html:55
 msgid "Search by Name"
-msgstr ""
+msgstr "নাম দিয়ে অনুসন্ধান করুন"
 
 #: templates/patientapp/patient_list.html:66
 msgid "Enter exact name..."
-msgstr ""
+msgstr "পুরো নাম লিখুন..."
 
 #: templates/patientapp/patient_list.html:73
 msgid "Search by ID"
-msgstr ""
+msgstr "আইডি দিয়ে খুঁজুন"
 
 #: templates/patientapp/patient_list.html:84
 msgid "Enter exact ID..."
-msgstr ""
+msgstr "সঠিক আইডি লিখুন..."
 
 #: templates/patientapp/patient_list.html:95
 msgid "All Institutions"
-msgstr ""
+msgstr "সব প্রতিষ্ঠান"
 
 #: templates/patientapp/patient_list.html:103
 #: templates/promapp/components/filters_section.html:170
 msgid "All Genders"
-msgstr ""
+msgstr "সব লিঙ্গ"
 
 #: templates/patientapp/patient_list.html:111
 msgid "All"
-msgstr ""
+msgstr "সব"
 
 #: templates/patientapp/patient_list.html:118
 msgid "Diagnosis"
-msgstr ""
+msgstr "রোগ নির্ণয়"
 
 #: templates/patientapp/patient_list.html:119
 #: templates/promapp/components/filters_section.html:192
 msgid "All Diagnoses"
-msgstr ""
+msgstr "সব রোগ নির্ণয়"
+""
 
 #: templates/patientapp/patient_list.html:126
 #: templates/patientapp/treatment_type_list.html:32
 msgid "Treatment Type"
-msgstr ""
+msgstr "চিকিৎসার ধরন"
 
 #: templates/patientapp/patient_list.html:127
 msgid "All Treatment Types"
-msgstr ""
+msgstr "সকল চিকিৎসার ধরন"
 
 #: templates/patientapp/patient_list.html:134
 msgid "Sort By"
-msgstr ""
+msgstr "অনুসারে সাজান"
 
 #: templates/patientapp/patient_portal.html:20
 msgid "Welcome"
-msgstr ""
+msgstr "স্বাগতম"
 
 #: templates/patientapp/patient_portal.html:22
 msgid "ID"
-msgstr ""
+msgstr "আইডি"
 
 #: templates/patientapp/patient_portal.html:24
 msgid "Registered"
-msgstr ""
+msgstr "নিবন্ধিত"
 
 #: templates/patientapp/patient_portal.html:27
 #: templates/promapp/components/aggregated_results_section.html:51
 #: templates/promapp/components/aggregation_metadata_card.html:149
 msgid "Responses"
-msgstr ""
+msgstr "উত্তরসমূহ"
 
 #: templates/patientapp/patient_portal.html:37
 msgid "Complete Questionnaires"
-msgstr ""
+msgstr "প্রশ্নাবলীর উত্তর দিন"
 
 #: templates/patientapp/patient_portal.html:47
 #: templates/promapp/my_questionnaire_list.html:20
 msgid "Available Questionnaires"
-msgstr ""
+msgstr "উপলব্ধ প্রশ্নাবলী"
 
 #: templates/patientapp/patient_portal.html:68
 msgid "View all"
-msgstr ""
+msgstr "সব দেখুন"
 
 #: templates/patientapp/patient_portal.html:77
 msgid "No questionnaires available"
-msgstr ""
+msgstr "কোন প্রশ্নাবলী উপলব্ধ নেই"
 
 #: templates/patientapp/patient_portal.html:92
 #: templates/promapp/components/patient_info_card.html:25
 msgid "Clinical Information"
-msgstr ""
+msgstr "ক্লিনিক্যাল তথ্য"
 
 #: templates/patientapp/patient_portal.html:102
 msgid "Diagnosed on"
-msgstr ""
+msgstr "রোগ নির্ণয়ের তারিখ"
 
 #: templates/patientapp/patient_portal.html:111
 msgid "Treatment"
-msgstr ""
+msgstr "চিকিৎসা"
 
 #: templates/patientapp/patient_portal.html:143
 msgid "Response History"
-msgstr ""
+msgstr "উত্তরের ইতিহাস"
 
 #: templates/patientapp/patient_portal.html:144
 msgid "responses"
-msgstr ""
+msgstr "উত্তর"
 
 #: templates/patientapp/patient_portal.html:154
 #: templates/patientapp/patient_portal.html:470
 #: templates/promapp/patient_questionnaire_management.html:105
 msgid "Show"
-msgstr ""
+msgstr "দেখান"
 
 #: templates/patientapp/patient_portal.html:164
 #: templates/promapp/patient_questionnaire_management.html:47
 msgid "Questionnaire"
-msgstr ""
+msgstr "প্রশ্নাবলী"
 
 #: templates/patientapp/patient_portal.html:167
 msgid "Completed Date"
-msgstr ""
+msgstr "সম্পন্ন হওয়ার তারিখ"
 
 #: templates/patientapp/patient_portal.html:170
 msgid "Time Ago"
-msgstr ""
+msgstr "কত সময় আগে"
 
 #: templates/patientapp/patient_portal.html:186
 msgid "ago"
-msgstr ""
+msgstr "আগে"
 
 #: templates/patientapp/patient_portal.html:196
-#, python-format
 msgid ""
-"\n"
-"                            Showing 10 of %(counter)s response\n"
+"                            Showing 10 of %(counter)s response"
 "                            "
 msgid_plural ""
-"\n"
-"                            Showing 10 of %(counter)s responses\n"
+"                            Showing 10 of %(counter)s responses"
 "                            "
 msgstr[0] ""
+"%(counter)s টি রেসপন্সের মধ্যে ১০টি দেখানো হচ্ছে"
+"                                               "
 msgstr[1] ""
+"%(counter)s টি রেসপন্সের মধ্যে ১০টি দেখানো হচ্ছে"
+"                                                "
 
 #: templates/patientapp/patient_portal.html:218
 msgid "My Response Trends"
-msgstr ""
+msgstr "আমার প্রতিক্রিয়ার ধরন"
 
 #: templates/patientapp/patient_portal.html:227
 msgid "Filter Items"
-msgstr ""
+msgstr "আইটেম ফিল্টার করুন"
 
 #: templates/patientapp/patient_portal.html:239
 msgid "Search items..."
-msgstr ""
+msgstr "আইটেম খুঁজুন..."
 
 #: templates/patientapp/patient_portal.html:247
 #: templates/patientapp/patient_portal.html:377
 #: templates/promapp/prom_review.html:215
 msgid "item"
-msgstr ""
+msgstr "আইটেম"
 
 #: templates/patientapp/patient_portal.html:247
 #: templates/patientapp/patient_portal.html:377
 #: templates/promapp/prom_review.html:215
 msgid "selected"
-msgstr ""
+msgstr "নির্বাচিত"
 
 #: templates/patientapp/patient_portal.html:250
 #: templates/patientapp/patient_portal.html:374
 #: templates/promapp/prom_review.html:212
 msgid "All items shown"
-msgstr ""
+msgstr "সব আইটেম দেখানো হয়েছে"
 
 #: templates/patientapp/patient_portal.html:271
 msgid "Apply Filter"
-msgstr ""
+msgstr "ফিল্টার প্রয়োগ করুন"
 
 #: templates/patientapp/patient_portal.html:274
 #: templates/promapp/questionnaire_create.html:180
 #: templates/promapp/questionnaire_update.html:189
 msgid "Clear All"
-msgstr ""
+msgstr "সব পরিষ্কার করুন"
 
 #: templates/patientapp/patient_portal.html:381
 #: templates/promapp/prom_review.html:219
 msgid "more"
-msgstr ""
+msgstr "আরো"
 
 #: templates/patientapp/patient_portal.html:464
 #: templates/promapp/patient_questionnaire_management.html:103
 msgid "Hide"
-msgstr ""
+msgstr "লুকান"
 
 #: templates/patientapp/treatment_confirm_delete.html:22
 msgid "Delete Treatment"
-msgstr ""
+msgstr "চিকিৎসা মুছে দিন "
 
 #: templates/patientapp/treatment_confirm_delete.html:26
-msgid ""
-"Are you sure you want to delete this treatment? This action cannot be undone."
-msgstr ""
+msgid "Are you sure you want to delete this treatment? This action cannot be undone."
+msgstr "আপনি কি নিশ্চিত যে এই চিকিৎসা মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।"
 
 #: templates/patientapp/treatment_form.html:22
 msgid "Treatment Entry Guidelines"
-msgstr ""
+msgstr "চিকিৎসা এন্ট্রি নির্দেশিকা"
 
 #: templates/patientapp/treatment_type_confirm_delete.html:15
 msgid "Delete Treatment Type"
-msgstr ""
+msgstr "চিকিৎসার ধরন মুছে দিন"
 
 #: templates/patientapp/treatment_type_confirm_delete.html:20
-msgid ""
-"Are you sure you want to delete this treatment type? This action cannot be "
-"undone."
-msgstr ""
+msgid "Are you sure you want to delete this treatment type? This action cannot be undone."
+msgstr "আপনি কি নিশ্চিত যে এই চিকিৎসার ধরন মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।"
 
 #: templates/patientapp/treatment_type_list.html:35
 msgid "Created Date"
-msgstr ""
+msgstr "তৈরির তারিখ"
 
 #: templates/patientapp/treatment_type_list.html:38
 msgid "Modified Date"
-msgstr ""
+msgstr "সংশোধনের তারিখ"
 
 #: templates/patientapp/treatment_type_list.html:41
 #: templates/promapp/patient_questionnaire_management.html:56
 #: templates/promapp/questionnaire_item_rules_list.html:118
 msgid "Actions"
-msgstr ""
+msgstr "কার্যক্রম"
 
 #: templates/patientapp/treatment_type_list.html:71
 msgid "No treatment types found"
-msgstr ""
+msgstr "কোন চিকিৎসার ধরন পাওয়া যায়নি"
 
 #: templates/promapp/components/aggregated_results_section.html:16
 msgid "Population Comparison"
-msgstr ""
+msgstr "জনসংখ্যার তুলনা"
 
 #: templates/promapp/components/aggregated_results_section.html:19
 msgid "Active"
-msgstr ""
+msgstr "সক্রিয়"
 
 #: templates/promapp/components/aggregated_results_section.html:23
 msgid "Available"
-msgstr ""
+msgstr "উপলব্ধ"
 
 #: templates/promapp/components/aggregated_results_section.html:28
 msgid "Enable to see population data overlaid on plots"
-msgstr ""
+msgstr "প্লটে জনসংখ্যার তথ্য দেখার জন্য সক্রিয় করুন"
 
 #: templates/promapp/components/aggregated_results_section.html:38
 msgid "Eligible"
-msgstr ""
+msgstr "যোগ্য"
 
 #: templates/promapp/components/aggregated_results_section.html:45
 #: templates/promapp/components/aggregation_metadata_card.html:143
 msgid "Contributing"
-msgstr ""
+msgstr "অবদানকারী"
 
 #: templates/promapp/components/aggregated_results_section.html:57
 msgid "Time Points"
-msgstr ""
+msgstr "সময় বিন্দু"
 
 #: templates/promapp/components/aggregated_results_section.html:66
 msgid "Method:"
-msgstr ""
+msgstr "পদ্ধতি:"
 
 #: templates/promapp/components/aggregated_results_section.html:69
 #: templates/promapp/components/aggregated_results_section.html:81
 msgid "Median+IQR"
-msgstr ""
+msgstr "Median+IQR "
 
 #: templates/promapp/components/aggregated_results_section.html:71
-#, python-format
 msgid "Mean+95%%CI"
-msgstr ""
+msgstr "Mean+95%%CI "
 
 #: templates/promapp/components/aggregated_results_section.html:73
 msgid "Mean±0.5SD"
-msgstr ""
+msgstr "Mean±0.5SD "
 
 #: templates/promapp/components/aggregated_results_section.html:75
 msgid "Mean±1SD"
-msgstr ""
+msgstr "Mean±1SD "
 
 #: templates/promapp/components/aggregated_results_section.html:77
 msgid "Mean±2SD"
-msgstr ""
+msgstr "Mean±2SD"
 
 #: templates/promapp/components/aggregated_results_section.html:79
 msgid "Mean±2.5SD"
-msgstr ""
+msgstr "Mean±2.5SD"
 
 #: templates/promapp/components/aggregated_results_section.html:88
 msgid "Gender:"
-msgstr ""
+msgstr "লিঙ্গ:"
 
 #: templates/promapp/components/aggregated_results_section.html:91
 #: templates/promapp/components/aggregated_results_section.html:104
 #: templates/promapp/components/aggregated_results_section.html:117
 msgid "Match"
-msgstr ""
+msgstr "মিল"
 
 #: templates/promapp/components/aggregated_results_section.html:101
 msgid "Diagnosis:"
-msgstr ""
+msgstr "রোগ নির্ণয়:"
 
 #: templates/promapp/components/aggregated_results_section.html:114
 msgid "Treatment:"
-msgstr ""
+msgstr "চিকিৎসা:"
 
 #: templates/promapp/components/aggregated_results_section.html:128
 msgid "Coverage:"
-msgstr ""
+msgstr "কভারেজ:"
 
 #: templates/promapp/components/aggregation_metadata_card.html:17
 #: templates/promapp/components/aggregation_metadata_card.html:22
 msgid "Population Comparison Not Available"
-msgstr ""
+msgstr "জনসংখ্যার তুলনা উপলব্ধ নেই"
 
 #: templates/promapp/components/aggregation_metadata_card.html:27
 msgid "Population Comparison Active"
-msgstr ""
+msgstr "জনসংখ্যার তুলনা সক্রিয়"
 
 #: templates/promapp/components/aggregation_metadata_card.html:29
 #: templates/promapp/components/filters_section.html:16
 msgid "Click to expand"
-msgstr ""
+msgstr "বিস্তারিতভাবে দেখতে ক্লিক করুন"
 
 #: templates/promapp/components/aggregation_metadata_card.html:63
 #: templates/promapp/components/aggregation_metadata_card.html:103
 msgid "With Selected"
-msgstr ""
+msgstr "নির্বাচিত সহ"
 
 #: templates/promapp/components/aggregation_metadata_card.html:64
 #: templates/promapp/components/aggregation_metadata_card.html:104
 msgid "Start Date Type"
-msgstr ""
+msgstr "শুরুর তারিখের ধরন"
 
 #: templates/promapp/components/aggregation_metadata_card.html:68
 #: templates/promapp/components/aggregation_metadata_card.html:108
 #: templates/promapp/components/aggregation_metadata_card.html:148
 msgid "Total"
-msgstr ""
+msgstr "মোট"
 
 #: templates/promapp/components/aggregation_metadata_card.html:73
 msgid "Minimum"
-msgstr ""
+msgstr "সর্বনিম্ন"
 
 #: templates/promapp/components/aggregation_metadata_card.html:74
 msgid "Required"
-msgstr ""
+msgstr "প্রয়োজনীয়"
 
 #: templates/promapp/components/aggregation_metadata_card.html:84
 #: templates/promapp/components/aggregation_metadata_card.html:124
 msgid "Suggestion"
-msgstr ""
+msgstr "পরামর্শ"
 
 #: templates/promapp/components/aggregation_metadata_card.html:86
-msgid ""
-"Try selecting 'Date of Registration' as the start date reference, or adjust "
-"the population filters to include more patients with the selected start date "
-"type."
-msgstr ""
+msgid "Try selecting 'Date of Registration' as the start date reference, or adjust the population filters to include more patients with the selected start date type."
+msgstr "শুরুর তারিখের রেফারেন্স হিসেবে 'নিবন্ধনের তারিখ' নির্বাচন করার চেষ্টা করুন, অথবা নির্বাচিত শুরুর তারিখের ধরন সহ আরও রোগী অন্তর্ভুক্ত করতে জনসংখ্যার ফিল্টার সমন্বয় করুন।"
 
 #: templates/promapp/components/aggregation_metadata_card.html:113
 msgid "With Data"
-msgstr ""
+msgstr "ডেটা সহ"
 
 #: templates/promapp/components/aggregation_metadata_card.html:114
 msgid "In Time Range"
-msgstr ""
+msgstr "সময়ের সীমার মধ্যে"
 
 #: templates/promapp/components/aggregation_metadata_card.html:126
-msgid ""
-"Try extending the time range, adjusting the submission date filter, or "
-"selecting a different questionnaire to include more responses in the "
-"aggregation."
-msgstr ""
+msgid "Try extending the time range, adjusting the submission date filter, or selecting a different questionnaire to include more responses in the aggregation."
+msgstr "সময়ের সীমা বাড়ানো, জমা দেওয়ার তারিখের ফিল্টার সমন্বয় করা, অথবা সমষ্টিতে আরও উত্তর অন্তর্ভুক্ত করতে একটি ভিন্ন প্রশ্নাবলী নির্বাচন করার চেষ্টা করুন।"
 
 #: templates/promapp/components/aggregation_metadata_card.html:136
-msgid ""
-"Individual results are shown with aggregated data from similar patients for "
-"comparison"
-msgstr ""
+msgid "Individual results are shown with aggregated data from similar patients for comparison"
+msgstr "ব্যক্তিগত ফলাফল তুলনার জন্য অনুরূপ রোগীদের সমষ্টিগত ডেটার সাথে দেখানো হয়"
 
 #: templates/promapp/components/aggregation_metadata_card.html:153
 msgid "Time"
-msgstr ""
+msgstr "সময়"
 
 #: templates/promapp/components/aggregation_metadata_card.html:154
 msgid "Intervals"
-msgstr ""
+msgstr "বিরতি"
 
 #: templates/promapp/components/aggregation_metadata_card.html:158
 msgid "Range"
-msgstr ""
+msgstr "পরিসীমা"
 
 #: templates/promapp/components/aggregation_metadata_card.html:169
 msgid "Population data shown as "
-msgstr ""
+msgstr "জনসংখ্যার ডেটা এভাবে দেখানো হয়েছে "
 
 #: templates/promapp/components/aggregation_metadata_card.html:171
 msgid " dotted lines with error bars on plots"
-msgstr ""
+msgstr " প্লটে ত্রুটির বার সহ বিন্দুযুক্ত রেখা"
 
 #: templates/promapp/components/aggregation_metadata_card.html:187
 msgid "Patient Contribution Details"
-msgstr ""
+msgstr "রোগীর অবদানের বিবরণ"
+
 
 #: templates/promapp/components/aggregation_metadata_card.html:202
 msgid "Contributing Patients"
-msgstr ""
+msgstr "অবদানকারী রোগীগণ"
 
 #: templates/promapp/components/aggregation_metadata_card.html:236
 msgid "Non-Contributing Patients"
-msgstr ""
+msgstr "অ-অবদানকারী রোগীগণ"
 
 #: templates/promapp/components/construct_scores_section.html:6
 msgid "Other Construct Scores"
-msgstr ""
+msgstr "অন্যান্য গঠন স্কোর"
 
 #: templates/promapp/components/construct_scores_section.html:13
 #: templates/promapp/components/topline_results_section.html:14
 msgid "Legend:"
-msgstr ""
+msgstr "কিংবদন্তি:"
 
 #: templates/promapp/components/construct_scores_section.html:16
 msgid "Score improved from previous submission"
-msgstr ""
+msgstr "পূর্ববর্তী জমা থেকে স্কোর উন্নতি হয়েছে"
 
 #: templates/promapp/components/construct_scores_section.html:20
 msgid "Score declined from previous submission"
-msgstr ""
+msgstr "পূর্ববর্তী জমা থেকে স্কোর হ্রাস পেয়েছে"
 
 #: templates/promapp/components/construct_scores_section.html:24
 #: templates/promapp/components/topline_results_section.html:37
 msgid "No change from previous submission"
-msgstr ""
+msgstr "পূর্ববর্তী জমা থেকে কোন পরিবর্তন নেই"
 
 #: templates/promapp/components/construct_scores_section.html:28
 msgid "Score meets clinical threshold"
-msgstr ""
+msgstr "স্কোর ক্লিনিক্যাল থ্রেশহোল্ড পূরণ করে"
 
 #: templates/promapp/components/construct_scores_section.html:32
 msgid "Score does not meet clinical threshold"
-msgstr ""
+msgstr "স্কোর ক্লিনিক্যাল থ্রেশহোল্ড পূরণ করে না"
 
 #: templates/promapp/components/construct_scores_section.html:36
 msgid "Higher scores are better"
-msgstr ""
+msgstr "উচ্চ স্কোর আরো ভাল"
 
 #: templates/promapp/components/construct_scores_section.html:40
 msgid "Lower scores are better"
-msgstr ""
+msgstr "নিম্ন স্কোর আরো ভাল"
 
 #: templates/promapp/components/construct_scores_section.html:43
 msgid "Format: Items answered/Total items"
-msgstr ""
+msgstr "ফরম্যাট: উত্তরকৃত আইটেম/মোট আইটেম"
 
 #: templates/promapp/components/construct_scores_section.html:118
 msgid "Composite Construct Scores"
-msgstr ""
+msgstr "যৌগিক গঠন স্কোর"
 
 #: templates/promapp/components/construct_scores_section.html:145
 msgid "components"
-msgstr ""
+msgstr "উপাদানসমূহ"
 
 #: templates/promapp/components/construct_scores_section.html:156
 msgid "No construct scores available."
-msgstr ""
+msgstr "কোন গঠন স্কোর উপলব্ধ নেই।"
 
 #: templates/promapp/components/filters_section.html:15
 msgid "Filters"
-msgstr ""
+msgstr "ফিল্টার"
 
 #: templates/promapp/components/filters_section.html:39
 msgid "Start Date Reference"
-msgstr ""
+msgstr "শুরুর তারিখ রেফারেন্স"
 
 #: templates/promapp/components/filters_section.html:61
 msgid "Up to"
-msgstr ""
+msgstr "পর্যন্ত"
 
 #: templates/promapp/components/filters_section.html:61
 #: templates/promapp/components/filters_section.html:371
 #: templates/promapp/components/filters_section.html:375
 msgid "weeks"
-msgstr ""
+msgstr "সপ্তাহ"
 
 #: templates/promapp/components/filters_section.html:61
 msgid "after start date"
-msgstr ""
+msgstr "শুরুর তারিখের পরে"
 
 #: templates/promapp/components/filters_section.html:70
 msgid "All data"
-msgstr ""
+msgstr "সব ডেটা"
+
 
 #: templates/promapp/components/filters_section.html:83
 msgid "Time Range"
-msgstr ""
+msgstr "সময়ের পরিসীমা"
+
 
 #: templates/promapp/components/filters_section.html:105
 msgid "Time Interval"
-msgstr ""
+msgstr "সময়ের বিরতি"
 
 #: templates/promapp/components/filters_section.html:117
 msgid "Days"
-msgstr ""
+msgstr "দিন"
 
 #: templates/promapp/components/filters_section.html:118
 msgid "Weeks"
-msgstr ""
+msgstr "সপ্তাহ"
 
 #: templates/promapp/components/filters_section.html:119
 msgid "Months"
-msgstr ""
+msgstr "মাস"
 
 #: templates/promapp/components/filters_section.html:120
 msgid "Years"
-msgstr ""
+msgstr "বছর"
 
 #: templates/promapp/components/filters_section.html:131
 msgid "Population Comparison Filters"
-msgstr ""
+msgstr "জনসংখ্যার তুলনা ফিল্টার"
 
 #: templates/promapp/components/filters_section.html:137
 msgid "Aggregation Type"
-msgstr ""
+msgstr "একত্রিতকরণের ধরন"
 
 #: templates/promapp/components/filters_section.html:148
 msgid "Median with IQR (25th-75th percentile)"
-msgstr ""
+msgstr "মধ্যমা সহ IQR (২৫তম-৭৫তম পার্সেন্টাইল)"
 
 #: templates/promapp/components/filters_section.html:149
-#, python-format
 msgid "Mean with 95%% Confidence Interval"
-msgstr ""
+msgstr "৯৫%% আত্মবিশ্বাসের ব্যবধান সহ গড়"
 
 #: templates/promapp/components/filters_section.html:150
 msgid "Mean ± 0.5 Standard Deviation"
-msgstr ""
+msgstr "গড় ± ০.৫ মানক বিচ্যুতি"
 
 #: templates/promapp/components/filters_section.html:151
 msgid "Mean ± 1 Standard Deviation"
-msgstr ""
+msgstr "গড় ± ১ মানক বিচ্যুতি"
 
 #: templates/promapp/components/filters_section.html:152
 msgid "Mean ± 2 Standard Deviations"
-msgstr ""
+msgstr "গড় ± ২ মানক বিচ্যুতি"
 
 #: templates/promapp/components/filters_section.html:159
 msgid "Gender Filter"
-msgstr ""
+msgstr "লিঙ্গ ফিল্টার"
 
 #: templates/promapp/components/filters_section.html:171
 #: templates/promapp/components/filters_section.html:193
 #: templates/promapp/components/filters_section.html:217
 msgid "Match Patient"
-msgstr ""
+msgstr "রোগী মিলান"
 
 #: templates/promapp/components/filters_section.html:172
 msgid "Male"
-msgstr ""
+msgstr "পুরুষ"
 
 #: templates/promapp/components/filters_section.html:173
 msgid "Female"
-msgstr ""
+msgstr "মহিলা"
+
 
 #: templates/promapp/components/filters_section.html:174
 msgid "Other"
-msgstr ""
+msgstr "অন্যান্য"
 
 #: templates/promapp/components/filters_section.html:181
 msgid "Diagnosis Filter"
-msgstr ""
+msgstr "রোগ নির্ণয় ফিল্টার"
 
 #: templates/promapp/components/filters_section.html:205
 msgid "Treatment Filter"
-msgstr ""
+msgstr "চিকিৎসা ফিল্টার"
 
 #: templates/promapp/components/filters_section.html:216
 msgid "All Treatments"
-msgstr ""
+msgstr "সব চিকিৎসা"
 
 #: templates/promapp/components/filters_section.html:231
 msgid "Minimum Age"
-msgstr ""
+msgstr "সর্বনিম্ন বয়স"
 
 #: templates/promapp/components/filters_section.html:240
 #: templates/promapp/components/filters_section.html:260
 msgid "No limit"
-msgstr ""
+msgstr "কোন সীমা নেই"
 
 #: templates/promapp/components/filters_section.html:251
 msgid "Maximum Age"
-msgstr ""
+msgstr "সর্বোচ্চ বয়স"
 
 #: templates/promapp/components/filters_section.html:278
 msgid "Questionnaire Filter"
-msgstr ""
+msgstr "প্রশ্নাবলী ফিল্টার"
 
 #: templates/promapp/components/filters_section.html:289
 msgid "All Questionnaires"
-msgstr ""
+msgstr "সব প্রশ্নাবলী"
 
 #: templates/promapp/components/filters_section.html:301
 msgid "Item Filter"
-msgstr ""
+msgstr "আইটেম ফিল্টার"
 
 #: templates/promapp/components/filters_section.html:307
 msgid "Search and select items..."
-msgstr ""
+msgstr "আইটেম খোঁজ করুন এবং নির্বাচন করুন..."
 
 #: templates/promapp/components/filters_section.html:370
 msgid "days"
-msgstr ""
+msgstr "দিন"
 
 #: templates/promapp/components/filters_section.html:372
 msgid "months"
-msgstr ""
+msgstr "মাস"
 
 #: templates/promapp/components/filters_section.html:373
 msgid "years"
-msgstr ""
+msgstr "বছর"
 
 #: templates/promapp/components/important_construct_card.html:10
 msgid "Higher is better"
-msgstr ""
+msgstr "উচ্চতর ভাল"
 
 #: templates/promapp/components/important_construct_card.html:12
 msgid "Lower is better"
-msgstr ""
+msgstr "নিম্নতর ভাল"
 
 #: templates/promapp/components/important_construct_card.html:47
 msgid "Threshold:"
-msgstr ""
+msgstr "সীমা:"
 
 #: templates/promapp/components/important_construct_card.html:50
 msgid "Normative:"
-msgstr ""
+msgstr "আদর্শ:"
 
 #: templates/promapp/components/item_results_section.html:5
 #: templates/promapp/components/results_container.html:28
 msgid "Item-wise Results"
-msgstr ""
+msgstr "আইটেম অনুসারে ফলাফল"
 
 #: templates/promapp/components/item_results_section.html:21
 #: templates/promapp/partials/item_list_table.html:97
 msgid "No items available."
-msgstr ""
+msgstr "কোন আইটেম উপলব্ধ নেই।"
+
 
 #: templates/promapp/components/media_recorder.html:12
 msgid "Audio"
-msgstr ""
+msgstr "অডিও"
 
 #: templates/promapp/components/media_recorder.html:20
 msgid "Video"
-msgstr ""
+msgstr "ভিডিও"
 
 #: templates/promapp/components/media_recorder.html:43
 msgid "Audio Recording Area"
-msgstr ""
+msgstr "অডিও রেকর্ডিং এলাকা"
 
 #: templates/promapp/components/media_recorder.html:51
 msgid "Ready to record"
-msgstr ""
+msgstr "রেকর্ড করার জন্য প্রস্তুত"
 
 #: templates/promapp/components/media_recorder.html:83
 msgid "Play"
-msgstr ""
+msgstr "চালান"
 
 #: templates/promapp/components/media_recorder.html:97
 msgid "Click record to start. Make sure to allow microphone/camera access."
-msgstr ""
+msgstr "রেকর্ড শুরু করতে ক্লিক করুন। মাইক্রোফোন/ক্যামেরা ব্যবহার করা অনুমতি দেওয়া নিশ্চিত করুন।"
 
 #: templates/promapp/components/media_recorder.html:109
 msgid "Preparing recording..."
-msgstr ""
+msgstr "রেকর্ডিং প্রস্তুত করা হচ্ছে..."
 
 #: templates/promapp/components/patient_info_card.html:14
 msgid "Reg. Date"
-msgstr ""
+msgstr "নিবন্ধন তারিখ"
 
 #: templates/promapp/components/questionnaire_overview_card.html:6
 msgid "Questionnaire Overview"
-msgstr ""
+msgstr "প্রশ্নাবলী সংক্ষিপ্ত বিবরণ"
 
 #: templates/promapp/components/questionnaire_overview_card.html:31
 msgid "Awaiting submission"
-msgstr ""
+msgstr "জমা দেওয়ার অপেক্ষায়"
 
 #: templates/promapp/components/questionnaire_overview_card.html:39
 msgid "No questionnaires available for this patient."
-msgstr ""
+msgstr "এই রোগীর জন্য কোন প্রশ্নাবলী উপলব্ধ নেই।"
 
 #: templates/promapp/components/results_container.html:6
 #: templates/promapp/components/topline_results_section.html:7
 msgid "Topline Results"
-msgstr ""
+msgstr "প্রধান ফলাফল"
 
 #: templates/promapp/components/results_container.html:13
 msgid "Submission Date"
-msgstr ""
+msgstr "জমা দেওয়ার তারিখ"
 
 #: templates/promapp/components/results_container.html:20
 #: templates/promapp/components/results_container.html:54
 msgid "No submissions available."
-msgstr ""
+msgstr "কোন জমা দেওয়া উপলব্ধ নেই।"
 
 #: templates/promapp/components/search_form.html:38
 #: templates/promapp/item_list.html:56
 msgid "Search"
-msgstr ""
+msgstr "খুঁজুন"
 
 #: templates/promapp/components/search_form.html:107
 #: templates/promapp/item_list.html:110
 msgid "Loading..."
-msgstr ""
+msgstr "লোড হচ্ছে..."
 
 #: templates/promapp/components/text_item_card.html:14
 msgid "No response provided"
-msgstr ""
+msgstr "কোন প্রতিক্রিয়া প্রদান করা হয়নি"
 
 #: templates/promapp/components/topline_results_section.html:18
 msgid "Trend Indicators:"
-msgstr ""
+msgstr "ট্রেন্ড নির্দেশক:"
 
 #: templates/promapp/components/topline_results_section.html:21
 msgid "Score improved (beneficial change)"
-msgstr ""
+msgstr "স্কোর উন্নতি হয়েছে (উপকারী পরিবর্তন)"
 
 #: templates/promapp/components/topline_results_section.html:25
 msgid "Score increased (concerning change)"
-msgstr ""
+msgstr "স্কোর বৃদ্ধি পেয়েছে (উদ্বেগজনক পরিবর্তন)"
 
 #: templates/promapp/components/topline_results_section.html:29
 msgid "Score decreased (beneficial change)"
-msgstr ""
+msgstr "স্কোর হ্রাস পেয়েছে (উপকারী পরিবর্তন)"
 
 #: templates/promapp/components/topline_results_section.html:33
 msgid "Score decreased (concerning change)"
-msgstr ""
+msgstr "স্কোর হ্রাস পেয়েছে (উদ্বেগজনক পরিবর্তন)"
 
 #: templates/promapp/components/topline_results_section.html:43
 msgid "Status Indicators:"
-msgstr ""
+msgstr "অবস্থা নির্দেশক:"
 
 #: templates/promapp/components/topline_results_section.html:46
 msgid "Meets clinical threshold"
-msgstr ""
+msgstr "ক্লিনিক্যাল থ্রেশহোল্ড পূরণ করে"
 
 #: templates/promapp/components/topline_results_section.html:50
 msgid "Does not meet clinical threshold"
-msgstr ""
+msgstr "ক্লিনিক্যাল থ্রেশহোল্ড পূরণ করে না"
 
 #: templates/promapp/components/topline_results_section.html:54
 msgid "Normative population mean"
-msgstr ""
+msgstr "স্বাভাবিক জনসংখ্যার গড়"
 
 #: templates/promapp/components/topline_results_section.html:60
 msgid "Plot Elements:"
-msgstr ""
+msgstr "প্লট উপাদান:"
 
 #: templates/promapp/components/topline_results_section.html:63
 msgid "Score trend line over time"
-msgstr ""
+msgstr "সময়ের সাথে স্কোর ট্রেন্ড লাইন"
 
 #: templates/promapp/components/topline_results_section.html:67
 msgid "Individual score points"
-msgstr ""
+msgstr "ব্যক্তিগত স্কোর পয়েন্ট"
 
 #: templates/promapp/components/topline_results_section.html:71
 msgid "Clinical threshold line"
-msgstr ""
+msgstr "ক্লিনিক্যাল থ্রেশহোল্ড লাইন"
 
 #: templates/promapp/components/topline_results_section.html:75
 msgid "Normative mean reference line"
-msgstr ""
+msgstr "স্বাভাবিক গড় রেফারেন্স লাইন"
 
 #: templates/promapp/components/topline_results_section.html:126
 msgid "Clinical Significance:"
-msgstr ""
+msgstr "ক্লিনিক্যাল তাৎপর্য:"
 
 #: templates/promapp/components/topline_results_section.html:183
 msgid "No important construct scores available"
-msgstr ""
+msgstr "কোন গুরুত্বপূর্ণ গঠন স্কোর উপলব্ধ নেই"
 
 #: templates/promapp/composite_construct_scale_scoring_form.html:8
 #: templates/promapp/composite_construct_scale_scoring_form.html:21
 msgid "Update Composite Construct Scale Scoring"
-msgstr ""
+msgstr "যৌগিক গঠন স্কেল স্কোরিং আপডেট করুন"
 
 #: templates/promapp/composite_construct_scale_scoring_form.html:10
 msgid "Create Composite Construct Scale Scoring"
-msgstr ""
+msgstr "যৌগিক গঠন স্কেল স্কোরিং তৈরি করুন"
 
 #: templates/promapp/composite_construct_scale_scoring_form.html:23
 msgid "Create New Composite Construct Scale Scoring"
-msgstr ""
+msgstr "নতুন যৌগিক গঠন স্কেল স্কোরিং তৈরি করুন"
 
 #: templates/promapp/composite_construct_scale_scoring_form.html:30
 #: templates/promapp/item_translation_form.html:159
@@ -1841,461 +1818,451 @@ msgstr ""
 #: templates/promapp/questionnaire_translation_form.html:159
 #: templates/promapp/range_scale_translation_form.html:157
 msgid "Back to List"
-msgstr ""
+msgstr "তালিকায় ফিরে যান"
+""
 
 #: templates/promapp/composite_construct_scale_scoring_form.html:59
 msgid "Update Composite Scale"
-msgstr ""
+msgstr "যৌগিক স্কেল আপডেট করুন"
+""
 
 #: templates/promapp/composite_construct_scale_scoring_form.html:61
 msgid "Create Composite Scale"
-msgstr ""
+msgstr "যৌগিক স্কেল তৈরি করুন"
 
 #: templates/promapp/composite_construct_scale_scoring_list.html:5
 #: templates/promapp/composite_construct_scale_scoring_list.html:12
 msgid "Composite Construct Scale Scoring"
 msgstr ""
+"যৌগিক কনস্ট্রাক্ট স্কেল স্কোরিং"
 
 #: templates/promapp/composite_construct_scale_scoring_list.html:15
 msgid "Create New Composite Scoring"
-msgstr ""
+msgstr "নতুন যৌগিক স্কোরিং তৈরি করুন"
 
 #: templates/promapp/composite_construct_scale_scoring_list.html:42
 msgid "No composite scoring configurations available yet."
-msgstr ""
+msgstr "এখনও কোন যৌগিক স্কোরিং কনফিগারেশন উপলব্ধ নেই।"
 
 #: templates/promapp/composite_construct_scale_scoring_list.html:45
 msgid "Create First Composite Scoring"
-msgstr ""
+msgstr "প্রথম যৌগিক স্কোরিং তৈরি করুন"
 
 #: templates/promapp/construct_equation_form.html:8
 msgid "Construct Scale Equation"
-msgstr ""
+msgstr "কনস্ট্রাক্ট স্কেল সমীকরণ"
 
 #: templates/promapp/construct_equation_form.html:26
 msgid "Minimum Number of Items Required"
-msgstr ""
+msgstr "প্রয়োজনীয় আইটেমের সর্বনিম্ন সংখ্যা"
 
 #: templates/promapp/construct_equation_form.html:35
 msgid "Enter minimum number of items that must be answered"
-msgstr ""
+msgstr "উত্তর দিতে হবে এমন আইটেমের সর্বনিম্ন সংখ্যা লিখুন"
 
 #: templates/promapp/construct_equation_form.html:46
-msgid ""
-"The minimum number of items that must be answered to calculate the score for "
-"this construct scale. Set to 0 if there is no minimum requirement."
-msgstr ""
+msgid "The minimum number of items that must be answered to calculate the score for this construct scale. Set to 0 if there is no minimum requirement."
+msgstr "এই কনস্ট্রাক্ট স্কেলের স্কোর গণনা করার জন্য উত্তর দিতে হবে এমন আইটেমের সর্বনিম্ন সংখ্যা। কোন সর্বনিম্ন প্রয়োজনীয়তা না থাকলে ০ সেট করুন।"
 
 #: templates/promapp/construct_equation_form.html:53
 msgid "Scale Equation"
-msgstr ""
+msgstr "স্কেল সমীকরণ"
 
 #: templates/promapp/construct_equation_form.html:78
 #: templates/promapp/construct_equation_form.html:300
 msgid "No Valid Items Available"
-msgstr ""
+msgstr "কোন বৈধ আইটেম উপলব্ধ নেই"
 
 #: templates/promapp/construct_equation_form.html:82
 #: templates/promapp/construct_equation_form.html:304
-msgid ""
-"There are no items in this scale that can be used in equations. Please add "
-"items to the scale before creating an equation."
-msgstr ""
+msgid "There are no items in this scale that can be used in equations. Please add items to the scale before creating an equation."
+msgstr "এই স্কেলে সমীকরণে ব্যবহার করা যায় এমন কোন আইটেম নেই। সমীকরণ তৈরি করার আগে স্কেলে আইটেম যোগ করুন।"
 
 #: templates/promapp/construct_equation_form.html:93
 msgid "Add items to the scale first"
-msgstr ""
+msgstr "প্রথমে স্কেলে আইটেম যোগ করুন"
 
 #: templates/promapp/construct_equation_form.html:112
 msgid "Show/Hide Equation Syntax Help"
-msgstr ""
+msgstr "সমীকরণ সিনট্যাক্স সহায়তা দেখান/লুকান"
 
 #: templates/promapp/construct_equation_form.html:116
 msgid "Equation Syntax Guide"
-msgstr ""
+msgstr "সমীকরণ সিনট্যাক্স গাইড"
 
 #: templates/promapp/construct_equation_form.html:121
 msgid "Basic Syntax"
-msgstr ""
+msgstr "মৌলিক সিনট্যাক্স"
 
 #: templates/promapp/construct_equation_form.html:123
-#, python-brace-format
 msgid "Use {qN} to reference items (e.g., {q1}, {q2})"
-msgstr ""
+msgstr "আইটেম রেফারেন্স করতে {qN} ব্যবহার করুন (যেমন, {q1}, {q2})"
 
 #: templates/promapp/construct_equation_form.html:124
 msgid "Basic arithmetic: +, -, *, /, ^ (power)"
-msgstr ""
+msgstr "মৌলিক গাণিতিক: +, -, *, /, ^ (পাওয়ার)"
+"in"
 
 #: templates/promapp/construct_equation_form.html:125
 msgid "Parentheses () for grouping"
-msgstr ""
+msgstr "গ্রুপিংয়ের জন্য বন্ধনী ()"
 
 #: templates/promapp/construct_equation_form.html:126
 msgid "Equations can span multiple lines for better readability"
-msgstr ""
+msgstr "ভাল পঠনযোগ্যতার জন্য সমীকরণ একাধিক লাইনে বিস্তৃত হতে পারে"
 
 #: templates/promapp/construct_equation_form.html:132
 msgid "Available Functions"
-msgstr ""
+msgstr "উপলব্ধ ফাংশন"
 
 #: templates/promapp/construct_equation_form.html:134
 msgid "Absolute value"
-msgstr ""
+msgstr "পরম মান"
 
 #: templates/promapp/construct_equation_form.html:135
 msgid "Minimum value"
-msgstr ""
+msgstr "সর্বনিম্ন মান"
 
 #: templates/promapp/construct_equation_form.html:136
 msgid "Maximum value"
-msgstr ""
+msgstr "সর্বোচ্চ মান"
 
 #: templates/promapp/construct_equation_form.html:137
 msgid "Sum of values"
-msgstr ""
+msgstr "মানগুলির যোগফল"
 
 #: templates/promapp/construct_equation_form.html:138
 msgid "Round to nearest integer"
-msgstr ""
+msgstr "নিকটতম পূর্ণসংখ্যায় রাউন্ড করুন"
 
 #: templates/promapp/construct_equation_form.html:139
 msgid "Square root"
-msgstr ""
+msgstr "বর্গমূল"
 
 #: templates/promapp/construct_equation_form.html:145
 msgid "Conditional Logic"
-msgstr ""
+msgstr "শর্তসাপেক্ষ যুক্তি"
 
 #: templates/promapp/construct_equation_form.html:147
 msgid "Basic if-then-else: if condition then value1 else value2"
-msgstr ""
+msgstr "মৌলিক if-then-else: যদি শর্ত তাহলে মান১ অন্যথা মান২"
 
 #: templates/promapp/construct_equation_form.html:148
-msgid ""
-"Multiple conditions with elif: if condition1 then value1 elif condition2 "
-"then value2 else value3"
-msgstr ""
+msgid "Multiple conditions with elif: if condition1 then value1 elif condition2 then value2 else value3"
+msgstr "elif সহ একাধিক শর্ত: যদি শর্ত১ তাহলে মান১ elif শর্ত২ তাহলে মান২ অন্যথা মান৩"
 
 #: templates/promapp/construct_equation_form.html:149
 msgid "Comparisons: >, <, >=, <=, ==, !="
-msgstr ""
+msgstr "তুলনা: >, <, >=, <=, ==, !="
 
 #: templates/promapp/construct_equation_form.html:150
 msgid "Logical operators: and, or, xor"
-msgstr ""
+msgstr "যৌক্তিক অপারেটর: and, or, xor"
 
 #: templates/promapp/construct_equation_form.html:156
 msgid "Examples"
-msgstr ""
+msgstr "উদাহরণ"
 
 #: templates/promapp/construct_equation_form.html:161
 msgid "Basic arithmetic with grouping"
-msgstr ""
+msgstr "গ্রুপিং সহ মৌলিক গণিত"
 
 #: templates/promapp/construct_equation_form.html:167
 msgid "Using min and max functions"
-msgstr ""
+msgstr "min এবং max ফাংশন ব্যবহার"
 
 #: templates/promapp/construct_equation_form.html:173
 msgid "Simple conditional"
-msgstr ""
+msgstr "সহজ শর্তসাপেক্ষ"
 
 #: templates/promapp/construct_equation_form.html:179
 msgid "Complex conditional with functions"
-msgstr ""
+msgstr "ফাংশন সহ জটিল শর্তসাপেক্ষ"
 
 #: templates/promapp/construct_equation_form.html:188
 msgid "Multi-line conditional with multiple conditions"
-msgstr ""
+msgstr "একাধিক শর্ত সহ বহু-লাইনের শর্তসাপেক্ষ"
 
 #: templates/promapp/construct_equation_form.html:198
 msgid "Complex multi-line conditional with nested conditions"
-msgstr ""
+msgstr "নেস্টেড শর্ত সহ জটিল মাল্টি-লাইন কন্ডিশনাল"
 
 #: templates/promapp/construct_equation_form.html:207
 msgid "Function with nested conditional"
-msgstr ""
+msgstr "নেস্টেড কন্ডিশনাল সহ ফাংশন"
 
 #: templates/promapp/construct_equation_form.html:214
 msgid "Tips"
-msgstr ""
+msgstr "টিপস"
 
 #: templates/promapp/construct_equation_form.html:216
 msgid "Use multiple lines for complex conditions to improve readability"
 msgstr ""
+"পঠনযোগ্যতা উন্নত করতে জটিল শর্তের জন্য একাধিক লাইন ব্যবহার করুন"
 
 #: templates/promapp/construct_equation_form.html:217
 msgid "Indent your conditions to make the structure clearer"
-msgstr ""
+msgstr "গঠন আরও স্পষ্ট করতে আপনার শর্তগুলি ইন্ডেন্ট করুন"
 
 #: templates/promapp/construct_equation_form.html:218
 msgid "Group related conditions together"
-msgstr ""
+msgstr "সম্পর্কিত শর্তগুলি একসাথে গ্রুপ করুন"
 
 #: templates/promapp/construct_equation_form.html:219
 msgid "Always include an else clause to handle unexpected cases"
-msgstr ""
+msgstr "অপ্রত্যাশিত ক্ষেত্রে পরিচালনা করতে সর্বদা একটি else ক্লজ অন্তর্ভুক্ত করুন"
 
 #: templates/promapp/construct_equation_form.html:220
 msgid "Use parentheses to clarify operator precedence"
-msgstr ""
+msgstr "অপারেটর অগ্রাধিকার স্পষ্ট করতে বন্ধনী ব্যবহার করুন"
 
 #: templates/promapp/construct_equation_form.html:237
 #: templates/promapp/construct_equation_form.html:241
 msgid "Save Equation"
-msgstr ""
+msgstr "সমীকরণ সংরক্ষণ করুন"
 
 #: templates/promapp/construct_equation_form.html:249
 msgid "Valid Items for Equation"
-msgstr ""
+msgstr "সমীকরণের জন্য বৈধ আইটেম"
 
 #: templates/promapp/construct_equation_form.html:257
 msgid "How to add items:"
-msgstr ""
+msgstr "আইটেম কীভাবে যোগ করবেন:"
 
 #: templates/promapp/construct_equation_form.html:258
-msgid ""
-"Click on any item below to add it to your equation, or drag and drop it into "
-"the equation text area."
-msgstr ""
+msgid "Click on any item below to add it to your equation, or drag and drop it into the equation text area."
+msgstr "আপনার সমীকরণে যোগ করতে নীচের যেকোনো আইটেমে ক্লিক করুন, অথবা সমীকরণ টেক্সট এলাকায় ড্র্যাগ অ্যান্ড ড্রপ করুন।"
 
 #: templates/promapp/construct_equation_form.html:268
 msgid "Click to add to equation or drag and drop"
-msgstr ""
+msgstr "সমীকরণে যোগ করতে ক্লিক করুন অথবা ড্র্যাগ অ্যান্ড ড্রপ করুন"
 
 #: templates/promapp/construct_equation_form.html:313
 msgid "Invalid Items (Cannot be used in equation)"
-msgstr ""
+msgstr "অবৈধ আইটেম (সমীকরণে ব্যবহার করা যাবে না)"
 
 #: templates/promapp/construct_equation_form.html:317
 msgid "Item"
-msgstr ""
+msgstr "আইটেম"
 
 #: templates/promapp/construct_equation_form.html:319
 msgid "Cannot be used in equation"
-msgstr ""
+msgstr "সমীকরণে ব্যবহার করা যাবে না"
 
 #: templates/promapp/construct_scale_form.html:8
 #: templates/promapp/construct_scale_form.html:21
 #: templates/promapp/construct_scale_form.html:76
 msgid "Update Construct Scale"
-msgstr ""
+msgstr "কনস্ট্রাক্ট স্কেল আপডেট করুন"
 
 #: templates/promapp/construct_scale_form.html:10
 #: templates/promapp/construct_scale_form.html:78
 msgid "Create Construct Scale"
-msgstr ""
+msgstr "কনস্ট্রাক্ট স্কেল তৈরি করুন"
 
 #: templates/promapp/construct_scale_form.html:23
 #: templates/promapp/construct_scale_list.html:15
 msgid "Create New Construct Scale"
-msgstr ""
+msgstr "নতুন কনস্ট্রাক্ট স্কেল তৈরি করুন"
 
 #: templates/promapp/construct_scale_form.html:31
 msgid "Back"
-msgstr ""
+msgstr "ফিরে যান"
 
 #: templates/promapp/construct_scale_form.html:38
 #: templates/promapp/likert_scale_form.html:32
 #: templates/promapp/range_scale_form.html:32
 msgid "Back to Item Creation"
-msgstr ""
+msgstr "আইটেম তৈরিতে ফিরে যান"
 
 #: templates/promapp/construct_scale_list.html:42
 msgid "No construct scales available yet."
-msgstr ""
+msgstr "এখনও কোন গঠন স্কেল উপলব্ধ নেই।"
 
 #: templates/promapp/construct_scale_list.html:45
 msgid "Create First Construct Scale"
-msgstr ""
+msgstr "প্রথম গঠন স্কেল তৈরি করুন"
 
 #: templates/promapp/item_create.html:6 templates/promapp/item_create.html:287
 msgid "Create Item"
-msgstr ""
+msgstr "আইটেম তৈরি করুন"
 
 #: templates/promapp/item_create.html:43 templates/promapp/item_list.html:14
 #: templates/promapp/questionnaire_create.html:83
 #: templates/promapp/questionnaire_guidance.html:352
 #: templates/promapp/questionnaire_update.html:96
 msgid "Create New Item"
-msgstr ""
+msgstr "নতুন আইটেম তৈরি করুন"
 
 #: templates/promapp/item_create.html:48 templates/promapp/item_update.html:48
 msgid "Back to Items"
-msgstr ""
+msgstr "আইটেমে ফিরে যান"
 
 #: templates/promapp/item_create.html:75 templates/promapp/item_update.html:75
 msgid "Please correct the following errors:"
-msgstr ""
+msgstr "অনুগ্রহ করে নিম্নলিখিত ত্রুটিগুলি সংশোধন করুন:"
 
 #: templates/promapp/item_create.html:90 templates/promapp/item_update.html:90
 msgid "Item Details"
-msgstr ""
+msgstr "আইটেমের বিবরণ"
 
 #: templates/promapp/item_create.html:94 templates/promapp/item_update.html:94
 msgid "Construct Scale"
-msgstr ""
+msgstr "গঠন স্কেল"
 
 #: templates/promapp/item_create.html:111
 #: templates/promapp/item_update.html:111
 msgid "Create new Construct Scale"
-msgstr ""
+msgstr "নতুন কনস্ট্রাক্ট স্কেল তৈরি করুন"
 
 #: templates/promapp/item_create.html:117
 #: templates/promapp/item_update.html:117
 msgid "Item Name"
-msgstr ""
+msgstr "আইটেমের নাম"
 
 #: templates/promapp/item_create.html:118
 #: templates/promapp/item_update.html:118
 msgid "Enter item name"
-msgstr ""
+msgstr "আইটেমের নাম লিখুন"
 
 #: templates/promapp/item_create.html:125
 #: templates/promapp/item_update.html:125
 msgid "Item Media"
-msgstr ""
+msgstr "আইটেম মিডিয়া"
 
 #: templates/promapp/item_create.html:130
 #: templates/promapp/item_update.html:152
 msgid "Upload an image, video, or audio file to display with this item"
-msgstr ""
+msgstr "এই আইটেমের সাথে প্রদর্শনের জন্য একটি ছবি, ভিডিও বা অডিও ফাইল আপলোড করুন"
 
 #: templates/promapp/item_create.html:139
 #: templates/promapp/item_update.html:161
 msgid "Required for scoring"
-msgstr ""
+msgstr "স্কোরিংয়ের জন্য প্রয়োজনীয়"
 
 #: templates/promapp/item_create.html:145
 #: templates/promapp/item_update.html:167
 msgid "Check this if the item must be answered for construct score calculation"
-msgstr ""
+msgstr "গঠন স্কোর গণনার জন্য আইটেমটির উত্তর দেওয়া আবশ্যক হলে এটি চেক করুন"
 
 #: templates/promapp/item_create.html:150
 #: templates/promapp/item_update.html:172
 msgid "Response Type"
-msgstr ""
+msgstr "প্রতিক্রিয়ার ধরন"
 
 #: templates/promapp/item_create.html:167
 #: templates/promapp/item_update.html:188
 #: templates/promapp/response_fields.html:5
 msgid "Likert Scale"
-msgstr ""
+msgstr "লিকার্ট স্কেল"
 
 #: templates/promapp/item_create.html:179
 #: templates/promapp/item_update.html:195
 #: templates/promapp/response_fields.html:14
 msgid "Create new Likert scale"
-msgstr ""
+msgstr "নতুন লিকার্ট স্কেল তৈরি করুন"
 
 #: templates/promapp/item_create.html:185
 #: templates/promapp/item_update.html:201
 #: templates/promapp/response_fields.html:20
 msgid "Range Scale"
-msgstr ""
+msgstr "রেঞ্জ স্কেল"
 
 #: templates/promapp/item_create.html:197
 #: templates/promapp/item_update.html:208
 #: templates/promapp/response_fields.html:29
 msgid "Create new Range scale"
-msgstr ""
+msgstr "নতুন রেঞ্জ স্কেল তৈরি করুন"
 
 #: templates/promapp/item_create.html:205
 #: templates/promapp/item_update.html:216
 msgid "Missing Value"
-msgstr ""
+msgstr "অনুপস্থিত মান"
 
 #: templates/promapp/item_create.html:206
 #: templates/promapp/item_update.html:217
 msgid "Leave blank to use null for missing values"
-msgstr ""
+msgstr "অনুপস্থিত মানের জন্য null ব্যবহার করতে খালি রাখুন"
 
 #: templates/promapp/item_create.html:210
 #: templates/promapp/item_update.html:221
-msgid ""
-"The value to store for the item when it is not answered. This will be a "
-"number with up to 2 decimal places. If left blank then the item value will "
-"be a Null when missing. This is usually the correct practice so do not set "
-"the value unless the scoring document specifies this explicitly."
-msgstr ""
+msgid "The value to store for the item when it is not answered. This will be a number with up to 2 decimal places. If left blank then the item value will be a Null when missing. This is usually the correct practice so do not set the value unless the scoring document specifies this explicitly."
+msgstr "আইটেমটির উত্তর না দেওয়া হলে সংরক্ষণ করার মান। এটি ২ দশমিক স্থান পর্যন্ত একটি সংখ্যা হবে। খালি রাখলে আইটেমটির মান অনুপস্থিত থাকলে Null হবে। এটি সাধারণত সঠিক অনুশীলন তাই স্কোরিং ডকুমেন্টে স্পষ্টভাবে উল্লেখ না থাকলে মান সেট করবেন না।"
 
 #: templates/promapp/item_create.html:218
 #: templates/promapp/item_update.html:229
 msgid "Clinical Scoring Parameters"
-msgstr ""
+msgstr "ক্লিনিক্যাল স্কোরিং প্যারামিটার"
 
 #: templates/promapp/item_create.html:226
 #: templates/promapp/item_update.html:237
 msgid "Score Direction"
-msgstr ""
+msgstr "স্কোরের দিক"
 
 #: templates/promapp/item_create.html:236
 #: templates/promapp/item_update.html:247
 msgid "Indicates whether higher or lower scores are better for this item"
-msgstr ""
+msgstr "এই আইটেমের জন্য উচ্চ বা নিম্ন স্কোর কোনটি ভাল তা নির্দেশ করে"
 
 #: templates/promapp/item_create.html:240
 #: templates/promapp/item_update.html:251
 msgid "Threshold Score"
-msgstr ""
+msgstr "থ্রেশহোল্ড স্কোর"
 
 #: templates/promapp/item_create.html:241
 #: templates/promapp/item_update.html:252
 msgid "Enter threshold score"
-msgstr ""
+msgstr "থ্রেশহোল্ড স্কোর লিখুন"
 
 #: templates/promapp/item_create.html:245
 #: templates/promapp/item_update.html:256
 msgid "The score which is considered clinically important"
-msgstr ""
+msgstr "যে স্কোর ক্লিনিক্যালি গুরুত্বপূর্ণ বলে বিবেচিত হয়"
 
 #: templates/promapp/item_create.html:249
 #: templates/promapp/item_update.html:260
 msgid "Minimum Clinical Important Difference"
-msgstr ""
+msgstr "সর্বনিম্ন ক্লিনিক্যাল গুরুত্বপূর্ণ পার্থক্য"
 
 #: templates/promapp/item_create.html:250
 #: templates/promapp/item_update.html:261
 msgid "Enter minimum clinical important difference"
-msgstr ""
+msgstr "সর্বনিম্ন ক্লিনিক্যাল গুরুত্বপূর্ণ পার্থক্য লিখুন"
 
 #: templates/promapp/item_create.html:254
 #: templates/promapp/item_update.html:265
-msgid ""
-"The minimum difference between two scores that would be considered "
-"clinically important"
-msgstr ""
+msgid "The minimum difference between two scores that would be considered clinically important"
+msgstr "দুটি স্কোরের মধ্যে সর্বনিম্ন পার্থক্য যা ক্লিনিক্যালি গুরুত্বপূর্ণ বলে বিবেচিত হবে"
 
 #: templates/promapp/item_create.html:258
 #: templates/promapp/item_update.html:269
 msgid "Normative Score Mean"
-msgstr ""
+msgstr "আদর্শ স্কোর গড়"
 
 #: templates/promapp/item_create.html:259
 #: templates/promapp/item_update.html:270
 msgid "Enter normative score mean"
-msgstr ""
+msgstr "আদর্শ স্কোর গড় লিখুন"
 
 #: templates/promapp/item_create.html:263
 #: templates/promapp/item_update.html:274
 msgid "The mean of the normative score for the item"
-msgstr ""
+msgstr "আইটেমের আদর্শ স্কোরের গড়"
 
 #: templates/promapp/item_create.html:267
 #: templates/promapp/item_update.html:278
 msgid "Normative Score Standard Deviation"
-msgstr ""
+msgstr "আদর্শ স্কোর স্ট্যান্ডার্ড ডেভিয়েশন"
 
 #: templates/promapp/item_create.html:268
 #: templates/promapp/item_update.html:279
 msgid "Enter normative score standard deviation"
-msgstr ""
+msgstr "আদর্শ স্কোর স্ট্যান্ডার্ড ডেভিয়েশন লিখুন"
 
 #: templates/promapp/item_create.html:272
 #: templates/promapp/item_update.html:283
 msgid "The standard deviation of the normative score for the item"
-msgstr ""
+msgstr "আইটেমের আদর্শ স্কোরের স্ট্যান্ডার্ড ডেভিয়েশন"
 
 #: templates/promapp/item_list.html:43 templates/promapp/item_list.html:51
 #: templates/promapp/questionnaire_create.html:93
@@ -2303,380 +2270,377 @@ msgstr ""
 #: templates/promapp/questionnaire_update.html:106
 #: templates/promapp/questionnaire_update.html:107
 msgid "Search items"
-msgstr ""
+msgstr "আইটেম খুঁজুন"
 
 #: templates/promapp/item_list.html:50
 #: templates/promapp/questionnaire_create.html:94
 #: templates/promapp/questionnaire_update.html:107
 msgid "Search by name..."
-msgstr ""
+msgstr "নাম দিয়ে খুঁজুন..."
 
 #: templates/promapp/item_list.html:63
 #: templates/promapp/questionnaire_create.html:97
 #: templates/promapp/questionnaire_update.html:110
 msgid "Filter by construct scale"
-msgstr ""
+msgstr "গঠন স্কেল দিয়ে ফিল্টার করুন"
 
 #: templates/promapp/item_list.html:68
 msgid "Search construct scales..."
-msgstr ""
+msgstr "গঠন স্কেল খুঁজুন..."
 
 #: templates/promapp/item_list.html:90
 msgid "Filter by response type"
-msgstr ""
+msgstr "প্রতিক্রিয়ার ধরন দিয়ে ফিল্টার করুন"
 
 #: templates/promapp/item_list.html:94
 msgid "All response types"
-msgstr ""
+msgstr "সব প্রতিক্রিয়ার ধরন"
 
 #: templates/promapp/item_list.html:120
 msgid "No items available yet."
-msgstr ""
+msgstr "এখনও কোন আইটেম উপলব্ধ নেই।"
 
 #: templates/promapp/item_list.html:122
 #: templates/promapp/questionnaire_create.html:164
 #: templates/promapp/questionnaire_update.html:177
 msgid "Create First Item"
-msgstr ""
+msgstr "প্রথম আইটেম তৈরি করুন"
 
 #: templates/promapp/item_translation_form.html:9
 #: templates/promapp/questionnaire_detail.html:147
 msgid "Translate Item"
-msgstr ""
+msgstr "আইটেম অনুবাদ করুন"
 
 #: templates/promapp/item_translation_form.html:18
 #: templates/promapp/likert_scale_response_option_translation_form.html:17
 #: templates/promapp/questionnaire_translation_form.html:18
 #: templates/promapp/range_scale_translation_form.html:18
 msgid "Languages"
-msgstr ""
+msgstr "ভাষা"
 
 #: templates/promapp/item_translation_form.html:42
 #: templates/promapp/likert_scale_response_option_translation_form.html:41
 #: templates/promapp/questionnaire_translation_form.html:42
 #: templates/promapp/range_scale_translation_form.html:42
 msgid "Currently editing"
-msgstr ""
+msgstr "বর্তমানে সম্পাদনা করা হচ্ছে"
 
 #: templates/promapp/item_translation_form.html:46
 #: templates/promapp/likert_scale_response_option_translation_form.html:45
 #: templates/promapp/questionnaire_translation_form.html:46
 #: templates/promapp/range_scale_translation_form.html:46
 msgid "Click to switch"
-msgstr ""
+msgstr "পরিবর্তন করতে ক্লিক করুন"
 
 #: templates/promapp/item_translation_form.html:77
 #: templates/promapp/likert_scale_response_option_translation_form.html:76
 #: templates/promapp/questionnaire_translation_form.html:77
 #: templates/promapp/range_scale_translation_form.html:77
 msgid "Editing Translation"
-msgstr ""
+msgstr "অনুবাদ সম্পাদনা"
 
 #: templates/promapp/item_translation_form.html:80
 #: templates/promapp/likert_scale_response_option_translation_form.html:79
 #: templates/promapp/questionnaire_translation_form.html:80
 #: templates/promapp/range_scale_translation_form.html:80
-#, python-format
 msgid "Currently editing: %(lang)s"
-msgstr ""
+msgstr "বর্তমানে সম্পাদনা করা হচ্ছে: %(lang)s"
 
 #: templates/promapp/item_translation_form.html:87
 #: templates/promapp/likert_scale_response_option_translation_form.html:86
 #: templates/promapp/questionnaire_translation_form.html:87
 #: templates/promapp/range_scale_translation_form.html:87
 msgid "Unsaved changes"
-msgstr ""
+msgstr "অসংরক্ষিত পরিবর্তন"
 
 #: templates/promapp/item_translation_form.html:94
 #: templates/promapp/likert_scale_response_option_translation_form.html:89
 #: templates/promapp/questionnaire_translation_form.html:94
 #: templates/promapp/range_scale_translation_form.html:94
 msgid "Save Now"
-msgstr ""
+msgstr "এখনই সংরক্ষণ করুন"
 
 #: templates/promapp/item_translation_form.html:109
 #: templates/promapp/likert_scale_response_option_translation_form.html:104
 #: templates/promapp/questionnaire_translation_form.html:109
 #: templates/promapp/range_scale_translation_form.html:109
 msgid "You have unsaved changes"
-msgstr ""
+msgstr "আপনার অসংরক্ষিত পরিবর্তন রয়েছে"
 
 #: templates/promapp/item_translation_form.html:110
 #: templates/promapp/likert_scale_response_option_translation_form.html:105
 #: templates/promapp/questionnaire_translation_form.html:110
 #: templates/promapp/range_scale_translation_form.html:110
 msgid "Make sure to save your work before switching to another language."
-msgstr ""
+msgstr "অন্য ভাষায় স্যুইচ করার আগে আপনার কাজ সংরক্ষণ করতে নিশ্চিত করুন।"
 
 #: templates/promapp/item_translation_form.html:117
 #: templates/promapp/likert_scale_response_option_translation_form.html:109
 #: templates/promapp/questionnaire_translation_form.html:117
 #: templates/promapp/range_scale_translation_form.html:116
 msgid "Save Changes"
-msgstr ""
+msgstr "পরিবর্তন সংরক্ষণ করুন"
 
 #: templates/promapp/item_translation_form.html:127
 #: templates/promapp/questionnaire_translation_form.html:127
 msgid "Original Text Reference"
-msgstr ""
+msgstr "মূল পাঠ্য রেফারেন্স"
 
 #: templates/promapp/item_translation_form.html:135
 msgid "Media"
-msgstr ""
+msgstr "মিডিয়া"
 
 #: templates/promapp/item_translation_form.html:147
 #: templates/promapp/likert_scale_response_option_translation_form.html:145
 #: templates/promapp/questionnaire_translation_form.html:147
 #: templates/promapp/range_scale_translation_form.html:146
-#, python-format
 msgid "%(lang)s Translation"
-msgstr ""
+msgstr "%(lang)s অনুবাদ"
 
 #: templates/promapp/item_translation_form.html:166
 #: templates/promapp/likert_scale_response_option_translation_form.html:155
 #: templates/promapp/questionnaire_translation_form.html:166
 #: templates/promapp/range_scale_translation_form.html:164
 msgid "Save Translation"
-msgstr ""
+msgstr "অনুবাদ সংরক্ষণ করুন"
 
 #: templates/promapp/item_translation_form.html:187
 #: templates/promapp/likert_scale_response_option_translation_form.html:176
 #: templates/promapp/questionnaire_translation_form.html:187
 #: templates/promapp/range_scale_translation_form.html:185
 msgid "Unsaved Changes"
-msgstr ""
+msgstr "অসংরক্ষিত পরিবর্তন"
 
 #: templates/promapp/item_translation_form.html:188
 #: templates/promapp/likert_scale_response_option_translation_form.html:177
 #: templates/promapp/questionnaire_translation_form.html:188
 #: templates/promapp/range_scale_translation_form.html:186
 msgid "You have unsaved changes in your translation"
-msgstr ""
+msgstr "আপনার অনুবাদে অসংরক্ষিত পরিবর্তন রয়েছে"
 
 #: templates/promapp/item_translation_form.html:193
 #: templates/promapp/likert_scale_response_option_translation_form.html:182
 #: templates/promapp/questionnaire_translation_form.html:193
 #: templates/promapp/range_scale_translation_form.html:191
 msgid "What would you like to do with your changes?"
-msgstr ""
+msgstr "আপনি আপনার পরিবর্তনগুলির সাথে কী করতে চান?"
 
 #: templates/promapp/item_translation_form.html:202
 #: templates/promapp/likert_scale_response_option_translation_form.html:187
 #: templates/promapp/questionnaire_translation_form.html:202
 #: templates/promapp/range_scale_translation_form.html:200
 msgid "Save Changes and Switch Language"
-msgstr ""
+msgstr "পরিবর্তন সংরক্ষণ করুন এবং ভাষা পরিবর্তন করুন"
 
 #: templates/promapp/item_translation_form.html:210
 #: templates/promapp/likert_scale_response_option_translation_form.html:190
 #: templates/promapp/questionnaire_translation_form.html:210
 #: templates/promapp/range_scale_translation_form.html:208
 msgid "Discard Changes and Switch"
-msgstr ""
+msgstr "পরিবর্তন বাতিল করুন এবং পরিবর্তন করুন"
 
 #: templates/promapp/item_translation_form.html:218
 #: templates/promapp/likert_scale_response_option_translation_form.html:193
 #: templates/promapp/questionnaire_translation_form.html:218
 #: templates/promapp/range_scale_translation_form.html:216
 msgid "Cancel (Keep Editing)"
-msgstr ""
+msgstr "বাতিল (সম্পাদনা চালিয়ে যান)"
 
 #: templates/promapp/item_translation_form.html:293
 #: templates/promapp/likert_scale_response_option_translation_form.html:268
 #: templates/promapp/questionnaire_translation_form.html:293
 #: templates/promapp/range_scale_translation_form.html:291
 msgid "Saving..."
-msgstr ""
+msgstr "সংরক্ষণ করা হচ্ছে..."
 
 #: templates/promapp/item_translation_form.html:354
 #: templates/promapp/likert_scale_response_option_translation_form.html:329
 #: templates/promapp/questionnaire_translation_form.html:354
 #: templates/promapp/range_scale_translation_form.html:352
-msgid ""
-"You have unsaved changes. Are you sure you want to leave without saving?"
-msgstr ""
+msgid "You have unsaved changes. Are you sure you want to leave without saving?"
+msgstr "আপনার অসংরক্ষিত পরিবর্তন রয়েছে। আপনি কি সংরক্ষণ না করে চলে যেতে চান?"
 
 #: templates/promapp/item_translation_form.html:365
 #: templates/promapp/likert_scale_response_option_translation_form.html:340
 #: templates/promapp/questionnaire_translation_form.html:365
 #: templates/promapp/range_scale_translation_form.html:363
 msgid "You have unsaved changes. Are you sure you want to leave?"
-msgstr ""
+msgstr "আপনার অসংরক্ষিত পরিবর্তন রয়েছে। আপনি কি চলে যেতে চান?"
 
 #: templates/promapp/item_update.html:6 templates/promapp/item_update.html:43
 #: templates/promapp/questionnaire_detail.html:144
 msgid "Edit Item"
-msgstr ""
+msgstr "আইটেম সম্পাদনা করুন"
 
 #: templates/promapp/item_update.html:128
 msgid "Current media:"
-msgstr ""
+msgstr "বর্তমান মিডিয়া:"
 
 #: templates/promapp/item_update.html:131
 msgid "Item media"
-msgstr ""
+msgstr "আইটেম মিডিয়া"
 
 #: templates/promapp/item_update.html:142
 msgid "View current media"
-msgstr ""
+msgstr "বর্তমান মিডিয়া দেখুন"
 
 #: templates/promapp/item_update.html:298
 msgid "Update Item"
-msgstr ""
+msgstr "আইটেম আপডেট করুন"
 
 #: templates/promapp/likert_option_row.html:17
 #: templates/promapp/questionnaire_item_rules_list.html:115
 msgid "Order"
-msgstr ""
+msgstr "ক্রম"
 
 #: templates/promapp/likert_option_row.html:27
 msgid "Value"
-msgstr ""
+msgstr "মান"
 
 #: templates/promapp/likert_option_row.html:36
 msgid "Text"
-msgstr ""
+msgstr "টেক্সট"
 
 #: templates/promapp/likert_scale_form.html:6
 #: templates/promapp/likert_scale_form.html:15
 msgid "Edit Likert Scale"
-msgstr ""
+msgstr "লিকার্ট স্কেল সম্পাদনা করুন"
 
 #: templates/promapp/likert_scale_form.html:6
 #: templates/promapp/likert_scale_form.html:198
 msgid "Create Likert Scale"
-msgstr ""
+msgstr "লিকার্ট স্কেল তৈরি করুন"
 
 #: templates/promapp/likert_scale_form.html:17
 #: templates/promapp/likert_scale_list.html:16
 msgid "Create New Likert Scale"
-msgstr ""
+msgstr "নতুন লিকার্ট স্কেল তৈরি করুন"
 
 #: templates/promapp/likert_scale_form.html:25
 #: templates/promapp/likert_scale_response_option_translation_form.html:152
 msgid "Back to Likert Scales"
-msgstr ""
+msgstr "লিকার্ট স্কেলে ফিরে যান"
 
 #: templates/promapp/likert_scale_form.html:52
 msgid "Likert Scale Details"
-msgstr ""
+msgstr "লিকার্ট স্কেলের বিবরণ"
 
 #: templates/promapp/likert_scale_form.html:56
 #: templates/promapp/range_scale_form.html:55
 msgid "Scale Name"
-msgstr ""
+msgstr "স্কেলের নাম"
 
 #: templates/promapp/likert_scale_form.html:57
 #: templates/promapp/range_scale_form.html:56
 msgid "Enter scale name"
-msgstr ""
+msgstr "স্কেলের নাম লিখুন"
 
 #: templates/promapp/likert_scale_form.html:66
 #: templates/promapp/partials/likert_scale_list_table.html:45
 msgid "Response Options"
-msgstr ""
+msgstr "প্রতিক্রিয়ার বিকল্প"
 
 #: templates/promapp/likert_scale_form.html:74
 msgid "OPTION ORDER"
-msgstr ""
+msgstr "বিকল্পের ক্রম"
 
 #: templates/promapp/likert_scale_form.html:77
 msgid "OPTION VALUE"
-msgstr ""
+msgstr "বিকল্পের মান"
 
 #: templates/promapp/likert_scale_form.html:80
 msgid "OPTION TEXT"
-msgstr ""
+msgstr "অপশন টেক্সট"
 
 #: templates/promapp/likert_scale_form.html:83
 msgid "EMOJI"
-msgstr ""
+msgstr "ইমোজি"
 
 #: templates/promapp/likert_scale_form.html:86
 msgid "OPTION MEDIA"
-msgstr ""
+msgstr "অপশন মিডিয়া"
 
 #: templates/promapp/likert_scale_form.html:89
 msgid "DELETE"
-msgstr ""
+msgstr "মুছে ফেলুন"
 
 #: templates/promapp/likert_scale_form.html:128
 msgid "Current file:"
-msgstr ""
+msgstr "বর্তমান ফাইল:"
 
 #: templates/promapp/likert_scale_form.html:143
 #: templates/promapp/likert_scale_form.html:144
 msgid "Remove option"
-msgstr ""
+msgstr "বিকল্প সরান"
 
 #: templates/promapp/likert_scale_form.html:169
 msgid "Add Option"
-msgstr ""
+msgstr "বিকল্প যোগ করুন"
 
 #: templates/promapp/likert_scale_form.html:192
 msgid "Update Likert Scale"
-msgstr ""
+msgstr "লিকার্ট স্কেল আপডেট করুন"
 
 #: templates/promapp/likert_scale_list.html:42
 msgid "No likert scales available yet."
-msgstr ""
+msgstr "এখনও কোন লিকার্ট স্কেল উপলব্ধ নেই।"
 
 #: templates/promapp/likert_scale_list.html:46
 msgid "Create First Likert Scale"
-msgstr ""
+msgstr "প্রথম লিকার্ট স্কেল তৈরি করুন"
 
 #: templates/promapp/likert_scale_response_option_translation_form.html:8
 msgid "Translate Likert Scale Option"
-msgstr ""
+msgstr "লিকার্ট স্কেল বিকল্প অনুবাদ করুন"
 
 #: templates/promapp/likert_scale_response_option_translation_form.html:119
 msgid "Original Option Reference"
-msgstr ""
+msgstr "মূল অপশন রেফারেন্স"
 
 #: templates/promapp/likert_scale_response_option_translation_form.html:123
 msgid "Option Text"
-msgstr ""
+msgstr "অপশন টেক্সট"
 
 #: templates/promapp/likert_scale_response_option_translation_form.html:127
 msgid "Option Media"
-msgstr ""
+msgstr "অপশন মিডিয়া"
 
 #: templates/promapp/likert_scale_response_option_translation_form.html:132
 msgid "No media"
-msgstr ""
+msgstr "কোন মিডিয়া নেই"
 
 #: templates/promapp/my_questionnaire_list.html:4
 msgid "My Questionnaires"
-msgstr ""
+msgstr "আমার প্রশ্নাবলী"
 
 #: templates/promapp/my_questionnaire_list.html:40
 msgid "Last answered:"
-msgstr ""
+msgstr "শেষ উত্তর দেওয়া:"
 
 #: templates/promapp/my_questionnaire_list.html:44
 msgid "Never"
-msgstr ""
+msgstr "কখনো নয়"
 
 #: templates/promapp/my_questionnaire_list.html:51
 #: templates/promapp/my_questionnaire_list.html:60
 msgid "Answer Questionnaire"
-msgstr ""
+msgstr "প্রশ্নাবলীর উত্তর দিন"
 
 #: templates/promapp/my_questionnaire_list.html:56
 msgid "You can answer this questionnaire again in:"
-msgstr ""
+msgstr "আপনি এই প্রশ্নাবলীর উত্তর আবার দিতে পারবেন:"
 
 #: templates/promapp/my_questionnaire_list.html:70
 msgid "No questionnaires are currently available for you."
-msgstr ""
+msgstr "বর্তমানে আপনার জন্য কোন প্রশ্নাবলী উপলব্ধ নেই।"
 
 #: templates/promapp/partials/composite_construct_scale_scoring_list_table.html:32
 msgid "Scoring Type:"
-msgstr ""
+msgstr "স্কোরিং ধরন:"
 
 #: templates/promapp/partials/composite_construct_scale_scoring_list_table.html:38
 msgid "Construct Scales:"
-msgstr ""
+msgstr "কনস্ট্রাক্ট স্কেল:"
 
 #: templates/promapp/partials/composite_construct_scale_scoring_list_table.html:43
 #: templates/promapp/partials/construct_scale_list_table.html:54
@@ -2684,290 +2648,289 @@ msgstr ""
 #: templates/promapp/partials/likert_scale_list_table.html:82
 #: templates/promapp/partials/range_scale_list_table.html:56
 msgid "Created:"
-msgstr ""
+msgstr "তৈরি:"
 
 #: templates/promapp/partials/composite_construct_scale_scoring_list_table.html:52
 msgid "Associated Construct Scales:"
-msgstr ""
+msgstr "সংশ্লিষ্ট কনস্ট্রাক্ট স্কেল:"
 
 #: templates/promapp/partials/composite_construct_scale_scoring_list_table.html:71
 msgid "Composite Equation:"
-msgstr ""
+msgstr "যৌগিক সমীকরণ:"
 
 #: templates/promapp/partials/composite_construct_scale_scoring_list_table.html:81
 msgid "Description:"
-msgstr ""
+msgstr "বিবরণ:"
 
 #: templates/promapp/partials/construct_scale_list_table.html:21
 msgid "Equation"
-msgstr ""
+msgstr "সমীকরণ"
 
 #: templates/promapp/partials/construct_scale_list_table.html:25
 msgid "Add Item"
-msgstr ""
+msgstr "আইটেম যোগ করুন"
 
 #: templates/promapp/partials/construct_scale_list_table.html:35
 msgid "Instrument:"
-msgstr ""
+msgstr "যন্ত্র:"
 
 #: templates/promapp/partials/construct_scale_list_table.html:41
 msgid "Version:"
-msgstr ""
+msgstr "সংস্করণ:"
 
 #: templates/promapp/partials/construct_scale_list_table.html:49
 msgid "Items:"
-msgstr ""
+msgstr "আইটেমসমূহ:"
 
 #: templates/promapp/partials/construct_scale_list_table.html:62
 msgid "Equation:"
-msgstr ""
+msgstr "সমীকরণ:"
 
 #: templates/promapp/partials/item_list_table.html:6
 msgid "No items match your search criteria."
-msgstr ""
+msgstr "আপনার অনুসন্ধানের মানদণ্ডের সাথে কোন আইটেম মিলে না।"
 
 #: templates/promapp/partials/item_list_table.html:25
 #: templates/promapp/partials/questionnaire_list_table.html:21
 #: templates/promapp/partials/range_scale_list_table.html:20
 msgid "Translate"
-msgstr ""
+msgstr "অনুবাদ করুন"
 
 #: templates/promapp/partials/item_list_table.html:34
 msgid "Construct Scale:"
-msgstr ""
+msgstr "গঠন স্কেল:"
 
 #: templates/promapp/partials/item_list_table.html:43
 msgid "Response Type:"
-msgstr ""
+msgstr "প্রতিক্রিয়ার ধরন:"
 
 #: templates/promapp/partials/item_list_table.html:58
 msgid "Scale:"
-msgstr ""
+msgstr "স্কেল:"
 
 #: templates/promapp/partials/item_list_table.html:79
 #: templates/promapp/partials/range_scale_list_table.html:63
 #: templates/promapp/questionnaire_detail.html:66
 msgid "Translation Status"
-msgstr ""
+msgstr "অনুবাদের অবস্থা"
 
 #: templates/promapp/partials/item_search_results.html:17
 msgid "No items found matching"
-msgstr ""
+msgstr "এখনও কোন আইটেম উপলব্ধ নেই।"
 
 #: templates/promapp/partials/item_search_results.html:19
 msgid "No items available"
-msgstr ""
+msgstr "প্রথম আইটেম তৈরি করুন"
 
 #: templates/promapp/partials/likert_scale_list_table.html:6
 msgid "No likert scales match your search criteria."
-msgstr ""
+msgstr "আইটেম অনুবাদ করুন"
 
 #: templates/promapp/partials/likert_scale_list_table.html:23
 msgid "options"
-msgstr ""
+msgstr "ভাষা"
 
 #: templates/promapp/partials/likert_scale_list_table.html:75
 msgid "No response options defined"
-msgstr ""
+msgstr "বর্তমানে সম্পাদনা করা হচ্ছে"
 
 #: templates/promapp/partials/likert_scale_list_table.html:88
 msgid "No likert scales available."
-msgstr ""
+msgstr "কোন লিকার্ট স্কেল উপলব্ধ নেই।"
 
 #: templates/promapp/partials/questionnaire_list_table.html:14
 msgid "View details"
-msgstr ""
+msgstr "বিস্তারিত দেখুন"
 
 #: templates/promapp/partials/questionnaire_list_table.html:17
 msgid "Edit questionnaire"
-msgstr ""
+msgstr "প্রশ্নাবলী সম্পাদনা করুন"
 
 #: templates/promapp/partials/questionnaire_list_table.html:20
 msgid "Manage translations"
-msgstr ""
+msgstr "অনুবাদ পরিচালনা করুন"
 
 #: templates/promapp/partials/questionnaire_list_table.html:32
 msgid "Translation Status:"
-msgstr ""
+msgstr "অনুবাদের অবস্থা:"
 
 #: templates/promapp/partials/questionnaire_list_table.html:51
 msgid "items"
-msgstr ""
+msgstr "আইটেম"
 
 #: templates/promapp/partials/questionnaire_list_table.html:71
 msgid "No questionnaires found."
-msgstr ""
+msgstr "কোন প্রশ্নাবলী পাওয়া যায়নি।"
 
 #: templates/promapp/partials/range_scale_list_table.html:29
 #: templates/promapp/questionnaire_guidance.html:178
 msgid "Range:"
-msgstr ""
+msgstr "পরিসীমা:"
 
 #: templates/promapp/partials/range_scale_list_table.html:35
 msgid "Increment:"
-msgstr ""
+msgstr "বৃদ্ধি:"
 
 #: templates/promapp/partials/range_scale_list_table.html:41
 msgid "Min Value Text:"
-msgstr ""
+msgstr "সর্বনিম্ন মানের টেক্সট:"
 
 #: templates/promapp/partials/range_scale_list_table.html:47
 msgid "Max Value Text:"
-msgstr ""
+msgstr "সর্বোচ্চ মানের টেক্সট:"
 
 #: templates/promapp/partials/range_scale_list_table.html:84
 msgid "No range scales found."
-msgstr ""
+msgstr "কোন রেঞ্জ স্কেল পাওয়া যায়নি।"
 
 #: templates/promapp/partials/range_scale_list_table.html:90
 msgid "Create Your First Range Scale"
-msgstr ""
+msgstr "আপনার প্রথম রেঞ্জ স্কেল তৈরি করুন"
 
 #: templates/promapp/partials/rule_group_summary.html:17
 msgid "No rule groups defined yet."
-msgstr ""
+msgstr "এখনও কোন নিয়ম গ্রুপ নির্ধারিত হয়নি।"
 
 #: templates/promapp/partials/rule_summary.html:20
 msgid "No rules defined yet."
-msgstr ""
+msgstr "এখনও কোন নিয়ম নির্ধারিত হয়নি।"
 
 #: templates/promapp/patient_questionnaire_management.html:5
 msgid "Manage Patient Questionnaires"
-msgstr ""
+msgstr "রোগীর প্রশ্নাবলী পরিচালনা করুন"
 
 #: templates/promapp/patient_questionnaire_management.html:15
 msgid "Manage Questionnaires for"
-msgstr ""
+msgstr "এর জন্য প্রশ্নাবলী পরিচালনা করুন"
 
 #: templates/promapp/patient_questionnaire_management.html:18
 msgid "Assign questionnaires to this patient and control their visibility"
-msgstr ""
+msgstr "এই রোগীর জন্য প্রশ্নাবলী বরাদ্দ করুন এবং তাদের দৃশ্যমানতা নিয়ন্ত্রণ করুন"
 
 #: templates/promapp/patient_questionnaire_management.html:23
 msgid "Back to Patient List"
-msgstr ""
+msgstr "রোগীর তালিকায় ফিরে যান"
 
 #: templates/promapp/patient_questionnaire_management.html:53
 msgid "Assigned Date"
-msgstr ""
+msgstr "বরাদ্দের তারিখ"
 
 #: templates/promapp/patient_questionnaire_management.html:77
 msgid "Displayed"
-msgstr ""
+msgstr "প্রদর্শিত"
 
 #: templates/promapp/patient_questionnaire_management.html:79
 msgid "Hidden"
-msgstr ""
+msgstr "লুকানো"
 
 #: templates/promapp/patient_questionnaire_management.html:84
 msgid "Not Assigned"
-msgstr ""
+msgstr "বরাদ্দ করা হয়নি"
 
 #: templates/promapp/patient_questionnaire_management.html:113
 msgid "Are you sure you want to unassign this questionnaire?"
-msgstr ""
+msgstr "আপনি কি নিশ্চিত যে আপনি এই প্রশ্নাবলীর বরাদ্দ বাতিল করতে চান?"
 
 #: templates/promapp/patient_questionnaire_management.html:114
 msgid "Unassign"
-msgstr ""
+msgstr "বরাদ্দ বাতিল করুন"
 
 #: templates/promapp/patient_questionnaire_management.html:123
 msgid "Assign"
-msgstr ""
+msgstr "বরাদ্দ করুন"
 
 #: templates/promapp/patient_questionnaire_management.html:132
 msgid "No questionnaires available."
-msgstr ""
+msgstr "কোন প্রশ্নাবলী উপলব্ধ নেই।"
 
 #: templates/promapp/prom_review.html:6 templates/promapp/prom_review.html:21
 msgid "PRO Review"
-msgstr ""
+msgstr "PRO পর্যালোচনা"
 
 #: templates/promapp/prom_review.html:233
 msgid "Show less"
-msgstr ""
+msgstr "কম দেখান"
 
 #: templates/promapp/prom_review.html:236
 msgid "Show more"
-msgstr ""
+msgstr "আরো দেখান"
 
 #: templates/promapp/questionnaire_create.html:42
 #: templates/promapp/questionnaire_guidance.html:349
 #: templates/promapp/questionnaire_list.html:14
 msgid "Create New Questionnaire"
-msgstr ""
+msgstr "নতুন প্রশ্নাবলী তৈরি করুন"
 
 #: templates/promapp/questionnaire_create.html:48
 #: templates/promapp/questionnaire_detail.html:44
 #: templates/promapp/questionnaire_update.html:64
 msgid "Questionnaire Details"
-msgstr ""
+msgstr "প্রশ্নাবলীর বিবরণ"
 
 #: templates/promapp/questionnaire_create.html:55
 #: templates/promapp/questionnaire_update.html:71
 msgid "Answer Interval"
-msgstr ""
+msgstr "উত্তরের ব্যবধান"
 
 #: templates/promapp/questionnaire_create.html:60
 #: templates/promapp/questionnaire_update.html:76
 msgid "Time interval between questionnaire attempts"
-msgstr ""
+msgstr "প্রশ্নাবলীর প্রচেষ্টার মধ্যে সময়ের ব্যবধান"
 
 #: templates/promapp/questionnaire_create.html:65
 #: templates/promapp/questionnaire_update.html:81
 msgid "Order in which this questionnaire should be displayed"
-msgstr ""
+msgstr "এই প্রশ্নাবলী যে ক্রমানুসারে প্রদর্শিত হওয়া উচিত"
 
 #: templates/promapp/questionnaire_create.html:71
 #: templates/promapp/questionnaire_update.html:87
 msgid "Questionnaire to redirect to after completion"
-msgstr ""
+msgstr "সম্পূর্ণ হওয়ার পর যে প্রশ্নাবলীতে পুনর্নির্দেশ করতে হবে"
 
 #: templates/promapp/questionnaire_create.html:78
 msgid "Select Items"
-msgstr ""
+msgstr "আইটেম নির্বাচন করুন"
 
 #: templates/promapp/questionnaire_create.html:99
 #: templates/promapp/questionnaire_update.html:112
 msgid "All construct scales"
-msgstr ""
+msgstr "সব গঠন স্কেল"
 
 #: templates/promapp/questionnaire_create.html:109
 #: templates/promapp/questionnaire_update.html:123
 msgid "Available Items"
-msgstr ""
+msgstr "উপলব্ধ আইটেম"
 
 #: templates/promapp/questionnaire_create.html:143
 #: templates/promapp/questionnaire_detail.html:103
 #: templates/promapp/questionnaire_update.html:159
 msgid "Response type"
-msgstr ""
+msgstr "প্রতিক্রিয়ার ধরন"
 
 #: templates/promapp/questionnaire_create.html:159
 #: templates/promapp/questionnaire_update.html:175
 msgid "No items available. Please create items first."
-msgstr ""
+msgstr "কোন আইটেম উপলব্ধ নেই। অনুগ্রহ করে প্রথমে আইটেম তৈরি করুন।"
 
 #: templates/promapp/questionnaire_create.html:174
 #: templates/promapp/questionnaire_update.html:187
 msgid "Selected Items"
-msgstr ""
+msgstr "নির্বাচিত আইটেম"
 
 #: templates/promapp/questionnaire_create.html:185
 #: templates/promapp/questionnaire_update.html:194
 msgid "Drag items to reorder. Question numbers will update automatically."
-msgstr ""
+msgstr "পুনর্বিন্যাসের জন্য আইটেমগুলি টেনে আনুন। প্রশ্নের নম্বরগুলি স্বয়ংক্রিয়ভাবে আপডেট হবে।"
 
 #: templates/promapp/questionnaire_create.html:190
 #: templates/promapp/questionnaire_update.html:199
-msgid ""
-"No items selected yet. Check items from the left panel to add them here."
-msgstr ""
+msgid "No items selected yet. Check items from the left panel to add them here."
+msgstr "এখনও কোন আইটেম নির্বাচিত হয়নি। এখানে যোগ করতে বাম প্যানেল থেকে আইটেম চেক করুন।"
 
 #: templates/promapp/questionnaire_detail.html:17
 #: templates/promapp/questionnaire_detail.html:172
 msgid "Manage Translations"
-msgstr ""
+msgstr "অনুবাদ পরিচালনা করুন"
 
 #: templates/promapp/questionnaire_detail.html:21
 #: templates/promapp/questionnaire_detail.html:176
@@ -2976,70 +2939,64 @@ msgstr ""
 #: templates/promapp/questionnaire_rules.html:125
 #: templates/promapp/questionnaire_update.html:220
 msgid "Manage Rules"
-msgstr ""
+msgstr "নিয়ম পরিচালনা করুন"
 
 #: templates/promapp/questionnaire_detail.html:48
 msgid "Created"
-msgstr ""
+msgstr "তৈরি করা হয়েছে"
 
 #: templates/promapp/questionnaire_detail.html:52
 msgid "Last Modified"
-msgstr ""
+msgstr "সর্বশেষ পরিবর্তিত"
 
 #: templates/promapp/questionnaire_detail.html:59
 #: templates/promapp/questionnaire_translation_form.html:135
 msgid "Description"
-msgstr ""
+msgstr "বিবরণ"
 
 #: templates/promapp/questionnaire_detail.html:89
 msgid "Questionnaire Items"
-msgstr ""
+msgstr "প্রশ্নাবলীর আইটেম"
 
 #: templates/promapp/questionnaire_detail.html:156
 msgid "No items in this questionnaire."
-msgstr ""
+msgstr "এই প্রশ্নাবলীতে কোন আইটেম নেই।"
 
 #: templates/promapp/questionnaire_detail.html:159
 msgid "Add items to this questionnaire"
-msgstr ""
+msgstr "এই প্রশ্নাবলীতে আইটেম যোগ করুন"
 
 #: templates/promapp/questionnaire_guidance.html:14
-msgid ""
-"A comprehensive guide to understanding the key concepts and components used "
-"in Patient Reported Outcome Measures (PROMs) questionnaires."
-msgstr ""
+msgid "A comprehensive guide to understanding the key concepts and components used in Patient Reported Outcome Measures (PROMs) questionnaires."
+msgstr "রোগী রিপোর্ট করা ফলাফল পরিমাপ (PROMs) প্রশ্নাবলীতে ব্যবহৃত মূল ধারণা এবং উপাদানগুলি বোঝার জন্য একটি ব্যাপক গাইড।"
 
 #: templates/promapp/questionnaire_guidance.html:26
 msgid "View Construct Scales"
-msgstr ""
+msgstr "কনস্ট্রাক্ট স্কেল দেখুন"
 
 #: templates/promapp/questionnaire_guidance.html:35
 msgid "View Composite Scores"
-msgstr ""
+msgstr "যৌগিক স্কোর দেখুন"
 
 #: templates/promapp/questionnaire_guidance.html:44
 msgid "View Items"
-msgstr ""
+msgstr "আইটেম দেখুন"
 
 #: templates/promapp/questionnaire_guidance.html:53
 msgid "View Likert Scales"
-msgstr ""
+msgstr "লিকার্ট স্কেল দেখুন"
 
 #: templates/promapp/questionnaire_guidance.html:62
 msgid "View Range Scales"
-msgstr ""
+msgstr "রেঞ্জ স্কেল দেখুন"
 
 #: templates/promapp/questionnaire_guidance.html:71
 msgid "View Questionnaires"
-msgstr ""
+msgstr "প্রশ্নাবলী দেখুন"
 
 #: templates/promapp/questionnaire_guidance.html:89
-msgid ""
-"A ConstructScale represents a measurable psychological, physical, or "
-"behavioral concept within Patient Reported Outcome Measures (PROMs). It "
-"defines what you want to measure and how individual item responses "
-"contribute to the overall construct score."
-msgstr ""
+msgid "A ConstructScale represents a measurable psychological, physical, or behavioral concept within Patient Reported Outcome Measures (PROMs). It defines what you want to measure and how individual item responses contribute to the overall construct score."
+msgstr "একটি কনস্ট্রাক্টস্কেল রোগী রিপোর্ট করা ফলাফল পরিমাপ (PROMs) এর মধ্যে একটি পরিমাপযোগ্য মানসিক, শারীরিক বা আচরণগত ধারণার প্রতিনিধিত্ব করে। এটি আপনি কী পরিমাপ করতে চান এবং কীভাবে ব্যক্তিগত আইটেমের উত্তর সামগ্রিক কনস্ট্রাক্ট স্কোরে অবদান রাখে তা নির্ধারণ করে।"
 
 #: templates/promapp/questionnaire_guidance.html:92
 #: templates/promapp/questionnaire_guidance.html:129
@@ -3048,483 +3005,463 @@ msgstr ""
 #: templates/promapp/questionnaire_guidance.html:257
 #: templates/promapp/questionnaire_guidance.html:302
 msgid "Key Features:"
-msgstr ""
+msgstr "মূল বৈশিষ্ট্য:"
 
 #: templates/promapp/questionnaire_guidance.html:94
 msgid "Defines the conceptual framework for measurement"
-msgstr ""
+msgstr "পরিমাপের জন্য ধারণাগত কাঠামো নির্ধারণ করে"
 
 #: templates/promapp/questionnaire_guidance.html:95
 msgid "Specifies scoring algorithms and item weightings"
-msgstr ""
+msgstr "স্কোরিং অ্যালগরিদম এবং আইটেম ওজন নির্দিষ্ট করে"
 
 #: templates/promapp/questionnaire_guidance.html:96
 msgid "Links to validated instruments and their versions"
-msgstr ""
+msgstr "বৈধ যন্ত্র এবং তাদের সংস্করণের সাথে লিঙ্ক করে"
 
 #: templates/promapp/questionnaire_guidance.html:97
 msgid "Supports multiple calculation methods (sum, average, weighted)"
-msgstr ""
+msgstr "একাধিক গণনা পদ্ধতি সমর্থন করে (যোগ, গড়, ওজনযুক্ত)"
 
 #: templates/promapp/questionnaire_guidance.html:98
 msgid "Enables standardized scoring across different studies"
-msgstr ""
+msgstr "বিভিন্ন গবেষণায় মানসম্পন্ন স্কোরিং সক্ষম করে"
 
 #: templates/promapp/questionnaire_guidance.html:101
 #: templates/promapp/questionnaire_guidance.html:138
 #: templates/promapp/questionnaire_guidance.html:183
 msgid "Examples:"
-msgstr ""
+msgstr "উদাহরণ:"
 
 #: templates/promapp/questionnaire_guidance.html:103
 msgid "Physical Function (from SF-36)"
-msgstr ""
+msgstr "শারীরিক কার্যকারিতা (SF-36 থেকে)"
 
 #: templates/promapp/questionnaire_guidance.html:104
 msgid "Pain Intensity (from BPI)"
-msgstr ""
+msgstr "ব্যথার তীব্রতা (BPI থেকে)"
 
 #: templates/promapp/questionnaire_guidance.html:105
 msgid "Depression Severity (from PHQ-9)"
-msgstr ""
+msgstr "বিষণ্নতার তীব্রতা (PHQ-9 থেকে)"
 
 #: templates/promapp/questionnaire_guidance.html:106
 msgid "Quality of Life (from EQ-5D)"
-msgstr ""
+msgstr "জীবনযাত্রার মান (EQ-5D থেকে)"
 
 #: templates/promapp/questionnaire_guidance.html:112
 msgid "Manage Construct Scales"
-msgstr ""
+msgstr "গঠন স্কেল পরিচালনা করুন"
 
 #: templates/promapp/questionnaire_guidance.html:126
-msgid ""
-"A CompositeConstructScore combines multiple individual construct scales into "
-"a higher-level composite measure. This allows for creating summary scores "
-"that represent broader domains of health or well-being."
-msgstr ""
+msgid "A CompositeConstructScore combines multiple individual construct scales into a higher-level composite measure. This allows for creating summary scores that represent broader domains of health or well-being."
+msgstr "একটি কম্পোজিট কনস্ট্রাক্ট স্কোর একাধিক ব্যক্তিগত গঠন স্কেলকে একটি উচ্চ-স্তরের যৌগিক পরিমাপে একত্রিত করে। এটি স্বাস্থ্য বা কল্যাণের বিস্তৃত ডোমেইন প্রতিনিধিত্বকারী সারাংশ স্কোর তৈরি করার অনুমতি দেয়।"
 
 #: templates/promapp/questionnaire_guidance.html:131
 msgid "Aggregates multiple related construct scales"
-msgstr ""
+msgstr "একাধিক সম্পর্কিত গঠন স্কেল একত্রিত করে"
 
 #: templates/promapp/questionnaire_guidance.html:132
 msgid "Supports different aggregation methods (average, weighted sum)"
-msgstr ""
+msgstr "বিভিন্ন একত্রিতকরণ পদ্ধতি সমর্থন করে (গড়, ওজনযুক্ত যোগফল)"
 
 #: templates/promapp/questionnaire_guidance.html:133
 msgid "Enables creation of domain-level scores"
-msgstr ""
+msgstr "ডোমেইন-স্তরের স্কোর তৈরি সক্ষম করে"
 
 #: templates/promapp/questionnaire_guidance.html:134
 msgid "Provides flexibility in score interpretation"
-msgstr ""
+msgstr "স্কোর ব্যাখ্যায় নমনীয়তা প্রদান করে"
 
 #: templates/promapp/questionnaire_guidance.html:135
 msgid "Maintains traceability to component constructs"
-msgstr ""
+msgstr "উপাদান গঠনের সাথে ট্রেসেবিলিটি বজায় রাখে"
 
 #: templates/promapp/questionnaire_guidance.html:140
 msgid "Overall Physical Health (combining Physical Function, Pain, Fatigue)"
-msgstr ""
+msgstr "সামগ্রিক শারীরিক স্বাস্থ্য (শারীরিক কার্যকারিতা, ব্যথা, ক্লান্তি সমন্বিত)"
 
 #: templates/promapp/questionnaire_guidance.html:141
 msgid "Mental Health Summary (combining Depression, Anxiety, Stress)"
-msgstr ""
+msgstr "মানসিক স্বাস্থ্য সারাংশ (বিষণ্নতা, উদ্বেগ, চাপ সমন্বিত)"
 
 #: templates/promapp/questionnaire_guidance.html:142
 msgid "Social Well-being (combining Social Function, Social Support)"
-msgstr ""
+msgstr "সামাজিক কল্যাণ (সামাজিক কার্যকারিতা, সামাজিক সহায়তা সমন্বিত)"
 
 #: templates/promapp/questionnaire_guidance.html:148
 msgid "Manage Composite Scores"
-msgstr ""
+msgstr "যৌগিক স্কোর পরিচালনা করুন"
 
 #: templates/promapp/questionnaire_guidance.html:162
-msgid ""
-"An Item represents a single question or statement within a questionnaire. "
-"Items are the building blocks of questionnaires and are linked to construct "
-"scales to enable meaningful scoring and interpretation."
-msgstr ""
+msgid "An Item represents a single question or statement within a questionnaire. Items are the building blocks of questionnaires and are linked to construct scales to enable meaningful scoring and interpretation."
+msgstr "একটি আইটেম একটি প্রশ্নাবলীর মধ্যে একটি একক প্রশ্n বা বিবৃতি প্রতিনিধিত্ব করে। আইটেমগুলি প্রশ্নাবলীর ভিত্তি এবং অর্থপূর্ণ স্কোরিং এবং ব্যাখ্যা সক্ষম করতে গঠন স্কেলের সাথে সংযুক্ত।"
 
 #: templates/promapp/questionnaire_guidance.html:167
 msgid "Contains the question text and response options"
-msgstr ""
+msgstr "প্রশ্নের পাঠ্য এবং প্রতিক্রিয়ার বিকল্প রয়েছে"
 
 #: templates/promapp/questionnaire_guidance.html:168
 msgid "Links to a specific construct scale for scoring"
-msgstr ""
+msgstr "স্কোরিংয়ের জন্য একটি নির্দিষ্ট গঠন স্কেলের সাথে লিঙ্ক করে"
 
 #: templates/promapp/questionnaire_guidance.html:169
 msgid "Supports different response types (Likert, Range, Text and Numeric)"
-msgstr ""
+msgstr "বিভিন্ন প্রতিক্রিয়ার ধরন সমর্থন করে (লিকার্ট, রেঞ্জ, টেক্সট এবং সংখ্যাসূচক)"
 
 #: templates/promapp/questionnaire_guidance.html:170
 msgid "Includes scoring weights and reverse coding options"
-msgstr ""
+msgstr "স্কোরিং ওজন এবং বিপরীত কোডিং বিকল্প অন্তর্ভুক্ত করে"
 
 #: templates/promapp/questionnaire_guidance.html:171
 msgid "Supports multiple languages and translations"
-msgstr ""
+msgstr "একাধিক ভাষা এবং অনুবাদ সমর্থন করে"
 
 #: templates/promapp/questionnaire_guidance.html:172
 msgid "Maintains version control and audit trails"
-msgstr ""
+msgstr "সংস্করণ নিয়ন্ত্রণ এবং অডিট ট্রেইল বজায় রাখে"
 
 #: templates/promapp/questionnaire_guidance.html:175
 msgid "Response Types:"
-msgstr ""
+msgstr "উত্তরের ধরন:"
 
 #: templates/promapp/questionnaire_guidance.html:177
 msgid "Likert:"
-msgstr ""
+msgstr "লিকার্ট:"
 
 #: templates/promapp/questionnaire_guidance.html:177
 msgid "Structured scales (e.g., 1-5 agreement scale)"
-msgstr ""
+msgstr "কাঠামোগত স্কেল (যেমন, ১-৫ সম্মতি স্কেল)"
 
 #: templates/promapp/questionnaire_guidance.html:178
 msgid "Numeric ranges (e.g., 0-10 pain scale)"
-msgstr ""
+msgstr "সংখ্যাগত পরিসীমা (যেমন, ০-১০ ব্যথা স্কেল)"
 
 #: templates/promapp/questionnaire_guidance.html:179
 msgid "Text:"
-msgstr ""
+msgstr "টেক্সট:"
 
 #: templates/promapp/questionnaire_guidance.html:179
 msgid "Free-form text responses for qualitative data"
-msgstr ""
+msgstr "গুণগত ডেটার জন্য মুক্ত-ফর্ম টেক্সট উত্তর"
 
 #: templates/promapp/questionnaire_guidance.html:180
 msgid "Numeric:"
-msgstr ""
+msgstr "সংখ্যাগত:"
 
 #: templates/promapp/questionnaire_guidance.html:180
 msgid "Numeric values for quantitative measurements"
-msgstr ""
+msgstr "পরিমাণগত পরিমাপের জন্য সংখ্যাগত মান"
 
 #: templates/promapp/questionnaire_guidance.html:185
 #: templates/promapp/questionnaire_guidance.html:186
 #: templates/promapp/questionnaire_guidance.html:187
 #: templates/promapp/questionnaire_guidance.html:188
 msgid "\\"
-msgstr ""
+msgstr "\\"
 
 #: templates/promapp/questionnaire_guidance.html:194
 #: templates/promapp/questionnaire_update.html:94
 msgid "Manage Items"
-msgstr ""
+msgstr "আইটেম পরিচালনা করুন"
 
 #: templates/promapp/questionnaire_guidance.html:208
-msgid ""
-"A LikertScale defines a set of structured response options for items that "
-"use ordinal scaling. These scales provide consistent, standardized response "
-"formats that enable reliable measurement and comparison across different "
-"items and studies."
-msgstr ""
+msgid "A LikertScale defines a set of structured response options for items that use ordinal scaling. These scales provide consistent, standardized response formats that enable reliable measurement and comparison across different items and studies."
+msgstr "একটি লিকার্টস্কেল ক্রমিক স্কেলিং ব্যবহার করে এমন আইটেমগুলির জন্য কাঠামোগত উত্তর বিকল্পগুলির একটি সেট নির্ধারণ করে। এই স্কেলগুলি সামঞ্জস্যপূর্ণ, মানসম্পন্ন উত্তর বিন্যাস প্রদান করে যা বিভিন্ন আইটেম এবং গবেষণায় নির্ভরযোগ্য পরিমাপ এবং তুলনা সক্ষম করে।"
+""
 
 #: templates/promapp/questionnaire_guidance.html:213
 msgid "Defines response labels and their corresponding numeric values"
-msgstr ""
+msgstr "উত্তরের লেবেল এবং তাদের সংশ্লিষ্ট সংখ্যাগত মান নির্ধারণ করে"
 
 #: templates/promapp/questionnaire_guidance.html:214
 msgid "Supports various scale lengths."
-msgstr ""
+msgstr "বিভিন্ন স্কেল দৈর্ঘ্য সমর্থন করে।"
 
 #: templates/promapp/questionnaire_guidance.html:215
 msgid "Enables consistent scoring across multiple items"
-msgstr ""
+msgstr "একাধিক আইটেম জুড়ে সামঞ্জস্যপূর্ণ স্কোরিং সক্ষম করে"
 
 #: templates/promapp/questionnaire_guidance.html:216
 msgid "Supports reverse coding when needed"
-msgstr ""
+msgstr "প্রয়োজনে বিপরীত কোডিং সমর্থন করে"
 
 #: templates/promapp/questionnaire_guidance.html:217
 msgid "Maintains standardized measurement properties"
-msgstr ""
+msgstr "মানসম্পন্ন পরিমাপের বৈশিষ্ট্য বজায় রাখে"
 
 #: templates/promapp/questionnaire_guidance.html:220
 msgid "Common Scale Types:"
-msgstr ""
+msgstr "সাধারণ স্কেল ধরন:"
 
 #: templates/promapp/questionnaire_guidance.html:222
 msgid "Agreement:"
-msgstr ""
+msgstr "সম্মতি:"
 
 #: templates/promapp/questionnaire_guidance.html:222
 msgid "Strongly Disagree to Strongly Agree"
-msgstr ""
+msgstr "দৃঢ়ভাবে অসম্মত থেকে দৃঢ়ভাবে সম্মত"
 
 #: templates/promapp/questionnaire_guidance.html:223
 msgid "Frequency:"
-msgstr ""
+msgstr "ফ্রিকোয়েন্সি:"
 
 #: templates/promapp/questionnaire_guidance.html:223
 msgid "Never, Rarely, Sometimes, Often, Always"
-msgstr ""
+msgstr "কখনো না, কদাচিৎ, মাঝে মাঝে, প্রায়ই, সবসময়"
 
 #: templates/promapp/questionnaire_guidance.html:224
 msgid "Satisfaction:"
-msgstr ""
+msgstr "সন্তুষ্টি:"
 
 #: templates/promapp/questionnaire_guidance.html:224
 msgid "Very Dissatisfied to Very Satisfied"
-msgstr ""
+msgstr "অত্যন্ত অসন্তুষ্ট থেকে অত্যন্ত সন্তুষ্ট"
 
 #: templates/promapp/questionnaire_guidance.html:225
 msgid "Difficulty:"
-msgstr ""
+msgstr "কঠিনতা:"
 
 #: templates/promapp/questionnaire_guidance.html:225
 msgid "No Difficulty to Unable to Do"
-msgstr ""
+msgstr "কোন কঠিনতা নেই থেকে করতে অক্ষম"
 
 #: templates/promapp/questionnaire_guidance.html:226
 msgid "Severity:"
-msgstr ""
+msgstr "তীব্রতা:"
 
 #: templates/promapp/questionnaire_guidance.html:226
 msgid "None, Mild, Moderate, Severe"
-msgstr ""
+msgstr "কিছুই না, হালকা, মাঝারি, গুরুতর"
 
 #: templates/promapp/questionnaire_guidance.html:229
 msgid "Best Practices:"
-msgstr ""
+msgstr "সর্বোত্তম অনুশীলন:"
 
 #: templates/promapp/questionnaire_guidance.html:231
 msgid "Use established, validated scales when possible"
-msgstr ""
+msgstr "সম্ভব হলে প্রতিষ্ঠিত, যাচাইকৃত স্কেল ব্যবহার করুন"
 
 #: templates/promapp/questionnaire_guidance.html:232
 msgid "Ensure response options are mutually exclusive"
-msgstr ""
+msgstr "নিশ্চিত করুন যে প্রতিক্রিয়ার বিকল্পগুলি পারস্পরিক একচেটিয়া"
 
 #: templates/promapp/questionnaire_guidance.html:233
 msgid "Consider cultural and linguistic appropriateness"
-msgstr ""
+msgstr "সাংস্কৃতিক এবং ভাষাগত উপযুক্ততা বিবেচনা করুন"
 
 #: templates/promapp/questionnaire_guidance.html:234
 msgid "Maintain consistent scale direction within questionnaires"
-msgstr ""
+msgstr "প্রশ্নাবলীর মধ্যে সামঞ্জস্যপূর্ণ স্কেল দিক বজায় রাখুন"
 
 #: templates/promapp/questionnaire_guidance.html:240
 msgid "Manage Likert Scales"
-msgstr ""
+msgstr "লিকার্ট স্কেল পরিচালনা করুন"
 
 #: templates/promapp/questionnaire_guidance.html:254
-msgid ""
-"A RangeScale defines numeric ranges for continuous or quasi-continuous "
-"measurements. These scales are ideal for capturing precise measurements "
-"where responses can vary along a continuum, such as pain intensity or "
-"functional capacity."
-msgstr ""
+msgid "A RangeScale defines numeric ranges for continuous or quasi-continuous measurements. These scales are ideal for capturing precise measurements where responses can vary along a continuum, such as pain intensity or functional capacity."
+msgstr "একটি রেঞ্জ স্কেল ক্রমাগত বা আধা-ক্রমাগত পরিমাপের জন্য সংখ্যাসূচক পরিসীমা নির্ধারণ করে। এই স্কেলগুলি সুনির্দিষ্ট পরিমাপ ক্যাপচার করার জন্য আদর্শ যেখানে প্রতিক্রিয়াগুলি একটি ধারাবাহিকতায় পরিবর্তিত হতে পারে, যেমন ব্যথার তীব্রতা বা কার্যকরী ক্ষমতা।"
 
 #: templates/promapp/questionnaire_guidance.html:259
 msgid "Defines minimum and maximum values for the range"
-msgstr ""
+msgstr "রেঞ্জের জন্য সর্বনিম্ন এবং সর্বোচ্চ মান নির্ধারণ করে"
 
 #: templates/promapp/questionnaire_guidance.html:260
 msgid "Supports integer or decimal responses"
-msgstr ""
+msgstr "পূর্ণসংখ্যা বা দশমিক প্রতিক্রিয়া সমর্থন করে"
 
 #: templates/promapp/questionnaire_guidance.html:261
 msgid "Includes descriptive anchors for endpoints"
-msgstr ""
+msgstr "শেষ বিন্দুর জন্য বর্ণনামূলক অ্যাঙ্কর অন্তর্ভুক্ত করে"
 
 #: templates/promapp/questionnaire_guidance.html:262
 msgid "Enables precise measurement of continuous variables"
-msgstr ""
+msgstr "ক্রমাগত ভেরিয়েবলের সুনির্দিষ্ট পরিমাপ সক্ষম করে"
 
 #: templates/promapp/questionnaire_guidance.html:263
 msgid "Supports different step sizes and increments"
-msgstr ""
+msgstr "বিভিন্ন ধাপের আকার এবং বৃদ্ধি সমর্থন করে"
 
 #: templates/promapp/questionnaire_guidance.html:266
 msgid "Common Applications:"
-msgstr ""
+msgstr "সাধারণ প্রয়োগ:"
 
 #: templates/promapp/questionnaire_guidance.html:268
 msgid "Pain Scales:"
-msgstr ""
+msgstr "ব্যথা স্কেল:"
 
 #: templates/promapp/questionnaire_guidance.html:268
 msgid "0 (No Pain) to 10 (Worst Pain Imaginable)"
-msgstr ""
+msgstr "০ (কোন ব্যথা নেই) থেকে ১০ (কল্পনাযোগ্য সবচেয়ে খারাপ ব্যথা)"
 
 #: templates/promapp/questionnaire_guidance.html:269
 msgid "Functional Capacity:"
-msgstr ""
+msgstr "কার্যকরী ক্ষমতা:"
 
 #: templates/promapp/questionnaire_guidance.html:269
-#, python-format
 msgid "0%% to 100%% of normal function"
-msgstr ""
+msgstr "স্বাভাবিক কার্যকারিতার ০%% থেকে ১০০%%"
 
 #: templates/promapp/questionnaire_guidance.html:270
 msgid "Quality of Life:"
-msgstr ""
+msgstr "জীবনযাত্রার মান:"
 
 #: templates/promapp/questionnaire_guidance.html:270
 msgid "0 (Worst) to 100 (Best)"
-msgstr ""
+msgstr "০ (সবচেয়ে খারাপ) থেকে ১০০ (সবচেয়ে ভাল)"
 
 #: templates/promapp/questionnaire_guidance.html:271
 msgid "Symptom Severity:"
-msgstr ""
+msgstr "উপসর্গের তীব্রতা:"
 
 #: templates/promapp/questionnaire_guidance.html:271
 msgid "1 (Mild) to 7 (Severe)"
-msgstr ""
+msgstr "১ (হালকা) থেকে ৭ (গুরুতর)"
 
 #: templates/promapp/questionnaire_guidance.html:274
 msgid "Advantages:"
-msgstr ""
+msgstr "সুবিধা:"
 
 #: templates/promapp/questionnaire_guidance.html:276
 msgid "Provides more granular measurement than Likert scales"
-msgstr ""
+msgstr "লিকার্ট স্কেলের চেয়ে আরো বিস্তারিত পরিমাপ প্রদান করে"
 
 #: templates/promapp/questionnaire_guidance.html:277
 msgid "Allows for sensitive detection of changes over time"
-msgstr ""
+msgstr "সময়ের সাথে পরিবর্তনের সংবেদনশীল সনাক্তকরণের অনুমতি দেয়"
 
 #: templates/promapp/questionnaire_guidance.html:278
 msgid "Familiar format for many clinical measurements"
-msgstr ""
+msgstr "অনেক ক্লিনিক্যাল পরিমাপের জন্য পরিচিত ফরম্যাট"
 
 #: templates/promapp/questionnaire_guidance.html:279
 msgid "Enables advanced statistical analyses"
-msgstr ""
+msgstr "উন্নত পরিসংখ্যানগত বিশ্লেষণ সক্ষম করে"
 
 #: templates/promapp/questionnaire_guidance.html:285
 msgid "Manage Range Scales"
-msgstr ""
+msgstr "রেঞ্জ স্কেল পরিচালনা করুন"
 
 #: templates/promapp/questionnaire_guidance.html:299
-msgid ""
-"A Questionnaire is a complete assessment instrument that combines multiple "
-"items into a structured measurement tool. Questionnaires are the primary "
-"vehicles for collecting Patient Reported Outcome data and can measure single "
-"or multiple constructs."
-msgstr ""
+msgid "A Questionnaire is a complete assessment instrument that combines multiple items into a structured measurement tool. Questionnaires are the primary vehicles for collecting Patient Reported Outcome data and can measure single or multiple constructs."
+msgstr "একটি প্রশ্নাবলী হল একটি সম্পূর্ণ মূল্যায়ন যন্ত্র যা একাধিক আইটেমকে একটি কাঠামোগত পরিমাপ টুলে একত্রিত করে। প্রশ্নাবলীগুলি রোগীর রিপোর্ট করা ফলাফলের তথ্য সংগ্রহের প্রাথমিক বাহন এবং একক বা একাধিক গঠন পরিমাপ করতে পারে।"
 
 #: templates/promapp/questionnaire_guidance.html:304
 msgid "Organizes items in a logical sequence and structure"
-msgstr ""
+msgstr "আইটেমগুলিকে একটি যৌক্তিক ক্রম এবং কাঠামোতে সংগঠিত করে"
 
 #: templates/promapp/questionnaire_guidance.html:305
 msgid "Supports multiple measurement constructs within one instrument"
-msgstr ""
+msgstr "একটি যন্ত্রের মধ্যে একাধিক পরিমাপ গঠন সমর্থন করে"
 
 #: templates/promapp/questionnaire_guidance.html:306
 msgid "Includes validation and business rules for data quality"
-msgstr ""
+msgstr "তথ্যের গুণমানের জন্য যাচাইকরণ এবং ব্যবসায়িক নিয়ম অন্তর্ভুক্ত করে"
 
 #: templates/promapp/questionnaire_guidance.html:307
 msgid "Enables scoring calculations at construct and composite levels"
-msgstr ""
+msgstr "গঠন এবং যৌগিক স্তরে স্কোরিং গণনা সক্ষম করে"
 
 #: templates/promapp/questionnaire_guidance.html:308
 msgid "Supports multiple languages and cultural adaptations"
-msgstr ""
+msgstr "একাধিক ভাষা এবং সাংস্কৃতিক অভিযোজন সমর্থন করে"
 
 #: templates/promapp/questionnaire_guidance.html:309
 msgid "Maintains versioning and change control"
-msgstr ""
+msgstr "সংস্করণ এবং পরিবর্তন নিয়ন্ত্রণ বজায় রাখে"
 
 #: templates/promapp/questionnaire_guidance.html:312
 msgid "Types of Questionnaires:"
-msgstr ""
+msgstr "প্রশ্নাবলীর ধরন:"
 
 #: templates/promapp/questionnaire_guidance.html:314
 msgid "Generic:"
-msgstr ""
+msgstr "সাধারণ:"
 
 #: templates/promapp/questionnaire_guidance.html:314
 msgid "Applicable across different conditions (e.g., SF-36, EQ-5D)"
-msgstr ""
+msgstr "বিভিন্ন অবস্থায় প্রযোজ্য (যেমন, SF-36, EQ-5D)"
 
 #: templates/promapp/questionnaire_guidance.html:315
 msgid "Disease-Specific:"
-msgstr ""
+msgstr "রোগ-নির্দিষ্ট:"
 
 #: templates/promapp/questionnaire_guidance.html:315
 msgid "Tailored to specific conditions (e.g., FACT-B for breast cancer)"
-msgstr ""
+msgstr "নির্দিষ্ট অবস্থার জন্য তৈরি (যেমন, স্তন ক্যান্সারের জন্য FACT-B)"
 
 #: templates/promapp/questionnaire_guidance.html:316
 msgid "Domain-Specific:"
-msgstr ""
+msgstr "ডোমেইন-নির্দিষ্ট:"
 
 #: templates/promapp/questionnaire_guidance.html:316
 msgid "Focus on particular aspects (e.g., pain, fatigue)"
-msgstr ""
+msgstr "নির্দিষ্ট দিকের উপর ফোকাস (যেমন, ব্যথা, ক্লান্তি)"
 
 #: templates/promapp/questionnaire_guidance.html:317
 msgid "Screening:"
-msgstr ""
+msgstr "স্ক্রিনিং:"
 
 #: templates/promapp/questionnaire_guidance.html:317
 msgid "Brief instruments for initial assessment"
-msgstr ""
+msgstr "প্রাথমিক মূল্যায়নের জন্য সংক্ষিপ্ত যন্ত্র"
 
 #: templates/promapp/questionnaire_guidance.html:320
 msgid "Development Process:"
-msgstr ""
+msgstr "উন্নয়ন প্রক্রিয়া:"
 
 #: templates/promapp/questionnaire_guidance.html:322
 msgid "Define measurement objectives and target constructs"
-msgstr ""
+msgstr "পরিমাপের উদ্দেশ্য এবং লক্ষ্য গঠনগুলি নির্ধারণ করুন"
 
 #: templates/promapp/questionnaire_guidance.html:323
 msgid "Create or select appropriate construct scales"
-msgstr ""
+msgstr "উপযুক্ত গঠন স্কেল তৈরি বা নির্বাচন করুন"
 
 #: templates/promapp/questionnaire_guidance.html:324
 msgid "Develop or adapt individual items"
-msgstr ""
+msgstr "ব্যক্তিগত আইটেম তৈরি বা অভিযোজন করুন"
 
 #: templates/promapp/questionnaire_guidance.html:325
 msgid "Define response scales (Likert or Range)"
-msgstr ""
+msgstr "প্রতিক্রিয়া স্কেল নির্ধারণ করুন (লিকার্ট বা রেঞ্জ)"
 
 #: templates/promapp/questionnaire_guidance.html:326
 msgid "Organize items into logical questionnaire structure"
-msgstr ""
+msgstr "আইটেমগুলিকে যৌক্তিক প্রশ্নাবলী কাঠামোতে সংগঠিত করুন"
 
 #: templates/promapp/questionnaire_guidance.html:327
 msgid "Implement validation rules and scoring algorithms"
-msgstr ""
+msgstr "যাচাইকরণ নিয়ম এবং স্কোরিং অ্যালগরিদম বাস্তবায়ন করুন"
 
 #: templates/promapp/questionnaire_guidance.html:328
 msgid "Test and validate the complete instrument"
-msgstr ""
+msgstr "সম্পূর্ণ যন্ত্র পরীক্ষা এবং যাচাই করুন"
 
 #: templates/promapp/questionnaire_guidance.html:343
 msgid "Ready to Get Started?"
-msgstr ""
+msgstr "শুরু করার জন্য প্রস্তুত?"
 
 #: templates/promapp/questionnaire_guidance.html:345
-msgid ""
-"Begin creating your questionnaire by setting up construct scales and items, "
-"or explore existing questionnaires for reference."
-msgstr ""
+msgid "Begin creating your questionnaire by setting up construct scales and items, or explore existing questionnaires for reference."
+msgstr "গঠন স্কেল এবং আইটেম সেট আপ করে আপনার প্রশ্নাবলী তৈরি করা শুরু করুন, অথবা রেফারেন্সের জন্য বিদ্যমান প্রশ্নাবলী অন্বেষণ করুন।"
 
 #: templates/promapp/questionnaire_item_rule_form.html:8
 msgid "Edit Rule"
-msgstr ""
+msgstr "নিয়ম সম্পাদনা করুন"
 
 #: templates/promapp/questionnaire_item_rule_form.html:10
 #: templates/promapp/questionnaire_item_rule_form.html:129
 msgid "Create Rule"
-msgstr ""
+msgstr "নিয়ম তৈরি করুন"
 
 #: templates/promapp/questionnaire_item_rule_form.html:21
 msgid "Edit Rule for"
-msgstr ""
+msgstr "এর জন্য নিয়ম সম্পাদনা করুন"
 
 #: templates/promapp/questionnaire_item_rule_form.html:23
 msgid "Create Rule for"
-msgstr ""
+msgstr "এর জন্য নিয়ম তৈরি করুন"
 
 #: templates/promapp/questionnaire_item_rule_form.html:31
 #: templates/promapp/questionnaire_item_rule_group_form.html:31
@@ -3533,504 +3470,483 @@ msgstr ""
 #: templates/promapp/questionnaire_rules.html:99
 #: templates/promapp/questionnaire_rules.html:202
 msgid "Required for Scoring"
-msgstr ""
+msgstr "স্কোরিংয়ের জন্য প্রয়োজনীয়"
 
 #: templates/promapp/questionnaire_item_rule_form.html:38
 #: templates/promapp/questionnaire_item_rule_group_form.html:38
 #: templates/promapp/questionnaire_item_rule_groups_list.html:28
 #: templates/promapp/questionnaire_item_rules_list.html:28
 msgid "Optional Item"
-msgstr ""
+msgstr "ঐচ্ছিক আইটেম"
 
 #: templates/promapp/questionnaire_item_rule_form.html:46
 msgid "Back to Rules"
-msgstr ""
+msgstr "নিয়মে ফিরে যান"
 
 #: templates/promapp/questionnaire_item_rule_form.html:64
 msgid "Rule Creation Not Allowed"
-msgstr ""
+msgstr "নিয়ম তৈরি করার অনুমতি নেই"
 
 #: templates/promapp/questionnaire_item_rule_form.html:66
-msgid ""
-"This question is marked as required for scoring. Rules cannot be created for "
-"required items as they might prevent the item from being displayed, which "
-"would make score calculation impossible."
-msgstr ""
+msgid "This question is marked as required for scoring. Rules cannot be created for required items as they might prevent the item from being displayed, which would make score calculation impossible."
+msgstr "এই প্রশ্নটি স্কোরিংয়ের জন্য প্রয়োজনীয় হিসেবে চিহ্নিত। প্রয়োজনীয় আইটেমগুলির জন্য নিয়ম তৈরি করা যায় না কারণ তারা আইটেমটি প্রদর্শিত হতে বাধা দিতে পারে, যা স্কোর গণনা অসম্ভব করে তুলবে।"
 
 #: templates/promapp/questionnaire_item_rule_form.html:69
 msgid "To create rules for this question, you must first:"
-msgstr ""
+msgstr "এই প্রশ্নের জন্য নিয়ম তৈরি করতে, আপনাকে প্রথমে:"
 
 #: templates/promapp/questionnaire_item_rule_form.html:72
 #: templates/promapp/questionnaire_item_rule_group_form.html:72
 msgid "Go to the item edit page"
-msgstr ""
+msgstr "আইটেম সম্পাদনা পৃষ্ঠায় যান"
 
 #: templates/promapp/questionnaire_item_rule_form.html:73
 msgid "Uncheck the 'Required for scoring' option"
-msgstr ""
+msgstr "'স্কোরিংয়ের জন্য প্রয়োজনীয়' বিকল্পটি আনচেক করুন"
 
 #: templates/promapp/questionnaire_item_rule_form.html:74
 #: templates/promapp/questionnaire_item_rule_group_form.html:74
 msgid "Save the item"
-msgstr ""
+msgstr "আইটেমটি সংরক্ষণ করুন"
 
 #: templates/promapp/questionnaire_item_rule_form.html:75
 msgid "Return here to create visibility rules"
-msgstr ""
+msgstr "দৃশ্যমানতা নিয়ম তৈরি করতে এখানে ফিরে আসুন"
 
 #: templates/promapp/questionnaire_item_rule_form.html:85
 msgid "Back to Rules List"
-msgstr ""
+msgstr "নিয়ম তালিকায় ফিরে যান"
 
 #: templates/promapp/questionnaire_item_rule_form.html:127
 msgid "Update Rule"
-msgstr ""
+msgstr "নিয়ম আপডেট করুন"
 
 #: templates/promapp/questionnaire_item_rule_group_form.html:8
 msgid "Edit Rule Group"
-msgstr ""
+msgstr "নিয়ম গ্রুপ সম্পাদনা করুন"
 
 #: templates/promapp/questionnaire_item_rule_group_form.html:10
 #: templates/promapp/questionnaire_item_rule_group_form.html:142
 msgid "Create Rule Group"
-msgstr ""
+msgstr "নিয়ম গ্রুপ তৈরি করুন"
 
 #: templates/promapp/questionnaire_item_rule_group_form.html:21
 msgid "Edit Rule Group for"
-msgstr ""
+msgstr "এর জন্য নিয়ম গ্রুপ সম্পাদনা করুন"
 
 #: templates/promapp/questionnaire_item_rule_group_form.html:23
 msgid "Create Rule Group for"
-msgstr ""
+msgstr "এর জন্য নিয়ম গ্রুপ তৈরি করুন"
 
 #: templates/promapp/questionnaire_item_rule_group_form.html:46
 msgid "Back to Rule Groups"
-msgstr ""
+msgstr "নিয়ম গ্রুপে ফিরে যান"
 
 #: templates/promapp/questionnaire_item_rule_group_form.html:64
 msgid "Rule Group Creation Not Allowed"
-msgstr ""
+msgstr "নিয়ম গ্রুপ তৈরি করার অনুমতি নেই"
 
 #: templates/promapp/questionnaire_item_rule_group_form.html:66
-msgid ""
-"This question is marked as required for scoring. Rule groups cannot be "
-"created for required items as they might prevent the item from being "
-"displayed, which would make score calculation impossible."
-msgstr ""
+msgid "This question is marked as required for scoring. Rule groups cannot be created for required items as they might prevent the item from being displayed, which would make score calculation impossible."
+msgstr "এই প্রশ্নটি স্কোরিংয়ের জন্য প্রয়োজনীয় হিসেবে চিহ্নিত। প্রয়োজনীয় আইটেমগুলির জন্য নিয়ম গ্রুপ তৈরি করা যায় না কারণ তারা আইটেমটি প্রদর্শিত হতে বাধা দিতে পারে, যা স্কোর গণনা অসম্ভব করে তুলবে।"
 
 #: templates/promapp/questionnaire_item_rule_group_form.html:69
 msgid "To create rule groups for this question, you must first:"
-msgstr ""
+msgstr "এই প্রশ্নের জন্য নিয়ম গ্রুপ তৈরি করতে, আপনাকে প্রথমে:"
 
 #: templates/promapp/questionnaire_item_rule_group_form.html:73
 msgid "Uncheck the Required for scoring option"
-msgstr ""
+msgstr "স্কোরিংয়ের জন্য প্রয়োজনীয় বিকল্পটি আনচেক করুন"
 
 #: templates/promapp/questionnaire_item_rule_group_form.html:75
 msgid "Return here to create visibility rule groups"
-msgstr ""
+msgstr "দৃশ্যমানতা নিয়ম গ্রুপ তৈরি করতে এখানে ফিরে আসুন"
 
 #: templates/promapp/questionnaire_item_rule_group_form.html:85
 msgid "Back to Rule Groups List"
-msgstr ""
+msgstr "নিয়ম গ্রুপ তালিকায় ফিরে যান"
 
 #: templates/promapp/questionnaire_item_rule_group_form.html:122
 msgid "No rules available. Please create rules first."
-msgstr ""
+msgstr "কোন নিয়ম উপলব্ধ নেই। অনুগ্রহ করে প্রথমে নিয়ম তৈরি করুন।"
 
 #: templates/promapp/questionnaire_item_rule_group_form.html:140
 msgid "Update Rule Group"
-msgstr ""
+msgstr "নিয়ম গ্রুপ আপডেট করুন"
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:6
 msgid "Questionnaire Item Rule Groups"
-msgstr ""
+msgstr "প্রশ্নাবলী আইটেম নিয়ম গ্রুপ"
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:14
 msgid "Rule Groups for"
-msgstr ""
+msgstr "এর জন্য নিয়ম গ্রুপ"
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:37
 #: templates/promapp/questionnaire_item_rules_list.html:37
 msgid "Back to Questionnaire Rules"
-msgstr ""
+msgstr "প্রশ্নাবলী নিয়মে ফিরে যান"
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:45
 #: templates/promapp/questionnaire_item_rule_groups_list.html:52
 msgid "Add Rule Group"
-msgstr ""
+msgstr "নিয়ম গ্রুপ যোগ করুন"
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:78
 msgid "Rule Groups Disabled for Required Item"
-msgstr ""
+msgstr "প্রয়োজনীয় আইটেমের জন্য নিয়ম গ্রুপ নিষ্ক্রিয়"
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:80
-msgid ""
-"This question is marked as required for scoring. Rule groups cannot be "
-"created for required items because they might prevent the item from being "
-"displayed, making score calculation impossible."
-msgstr ""
+msgid "This question is marked as required for scoring. Rule groups cannot be created for required items because they might prevent the item from being displayed, making score calculation impossible."
+msgstr "এই প্রশ্নটি স্কোরিংয়ের জন্য প্রয়োজনীয় হিসেবে চিহ্নিত। প্রয়োজনীয় আইটেমগুলির জন্য নিয়ম গ্রুপ তৈরি করা যায় না কারণ তারা আইটেমটি প্রদর্শিত হতে বাধা দিতে পারে, যা স্কোর গণনা অসম্ভব করে তোলে।"
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:83
 msgid "To enable rule group creation:"
-msgstr ""
+msgstr "নিয়ম গ্রুপ তৈরি সক্ষম করতে:"
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:83
 #: templates/promapp/questionnaire_item_rules_list.html:90
 msgid "Edit the item"
-msgstr ""
+msgstr "আইটেমটি সম্পাদনা করুন"
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:83
 msgid "Uncheck Required for scoring"
-msgstr ""
+msgstr "স্কোরিংয়ের জন্য প্রয়োজনীয় আনচেক করুন"
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:100
 #: templates/promapp/questionnaire_rules.html:155
 #: templates/promapp/questionnaire_rules.html:235
 msgid "Group"
-msgstr ""
+msgstr "গ্রুপ"
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:113
 msgid "Rules in this group:"
-msgstr ""
+msgstr "এই গ্রুপের নিয়মগুলি:"
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:136
 msgid "No rule groups defined for this question yet."
-msgstr ""
+msgstr "এই প্রশ্নের জন্য এখনও কোন নিয়ম গ্রুপ নির্ধারিত নেই।"
 
 #: templates/promapp/questionnaire_item_rule_groups_list.html:142
 #: templates/promapp/questionnaire_item_rule_groups_list.html:150
 msgid "Add First Rule Group"
-msgstr ""
+msgstr "প্রথম নিয়ম গ্রুপ যোগ করুন"
 
 #: templates/promapp/questionnaire_item_rules_list.html:6
 msgid "Questionnaire Item Rules"
-msgstr ""
+msgstr "প্রশ্নাবলী আইটেম নিয়ম"
 
 #: templates/promapp/questionnaire_item_rules_list.html:14
 msgid "Rules for"
-msgstr ""
+msgstr "এর জন্য নিয়ম"
 
 #: templates/promapp/questionnaire_item_rules_list.html:45
 #: templates/promapp/questionnaire_item_rules_list.html:59
 msgid "Add Rule"
-msgstr ""
+msgstr "নিয়ম যোগ করুন"
 
 #: templates/promapp/questionnaire_item_rules_list.html:52
 #: templates/promapp/questionnaire_item_rules_list.html:65
 msgid "Manage Rule Groups"
-msgstr ""
+msgstr "নিয়ম গ্রুপ পরিচালনা করুন"
 
 #: templates/promapp/questionnaire_item_rules_list.html:85
 msgid "Rules Disabled for Required Item"
-msgstr ""
+msgstr "প্রয়োজনীয় আইটেমের জন্য নিয়ম নিষ্ক্রিয়"
 
 #: templates/promapp/questionnaire_item_rules_list.html:87
-msgid ""
-"This question is marked as required for scoring. Rules cannot be created for "
-"required items because they might prevent the item from being displayed, "
-"making score calculation impossible."
-msgstr ""
+msgid "This question is marked as required for scoring. Rules cannot be created for required items because they might prevent the item from being displayed, making score calculation impossible."
+msgstr "এই প্রশ্নটি স্কোরিংয়ের জন্য প্রয়োজনীয় হিসেবে চিহ্নিত। প্রয়োজনীয় আইটেমগুলির জন্য নিয়ম তৈরি করা যায় না কারণ তারা আইটেমটি প্রদর্শিত হতে বাধা দিতে পারে, যা স্কোর গণনা অসম্ভব করে তোলে।"
 
 #: templates/promapp/questionnaire_item_rules_list.html:90
 msgid "To enable rule creation:"
-msgstr ""
+msgstr "নিয়ম তৈরি সক্ষম করতে:"
 
 #: templates/promapp/questionnaire_item_rules_list.html:90
 msgid "Uncheck 'Required for scoring'"
-msgstr ""
+msgstr "'স্কোরিংয়ের জন্য প্রয়োজনীয়' আনচেক করুন"
 
 #: templates/promapp/questionnaire_item_rules_list.html:103
 msgid "Dependent Question"
-msgstr ""
+msgstr "নির্ভরশীল প্রশ্ন"
 
 #: templates/promapp/questionnaire_item_rules_list.html:106
 msgid "Operator"
-msgstr ""
+msgstr "অপারেটর"
 
 #: templates/promapp/questionnaire_item_rules_list.html:109
 msgid "Comparison Value"
-msgstr ""
+msgstr "তুলনামূলক মান"
 
 #: templates/promapp/questionnaire_item_rules_list.html:112
 msgid "Logical Operator"
-msgstr ""
+msgstr "যৌক্তিক অপারেটর"
 
 #: templates/promapp/questionnaire_item_rules_list.html:130
 msgid "Question"
-msgstr ""
+msgstr "প্রশ্ন"
 
 #: templates/promapp/questionnaire_item_rules_list.html:162
 msgid "No rules defined for this question yet."
-msgstr ""
+msgstr "এই প্রশ্নের জন্য এখনও কোন নিয়ম নির্ধারিত নেই।"
 
 #: templates/promapp/questionnaire_item_rules_list.html:168
 #: templates/promapp/questionnaire_item_rules_list.html:176
 msgid "Add First Rule"
-msgstr ""
+msgstr "প্রথম নিয়ম যোগ করুন"
 
 #: templates/promapp/questionnaire_list.html:52
 msgid "No questionnaires available yet."
-msgstr ""
+msgstr "এখনও কোন প্রশ্নাবলী উপলব্ধ নেই।"
 
 #: templates/promapp/questionnaire_list.html:54
 msgid "Create First Questionnaire"
-msgstr ""
+msgstr "প্রথম প্রশ্নাবলী তৈরি করুন"
 
 #: templates/promapp/questionnaire_response.html:5
 msgid "Questionnaire Response"
-msgstr ""
+msgstr "প্রশ্নাবলীর প্রতিক্রিয়া"
 
 #: templates/promapp/questionnaire_response.html:42
-#, python-format
-msgid ""
-"You cannot answer this questionnaire yet. You can answer it again in "
-"%(next_available|timeuntil)s."
-msgstr ""
+msgid "You cannot answer this questionnaire yet. You can answer it again in %(next_available|timeuntil)s."
+msgstr "আপনি এখনও এই প্রশ্নাবলীর উত্তর দিতে পারবেন না। আপনি %(next_available|timeuntil)s পর আবার এর উত্তর দিতে পারবেন।"
 
 #: templates/promapp/questionnaire_response.html:559
 msgid "Previous Question"
-msgstr ""
+msgstr "পূর্ববর্তী প্রশ্ন"
 
 #: templates/promapp/questionnaire_response.html:563
 msgid "Next Question"
-msgstr ""
+msgstr "পরবর্তী প্রশ্ন"
 
 #: templates/promapp/questionnaire_response.html:569
 msgid "Skip to Submit"
-msgstr ""
+msgstr "জমা দিতে এড়িয়ে যান"
 
 #: templates/promapp/questionnaire_response.html:593
-#, python-format
 msgid ""
-"\n"
-"                Thank you for answering this %(questionnaire_name)s.\n"
+"                Thank you for answering this %(questionnaire_name)s."
 "              "
 msgstr ""
+"এই %(questionnaire_name)s এর উত্তর দেওয়ার জন্য ধন্যবাদ।"
+"                          "
+
 
 #: templates/promapp/questionnaire_response.html:598
-msgid ""
-"You may now submit your answers by clicking on the red submit button. If you "
-"wish to review your answers please click on the back to questionnaire button "
-"which will allow you to review all your responses."
-msgstr ""
+msgid "You may now submit your answers by clicking on the red submit button. If you wish to review your answers please click on the back to questionnaire button which will allow you to review all your responses."
+msgstr "আপনি এখন লাল জমা দেওয়ার বোতামে ক্লিক করে আপনার উত্তরগুলি জমা দিতে পারেন। আপনি যদি আপনার উত্তরগুলি পর্যালোচনা করতে চান তাহলে অনুগ্রহ করে প্রশ্নাবলীতে ফিরে যান বোতামে ক্লিক করুন যা আপনাকে আপনার সমস্ত প্রতিক্রিয়া পর্যালোচনা করতে দেবে।"
 
 #: templates/promapp/questionnaire_response.html:605
 msgid "Submit Responses"
-msgstr ""
+msgstr "প্রতিক্রিয়া জমা দিন"
 
 #: templates/promapp/questionnaire_response.html:608
 #: templates/promapp/questionnaire_rules.html:35
 msgid "Back to Questionnaire"
-msgstr ""
+msgstr "প্রশ্নাবলীতে ফিরে যান"
 
 #: templates/promapp/questionnaire_rules.html:6
 #: templates/promapp/questionnaire_rules.html:33
 msgid "Manage Questionnaire Rules"
-msgstr ""
+msgstr "প্রশ্নাবলী নিয়ম পরিচালনা করুন"
 
 #: templates/promapp/questionnaire_rules.html:55
 msgid "Note:"
-msgstr ""
+msgstr "দ্রষ্টব্য:"
 
 #: templates/promapp/questionnaire_rules.html:56
-msgid ""
-"Questions marked as 'Required for Scoring' cannot have rules created as they "
-"must always be visible for score calculation."
-msgstr ""
+msgid "Questions marked as 'Required for Scoring' cannot have rules created as they must always be visible for score calculation."
+msgstr "'স্কোরিংয়ের জন্য প্রয়োজনীয়' হিসেবে চিহ্নিত প্রশ্নগুলির জন্য নিয়ম তৈরি করা যায় না কারণ স্কোর গণনার জন্য তাদের সর্বদা দৃশ্যমান থাকতে হবে।"
 
 #: templates/promapp/questionnaire_rules.html:65
 msgid "Questions"
-msgstr ""
+msgstr "প্রশ্নসমূহ"
 
 #: templates/promapp/questionnaire_rules.html:106
 #: templates/promapp/questionnaire_rules.html:209
 msgid "Optional"
-msgstr ""
+msgstr "ঐচ্ছিক"
 
 #: templates/promapp/questionnaire_rules.html:117
 msgid "Cannot create rules for required items"
-msgstr ""
+msgstr "প্রয়োজনীয় আইটেমগুলির জন্য নিয়ম তৈরি করা যায় না"
 
 #: templates/promapp/questionnaire_rules.html:136
 #: templates/promapp/questionnaire_rules.html:216
 msgid "Individual Rules"
-msgstr ""
+msgstr "ব্যক্তিগত নিয়ম"
 
 #: templates/promapp/questionnaire_rules.html:140
 #: templates/promapp/questionnaire_rules.html:220
 msgid "If"
-msgstr ""
+msgstr "যদি"
 
 #: templates/promapp/questionnaire_rules.html:151
 #: templates/promapp/questionnaire_rules.html:231
 msgid "Rule Groups"
-msgstr ""
+msgstr "নিয়ম গ্রুপ"
 
 #: templates/promapp/questionnaire_rules.html:177
 msgid "Rules Summary"
-msgstr ""
+msgstr "নিয়ম সারাংশ"
 
 #: templates/promapp/questionnaire_translation_form.html:9
 msgid "Translate Questionnaire"
-msgstr ""
+msgstr "প্রশ্নাবলী অনুবাদ করুন"
 
 #: templates/promapp/questionnaire_update.html:6
 #: templates/promapp/questionnaire_update.html:43
 #: templates/promapp/questionnaire_update.html:223
 msgid "Update Questionnaire"
-msgstr ""
+msgstr "প্রশ্নাবলী আপডেট করুন"
 
 #: templates/promapp/questionnaire_update.html:46
 msgid "Back to Questionnaires"
-msgstr ""
+msgstr "প্রশ্নাবলীতে ফিরে যান"
 
 #: templates/promapp/questionnaire_update.html:116
 msgid "No construct scale"
-msgstr ""
+msgstr "কোন গঠন স্কেল নেই"
 
 #: templates/promapp/questionnaire_update.html:212
 msgid "View Questionnaire"
-msgstr ""
+msgstr "প্রশ্নাবলী দেখুন"
 
 #: templates/promapp/questionnaireitemrule_confirm_delete.html:4
 msgid "Delete Rule"
-msgstr ""
+msgstr "নিয়ম মুছে দিন"
 
 #: templates/promapp/questionnaireitemrule_confirm_delete.html:8
 #: templates/promapp/questionnaireitemrule_confirm_delete.html:25
 #: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:8
 #: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:29
 msgid "Confirm Delete"
-msgstr ""
+msgstr "মুছে ফেলা নিশ্চিত করুন"
 
 #: templates/promapp/questionnaireitemrule_confirm_delete.html:9
-msgid ""
-"Are you sure you want to delete this rule? This action cannot be undone."
-msgstr ""
+msgid "Are you sure you want to delete this rule? This action cannot be undone."
+msgstr "আপনি কি নিশ্চিত যে এই নিয়মটি মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।"
 
 #: templates/promapp/questionnaireitemrule_confirm_delete.html:11
 msgid "Rule:"
-msgstr ""
+msgstr "নিয়ম:"
 
 #: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:4
 msgid "Delete Rule Group"
-msgstr ""
+msgstr "নিয়ম গ্রুপ মুছে দিন"
 
 #: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:9
-msgid ""
-"Are you sure you want to delete this rule group? This action cannot be "
-"undone."
-msgstr ""
+msgid "Are you sure you want to delete this rule group? This action cannot be undone."
+msgstr "আপনি কি নিশ্চিত যে এই নিয়ম গ্রুপটি মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।"
 
 #: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:11
 msgid "Rule Group Order:"
-msgstr ""
+msgstr "নিয়ম গ্রুপের ক্রম:"
 
 #: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:12
 msgid "Rules in Group:"
-msgstr ""
+msgstr "গ্রুপের নিয়মসমূহ:"
 
 #: templates/promapp/questionnaireitemrulegroup_confirm_delete.html:20
 msgid "No rules in this group."
-msgstr ""
+msgstr "এই গ্রুপে কোন নিয়ম নেই।"
 
 #: templates/promapp/range_scale_form.html:6
 #: templates/promapp/range_scale_form.html:15
 msgid "Edit Range Scale"
-msgstr ""
+msgstr "রেঞ্জ স্কেল সম্পাদনা করুন"
 
 #: templates/promapp/range_scale_form.html:6
 #: templates/promapp/range_scale_form.html:132
 msgid "Create Range Scale"
-msgstr ""
+msgstr "রেঞ্জ স্কেল তৈরি করুন"
 
 #: templates/promapp/range_scale_form.html:17
 #: templates/promapp/range_scale_list.html:17
 msgid "Create New Range Scale"
-msgstr ""
+msgstr "নতুন রেঞ্জ স্কেল তৈরি করুন"
 
 #: templates/promapp/range_scale_form.html:25
 msgid "Back to Range Scales"
-msgstr ""
+msgstr "রেঞ্জ স্কেলে ফিরে যান"
 
 #: templates/promapp/range_scale_form.html:51
 msgid "Range Scale Details"
-msgstr ""
+msgstr "রেঞ্জ স্কেলের বিবরণ"
 
 #: templates/promapp/range_scale_form.html:64
 msgid "Minimum Value"
-msgstr ""
+msgstr "সর্বনিম্ন মান"
 
 #: templates/promapp/range_scale_form.html:65
 msgid "Enter minimum value"
-msgstr ""
+msgstr "সর্বনিম্ন মান লিখুন"
 
 #: templates/promapp/range_scale_form.html:72
 msgid "Maximum Value"
-msgstr ""
+msgstr "সর্বোচ্চ মান"
 
 #: templates/promapp/range_scale_form.html:73
 msgid "Enter maximum value"
-msgstr ""
+msgstr "সর্বোচ্চ মান লিখুন"
 
 #: templates/promapp/range_scale_form.html:80
 msgid "Increment"
-msgstr ""
+msgstr "বৃদ্ধি"
 
 #: templates/promapp/range_scale_form.html:81
 msgid "Enter increment"
-msgstr ""
+msgstr "বৃদ্ধি লিখুন"
 
 #: templates/promapp/range_scale_form.html:90
 msgid "Minimum Value Text"
-msgstr ""
+msgstr "সর্বনিম্ন মান টেক্সট"
+
 
 #: templates/promapp/range_scale_form.html:91
 msgid "Enter text for minimum value"
-msgstr ""
+msgstr "সর্বনিম্ন মানের জন্য টেক্সট লিখুন"
 
 #: templates/promapp/range_scale_form.html:98
 msgid "Maximum Value Text"
-msgstr ""
+msgstr "সর্বোচ্চ মান টেক্সট"
 
 #: templates/promapp/range_scale_form.html:99
 msgid "Enter text for maximum value"
-msgstr ""
+msgstr "সর্বোচ্চ মানের জন্য টেক্সট লিখুন"
 
 #: templates/promapp/range_scale_form.html:126
 msgid "Update Range Scale"
-msgstr ""
+msgstr "রেঞ্জ স্কেল আপডেট করুন"
 
 #: templates/promapp/range_scale_form.html:156
 msgid "Minimum value must be less than maximum value"
-msgstr ""
+msgstr "সর্বনিম্ন মান অবশ্যই সর্বোচ্চ মানের চেয়ে কম হতে হবে"
 
 #: templates/promapp/range_scale_form.html:161
 msgid "Increment must be greater than 0"
-msgstr ""
+msgstr "বৃদ্ধি অবশ্যই ০ এর চেয়ে বেশি হতে হবে"
 
 #: templates/promapp/range_scale_form.html:166
 msgid "Maximum value minus minimum value must be divisible by increment"
-msgstr ""
+msgstr "সর্বোচ্চ মান বিয়োগ সর্বনিম্ন মান অবশ্যই বৃদ্ধি দ্বারা বিভাজ্য হতে হবে"
 
 #: templates/promapp/range_scale_translation_form.html:9
 msgid "Translate Range Scale"
-msgstr ""
+msgstr "রেঞ্জ স্কেল অনুবাদ করুন"
 
 #: templates/promapp/range_scale_translation_form.html:126
 msgid "Original Range Scale Reference"
-msgstr ""
+msgstr "মূল রেঞ্জ স্কেল রেফারেন্স"
 
 #: templates/promapp/range_scale_translation_form.html:130
 msgid "Min Value Text"
-msgstr ""
+msgstr "সর্বনিম্ন মান টেক্সট"
 
 #: templates/promapp/range_scale_translation_form.html:134
 msgid "Max Value Text"
-msgstr ""
+msgstr "সর্বোচ্চ মান টেক্সট"
 
 #: templates/registration/login.html:26
 msgid "Forgot password?"
-msgstr ""
+msgstr "পাসওয়ার্ড ভুলে গেছেন?"
