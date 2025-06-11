@@ -26,7 +26,7 @@ import os
 # - Use "0.0.0.0:8000" to accept connections from any IP
 # - Use "127.0.0.1:8000" to only accept local connections
 # - For production behind a reverse proxy, consider "unix:/tmp/gunicorn.sock"
-bind = "0.0.0.0:8000"
+bind = "127.0.0.1:8000"
 
 # backlog: Maximum number of pending connections
 # - Higher values for high-traffic applications
