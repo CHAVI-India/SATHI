@@ -81,6 +81,7 @@ MIDDLEWARE = [
     'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "csp.middleware.CSPMiddleware",
 
 ]
 
@@ -364,11 +365,55 @@ OTP_EMAIL_SENDER = DEFAULT_FROM_EMAIL
 OTP_TOTP_TOLERANCE = 1  # Allow 1 step tolerance for time drift
 OTP_EMAIL_TOKEN_VALIDITY = 300  # 5 minutes
 
-# Security settings
-SECURE_HSTS_SECONDS = os.getenv('DJANGO_SECURE_HSTS_SECONDS', 3600)
-SECURE_HSTS_PRELOAD = True
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Security settings if not development environment
+ENVIRONMENT = os.getenv('DJANGO_ENVIRONMENT', 'development')
+if ENVIRONMENT != 'development':
+    SECURE_HSTS_SECONDS = os.getenv('DJANGO_SECURE_HSTS_SECONDS', 3600)
+    SECURE_HSTS_PRELOAD = True
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# Content Security Policy (CSP) settings
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = (
+    "'self'",
+    "'unsafe-inline'",  # Needed for inline scripts in templates
+    "'unsafe-eval'",    # Needed for Tailwind CDN runtime compilation
+    "https://cdn.tailwindcss.com",  # Tailwind CSS CDN script (temporarily restored)
+)
+CSP_STYLE_SRC = (
+    "'self'",
+    "'unsafe-inline'",  # Needed for inline styles and Tailwind CSS
+    "https://fonts.googleapis.com",  # For Google Fonts CSS
+    "https://cdn.tailwindcss.com",  # Tailwind CSS CDN styles (temporarily restored)
+)
+CSP_FONT_SRC = (
+    "'self'",
+    "https://fonts.gstatic.com",  # For Google Fonts
+    "data:",  # For data URI fonts
+)
+CSP_IMG_SRC = (
+    "'self'",
+    "data:",  # For data URI images (QR codes, etc.)
+    "blob:",  # For blob images
+)
+CSP_CONNECT_SRC = (
+    "'self'",
+    # Add your API endpoints here if needed
+)
+
+# Additional security headers
+CSP_INCLUDE_NONCE_IN = ['script-src']  # Generate nonces for inline scripts
+CSP_REPORT_ONLY = False  # Set to True for testing CSP without blocking
+CSP_FRAME_SRC = ("'none'",)  # Prevents your site from being framed
+CSP_OBJECT_SRC = ("'none'",)  # Disables plugins like Flash
+CSP_BASE_URI = ("'self'",)
+CSP_FORM_ACTION = ("'self'",)
+
+# Additional CSP security headers
+CSP_UPGRADE_INSECURE_REQUESTS = ENVIRONMENT != 'development'
+CSP_BLOCK_ALL_MIXED_CONTENT = ENVIRONMENT != 'development'
