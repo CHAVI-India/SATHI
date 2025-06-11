@@ -34,3 +34,15 @@ PARLER_DEFAULT_LANGUAGE=en-gb
 # Ensure that the language code matches that provided above
 PARLER_LANGUAGES=en-gb,bn,hi
 PARLER_HIDE_UNTRANSLATED=False
+
+
+# Django SMTP email settings
+
+DJANGO_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+DJANGO_EMAIL_HOST=sandbox.smtp.mailtrap.io
+DJANGO_EMAIL_PORT=25
+DJANGO_EMAIL_HOST_USER=abcd
+DJANGO_EMAIL_HOST_PASSWORD=adfad
+DJANGO_EMAIL_USE_TLS=True
+DJANGO_EMAIL_USE_SSL=True
+DJANGO_DEFAULT_FROM_EMAIL=abc@test.com

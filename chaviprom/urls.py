@@ -21,12 +21,14 @@ from django.conf.urls.i18n import i18n_patterns
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
+from two_factor.urls import urlpatterns as tf_urls
 
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
 ]
 
 urlpatterns += i18n_patterns(
+    path('',include(tf_urls)),
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
     path('admin/', admin.site.urls),
     
@@ -34,8 +36,7 @@ urlpatterns += i18n_patterns(
     path('promapp/', include('promapp.urls')),
     path('patientapp/', include('patientapp.urls')),
     
-    # Authentication paths
-    path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    # Standard logout (login is handled by two-factor)
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     
     prefix_default_language=True,

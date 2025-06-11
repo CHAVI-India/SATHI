@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% translate "Disable Two-Factor Authentication" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="bg-white p-8 rounded-lg shadow-md">
+        <!-- Warning Icon -->
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.084 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-red-700">{% translate "Disable Two-Factor Authentication" %}</h2>
+        </div>
+        
+        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-400">
+            <p class="text-red-800">
+                <strong>{% translate "Warning:" %}</strong> 
+                {% translate "You are about to disable two-factor authentication. This weakens your account security, are you sure?" %}
+            </p>
+        </div>
+        
+        <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+            <h3 class="font-semibold text-gray-800 mb-2">{% translate "What this means:" %}</h3>
+            <ul class="text-sm text-gray-600 space-y-1">
+                <li>• {% translate "Your account will only be protected by your password" %}</li>
+                <li>• {% translate "You won't need your authenticator app to log in" %}</li>
+                <li>• {% translate "Your account will be more vulnerable to unauthorized access" %}</li>
+            </ul>
+        </div>
+        
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form|crispy }}
+            
+            <div class="mt-6 flex space-x-4">
+                <a href="/" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400 transition-colors text-center">
+                    {% translate "Cancel" %}
+                </a>
+                <button type="submit" class="flex-1 bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition-colors">
+                    {% translate "Disable Two-Factor Authentication" %}
+                </button>
+            </div>
+        </form>
+        
+        <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+            <p class="text-sm text-blue-800">
+                <strong>{% translate "Recommendation:" %}</strong> 
+                {% translate "We strongly recommend keeping two-factor authentication enabled for better account security." %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

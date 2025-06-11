@@ -9,7 +9,7 @@
     <div class="bg-white p-8 rounded-lg shadow-md">
         <h2 class="text-2xl font-bold mb-6 text-center text-blue-700">{% translate "Login" %}</h2>
         
-        <form method="post" action="{% url 'login' %}">
+        <form method="post" action="{% url 'two_factor:login' %}">
             {% csrf_token %}
             {{ form|crispy }}
             

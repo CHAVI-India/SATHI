@@ -59,6 +59,12 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_tailwind',
     'django_cotton',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'django_otp.plugins.otp_static',
+    'django_otp.plugins.otp_email',
+    'two_factor',
+    'two_factor.plugins.email',
     'promapp',
     'patientapp',
     'providerapp',
@@ -72,6 +78,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
@@ -328,3 +335,31 @@ if DEBUG_TOOLBAR_ENABLED:
         'debug_toolbar.panels.redirects.RedirectsPanel',
         'debug_toolbar.panels.profiling.ProfilingPanel',
     ]
+
+# Two-factor authentication settings
+LOGIN_URL = 'two_factor:login'
+
+
+# Email settings
+EMAIL_BACKEND = os.getenv('DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.getenv('DJANGO_EMAIL_HOST', 'localhost')
+EMAIL_PORT = os.getenv('DJANGO_EMAIL_PORT', 1025)
+EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.getenv('DJANGO_EMAIL_USE_TLS', False)
+
+
+# Default from email address
+DEFAULT_FROM_EMAIL = os.getenv('DJANGO_DEFAULT_FROM_EMAIL', 'no-reply@example.com')
+
+# OTP email settings
+OTP_EMAIL_SUBJECT = "Your OTP token for CHAVI PROM"
+OTP_EMAIL_BODY_TEMPLATE_PATH = os.path.join(BASE_DIR, "templates/otp_email_template.txt")
+OTP_EMAIL_BODY_HTML_TEMPLATE_PATH = os.path.join(BASE_DIR, "templates/otp_email_template.html")
+
+# OTP Email sender configuration
+OTP_EMAIL_SENDER = DEFAULT_FROM_EMAIL
+
+# OTP Token validity (in seconds) - default is 30 seconds
+OTP_TOTP_TOLERANCE = 1  # Allow 1 step tolerance for time drift
+OTP_EMAIL_TOKEN_VALIDITY = 300  # 5 minutes

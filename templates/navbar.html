@@ -120,6 +120,9 @@
           {% if user.is_authenticated %}
             <div class="relative">
               <div class="flex items-center">
+                <a href="{% url 'two_factor:profile' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium mr-2">
+                  {% translate "2FA Settings" %}
+                </a>
                 <span class="text-white mr-2">Welcome, {{ user.username }}</span>
                 <form method="post" action="{% url 'logout' %}" class="inline">
                   {% csrf_token %}
@@ -130,7 +133,7 @@
               </div>
             </div>
           {% else %}
-            <a href="{% url 'login' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% translate "Login" %}</a>
+            <a href="{% url 'two_factor:login' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% translate "Login" %}</a>
             <a href="#" class="ml-2 text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% translate "Register" %}</a>
           {% endif %}
         </div>
@@ -246,6 +249,9 @@
       {% if user.is_authenticated %}
         <div class="px-3 py-2">
           <span class="text-white block">{{ user.username }}</span>
+          <a href="{% url 'two_factor:profile' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
+            {% translate "2FA Settings" %}
+          </a>
           <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
             <button type="submit" class="text-white hover:bg-blue-700 block w-full text-left px-3 py-2 rounded-md text-base font-medium">
@@ -254,7 +260,7 @@
           </form>
         </div>
       {% else %}
-        <a href="{% url 'login' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% translate "Login" %}</a>
+        <a href="{% url 'two_factor:login' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% translate "Login" %}</a>
         <a href="#" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% translate "Register" %}</a>
       {% endif %}
     </div>

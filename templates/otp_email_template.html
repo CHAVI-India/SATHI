@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Token - CHAVI PROM</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #2563eb;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background-color: #f9fafb;
+            padding: 30px;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid #e5e7eb;
+        }
+        .otp-code {
+            background-color: #1f2937;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 15px;
+            text-align: center;
+            border-radius: 6px;
+            letter-spacing: 3px;
+            margin: 20px 0;
+        }
+        .warning {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Security Verification</h1>
+        <p>CHAVI PROM Login Attempt</p>
+    </div>
+    
+    <div class="content">
+        <p>Hello,</p>
+        
+        <p>Someone has attempted to log into your CHAVI PROM account. If this was you, please use the following one-time password to complete your login:</p>
+        
+        <div class="otp-code">{{ token }}</div>
+        
+        <p><strong>This code will expire in 5 minutes.</strong></p>
+        
+        <div class="warning">
+            <strong>⚠️ Security Notice:</strong> If you did not attempt to log in, please change your password immediately and contact our support team.
+        </div>
+        
+        <div class="footer">
+            <p>Regards,<br>
+            CHAVI PROM Security Team<br>
+            <a href="https://prom.chaviread.app">https://prom.chaviread.app</a></p>
+            
+            <p><em>This is an automated message. Please do not reply to this email.</em></p>
+        </div>
+    </div>
+</body>
+</html>
