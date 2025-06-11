@@ -284,6 +284,7 @@ It is possible to dynamically change the display font to one more suitable for t
 # Security
 
 Patient identifiers are securely encrypted in the database. These identifiers include name, hospital unique ID, date of registration, date of start and date of end of treatment. 
+Additionally, the system supports two factor authentication with login implemented via an email based OTP. Additionally TOTP apps are also supported. It is possible to support SMS gateways in the future.
 
 
 
