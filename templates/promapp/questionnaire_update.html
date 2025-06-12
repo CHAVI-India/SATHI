@@ -299,26 +299,60 @@
       listItem.className = 'selected-item bg-white p-2 rounded border shadow-sm flex items-center';
       listItem.setAttribute('data-item-id', itemId);
       
-      // Add content to the list item
-      listItem.innerHTML = `
-        <div class="handle mr-2 text-gray-400">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
-          </svg>
-        </div>
-        <div class="question-number font-bold mr-2 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-          ${selectedItems.length + 1}
-        </div>
-        <div class="flex-1">
-          <div class="font-medium">${itemName}</div>
-          <div class="text-xs text-gray-600">${itemDetails}</div>
-        </div>
-        <button type="button" class="remove-btn text-red-500 hover:text-red-700 p-1" onclick="removeItem('${itemId}')">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-          </svg>
-        </button>
+      // Add content to the list item safely using DOM manipulation
+      
+      // Create handle element
+      const handleDiv = document.createElement('div');
+      handleDiv.className = 'handle mr-2 text-gray-400';
+      handleDiv.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+        </svg>
       `;
+      
+      // Create question number element
+      const questionNumberDiv = document.createElement('div');
+      questionNumberDiv.className = 'question-number font-bold mr-2 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center';
+      questionNumberDiv.textContent = selectedItems.length + 1;
+      
+      // Create content container
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'flex-1';
+      
+      // Create item name element
+      const itemNameDiv = document.createElement('div');
+      itemNameDiv.className = 'font-medium';
+      itemNameDiv.textContent = itemName; // Safe text content assignment
+      
+      // Create item details element
+      const itemDetailsDiv = document.createElement('div');
+      itemDetailsDiv.className = 'text-xs text-gray-600';
+      itemDetailsDiv.textContent = itemDetails; // Safe text content assignment
+      
+      // Append to content container
+      contentDiv.appendChild(itemNameDiv);
+      contentDiv.appendChild(itemDetailsDiv);
+      
+      // Create remove button
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'remove-btn text-red-500 hover:text-red-700 p-1';
+      removeButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      `;
+      
+      // Add click event listener instead of inline onclick
+      removeButton.addEventListener('click', function() {
+        removeItem(itemId); // itemId is safely passed as a parameter
+      });
+      
+      // Append all elements to the list item
+      listItem.appendChild(handleDiv);
+      listItem.appendChild(questionNumberDiv);
+      listItem.appendChild(contentDiv);
+      listItem.appendChild(removeButton);
       
       // Add to the list and our tracking array
       selectedItemsList.appendChild(listItem);

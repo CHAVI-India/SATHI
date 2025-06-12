@@ -208,8 +208,14 @@
             const selectedInputs = document.querySelectorAll('#item-filter-inputs input[type="hidden"]');
             const count = selectedInputs.length;
             
+            // Clear existing content
+            selectedItemsSummary.innerHTML = '';
+            
             if (count === 0) {
-                selectedItemsSummary.innerHTML = '<span class="text-gray-500">{% translate "All items shown" %}</span>';
+                const span = document.createElement('span');
+                span.className = 'text-gray-500';
+                span.textContent = '{% translate "All items shown" %}';
+                selectedItemsSummary.appendChild(span);
             } else {
                 const itemNames = Array.from(selectedInputs).map(input => input.getAttribute('data-item-name')).slice(0, 3);
                 let summaryText = `${count} {% translate "item" %}${count !== 1 ? 's' : ''} {% translate "selected" %}`;
@@ -218,7 +224,12 @@
                 } else {
                     summaryText += `: ${itemNames.join(', ')} + ${count - 3} {% translate "more" %}`;
                 }
-                selectedItemsSummary.innerHTML = `<span class="text-blue-600">${summaryText}</span>`;
+                
+                // Safely create and append the span element
+                const span = document.createElement('span');
+                span.className = 'text-blue-600';
+                span.textContent = summaryText; // textContent automatically escapes HTML
+                selectedItemsSummary.appendChild(span);
             }
         }
     }

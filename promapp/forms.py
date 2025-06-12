@@ -16,8 +16,11 @@ class QuestionnaireForm(TranslatableModelForm):
     questionnaire_answer_interval = forms.IntegerField(
         required=False,
         min_value=0,
-        help_text="Time interval between questionnaire attempts",
-        widget=forms.NumberInput(attrs={'class': 'interval-value'})
+        help_text="Time interval between questionnaire attempts. Leave empty for no restriction.",
+        widget=forms.NumberInput(attrs={
+            'class': 'interval-value',
+            'placeholder': 'Enter number (leave empty for no restriction)'
+        })
     )
     interval_unit = forms.ChoiceField(
         required=False,
@@ -33,7 +36,10 @@ class QuestionnaireForm(TranslatableModelForm):
     questionnaire_order = forms.IntegerField(
         required=False,
         min_value=0,
-        help_text="Order in which this questionnaire should be displayed"
+        help_text="Order in which this questionnaire should be displayed. Leave empty to set as 0.",
+        widget=forms.NumberInput(attrs={
+            'placeholder': 'Enter display order (leave empty for 0)'
+        })
     )
     questionnaire_redirect = forms.ModelChoiceField(
         required=False,
@@ -61,7 +67,7 @@ class QuestionnaireForm(TranslatableModelForm):
         # Set initial values for interval fields if editing
         if self.instance and self.instance.pk:
             interval = self.instance.questionnaire_answer_interval
-            if interval:
+            if interval and interval > 0:  # Only set if interval is greater than 0
                 if interval < 60:
                     self.initial['interval_unit'] = 'seconds'
                     self.initial['questionnaire_answer_interval'] = interval
@@ -75,11 +81,33 @@ class QuestionnaireForm(TranslatableModelForm):
                     self.initial['interval_unit'] = 'days'
                     self.initial['questionnaire_answer_interval'] = interval // 86400
 
+    def clean_questionnaire_answer_interval(self):
+        """Clean the questionnaire answer interval field."""
+        value = self.cleaned_data.get('questionnaire_answer_interval')
+        
+        # If value is None or empty, that's acceptable - it will be set to 0 in clean()
+        if value is not None and value < 0:
+            raise forms.ValidationError("Answer interval cannot be negative.")
+        
+        return value
+
+    def clean_questionnaire_order(self):
+        """Clean the questionnaire order field."""
+        value = self.cleaned_data.get('questionnaire_order')
+        
+        # If value is None or empty, that's acceptable - it will be set to 0 in clean()
+        if value is not None and value < 0:
+            raise forms.ValidationError("Questionnaire order cannot be negative.")
+        
+        return value
+
     def clean(self):
         cleaned_data = super().clean()
         interval_value = cleaned_data.get('questionnaire_answer_interval')
         interval_unit = cleaned_data.get('interval_unit')
+        questionnaire_order = cleaned_data.get('questionnaire_order')
         
+        # Ensure questionnaire_answer_interval is never None
         if interval_value is not None and interval_unit:
             # Convert to seconds based on unit
             if interval_unit == 'minutes':
@@ -88,6 +116,14 @@ class QuestionnaireForm(TranslatableModelForm):
                 cleaned_data['questionnaire_answer_interval'] = interval_value * 3600
             elif interval_unit == 'days':
                 cleaned_data['questionnaire_answer_interval'] = interval_value * 86400
+            # If interval_unit is 'seconds' or anything else, keep the original value
+        else:
+            # If no interval is specified, set to 0 (no restriction)
+            cleaned_data['questionnaire_answer_interval'] = 0
+        
+        # Ensure questionnaire_order is never None
+        if questionnaire_order is None:
+            cleaned_data['questionnaire_order'] = 0
         
         return cleaned_data
 
