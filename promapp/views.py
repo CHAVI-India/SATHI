@@ -10,6 +10,8 @@ from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.conf import settings
 from django.utils import translation
+from django.utils.html import escape
+from django.utils.http import url_has_allowed_host_and_scheme
 from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption, PatientQuestionnaire, QuestionnaireItemResponse, Patient, QuestionnaireItemRule, QuestionnaireItemRuleGroup, QuestionnaireSubmission, QuestionnaireConstructScore, CompositeConstructScaleScoring
 from .forms import (
     QuestionnaireForm, ItemForm, QuestionnaireItemForm, 
@@ -383,7 +385,10 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
             messages.error(self.request, str(e))
             return self.form_invalid(form)
         except Exception as e:
-            messages.error(self.request, f"An error occurred while updating the questionnaire: {str(e)}")
+            # Log the detailed error for debugging but show generic message to user
+            logger = logging.getLogger("promapp.questionnaire_management")
+            logger.error(f"Unexpected error updating questionnaire {questionnaire.id if 'questionnaire' in locals() else 'unknown'}: {str(e)}")
+            messages.error(self.request, "An error occurred while updating the questionnaire. Please try again or contact support if the problem persists.")
             return self.form_invalid(form)
 
 
@@ -495,8 +500,10 @@ class ItemCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
                 for error in e.messages:
                     form.add_error(None, error)
             else:
-                # Single error message
-                form.add_error(None, str(e))
+                # Log detailed error but show generic message
+                logger = logging.getLogger("promapp.item_management")
+                logger.error(f"Unexpected error creating item: {str(e)}")
+                form.add_error(None, "An unexpected error occurred. Please try again.")
             
             messages.error(self.request, "There was an error creating the item. Please check the form for details.")
             return self.form_invalid(form)
@@ -536,8 +543,10 @@ class ItemUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
                 for error in e.messages:
                     form.add_error(None, error)
             else:
-                # Single error message
-                form.add_error(None, str(e))
+                # Log detailed error but show generic message
+                logger = logging.getLogger("promapp.item_management")
+                logger.error(f"Unexpected error updating item: {str(e)}")
+                form.add_error(None, "An unexpected error occurred. Please try again.")
             
             messages.error(self.request, "There was an error updating the item. Please check the form for details.")
             return self.form_invalid(form)
@@ -710,10 +719,14 @@ def create_likert_scale(request):
                                         messages.error(request, error_msg)
                                     else:
                                         print(f"Error saving option: {e}")
-                                        messages.error(request, f"Error saving option: {e}")
+                                        logger = logging.getLogger("promapp.likert_scale_management")
+                                        logger.error(f"Unexpected error saving likert option: {str(e)}")
+                                        messages.error(request, "Error saving option. Please check your input and try again.")
                             except Exception as e:
                                 print(f"Error processing option: {e}")
-                                messages.error(request, f"Error processing option: {e}")
+                                logger = logging.getLogger("promapp.likert_scale_management")
+                                logger.error(f"Unexpected error processing likert option: {str(e)}")
+                                messages.error(request, "Error processing option. Please check your input and try again.")
                         elif delete_flag and form_instance.instance.pk:
                             # Delete if marked and exists
                             form_instance.instance.delete()
@@ -760,10 +773,14 @@ def create_likert_scale(request):
                                 messages.error(request, error_msg)
                             else:
                                 print(f"Error saving dynamic option: {e}")
-                                messages.error(request, f"Error saving dynamic option: {e}")
+                                logger = logging.getLogger("promapp.likert_scale_management")
+                                logger.error(f"Unexpected error saving dynamic likert option: {str(e)}")
+                                messages.error(request, "Error saving dynamic option. Please check your input and try again.")
                     except Exception as e:
                         print(f"Error processing dynamic option: {e}")
-                        messages.error(request, f"Error processing dynamic option: {e}")
+                        logger = logging.getLogger("promapp.likert_scale_management")
+                        logger.error(f"Unexpected error processing dynamic likert option: {str(e)}")
+                        messages.error(request, "Error processing dynamic option. Please check your input and try again.")
                 
                 if instance:
                     messages.success(request, "Likert scale updated successfully.")
@@ -1115,7 +1132,10 @@ def create_range_scale(request):
             except ValidationError as e:
                 messages.error(request, str(e))
             except Exception as e:
-                messages.error(request, f"Error saving range scale: {str(e)}")
+                # Log detailed error but show generic message
+                logger = logging.getLogger("promapp.range_scale_management")
+                logger.error(f"Unexpected error saving range scale: {str(e)}")
+                messages.error(request, "Error saving range scale. Please check your input and try again.")
         else:
             messages.error(request, "Please check the form for errors.")
     else:
@@ -1506,7 +1526,10 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
                     messages.success(request, _('Your responses have been saved successfully.'))
                     return redirect('my_questionnaire_list')
             except Exception as e:
-                messages.error(request, _('An error occurred while saving your responses: %s') % str(e))
+                # Log detailed error but show generic message
+                logger = logging.getLogger("promapp.questionnaire_responses")
+                logger.error(f"Error saving questionnaire responses for patient {request.user.patient.id if hasattr(request.user, 'patient') else 'unknown'}: {str(e)}")
+                messages.error(request, _('An error occurred while saving your responses. Please try again or contact support if the problem persists.'))
                 # Pass items_with_translations in the context for error cases
                 context = self.get_context_data(form=form)
                 context['items_with_translations'] = items_with_translations
@@ -2304,9 +2327,12 @@ def save_question_numbers(request, pk):
             'error': 'Questionnaire not found. Please refresh the page and try again.'
         })
     except Exception as e:
+        # Log the detailed error for debugging but return generic message
+        logger = logging.getLogger("promapp.questionnaire_management")
+        logger.error(f"Unexpected error saving question numbers for questionnaire {questionnaire.id if 'questionnaire' in locals() else 'unknown'}: {str(e)}")
         return JsonResponse({
             'success': False,
-            'error': f'An unexpected error occurred: {str(e)}. Please try again or contact support if the problem persists.'
+            'error': 'An unexpected error occurred while saving question numbers. Please try again or contact support if the problem persists.'
         })
 
 class QuestionnaireRulesView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
@@ -2477,7 +2503,7 @@ def evaluate_question_rules(request, questionnaire_item_id):
         return JsonResponse({'should_show': should_show})
     except Exception as e:
         logger.error(f"Error in evaluate_question_rules: {e}")
-        return JsonResponse({'error': str(e)}, status=400)
+        return JsonResponse({'error': 'Unable to evaluate question rules. Please check your form data and try again.'}, status=400)
 
 # Translation Views
 class ItemTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
@@ -3250,14 +3276,22 @@ def switch_language(request):
     """
     language = request.GET.get('language')
     if language and language in [lang[0] for lang in settings.LANGUAGES]:
-        # Just redirect with the language parameter
+        # Validate the next URL to prevent open redirect attacks
         next_url = request.GET.get('next', '/')
+        if not url_has_allowed_host_and_scheme(next_url, allowed_hosts=None, require_https=request.is_secure()):
+            next_url = '/'  # Fallback to safe default
+        
         if '?' in next_url:
             next_url += '&language=' + language
         else:
             next_url += '?language=' + language
         return redirect(next_url)
-    return redirect(request.GET.get('next', '/'))
+    
+    # Validate the next URL for the fallback redirect as well
+    next_url = request.GET.get('next', '/')
+    if not url_has_allowed_host_and_scheme(next_url, allowed_hosts=None, require_https=request.is_secure()):
+        next_url = '/'  # Fallback to safe default
+    return redirect(next_url)
 
 class TranslationsDashboardView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     """
@@ -3347,7 +3381,10 @@ class ConstructEquationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateV
                 return self.form_invalid(form)
                 
         except Exception as e:
-            messages.error(self.request, str(e))
+            # Log detailed error but show generic message
+            logger = logging.getLogger("promapp.construct_equations")
+            logger.error(f"Unexpected error saving construct equation for scale {self.get_object().id}: {str(e)}")
+            messages.error(self.request, "An unexpected error occurred while saving the equation. Please try again.")
             return self.form_invalid(form)
 
     def form_invalid(self, form):
@@ -3418,7 +3455,15 @@ def validate_equation(request):
         temp_scale.validate_scale_equation()
         return HttpResponse('<div class="text-green-600">✓ Valid equation</div>')
     except ValidationError as e:
-        return HttpResponse(f'<div class="text-red-600">✗ {str(e)}</div>')
+        # Log the detailed error for debugging but return sanitized message
+        logger = logging.getLogger("promapp.equations")
+        logger.error(f"Equation validation error for equation '{equation}': {str(e)}")
+        return HttpResponse(f'<div class="text-red-600">✗ {escape(str(e))}</div>')
+    except Exception as e:
+        # Log unexpected errors but return generic message
+        logger = logging.getLogger("promapp.equations")
+        logger.error(f"Unexpected error validating equation '{equation}': {str(e)}")
+        return HttpResponse('<div class="text-red-600">✗ Invalid equation format</div>')
 
 def add_to_equation(request):
     """
