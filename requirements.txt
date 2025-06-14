@@ -19,6 +19,7 @@ django-import-export==4.3.7
 django-otp==1.6.0
 django-parler==2.3
 django-phonenumber-field==8.1.0
+django-schema-viewer==0.5.3
 django-secured-fields==0.4.4
 django-two-factor-auth==1.17.0
 dotenv==0.9.9
