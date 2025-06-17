@@ -45,6 +45,7 @@ CSRF_TRUSTED_ORIGINS = os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS','*').split(',')
 # Application definition
 
 INSTALLED_APPS = [
+    'chaviprom.apps.ChavipromConfig',  # Main project app for signals
     'parler', # Using Parler for multilingual support
     #'modeltranslation', # Add before admin see : https://github.com/deschler/django-modeltranslation/issues/408
     'django.contrib.admin',
@@ -264,31 +265,192 @@ LOGOUT_REDIRECT_URL = '/'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-        'promapp_rules_file': {
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'promapp_rules.log'),
-            'level': 'DEBUG',
-            'formatter': 'verbose',
-        },
-    },
     'formatters': {
         'verbose': {
             'format': '[{asctime}] {levelname} {name} {message}',
             'style': '{',
         },
+        'simple': {
+            'format': '[{asctime}] {levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+            'maxBytes': 1024 * 1024 * 10,  # 10MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'error_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django_error.log'),
+            'maxBytes': 1024 * 1024 * 10,  # 10MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+            'level': 'ERROR',
+        },
+        'promapp_rules_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'promapp_rules.log'),
+            'maxBytes': 1024 * 1024 * 10,  # 10MB
+            'backupCount': 5,
+            'level': 'DEBUG',
+            'formatter': 'verbose',
+        },
+        'security_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'security.log'),
+            'maxBytes': 1024 * 1024 * 10,  # 10MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'tfa_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'two_factor_auth.log'),
+            'maxBytes': 1024 * 1024 * 10,  # 10MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
     },
     'root': {
-        'handlers': ['console'],
-        'level': 'DEBUG',
+        'handlers': ['console', 'file', 'error_file'],
+        'level': 'INFO',
     },
     'loggers': {
+        'django': {
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['console', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['console', 'file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'promapp': {
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
         'promapp.rules': {
             'handlers': ['console', 'promapp_rules_file'],
             'level': 'DEBUG',
+            'propagate': False,
+        },
+        'patientapp': {
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'providerapp': {
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'gunicorn': {
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'two_factor.views.core': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'two_factor.views.utils': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'two_factor.gateways.fake': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'two_factor.views.profile': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'two_factor.views.mixins': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'two_factor.plugins.email': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'two_factor.plugins.email.forms': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'two_factor.plugins.email.models': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'two_factor.plugins.email.views': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django_otp': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django_otp.plugins.otp_email': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django_otp.plugins.otp_totp': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django_otp.plugins.otp_static': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'two_factor': {
+            'handlers': ['console', 'tfa_file', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.contrib.auth': {
+            'handlers': ['console', 'security_file', 'tfa_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.security.csrf': {
+            'handlers': ['console', 'security_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.security.disallowed_host': {
+            'handlers': ['console', 'security_file'],
+            'level': 'WARNING',
             'propagate': False,
         },
     },
@@ -366,8 +528,21 @@ OTP_EMAIL_SENDER = DEFAULT_FROM_EMAIL
 OTP_TOTP_TOLERANCE = 1  # Allow 1 step tolerance for time drift
 OTP_EMAIL_TOKEN_VALIDITY = 300  # 5 minutes
 
+# Additional TFA logging settings
+OTP_EMAIL_LOG_LEVEL = 'INFO'  # Log level for OTP email events
+OTP_TOTP_LOG_LEVEL = 'INFO'   # Log level for TOTP events
+
+# TFA security settings
+TWO_FACTOR_LOGIN_TIMEOUT = 600  # 10 minutes timeout for TFA setup
+TWO_FACTOR_REMEMBER_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
+
 # Security settings if not development environment
 ENVIRONMENT = os.getenv('DJANGO_ENVIRONMENT', 'development')
+
+# Ensure logs directory exists
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+os.makedirs(LOGS_DIR, exist_ok=True)
+
 if ENVIRONMENT != 'development':
     SECURE_HSTS_SECONDS = os.getenv('DJANGO_SECURE_HSTS_SECONDS', 3600)
     SECURE_HSTS_PRELOAD = True
