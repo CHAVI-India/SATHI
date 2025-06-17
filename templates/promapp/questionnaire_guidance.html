@@ -11,7 +11,7 @@
     <div class="mb-8 text-center">
         <h1 class="text-4xl font-bold text-gray-900 mb-4">{% trans "Questionnaire Guidance" %}</h1>
         <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-            {% trans "A comprehensive guide to understanding the key concepts and components used in Patient Reported Outcome Measures (PROMs) questionnaires." %}
+            {% trans "A guide to understanding the key concepts and components used in Patient Reported Outcome Measures (PROMs) questionnaires." %}
         </p>
     </div>
 
@@ -20,56 +20,56 @@
         
         <!-- ConstructScale Card -->
         <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">ConstructScale</h3>
-            <p class="text-gray-600 mb-4">Define measurement constructs for questionnaires</p>
-            <c-link_button href="{% url 'construct_scale_list' %}" variant="primary" size="sm">
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Construct Scale</h3>
+            <p class="text-gray-600 mb-4">Define constructs which measure latent traits from questionnaires</p>
+            <c-action_buttons action="view" href="{% url 'construct_scale_list' %}">
                 {% trans "View Construct Scales" %}
-            </c-link_button>
+            </c-action_buttons>
         </div>
 
         <!-- CompositeConstructScore Card -->
         <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">CompositeConstructScore</h3>
-            <p class="text-gray-600 mb-4">Combine multiple constructs into composite scores</p>
-            <c-link_button href="{% url 'composite_construct_scale_scoring_list' %}" variant="primary" size="sm">
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Composite Construct Scores</h3>
+            <p class="text-gray-600 mb-4">Combine multiple constructs into a single score</p>
+            <c-action_buttons action="view" href="{% url 'composite_construct_scale_scoring_list' %}">
                 {% trans "View Composite Scores" %}
-            </c-link_button>
+            </c-action_buttons>
         </div>
 
         <!-- Item Card -->
         <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
             <h3 class="text-xl font-semibold text-gray-900 mb-3">Item</h3>
-            <p class="text-gray-600 mb-4">Individual questions within questionnaires</p>
-            <c-link_button href="{% url 'item_list' %}" variant="primary" size="sm">
+            <p class="text-gray-600 mb-4">Individual questions within questionnaires. Various types of responses are supported like Text, Numeric, Likert, Range and Media</p>
+            <c-action_buttons action="view" href="{% url 'item_list' %}">
                 {% trans "View Items" %}
-            </c-link_button>
+            </c-action_buttons>
         </div>
 
         <!-- LikertScale Card -->
         <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">LikertScale</h3>
-            <p class="text-gray-600 mb-4">Response scales for structured answers</p>
-            <c-link_button href="{% url 'likert_scale_list' %}" variant="primary" size="sm">
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Likert Scale</h3>
+            <p class="text-gray-600 mb-4">Response scales for answers which are ordinal (have ordered categories).</p>
+            <c-action_buttons action="view" href="{% url 'likert_scale_list' %}">
                 {% trans "View Likert Scales" %}
-            </c-link_button>
+            </c-action_buttons>
         </div>
 
         <!-- RangeScale Card -->
         <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">RangeScale</h3>
-            <p class="text-gray-600 mb-4">Numeric ranges for continuous responses</p>
-            <c-link_button href="{% url 'range_scale_list' %}" variant="primary" size="sm">
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Range Scale</h3>
+            <p class="text-gray-600 mb-4">Numeric ranges for numeric responses. These are used for responses which are continuous (have a range of values).</p>
+            <c-action_buttons action="view" href="{% url 'range_scale_list' %}">
                 {% trans "View Range Scales" %}
-            </c-link_button>
+            </c-action_buttons>
         </div>
 
         <!-- Questionnaire Card -->
         <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
             <h3 class="text-xl font-semibold text-gray-900 mb-3">Questionnaire</h3>
-            <p class="text-gray-600 mb-4">Complete assessment instruments</p>
-            <c-link_button href="{% url 'questionnaire_list' %}" variant="primary" size="sm">
+            <p class="text-gray-600 mb-4">Collection of items (questions) which can be shown to a patient.</p>
+            <c-action_buttons action="view" href="{% url 'questionnaire_list' %}">
                 {% trans "View Questionnaires" %}
-            </c-link_button>
+            </c-action_buttons>
         </div>
 
     </div>
@@ -80,73 +80,75 @@
         <!-- ConstructScale Section -->
         <div class="bg-white rounded-lg shadow-md p-8">
             <div class="border-b border-gray-200 pb-4 mb-6">
-                <h2 class="text-3xl font-bold text-gray-900">ConstructScale</h2>
-                <p class="text-lg text-gray-600 mt-2">Understanding Measurement Constructs</p>
+                <h2 class="text-3xl font-bold text-gray-900">Construct Scale</h2>
+                <p class="text-lg text-gray-600 mt-2">Understanding Latent Traits</p>
             </div>
             
             <div class="prose max-w-none text-gray-700">
                 <p class="text-lg leading-relaxed mb-4">
-                    {% trans "A ConstructScale represents a measurable psychological, physical, or behavioral concept within Patient Reported Outcome Measures (PROMs). It defines what you want to measure and how individual item responses contribute to the overall construct score." %}
+                    {% trans "A Construct Scale represents a validated measurement of a latent trait. This is usually defined at the time of the development of the PROM instrument. Each construct scale is made up of a single or multiple items. We can specify the direction of the scale (e.g. higher is better or lower is better) to indicate the direction in which the scores should be interpreted." %}
                 </p>
                 
                 <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Key Features:" %}</h3>
                 <ul class="list-disc pl-6 space-y-2">
-                    <li>{% trans "Defines the conceptual framework for measurement" %}</li>
-                    <li>{% trans "Specifies scoring algorithms and item weightings" %}</li>
-                    <li>{% trans "Links to validated instruments and their versions" %}</li>
-                    <li>{% trans "Supports multiple calculation methods (sum, average, weighted)" %}</li>
-                    <li>{% trans "Enables standardized scoring across different studies" %}</li>
+                    <li>{% trans "Specify the direction of the scale (e.g. higher is better or lower is better)" %}</li>
+                    <li>{% trans "Define the threshold score - that is the score value above or below which the score is considered to be clinically significant." %}</li>
+                    <li>{% trans "Define the minimum clinical important difference. This value represents the minimum difference between two scores for the same individual which can be considered as clinically important." %}</li>
+                    <li>{% trans "Define the normative score (mean) and its standard deviation. This is the score value that can be expected for the Construct in a normal healthy population.." %}</li>
+                    <li>{% trans "Define equations to calculate the scores from the responses provided for the items." %}</li>
                 </ul>
                 
                 <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Examples:" %}</h3>
                 <ul class="list-disc pl-6 space-y-2">
-                    <li>{% trans "Physical Function (from SF-36)" %}</li>
+                    <li>{% trans "Physical Function (from EORTC QLQ-C30)" %}</li>
                     <li>{% trans "Pain Intensity (from BPI)" %}</li>
                     <li>{% trans "Depression Severity (from PHQ-9)" %}</li>
-                    <li>{% trans "Quality of Life (from EQ-5D)" %}</li>
+                    <li>{% trans "FACT Physical Well Being score (from FACT-B)" %}</li>
                 </ul>
             </div>
             
-            <div class="mt-8">
-                <c-link_button href="{% url 'construct_scale_list' %}" variant="outline" size="lg" class="mt-4">
+            <div class="mt-8 flex flex-wrap gap-4">
+                <c-action_buttons action="view" href="{% url 'construct_scale_list' %}">
                     {% trans "Manage Construct Scales" %}
-                </c-link_button>
+                </c-action_buttons>
+                <c-create_button href="{% url 'create_construct_scale' %}">
+                    {% trans "Create New Construct Scale" %}
+                </c-create_button>
             </div>
         </div>
 
         <!-- CompositeConstructScore Section -->
         <div class="bg-white rounded-lg shadow-md p-8">
             <div class="border-b border-gray-200 pb-4 mb-6">
-                <h2 class="text-3xl font-bold text-gray-900">CompositeConstructScore</h2>
+                <h2 class="text-3xl font-bold text-gray-900">Composite Construct Score</h2>
                 <p class="text-lg text-gray-600 mt-2">Combining Multiple Constructs</p>
             </div>
             
             <div class="prose max-w-none text-gray-700">
                 <p class="text-lg leading-relaxed mb-4">
-                    {% trans "A CompositeConstructScore combines multiple individual construct scales into a higher-level composite measure. This allows for creating summary scores that represent broader domains of health or well-being." %}
+                    {% trans "A Composite Construct Score combines multiple individual construct scales into a higher-level composite measure. These scores are typically used to represent a change in overall health or well-being. Sometimes these composite scores are better used for defining change with respect to population norms or for comparing between groups. A good examples if the FACT TOI index which has been primarily designed to provide a single summary measure for sample size calculations for clinical trials." %}
                 </p>
                 
                 <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Key Features:" %}</h3>
                 <ul class="list-disc pl-6 space-y-2">
-                    <li>{% trans "Aggregates multiple related construct scales" %}</li>
+                    <li>{% trans "Specify two or more construct scale scores to be used in the calcualtion of the composite score." %}</li>
                     <li>{% trans "Supports different aggregation methods (average, weighted sum)" %}</li>
-                    <li>{% trans "Enables creation of domain-level scores" %}</li>
-                    <li>{% trans "Provides flexibility in score interpretation" %}</li>
-                    <li>{% trans "Maintains traceability to component constructs" %}</li>
+                    <li>{% trans "These composite scores will be automatically calculated for each patient when they complete the questionnaire." %}</li>
                 </ul>
                 
-                <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Examples:" %}</h3>
+                <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Example:" %}</h3>
                 <ul class="list-disc pl-6 space-y-2">
-                    <li>{% trans "Overall Physical Health (combining Physical Function, Pain, Fatigue)" %}</li>
-                    <li>{% trans "Mental Health Summary (combining Depression, Anxiety, Stress)" %}</li>
-                    <li>{% trans "Social Well-being (combining Social Function, Social Support)" %}</li>
+                    <li>{% trans "FACT TOI Index (combining Physical, Social, Emotional well being and the BCS subscale scores from the FACT -B questionnaire.)" %}</li>
                 </ul>
             </div>
             
             <div class="mt-8">
-                <c-link_button href="{% url 'composite_construct_scale_scoring_list' %}" variant="outline" size="lg" class="mt-4">
+                <c-action_buttons action="view" href="{% url 'composite_construct_scale_scoring_list' %}">
                     {% trans "Manage Composite Scores" %}
-                </c-link_button>
+                </c-action_buttons>
+                <c-action_buttons action="create" href="{% url 'composite_construct_scale_scoring_create' %}">
+                    {% trans "Create New Composite Score" %}
+                </c-action_buttons>     
             </div>
         </div>
 
@@ -154,22 +156,23 @@
         <div class="bg-white rounded-lg shadow-md p-8">
             <div class="border-b border-gray-200 pb-4 mb-6">
                 <h2 class="text-3xl font-bold text-gray-900">Item</h2>
-                <p class="text-lg text-gray-600 mt-2">Individual Questionnaire Questions</p>
+                <p class="text-lg text-gray-600 mt-2">Individual Question for Questionnaires</p>
             </div>
             
             <div class="prose max-w-none text-gray-700">
                 <p class="text-lg leading-relaxed mb-4">
-                    {% trans "An Item represents a single question or statement within a questionnaire. Items are the building blocks of questionnaires and are linked to construct scales to enable meaningful scoring and interpretation." %}
+                    {% trans "An Item represents a single question or statement within a questionnaire. Items are the building blocks of questionnaires and are linked to specific construct scales to enable meaningful scoring and interpretation. An item bank can be generated which can be used for multiple questionnaires." %}
                 </p>
                 
                 <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Key Features:" %}</h3>
                 <ul class="list-disc pl-6 space-y-2">
-                    <li>{% trans "Contains the question text and response options" %}</li>
-                    <li>{% trans "Links to a specific construct scale for scoring" %}</li>
-                    <li>{% trans "Supports different response types (Likert, Range, Text and Numeric)" %}</li>
-                    <li>{% trans "Includes scoring weights and reverse coding options" %}</li>
-                    <li>{% trans "Supports multiple languages and translations" %}</li>
-                    <li>{% trans "Maintains version control and audit trails" %}</li>
+                    <li>{% trans "Supports different response types (Likert, Range, Text, Numeric and Media)" %}</li>
+                    <li>{% trans "You can specify the direction of the scale (e.g. higher is better or lower is better) to indicate the direction in which the scores should be interpreted." %}</li>
+                    <li>{% trans "You can specify the threshold score - that is the score value above or below which the score is considered to be clinically significant." %}</li>
+                    <li>{% trans "You can specify the minimum clinical important difference. This value represents the minimum difference between two scores for the same individual which can be considered as clinically important." %}</li>
+                    <li>{% trans "You can specify the normative score (mean) and its standard deviation. This is the score value that can be expected for the Item in a normal healthy population.." %}</li>
+                    <li>{% trans "You can add translations for the text of the items in multiple languages." %}</li>
+                    <li>{% trans "You can specify if the item needs to be answered for the construct score to be calculated." %}</li>
                 </ul>
                 
                 <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Response Types:" %}</h3>
@@ -178,6 +181,7 @@
                     <li><strong>{% trans "Range:" %}</strong> {% trans "Numeric ranges (e.g., 0-10 pain scale)" %}</li>
                     <li><strong>{% trans "Text:" %}</strong> {% trans "Free-form text responses for qualitative data" %}</li>
                     <li><strong>{% trans "Numeric:" %}</strong> {% trans "Numeric values for quantitative measurements" %}</li>
+                    <li><strong>{% trans "Media:" %}</strong> {% trans "Videos & Audio recordings" %}</li>
                 </ul>
                 
                 <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Examples:" %}</h3>
@@ -190,78 +194,64 @@
             </div>
             
             <div class="mt-8">
-                <c-link_button href="{% url 'item_list' %}" variant="outline" size="lg" class="mt-4">
+                <c-action_buttons action="view" href="{% url 'item_list' %}">
                     {% trans "Manage Items" %}
-                </c-link_button>
+                </c-action_buttons>
+                <c-action_buttons action="create" href="{% url 'item_create' %}">
+                    {% trans "Create New Item" %}
+                </c-action_buttons>
             </div>
         </div>
 
         <!-- LikertScale Section -->
         <div class="bg-white rounded-lg shadow-md p-8">
             <div class="border-b border-gray-200 pb-4 mb-6">
-                <h2 class="text-3xl font-bold text-gray-900">LikertScale</h2>
+                <h3 class="text-3xl font-bold text-gray-900">Likert Scale</h3>
                 <p class="text-lg text-gray-600 mt-2">Structured Response Options</p>
             </div>
             
             <div class="prose max-w-none text-gray-700">
                 <p class="text-lg leading-relaxed mb-4">
-                    {% trans "A LikertScale defines a set of structured response options for items that use ordinal scaling. These scales provide consistent, standardized response formats that enable reliable measurement and comparison across different items and studies." %}
+                    {% trans "A Likert Scale defines a set of structured response options for items that use ordinal measurement. A likert Scale can have multiple response options. Each of these options can have an associated numeric value, a text label, an optional emoji and an optional media item. Specifying the Likert scale in this fashion allows the same scale to be used with multiple items and reduces the burden of translations. It is important to note that the option value is used for all score calculations. " %}
                 </p>
                 
                 <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Key Features:" %}</h3>
                 <ul class="list-disc pl-6 space-y-2">
                     <li>{% trans "Defines response labels and their corresponding numeric values" %}</li>
-                    <li>{% trans "Supports various scale lengths." %}</li>
-                    <li>{% trans "Enables consistent scoring across multiple items" %}</li>
-                    <li>{% trans "Supports reverse coding when needed" %}</li>
-                    <li>{% trans "Maintains standardized measurement properties" %}</li>
+                    <li>{% trans "You can add as many response options as you need." %}</li>
+                    <li>{% trans "Translations can be added for the option text as well as the option media allowing the users to see the translated option and media when answering the item." %}</li>                    
                 </ul>
                 
                 <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Common Scale Types:" %}</h3>
                 <ul class="list-disc pl-6 space-y-2">
-                    <li><strong>{% trans "Agreement:" %}</strong> {% trans "Strongly Disagree to Strongly Agree" %}</li>
-                    <li><strong>{% trans "Frequency:" %}</strong> {% trans "Never, Rarely, Sometimes, Often, Always" %}</li>
-                    <li><strong>{% trans "Satisfaction:" %}</strong> {% trans "Very Dissatisfied to Very Satisfied" %}</li>
-                    <li><strong>{% trans "Difficulty:" %}</strong> {% trans "No Difficulty to Unable to Do" %}</li>
                     <li><strong>{% trans "Severity:" %}</strong> {% trans "None, Mild, Moderate, Severe" %}</li>
+                    <li><strong>{% trans "Frequency:" %}</strong> {% trans "Never, Rarely, Sometimes, Often, Always" %}</li>
                 </ul>
                 
-                <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Best Practices:" %}</h3>
-                <ul class="list-disc pl-6 space-y-2">
-                    <li>{% trans "Use established, validated scales when possible" %}</li>
-                    <li>{% trans "Ensure response options are mutually exclusive" %}</li>
-                    <li>{% trans "Consider cultural and linguistic appropriateness" %}</li>
-                    <li>{% trans "Maintain consistent scale direction within questionnaires" %}</li>
-                </ul>
             </div>
             
             <div class="mt-8">
-                <c-link_button href="{% url 'likert_scale_list' %}" variant="outline" size="lg" class="mt-4">
+                <c-action_buttons action="view" href="{% url 'likert_scale_list' %}">
                     {% trans "Manage Likert Scales" %}
-                </c-link_button>
+                </c-action_buttons>
+                <c-action_buttons action="create" href="{% url 'create_likert_scale' %}">
+                    {% trans "Create New Likert Scale" %}
+                </c-action_buttons>
             </div>
         </div>
 
         <!-- RangeScale Section -->
         <div class="bg-white rounded-lg shadow-md p-8">
             <div class="border-b border-gray-200 pb-4 mb-6">
-                <h2 class="text-3xl font-bold text-gray-900">RangeScale</h2>
-                <p class="text-lg text-gray-600 mt-2">Continuous Numeric Responses</p>
+                <h2 class="text-3xl font-bold text-gray-900">Range Scale</h2>
+                <p class="text-lg text-gray-600 mt-2">Continuous Numeric Responses with defined intervals.</p>
             </div>
             
             <div class="prose max-w-none text-gray-700">
                 <p class="text-lg leading-relaxed mb-4">
-                    {% trans "A RangeScale defines numeric ranges for continuous or quasi-continuous measurements. These scales are ideal for capturing precise measurements where responses can vary along a continuum, such as pain intensity or functional capacity." %}
+                    {% trans "A Range Scale defines numeric ranges for continuous or quasi-continuous measurements. These scales are ideal for capturing precise measurements where responses can vary along a continuum, such as pain intensity or functional capacity. A range scale has a minimum and maximum value as well as a step size which defines the discrete intervals between two numeric values inside the range. A range scale response is presented as a slide for the patient when the questionnaire is displayed. As this is a numeric response, it can be used for calculations and scoring." %}
                 </p>
                 
-                <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Key Features:" %}</h3>
-                <ul class="list-disc pl-6 space-y-2">
-                    <li>{% trans "Defines minimum and maximum values for the range" %}</li>
-                    <li>{% trans "Supports integer or decimal responses" %}</li>
-                    <li>{% trans "Includes descriptive anchors for endpoints" %}</li>
-                    <li>{% trans "Enables precise measurement of continuous variables" %}</li>
-                    <li>{% trans "Supports different step sizes and increments" %}</li>
-                </ul>
                 
                 <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Common Applications:" %}</h3>
                 <ul class="list-disc pl-6 space-y-2">
@@ -271,19 +261,15 @@
                     <li><strong>{% trans "Symptom Severity:" %}</strong> {% trans "1 (Mild) to 7 (Severe)" %}</li>
                 </ul>
                 
-                <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Advantages:" %}</h3>
-                <ul class="list-disc pl-6 space-y-2">
-                    <li>{% trans "Provides more granular measurement than Likert scales" %}</li>
-                    <li>{% trans "Allows for sensitive detection of changes over time" %}</li>
-                    <li>{% trans "Familiar format for many clinical measurements" %}</li>
-                    <li>{% trans "Enables advanced statistical analyses" %}</li>
-                </ul>
             </div>
             
             <div class="mt-8">
-                <c-link_button href="{% url 'range_scale_list' %}" variant="outline" size="lg" class="mt-4">
+                <c-action_buttons action="view" href="{% url 'range_scale_list' %}">
                     {% trans "Manage Range Scales" %}
-                </c-link_button>
+                </c-action_buttons>
+                <c-action_buttons action="create" href="{% url 'create_range_scale' %}">
+                    {% trans "Create New Range Scale" %}
+                </c-action_buttons>
             </div>
         </div>
 
@@ -291,48 +277,32 @@
         <div class="bg-white rounded-lg shadow-md p-8">
             <div class="border-b border-gray-200 pb-4 mb-6">
                 <h2 class="text-3xl font-bold text-gray-900">Questionnaire</h2>
-                <p class="text-lg text-gray-600 mt-2">Complete Assessment Instruments</p>
+                <p class="text-lg text-gray-600 mt-2">A set of questions displayed to the patients.</p>
             </div>
             
             <div class="prose max-w-none text-gray-700">
                 <p class="text-lg leading-relaxed mb-4">
-                    {% trans "A Questionnaire is a complete assessment instrument that combines multiple items into a structured measurement tool. Questionnaires are the primary vehicles for collecting Patient Reported Outcome data and can measure single or multiple constructs." %}
+                    {% trans "A Questionnaire combines multiple items into a defined order. The order of the items in the questionnaire is important and it can be adjusted. A questionnaire have items from one or more constructs. It is recommended that a questionaire has all items related to a construct inside it." %}
                 </p>
                 
                 <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Key Features:" %}</h3>
                 <ul class="list-disc pl-6 space-y-2">
-                    <li>{% trans "Organizes items in a logical sequence and structure" %}</li>
-                    <li>{% trans "Supports multiple measurement constructs within one instrument" %}</li>
-                    <li>{% trans "Includes validation and business rules for data quality" %}</li>
-                    <li>{% trans "Enables scoring calculations at construct and composite levels" %}</li>
-                    <li>{% trans "Supports multiple languages and cultural adaptations" %}</li>
-                    <li>{% trans "Maintains versioning and change control" %}</li>
+                    <li>{% trans "Flexible ordering of items via drag and drop." %}</li>
+                    <li>{% trans "Specify a questionnaire order when the same patient has to answer multiple questionnaires. This allows the patient to clearly see the order in which the questionnaires are to be answered." %}</li>
+                    <li>{% trans "Title and description text are tranlatable." %}</li>
+                    <li>{% trans "A minimum interval between answering the same questionnaire can be set. We recommend a default value of at least 1 minute so that inadvertent duplicate responses are not created." %}</li>
+                    <li>{% trans "Optional redirect to a different questonnaire can be specified. This is useful when a patient has to answer multiple questionnaires in a single session." %}</li>
+                    <li>{% trans "You can add rules to the questionnaire such that items are displayed or hidden based on the answers provided for one or more questions before." %}</li>
                 </ul>
                 
-                <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Types of Questionnaires:" %}</h3>
-                <ul class="list-disc pl-6 space-y-2">
-                    <li><strong>{% trans "Generic:" %}</strong> {% trans "Applicable across different conditions (e.g., SF-36, EQ-5D)" %}</li>
-                    <li><strong>{% trans "Disease-Specific:" %}</strong> {% trans "Tailored to specific conditions (e.g., FACT-B for breast cancer)" %}</li>
-                    <li><strong>{% trans "Domain-Specific:" %}</strong> {% trans "Focus on particular aspects (e.g., pain, fatigue)" %}</li>
-                    <li><strong>{% trans "Screening:" %}</strong> {% trans "Brief instruments for initial assessment" %}</li>
-                </ul>
-                
-                <h3 class="text-xl font-semibold text-gray-900 mt-6 mb-3">{% trans "Development Process:" %}</h3>
-                <ol class="list-decimal pl-6 space-y-2">
-                    <li>{% trans "Define measurement objectives and target constructs" %}</li>
-                    <li>{% trans "Create or select appropriate construct scales" %}</li>
-                    <li>{% trans "Develop or adapt individual items" %}</li>
-                    <li>{% trans "Define response scales (Likert or Range)" %}</li>
-                    <li>{% trans "Organize items into logical questionnaire structure" %}</li>
-                    <li>{% trans "Implement validation rules and scoring algorithms" %}</li>
-                    <li>{% trans "Test and validate the complete instrument" %}</li>
-                </ol>
-            </div>
             
             <div class="mt-8">
-                <c-link_button href="{% url 'questionnaire_list' %}" variant="outline" size="lg" class="mt-4">
+                <c-action_buttons action="view" href="{% url 'questionnaire_list' %}">
                     {% trans "Manage Questionnaires" %}
-                </c-link_button>
+                </c-action_buttons>
+                <c-action_buttons action="create" href="{% url 'questionnaire_create' %}">
+                    {% trans "Create New Questionnaire" %}
+                </c-action_buttons>
             </div>
         </div>
 
@@ -342,15 +312,24 @@
     <div class="mt-12 bg-blue-50 rounded-lg p-8 text-center">
         <h2 class="text-2xl font-bold text-gray-900 mb-4">{% trans "Ready to Get Started?" %}</h2>
         <p class="text-lg text-gray-600 mb-6">
-            {% trans "Begin creating your questionnaire by setting up construct scales and items, or explore existing questionnaires for reference." %}
+            {% trans "We recommend that you create the construct scales and items first and then add these to a new questionnaire. If your questionnaire has a Likert or Range scale type of response then these should be created before adding the first item." %}
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <c-link_button href="{% url 'questionnaire_create' %}" variant="primary" size="lg">
-                {% trans "Create New Questionnaire" %}
-            </c-link_button>
-            <c-link_button href="{% url 'item_create' %}" variant="secondary" size="lg">
+            <c-action_buttons action="create" href="{% url 'create_construct_scale' %}">
+                {% trans "Create New Construct Scale" %}
+            </c-action_buttons>
+            <c-action_buttons action="create" href="{% url 'create_likert_scale' %}">
+                {% trans "Create New Likert Scale" %}
+            </c-action_buttons>
+            <c-action_buttons action="create" href="{% url 'create_range_scale' %}">
+                {% trans "Create New Range Scale" %}
+            </c-action_buttons>
+            <c-action_buttons action="create" href="{% url 'item_create' %}">
                 {% trans "Create New Item" %}
-            </c-link_button>
+            </c-action_buttons>
+            <c-action_buttons action="create" href="{% url 'questionnaire_create' %}">
+                {% trans "Create New Questionnaire" %}
+            </c-action_buttons>
         </div>
     </div>
 
