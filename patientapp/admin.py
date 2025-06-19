@@ -9,7 +9,7 @@ class InstitutionAdmin(admin.ModelAdmin):
 
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
-    list_display = ['name', 'patient_id', 'age', 'gender', 'created_date', 'modified_date']
+    list_display = ['name', 'patient_id', 'age', 'gender', 'institution','date_of_registration', 'created_date', 'modified_date']
 
 @admin.register(DiagnosisList)
 class DiagnosisList(admin.ModelAdmin):
@@ -17,7 +17,7 @@ class DiagnosisList(admin.ModelAdmin):
 
 @admin.register(Diagnosis)
 class DiagnosisAdmin(admin.ModelAdmin):
-    list_display = ['patient', 'diagnosis', 'created_date', 'modified_date']
+    list_display = ['patient', 'diagnosis','date_of_diagnosis', 'created_date', 'modified_date']
 
 @admin.register(TreatmentType)
 class TreatmentTypeAdmin(admin.ModelAdmin):
@@ -25,4 +25,4 @@ class TreatmentTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Treatment)
 class TreatmentAdmin(admin.ModelAdmin):
-    list_display = ['diagnosis', 'treatment_intent', 'date_of_start_of_treatment', 'created_date', 'modified_date']
+    list_display = ['diagnosis', 'treatment_intent', 'date_of_start_of_treatment','currently_ongoing_treatment','date_of_end_of_treatment', 'created_date', 'modified_date']
