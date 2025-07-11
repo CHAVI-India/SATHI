@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% translate "Select Patients for Export" %} - {{ questionnaire.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-blue-700">
+            {% translate "Select Patients for Export" %}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            {% translate "Questionnaire" %}: {{ questionnaire.name }}
+          </p>
+        </div>
+        <div>
+          <a href="{% url 'questionnaire_export_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            {% translate "Back to Questionnaires" %}
+          </a>
+          <a href="{% url 'export_questionnaire_responses' questionnaire.id %}" class="ml-2 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            {% translate "Export All Patients" %}
+          </a>
+        </div>
+      </div>
+      
+      {% if messages %}
+        <div class="mb-6">
+          {% for message in messages %}
+            <div class="{% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 mb-3 rounded border" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      <div class="mb-6">
+        <p class="text-gray-600">
+          {% translate "Select a patient to export their responses to this questionnaire. Each patient may have multiple submissions." %}
+        </p>
+      </div>
+      
+      {% if patients %}
+        <!-- Search controls -->
+        {% url 'questionnaire_export_patients' questionnaire.id as search_url %}
+        {% include 'promapp/components/search_form.html' with search_label="Search patients" search_placeholder="Search by name or ID..." show_search_button=True hx_get=search_url hx_target="#patients-container" hx_indicator="#loading-indicator" hx_push_url="true" search_trigger='hx-trigger="keyup changed delay:500ms, submit"' show_loading=True %}
+        
+        <div id="patients-container" class="w-full overflow-hidden">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% translate "Patient ID" %}
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% translate "Name" %}
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% translate "Institution" %}
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% translate "Submissions" %}
+                </th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% translate "Actions" %}
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for patient_data in patients_with_submission_count %}
+                <tr>
+                  <td class="px-6 py-4">
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ patient_data.patient.patient_id }}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-gray-900">
+                      {{ patient_data.patient.get_full_name }}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-gray-500">
+                      {{ patient_data.patient.institution.name|default:"-" }}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-gray-500">
+                      {{ patient_data.submission_count }}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="{% url 'export_questionnaire_responses' questionnaire.id patient_data.patient.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                      {% translate "Export" %}
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                    {% translate "No patients with responses found." %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="mt-6">
+          <c-paginator 
+            :page_obj="page_obj" 
+            :is_paginated="is_paginated" 
+            show_info="true"
+            show_page_numbers="true"
+            preserve_params="true" />
+        </div>
+        {% endif %}
+      {% else %}
+        <div class="text-center py-8">
+          <p class="text-gray-600 mb-4">{% translate "No patients with responses for this questionnaire." %}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

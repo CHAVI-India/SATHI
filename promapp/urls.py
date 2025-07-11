@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-from .views import MyQuestionnaireListView
 
 
 urlpatterns = [
@@ -50,7 +49,7 @@ urlpatterns = [
     path('remove-likert-option/', views.remove_likert_option, name='remove_likert_option'),
     path('patients/<uuid:pk>/questionnaires/', views.PatientQuestionnaireManagementView.as_view(), name='patient_questionnaire_management'),
     path('patient-questionnaires/', views.PatientQuestionnaireListView.as_view(), name='patient_questionnaire_list'),
-    path('my-questionnaires/', MyQuestionnaireListView.as_view(), name='my_questionnaire_list'),
+    path('my-questionnaires/', views.MyQuestionnaireListView.as_view(), name='my_questionnaire_list'),
 
     # Questionnaire Item Rule URLs
     path('questionnaire-items/<uuid:questionnaire_item_id>/rules/', 
@@ -88,6 +87,20 @@ urlpatterns = [
     path('validate-rule-order/', views.validate_rule_order, name='validate_rule_order'),
     path('validate-group-order/', views.validate_group_order, name='validate_group_order'),
     path('validate-rule-selection/', views.validate_rule_selection, name='validate_rule_selection'),
+    
+    # Export Questionnaire Responses URLs
+    path('export/questionnaires/', 
+         views.QuestionnaireExportListView.as_view(), 
+         name='questionnaire_export_list'),
+    path('export/questionnaires/<uuid:questionnaire_id>/patients/', 
+         views.QuestionnaireExportPatientListView.as_view(), 
+         name='questionnaire_export_patients'),
+    path('export/questionnaires/<uuid:questionnaire_id>/responses/', 
+         views.export_questionnaire_responses, 
+         name='export_questionnaire_responses'),
+    path('export/questionnaires/<uuid:questionnaire_id>/responses/<uuid:patient_id>/', 
+         views.export_questionnaire_responses, 
+         name='export_questionnaire_responses'),
     
     # Rule Summary URLs
     path('questionnaire-items/<uuid:questionnaire_item_id>/rules/summary/', 

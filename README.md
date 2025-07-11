@@ -46,6 +46,43 @@ For designers of questionnaires the following features are provided:
 13. Assigned questionnaires are immediately displayed to the patient.
 14. Constructs and Items can be easily imported through the admin interface for bulk item creation. 
 
+# Export Questionnaire Responses
+
+The system provides functionality to export patient questionnaire responses in CSV format, which can be used for data analysis, reporting, or integration with other systems.
+
+## Export Features
+
+1. **Permission-Based Access**: Only users with the appropriate permissions (`promapp.view_questionnaireitemresponse`) can access the export functionality.
+
+2. **Institution-Based Filtering**: Non-superusers can only export data for patients belonging to their institutions, ensuring data privacy and security.
+
+3. **Flexible Export Options**:
+   - Export responses for all patients for a specific questionnaire
+   - Export responses for a specific patient for a specific questionnaire
+
+4. **Data Included in Export**:
+   - Patient ID (encrypted)
+   - Institution name
+   - Submission date and time
+   - Responses for each question (text, number, likert, and range response types)
+
+5. **CSV Format**: Data is exported in standard CSV format for easy import into spreadsheet applications or data analysis tools.
+
+## How to Use the Export Feature
+
+1. Navigate to the "Export Questionnaire Responses" option in the navigation menu.
+2. Select the questionnaire you want to export responses for.
+3. (Optional) Select a specific patient to filter responses for just that patient.
+4. Click the export button to download the CSV file.
+
+## Export Permissions
+
+To use the export feature, users must have the following permissions:
+- `promapp.view_questionnaire` - To view and select questionnaires
+- `promapp.view_questionnaireitemresponse` - To view and export responses
+
+These permissions can be assigned to user groups through the Django admin interface.
+
 ## Item Import/Export Guide
 
 This guide explains how to format your CSV file for importing Items and their translations into the system. It is important to ensure that the construct scales exist prior to doing Item import. However as Items have a translated field, therefore the import process has been modified to accomodate the translations.

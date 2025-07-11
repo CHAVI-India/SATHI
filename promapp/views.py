@@ -1,5 +1,6 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView, TemplateView
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required, permission_required
+from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView, TemplateView, View
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
@@ -28,6 +29,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Prefetch, Q
 import json
 import logging
+import csv
 from datetime import datetime
 from django.utils.timesince import timeuntil
 from django.conf import settings
@@ -2033,6 +2035,198 @@ class QuestionnaireItemRuleGroupDeleteView(LoginRequiredMixin, PermissionRequire
     def get_success_url(self):
         return reverse('questionnaire_item_rule_groups_list', 
                       kwargs={'questionnaire_item_id': self.object.questionnaire_item.id})
+
+# Export Questionnaire Responses Views
+class QuestionnaireExportListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """View for listing questionnaires available for export."""
+    model = Questionnaire
+    template_name = 'promapp/questionnaire_export_list.html'
+    context_object_name = 'questionnaires'
+    permission_required = 'promapp.view_questionnaire'
+    paginate_by = 10
+
+    def get_queryset(self):
+        """Return only questionnaires that have submissions."""
+        queryset = super().get_queryset()
+        
+        # Filter questionnaires that have at least one submission
+        questionnaires_with_submissions = QuestionnaireSubmission.objects.values_list(
+            'patient_questionnaire__questionnaire', flat=True
+        ).distinct()
+        
+        queryset = queryset.filter(id__in=questionnaires_with_submissions)
+        
+        # Apply search filter if provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(translations__name__icontains=search)
+            
+        return queryset.distinct('id').order_by('id', 'translations__name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search', '')
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        return context
+
+
+class QuestionnaireExportPatientListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """View for listing patients who have submitted a specific questionnaire."""
+    model = Patient
+    template_name = 'promapp/questionnaire_export_patient_list.html'
+    context_object_name = 'patients'
+    permission_required = 'promapp.view_questionnaire'
+    paginate_by = 25
+
+    def get_queryset(self):
+        """Return patients who have submitted the selected questionnaire."""
+        questionnaire_id = self.kwargs.get('questionnaire_id')
+        self.questionnaire = get_object_or_404(Questionnaire, id=questionnaire_id)
+        
+        # Get patients who have submitted this questionnaire
+        patient_ids = QuestionnaireSubmission.objects.filter(
+            patient_questionnaire__questionnaire=self.questionnaire
+        ).values_list('patient', flat=True).distinct()
+        
+        # Filter patients by institution if user is not admin
+        queryset = Patient.objects.filter(id__in=patient_ids)
+        
+        # If user is not admin, filter by their institution
+        if not self.request.user.is_superuser:
+            # Assuming there's a relationship between user and institution
+            user_institutions = self.request.user.institutions.all()
+            queryset = queryset.filter(institution__in=user_institutions)
+            
+        # Apply search filter if provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(first_name__icontains=search) | 
+                Q(last_name__icontains=search) |
+                Q(patient_id__icontains=search)
+            )
+            
+        return queryset.distinct()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['questionnaire'] = self.questionnaire
+        context['search_query'] = self.request.GET.get('search', '')
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # For each patient, get the number of submissions they have for this questionnaire
+        patients_with_submission_count = []
+        for patient in context['patients']:
+            submission_count = QuestionnaireSubmission.objects.filter(
+                patient=patient,
+                patient_questionnaire__questionnaire=self.questionnaire
+            ).count()
+            
+            patients_with_submission_count.append({
+                'patient': patient,
+                'submission_count': submission_count,
+            })
+            
+        context['patients_with_submission_count'] = patients_with_submission_count
+        
+        return context
+
+
+@login_required
+@permission_required('promapp.view_questionnaireitemresponse')
+def export_questionnaire_responses(request, questionnaire_id, patient_id=None):
+    """Function for exporting questionnaire responses to CSV."""
+    questionnaire = get_object_or_404(Questionnaire, id=questionnaire_id)
+    
+    # Set up the CSV response
+    http_response = HttpResponse(content_type='text/csv')
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"questionnaire_responses_{questionnaire.name}_{timestamp}.csv"
+    http_response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    # Create CSV writer
+    writer = csv.writer(http_response)
+    
+    # Get all items for this questionnaire
+    questionnaire_items = QuestionnaireItem.objects.filter(
+        questionnaire=questionnaire
+    ).select_related('item').order_by('question_number')
+    
+    # Create header row
+    header = [
+        _('Patient ID'), 
+        _('Institution'), 
+        _('Submission Date')
+    ]
+    
+    # Add column for each questionnaire item
+    for qi in questionnaire_items:
+        if qi.item.response_type in [
+            ResponseTypeChoices.TEXT, 
+            ResponseTypeChoices.NUMBER,
+            ResponseTypeChoices.LIKERT,
+            ResponseTypeChoices.RANGE
+        ]:
+            item_name = f"{qi.question_number}. {qi.item.name}" if qi.question_number else qi.item.name
+            header.append(item_name)
+    
+    writer.writerow(header)
+    
+    # Get submissions
+    submissions_query = QuestionnaireSubmission.objects.filter(
+        patient_questionnaire__questionnaire=questionnaire
+    ).select_related('patient', 'patient__institution')
+    
+    # Filter by patient if specified
+    if patient_id:
+        patient = get_object_or_404(Patient, id=patient_id)
+        submissions_query = submissions_query.filter(patient=patient)
+        
+    # Filter by institution if user is not admin
+    if not request.user.is_superuser:
+        user_institutions = request.user.institutions.all()
+        submissions_query = submissions_query.filter(patient__institution__in=user_institutions)
+        
+    submissions = submissions_query.order_by('-submission_date')
+    
+    # Write data rows
+    for submission in submissions:
+        # Get all responses for this submission
+        item_responses = QuestionnaireItemResponse.objects.filter(
+            questionnaire_submission=submission
+        ).select_related('questionnaire_item', 'questionnaire_item__item')
+        
+        # Create a mapping of questionnaire item IDs to responses
+        response_map = {r.questionnaire_item.id: r for r in item_responses}
+        
+        # Create row with patient info and submission date
+        row = [
+            submission.patient.patient_id,  # Encrypted patient ID
+            submission.patient.institution.name if submission.patient.institution else '',
+            submission.submission_date.strftime('%Y-%m-%d %H:%M:%S')
+        ]
+        
+        # Add response for each questionnaire item
+        for qi in questionnaire_items:
+            if qi.item.response_type not in [
+                ResponseTypeChoices.TEXT, 
+                ResponseTypeChoices.NUMBER,
+                ResponseTypeChoices.LIKERT,
+                ResponseTypeChoices.RANGE
+            ]:
+                continue
+                
+            item_response = response_map.get(qi.id)
+            if item_response:
+                # All response types use the response_value field
+                row.append(item_response.response_value or '')
+            else:
+                row.append('')  # Empty cell for no response
+                
+        writer.writerow(row)
+    
+    return http_response
 
 # HTMX Views for Rule Forms
 def validate_dependent_item(request):
