@@ -140,7 +140,6 @@
             </div>
           {% else %}
             <a href="{% url 'two_factor:login' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% translate "Login" %}</a>
-            <a href="#" class="ml-2 text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% translate "Register" %}</a>
           {% endif %}
         </div>
       </div>
@@ -273,7 +272,6 @@
         </div>
       {% else %}
         <a href="{% url 'two_factor:login' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% translate "Login" %}</a>
-        <a href="#" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% translate "Register" %}</a>
       {% endif %}
     </div>
   </div>
