@@ -40,6 +40,9 @@ from patientapp.models import Patient
 # Create your views here.
 
 class QuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    '''
+    Questionnaire List View for displaying list of avaialble questionnaires.
+    '''
     model = Questionnaire
     template_name = 'promapp/questionnaire_list.html'
     context_object_name = 'questionnaires'
@@ -156,6 +159,9 @@ class QuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
 
 
 class QuestionnaireDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+    '''
+    Questionnaire Detail View for displaying details of a specific questionnaire.
+    '''
     model = Questionnaire
     template_name = 'promapp/questionnaire_detail.html'
     context_object_name = 'questionnaire'
@@ -177,6 +183,9 @@ class QuestionnaireDetailView(LoginRequiredMixin, PermissionRequiredMixin, Detai
 
 
 class QuestionnaireCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    '''
+    Questionnaire Create View for creating a new questionnaire.
+    '''
     model = Questionnaire
     form_class = QuestionnaireForm
     template_name = 'promapp/questionnaire_create.html'
@@ -253,6 +262,9 @@ class QuestionnaireCreateView(LoginRequiredMixin, PermissionRequiredMixin, Creat
 
 
 class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    '''
+    Questionnaire Update View for updating an existing questionnaire.
+    '''
     model = Questionnaire
     form_class = QuestionnaireForm
     template_name = 'promapp/questionnaire_update.html'
@@ -395,6 +407,9 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
 
 
 class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    '''
+    Item List View for displaying list of available items.
+    '''
     model = Item
     template_name = 'promapp/item_list.html'
     context_object_name = 'items'
@@ -475,6 +490,9 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
 
 class ItemCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    '''
+    View to create items
+    '''
     model = Item
     form_class = ItemForm
     template_name = 'promapp/item_create.html'
@@ -512,6 +530,9 @@ class ItemCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
 
 
 class ItemUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    '''
+    View to update items
+    '''
     model = Item
     form_class = ItemForm
     template_name = 'promapp/item_update.html'
@@ -555,6 +576,9 @@ class ItemUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
 
 
 def get_response_fields(request):
+    '''
+    Get the response fields based on the selected response type
+    '''
     response_type = request.GET.get('response_type')
     selected_likert_scale = request.GET.get('likert_response')
     selected_range_scale = request.GET.get('range_response')
@@ -581,6 +605,9 @@ def get_response_fields(request):
     return HttpResponse(html)
 
 def add_item_form(request):
+    '''
+    View to add a new item
+    '''
     item_form = ItemForm()
     html = render_to_string('questionnaire/item_form.html', {
         'item_form': item_form,
@@ -589,6 +616,9 @@ def add_item_form(request):
     return HttpResponse(html)
 
 def create_likert_scale(request):
+    '''
+    View to create a new likert scale
+    '''
     # Check if we're editing an existing Likert scale
     edit_id = request.GET.get('edit')
     instance = None
@@ -825,7 +855,6 @@ def create_likert_scale(request):
     return render(request, 'promapp/likert_scale_form.html', context)
 
 
-
 def create_construct_scale(request):
     """
     Function-based view for creating construct scales
@@ -919,6 +948,9 @@ def remove_likert_option(request):
     return HttpResponse('')
 
 class LikertScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    '''
+    View to list all likert scales
+    '''
     model = LikertScale
     template_name = 'promapp/likert_scale_list.html'
     context_object_name = 'likert_scales'
@@ -1152,6 +1184,9 @@ def create_range_scale(request):
     return render(request, 'promapp/range_scale_form.html', context)
 
 class RangeScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    '''
+    View to list all range scales
+    '''
     model = RangeScale
     template_name = 'promapp/range_scale_list.html'
     context_object_name = 'range_scales'
@@ -1260,6 +1295,9 @@ class RangeScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         return super().get(request, *args, **kwargs)
 
 class ConstructScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    '''
+    View to list all construct scales
+    '''
     model = ConstructScale
     template_name = 'promapp/construct_scale_list.html'
     context_object_name = 'construct_scales'
@@ -1796,6 +1834,9 @@ class PatientQuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, 
         return context
 
 class MyQuestionnaireListView(LoginRequiredMixin, ListView):
+    '''
+    View to list all questionnaires for the logged-in patient
+    '''
     model = PatientQuestionnaire
     template_name = 'promapp/my_questionnaire_list.html'
     context_object_name = 'patient_questionnaires'

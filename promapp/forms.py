@@ -157,6 +157,7 @@ class ItemForm(TranslatableModelForm):
         fields = [
             'construct_scale', 
             'name', 
+            'abbreviated_item_id',
             'media',
             'response_type', 
             'likert_response', 

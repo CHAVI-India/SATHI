@@ -422,6 +422,7 @@ class Item(TranslatableModel):
         blank=True, 
         help_text = "The media to display for the item. This will be an audio, video or image. Allowed files are <br> <ul> <li>Audio: .mp3, .wav, .m4a, .ogg, .flac, .aac</li> <li>Video: .mp4, .mov, .avi, .wmv, .flv, .mkv</li> <li>Image: .jpg, .jpeg, .png, .gif, .bmp, .tiff, .webp</li> </ul> ")
     )
+    abbreviated_item_id = models.CharField(max_length=255, unique =True, null=True, blank=True, help_text = "The unique abbreviation of the item which will be used for exports. Allowed lower case characters, numbers and underscores. This is not displayed to the patient. For example question of EORTC QLQ C30 may be qlqc30_q1")
     item_number = models.IntegerField(null=True, blank=True, help_text = "The number of the item in the construct scale")
     response_type = models.CharField(max_length=255, choices=ResponseTypeChoices.choices, db_index=True, help_text = "The type of response for the item")
     likert_response = models.ForeignKey(LikertScale, on_delete=models.CASCADE, null=True, blank=True)
@@ -513,6 +514,14 @@ class Item(TranslatableModel):
                 raise ValidationError({
                     'item_missing_value': 'Missing value can only be specified for Likert, Number, or Range response types. '
                                         f'Current response type is {self.get_response_type_display()}.'
+                })
+        
+        # Validate abbreviated_item_id format
+        if self.abbreviated_item_id:
+            import re
+            if not re.match(r'^[a-z0-9_]+$', self.abbreviated_item_id):
+                raise ValidationError({
+                    'abbreviated_item_id': 'Only lowercase letters, numbers, and underscores are allowed.'
                 })
     
     def delete(self, *args, **kwargs):
