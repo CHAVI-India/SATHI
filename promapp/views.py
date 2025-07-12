@@ -2209,8 +2209,12 @@ def export_questionnaire_responses(request, questionnaire_id, patient_id=None):
             ResponseTypeChoices.LIKERT,
             ResponseTypeChoices.RANGE
         ]:
-            item_name = f"{qi.question_number}. {qi.item.name}" if qi.question_number else qi.item.name
-            header.append(item_name)
+            # Use only abbreviated_item_id in the header if available, otherwise use question number and name
+            if qi.item.abbreviated_item_id:
+                header.append(qi.item.abbreviated_item_id)
+            else:
+                item_name = f"{qi.question_number}. {qi.item.name}" if qi.question_number else qi.item.name
+                header.append(item_name)
     
     writer.writerow(header)
     
