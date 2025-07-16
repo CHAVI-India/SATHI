@@ -1,8 +1,0 @@
----
-description: This rule is used when we work with promapp
-globs: 
-alwaysApply: false
----
-Models are at [models.py](mdc:promapp/models.py) 
-Views are at [views.py](mdc:promapp/views.py) 
-URLs are at [urls.py](mdc:chaviprom/urls.py)
