@@ -28,7 +28,7 @@ urlpatterns = [
 ]
 
 urlpatterns += i18n_patterns(
-    path('',include(tf_urls)),
+    path('',include(tf_urls)),  # Use standard two-factor auth (enhanced by middleware)
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
     path('admin/', admin.site.urls),
     path('schema-viewer/', include('schema_viewer.urls')),

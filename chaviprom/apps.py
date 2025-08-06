@@ -15,7 +15,8 @@ class ChavipromConfig(AppConfig):
         This ensures the signals are registered after all models are loaded.
         """
         try:
-            from . import signals
+            import chaviprom.signals
+            import chaviprom.enhanced_signals  # Import enhanced security signals
         except ImportError:
-            # Signals module might not exist yet, which is fine
+            # Signals modules might not exist yet, which is fine
             pass 

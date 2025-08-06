@@ -32,7 +32,7 @@ markdown-it-py==3.0.0
 MarkupSafe==3.0.2
 mdurl==0.1.2
 narwhals==1.48.1
-numpy==2.3.2
+numpy
 packaging==25.0
 pandas==2.3.1
 phonenumbers==9.0.10
@@ -49,7 +49,7 @@ PyYAML==6.0.2
 qrcode==7.4.2
 requests==2.32.4
 rich==14.0.0
-scipy==1.16.0
+scipy
 six==1.17.0
 soupsieve==2.7
 sqlparse==0.5.3
