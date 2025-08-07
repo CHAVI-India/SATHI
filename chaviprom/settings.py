@@ -81,6 +81,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_otp.middleware.OTPMiddleware',
+    'chaviprom.security_middleware.SecureOTPMiddleware',  # Enhanced OTP security
+    'chaviprom.security_middleware.OTPAuditMiddleware',   # OTP audit logging
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "csp.middleware.CSPMiddleware",
@@ -535,6 +537,18 @@ OTP_TOTP_LOG_LEVEL = 'INFO'   # Log level for TOTP events
 # TFA security settings
 TWO_FACTOR_LOGIN_TIMEOUT = 600  # 10 minutes timeout for TFA setup
 TWO_FACTOR_REMEMBER_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
+
+# Enhanced OTP Security Settings
+OTP_BIND_SESSION_TO_IP = True  # Bind OTP sessions to IP addresses
+OTP_SESSION_TIMEOUT = 28800  # 8 hours session timeout
+OTP_MAX_ATTEMPTS_PER_IP = 10  # Max failed attempts per IP
+OTP_MAX_ATTEMPTS_PER_USER = 5  # Max failed attempts per user
+OTP_CHALLENGE_TIMEOUT = 300  # 5 minutes for OTP challenge
+OTP_TOKEN_REUSE_PREVENTION = True  # Prevent token reuse
+OTP_AUDIT_LOGGING = True  # Enable comprehensive audit logging
+OTP_ANOMALY_DETECTION = True  # Enable anomaly detection
+OTP_RATE_LIMIT_ATTEMPTS = 5  # Rate limit: max attempts before flagging suspicious activity
+OTP_RATE_LIMIT_WINDOW = 300  # Rate limit: time window in seconds (5 minutes)
 
 # Security settings if not development environment
 ENVIRONMENT = os.getenv('DJANGO_ENVIRONMENT', 'development')

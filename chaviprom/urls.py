@@ -23,12 +23,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from two_factor.urls import urlpatterns as tf_urls
 
+from chaviprom.secure_otp_views import RateLimitedLoginView, RateLimitedPasswordResetView
+
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
 ]
 
 urlpatterns += i18n_patterns(
-    path('',include(tf_urls)),
+    path('account/login/', RateLimitedLoginView.as_view(), name='login'),
+    path('',include(tf_urls)),  # Use standard two-factor auth (enhanced by middleware)
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
     path('admin/', admin.site.urls),
     path('schema-viewer/', include('schema_viewer.urls')),
@@ -42,11 +45,7 @@ urlpatterns += i18n_patterns(
     
     # Password reset URLs with custom templates
     path('accounts/password_reset/', 
-         auth_views.PasswordResetView.as_view(
-             template_name='registration/password_reset_form.html',
-             email_template_name='registration/password_reset_email.html',
-             subject_template_name='registration/password_reset_subject.txt'
-         ), 
+         RateLimitedPasswordResetView.as_view(), 
          name='password_reset'),
     path('accounts/password_reset/done/', 
          auth_views.PasswordResetDoneView.as_view(
@@ -66,6 +65,8 @@ urlpatterns += i18n_patterns(
     
     prefix_default_language=True,
 )
+
+
 
 # Serve media files in development
 if settings.DEBUG:

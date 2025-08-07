@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% translate "Secure Login - Two-Factor Authentication" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="bg-white p-8 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-6 text-center text-blue-700">{% translate "Secure Login" %}</h2>
+        
+        <!-- Security Status Indicator -->
+        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-green-700">
+                        <strong>{% translate "Enhanced Security Active:" %}</strong> 
+                        {% translate "Session binding and anti-replay protection enabled." %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        {% if form.errors %}
+            <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">{% translate "Authentication Error" %}</h3>
+                        <div class="mt-2 text-sm text-red-700">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            {# Hidden security fields for session validation #}
+            <input type="hidden" name="challenge_id" value="{{ request.session._otp_challenge_id|default:'' }}">
+            <input type="hidden" name="session_token" value="{{ request.session._otp_session_token|default:'' }}">
+            
+            <div class="space-y-4">
+                {% if wizard.steps.current == 'auth' %}
+                    <div class="text-center mb-4">
+                        <p class="text-gray-600">{% translate "Please enter your username and password." %}</p>
+                    </div>
+                {% elif wizard.steps.current == 'token' %}
+                    <div class="text-center mb-4">
+                        <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-2">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-600">{% translate "Please enter your authentication token." %}</p>
+                        
+                        <!-- Security warning for token step -->
+                        <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mt-3">
+                            <p class="text-xs text-yellow-800">
+                                <strong>{% translate "Security Notice:" %}</strong>
+                                {% translate "This token is valid for one use only and expires in 5 minutes. Do not refresh this page or go back." %}
+                            </p>
+                        </div>
+                    </div>
+                {% elif wizard.steps.current == 'backup' %}
+                    <div class="text-center mb-4">
+                        <p class="text-gray-600">{% translate "Please enter one of your backup tokens." %}</p>
+                        
+                        <div class="bg-red-50 border border-red-200 rounded p-3 mt-3">
+                            <p class="text-xs text-red-800">
+                                <strong>{% translate "Important:" %}</strong>
+                                {% translate "Backup tokens can only be used once. After using this token, it will be permanently invalidated." %}
+                            </p>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {{ form|crispy }}
+            </div>
+            
+            <div class="mt-6">
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    {% if wizard.steps.current == 'auth' %}
+                        {% translate "Continue" %}
+                    {% else %}
+                        {% translate "Verify" %}
+                    {% endif %}
+                </button>
+            </div>
+            
+            {% if wizard.steps.current == 'token' %}
+                <div class="mt-4 text-center">
+                    <a href="{% url 'two_factor:backup_tokens' %}" class="text-sm text-blue-600 hover:text-blue-800">
+                        {% translate "Use a backup token instead" %}
+                    </a>
+                </div>
+            {% endif %}
+        </form>
+        
+        <!-- Session Information (for debugging in development) -->
+        {% if debug %}
+            <div class="mt-8 bg-gray-100 p-3 rounded text-xs">
+                <strong>Debug Info:</strong><br>
+                Challenge ID: {{ request.session._otp_challenge_id|default:"None" }}<br>
+                Session Key: {{ request.session.session_key|default:"None" }}<br>
+                User Agent Hash: {{ request.session._otp_user_agent_hash|default:"None" }}
+            </div>
+        {% endif %}
+        
+        <!-- Security Information -->
+        <div class="mt-6 bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-semibold text-gray-800 mb-2 text-sm">{% translate "Security Features:" %}</h4>
+            <ul class="text-xs text-gray-600 space-y-1">
+                <li>• {% translate "Challenge-response authentication" %}</li>
+                <li>• {% translate "Session integrity validation" %}</li>
+                <li>• {% translate "Anti-replay protection" %}</li>
+                <li>• {% translate "Token reuse prevention" %}</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+// Enhanced client-side security measures
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (form) {
+        // Track form submission to prevent double-submission
+        let submitted = false;
+        
+        form.addEventListener('submit', function(e) {
+            if (submitted) {
+                e.preventDefault();
+                return false;
+            }
+            
+            submitted = true;
+            
+            // Add client-side security metadata
+            const timestampInput = document.createElement('input');
+            timestampInput.type = 'hidden';
+            timestampInput.name = 'client_timestamp';
+            timestampInput.value = Date.now();
+            form.appendChild(timestampInput);
+            
+            // Add client fingerprint for additional validation
+            const fingerprintInput = document.createElement('input');
+            fingerprintInput.type = 'hidden';
+            fingerprintInput.name = 'client_fingerprint';
+            fingerprintInput.value = btoa(
+                navigator.userAgent + 
+                screen.width + 
+                screen.height + 
+                (new Date()).getTimezoneOffset()
+            );
+            form.appendChild(fingerprintInput);
+            
+            // Disable submit button to prevent double-submission
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '{% translate "Verifying..." %}';
+            }
+        });
+    }
+    
+    // Security: Clear sensitive form data on page unload
+    window.addEventListener('beforeunload', function() {
+        const tokenInputs = document.querySelectorAll('input[type="password"], input[name*="token"]');
+        tokenInputs.forEach(input => {
+            input.value = '';
+        });
+    });
+    
+    // Security: Detect if page is loaded in iframe (potential clickjacking)
+    if (window.top !== window.self) {
+        document.body.innerHTML = '<div style="text-align:center;padding:50px;"><h1>Security Error</h1><p>This page cannot be displayed in a frame for security reasons.</p></div>';
+    }
+});
+</script>
+{% endblock %}

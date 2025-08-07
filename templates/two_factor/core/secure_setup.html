@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load two_factor_tags %}
+
+{% block title %}{% translate "Secure Two-Factor Authentication Setup" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white p-8 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-6 text-center text-blue-700">{% translate "Secure Two-Factor Authentication Setup" %}</h2>
+        
+        <!-- Security Notice -->
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        <strong>{% translate "Enhanced Security:" %}</strong> 
+                        {% translate "This setup process uses advanced security measures to protect against session hijacking and replay attacks. Your session is bound to your device and IP address." %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            {% if wizard.steps.current == 'welcome' %}
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-gray-600">{% translate "You are about to enable enhanced two-factor authentication with advanced security protections. This process will secure your account against sophisticated attacks." %}</p>
+                </div>
+            {% elif wizard.steps.current == 'method' %}
+                <div class="text-center">
+                    <p class="text-gray-600">{% translate "Please select which authentication method you would like to use. All methods include anti-replay protection." %}</p>
+                </div>
+            {% elif wizard.steps.current == 'generator' %}
+                <div class="space-y-4">
+                    <p class="text-gray-600">{% translate "To start using a token generator, please use your smartphone to scan the QR code below. For example, use Google Authenticator." %}</p>
+                    
+                    {% if QR_URL %}
+                        <div class="text-center">
+                            <div class="inline-block p-4 bg-white border-2 border-gray-300 rounded-lg">
+                                <img src="{{ QR_URL }}" alt="QR Code" class="mx-auto bg-white">
+                            </div>
+                            <p class="mt-2 text-sm text-gray-600">{% translate "Scan this QR code with your authenticator app" %}</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if secret_key %}
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-gray-800 mb-2">{% translate "Manual Entry:" %}</h4>
+                            <p class="text-sm text-gray-600 mb-2">{% translate "Alternatively you can use the following secret to setup TOTP in your authenticator or password manager manually." %}</p>
+                            <div class="bg-white p-3 border rounded font-mono text-sm break-all">
+                                <strong>{% translate "TOTP Secret:" %}</strong> 
+                                {% if otpauth_url %}<a href="{{ otpauth_url }}">{{ secret_key }}</a>{% else %}{{ secret_key }}{% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                        <p class="text-sm text-yellow-800">
+                            <strong>{% translate "Security Note:" %}</strong>
+                            {% translate "Each token can only be used once. Tokens are validated server-side with session binding for maximum security." %}
+                        </p>
+                    </div>
+                    
+                    <p class="text-gray-600">{% translate "Then, enter the token generated by the app." %}</p>
+                </div>
+            {% elif wizard.steps.current == 'validation' %}
+                {% if challenge_succeeded %}
+                    {% if device.method == 'call' %}
+                        <div class="text-center">
+                            <p class="text-gray-600">{% translate "We are calling your phone right now, please enter the digits you hear." %}</p>
+                        </div>
+                    {% elif device.method == 'sms' %}
+                        <div class="text-center">
+                            <p class="text-gray-600">{% translate "We sent you a text message, please enter the tokens we sent." %}</p>
+                        </div>
+                    {% elif device.method == 'email' %}
+                        <div class="text-center">
+                            <p class="text-gray-600">{% translate "We sent you an email with a verification token. Please enter the token from the email." %}</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="bg-red-50 border-l-4 border-red-400 p-4 mt-4">
+                        <p class="text-sm text-red-800">
+                            <strong>{% translate "Security Warning:" %}</strong>
+                            {% translate "This verification is bound to your current session and IP address. Do not share this token with anyone." %}
+                        </p>
+                    </div>
+                {% else %}
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                        <p class="text-yellow-800">{% translate "We've encountered an issue with the selected authentication method. Please go back and verify that you entered your information correctly, try again, or use a different authentication method instead. If the issue persists, contact the site administrator." %}</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+            
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {# Critical: Include the wizard management form for formsets #}
+            {{ wizard.management_form }}
+            
+            {# Hidden security fields for session validation #}
+            <input type="hidden" name="session_token" value="{{ request.session._otp_session_token|default:'' }}">
+            <input type="hidden" name="challenge_id" value="{{ request.session._otp_challenge_id|default:'' }}">
+            
+            {# Render the current step's form #}
+            {{ wizard.form|crispy }}
+            
+            <div class="mt-6 flex space-x-4">
+                {% if wizard.steps.prev %}
+                    <button name="wizard_goto_step" value="{{ wizard.steps.prev }}" type="submit" 
+                            class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400 transition-colors">
+                        {% translate "Previous" %}
+                    </button>
+                {% endif %}
+                
+                <button type="submit" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
+                    {% if wizard.steps.last %}
+                        {% translate "Enable Two-Factor Authentication" %}
+                    {% else %}
+                        {% translate "Next" %}
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+        
+        <!-- Security Information -->
+        <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-semibold text-gray-800 mb-2">{% translate "Security Features:" %}</h4>
+            <ul class="text-sm text-gray-600 space-y-1">
+                <li>• {% translate "Session binding to prevent hijacking" %}</li>
+                <li>• {% translate "Anti-replay protection with cryptographic nonces" %}</li>
+                <li>• {% translate "Token reuse prevention" %}</li>
+                <li>• {% translate "Comprehensive audit logging" %}</li>
+                <li>• {% translate "IP address validation" %}</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+// Client-side security validation (complementary to server-side)
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Add timestamp for replay detection
+            const timestampInput = document.createElement('input');
+            timestampInput.type = 'hidden';
+            timestampInput.name = 'client_timestamp';
+            timestampInput.value = Date.now();
+            form.appendChild(timestampInput);
+            
+            // Add client fingerprint
+            const fingerprintInput = document.createElement('input');
+            fingerprintInput.type = 'hidden';
+            fingerprintInput.name = 'client_fingerprint';
+            fingerprintInput.value = btoa(navigator.userAgent + screen.width + screen.height);
+            form.appendChild(fingerprintInput);
+        });
+    }
+});
+</script>
+{% endblock %}

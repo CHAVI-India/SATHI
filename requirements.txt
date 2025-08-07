@@ -20,6 +20,7 @@ django-import-export==4.3.9
 django-otp==1.6.1
 django-parler==2.3
 django-phonenumber-field==8.1.0
+django-ratelimit==4.1.0
 django-schema-viewer==0.5.3
 django-secured-fields==0.4.4
 django-two-factor-auth==1.17.0
@@ -44,6 +45,7 @@ Pygments==2.19.2
 pypng==0.20220715.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
+python-magic==0.4.27
 pytz==2025.2
 PyYAML==6.0.2
 qrcode==7.4.2

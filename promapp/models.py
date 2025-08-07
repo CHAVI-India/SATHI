@@ -15,6 +15,35 @@ from decimal import Decimal
 from .equation_parser import EquationValidator, EquationTransformer
 import logging
 import numpy as np
+import magic
+import mimetypes
+
+# Allowed extensions and their MIME types fore the media field.
+allowed_types = {
+    'audio': {
+        'extensions': ['.mp3', '.wav', '.m4a', '.ogg', '.flac', '.aac'],
+        'mimetypes': [
+            'audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/mp4', 'audio/x-m4a',
+            'audio/ogg', 'audio/x-flac', 'audio/flac', 'audio/aac', 'audio/x-aac'
+        ],
+    },
+    'video': {
+        'extensions': ['.mp4', '.mov', '.avi', '.wmv', '.flv', '.mkv'],
+        'mimetypes': [
+            'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-ms-wmv',
+            'video/x-flv', 'video/x-matroska', 'video/mkv'
+        ],
+    },
+    'image': {
+        'extensions': ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'],
+        'mimetypes': [
+            'image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/tiff', 'image/webp'
+        ],
+    },
+}
+all_exts = sum([v['extensions'] for v in allowed_types.values()], [])
+all_mimes = sum([v['mimetypes'] for v in allowed_types.values()], [])
+
 
 # Create your models here.
 
@@ -487,6 +516,52 @@ class Item(TranslatableModel):
         super().save(*args, **kwargs)
 
     def clean(self):
+
+        # Validate Media file type
+        for translation in self.translations.all():
+            media_file = translation.media
+            if not media_file:
+                continue
+            name = getattr(media_file, 'name', None)
+            if not name:
+                continue
+            ext = name[name.rfind('.'):].lower()
+            if ext not in all_exts:
+                raise ValidationError({'media': f"Invalid file extension '{ext}' for media. Allowed: {', '.join(all_exts)}"})
+
+            # Guess type by extension
+            expected_type = None
+            for t, v in allowed_types.items():
+                if ext in v['extensions']:
+                    expected_type = t
+                    break
+
+            # Get MIME type
+            mime_type = None
+            try:
+                mime = magic.Magic(mime=True)
+                file_obj = None
+                if hasattr(media_file, 'file'):
+                    file_obj = media_file.file
+                    file_obj.seek(0)
+                    mime_type = mime.from_buffer(file_obj.read(2048))
+                    file_obj.seek(0)
+                else:
+                    file_path = media_file.path
+                    with open(file_path, 'rb') as f:
+                        mime_type = mime.from_buffer(f.read(2048))
+
+            except Exception:
+                mime_type, _ = mimetypes.guess_type(name)
+            if not mime_type:
+                raise ValidationError({'media': f"Could not determine MIME type for file '{name}'."})
+            # Check MIME type is allowed for the extension
+            valid_mimes = allowed_types[expected_type]['mimetypes'] if expected_type else all_mimes
+            if mime_type not in valid_mimes:
+                raise ValidationError({'media': f"File MIME type '{mime_type}' does not match allowed types for extension '{ext}'. Allowed: {', '.join(valid_mimes)}"})        
+
+
+        # Validate response type for the item and ensure correct type is selected.
         if self.likert_response and self.range_response:
             raise ValidationError('Only one of Likert Scale or Range Scale can be selected, not both.')
                 
