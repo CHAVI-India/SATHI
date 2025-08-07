@@ -25,6 +25,22 @@ from django import forms
 logger = logging.getLogger('two_factor.security')
 
 
+def is_verified(user):
+    """Return True if user has any confirmed OTP device (TOTP, Email, Static)."""
+    if not user or not user.is_authenticated:
+        return False
+    try:
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+        from django_otp.plugins.otp_email.models import EmailDevice
+        from django_otp.plugins.otp_static.models import StaticDevice
+    except ImportError:
+        return False
+    has_totp = TOTPDevice.objects.filter(user=user, confirmed=True).exists()
+    has_email = EmailDevice.objects.filter(user=user, confirmed=True).exists()
+    has_static = StaticDevice.objects.filter(user=user, confirmed=True).exists()
+    return has_totp or has_email or has_static
+
+
 def generate_challenge_id(request):
     """Generate a unique challenge ID for OTP attempts."""
     challenge_data = f"{request.session.session_key}:{time.time()}:{os.urandom(16).hex()}"
@@ -177,7 +193,7 @@ def validate_otp_session(request):
         return False
     
     # Check if user has completed OTP verification
-    if hasattr(request.user, 'is_verified') and not request.user.is_verified():
+    if not is_verified(request.user):
         return False
     
     # Validate session binding

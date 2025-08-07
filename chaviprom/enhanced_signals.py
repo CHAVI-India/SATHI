@@ -180,7 +180,8 @@ def log_enhanced_login(sender, request, user, **kwargs):
     user_agent = request.META.get('HTTP_USER_AGENT', '')
     
     # Check if this is a 2FA login
-    is_2fa_login = hasattr(user, 'is_verified') and user.is_verified()
+    from chaviprom.secure_otp_utils import is_verified
+    is_2fa_login = is_verified(user)
     
     details = {
         'login_method': '2FA' if is_2fa_login else 'PASSWORD_ONLY',

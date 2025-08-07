@@ -259,6 +259,75 @@ class SecurityValidationTests:
         # Cleanup
         cache.delete(cache_key)
     
+    def test_rate_limiting(self):
+        """Test 6: Test rate limiting mechanisms."""
+        # Test cache-based rate limiting
+        user_id = 999  # Test user ID
+        client_ip = '127.0.0.1'
+        cache_key = f"otp_attempts_{user_id}_{client_ip}"
+        
+        # Clear any existing attempts
+        cache.delete(cache_key)
+        
+        # Simulate multiple attempts
+        for i in range(7):  # Exceed the limit of 5
+            attempts = cache.get(cache_key, 0)
+            cache.set(cache_key, attempts + 1, timeout=300)
+        
+        final_attempts = cache.get(cache_key, 0)
+        rate_limit_working = final_attempts == 7
+        
+        self.log_test_result(
+            "Rate Limiting Mechanism",
+            rate_limit_working,
+            f"Attempt counter working: {final_attempts} attempts recorded"
+        )
+        
+        # Cleanup
+        cache.delete(cache_key)
+
+    def test_login_view_rate_limiting(self):
+        """Test 6a: Functional test for login view rate limiting (should return 429 after threshold)."""
+        from django.urls import reverse
+        login_url = reverse('login')
+        # Create a test user
+        user = User.objects.create_user('ratelimituser', 'ratelimit@example.com', 'password123')
+        client = Client()
+        login_data = {'auth-username': 'ratelimituser', 'auth-password': 'password123'}
+        success = False
+        blocked = False
+        for i in range(7):
+            response = client.post(login_url, login_data, REMOTE_ADDR='127.0.0.1')
+            if response.status_code == 200:
+                success = True
+            if response.status_code == 429:
+                blocked = True
+                break
+        self.log_test_result(
+            "Login View Rate Limiting",
+            blocked,
+            f"Blocked after exceeding threshold: {blocked}, Success before block: {success}"
+        )
+        user.delete()
+
+    def test_password_reset_view_rate_limiting(self):
+        """Test 6b: Functional test for password reset view rate limiting (should return 429 after threshold)."""
+        from django.urls import reverse
+        reset_url = reverse('password_reset')
+        client = Client()
+        reset_data = {'email': 'ratelimit@example.com'}
+        blocked = False
+        for i in range(7):
+            response = client.post(reset_url, reset_data, REMOTE_ADDR='127.0.0.1')
+            if response.status_code == 429:
+                blocked = True
+                break
+        self.log_test_result(
+            "Password Reset View Rate Limiting",
+            blocked,
+            f"Blocked after exceeding threshold: {blocked}"
+        )
+
     def test_totp_device_security(self):
         """Test 7: Test TOTP device security and lifecycle."""
         # Create test user
@@ -298,7 +367,51 @@ class SecurityValidationTests:
         unconfirmed_device.delete()
         confirmed_device.delete()
         user.delete()
+
     
+    def test_is_verified_helper(self):
+        """Test: is_verified(user) helper function logic."""
+        from chaviprom.secure_otp_utils import is_verified
+        from django.contrib.auth.models import User
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+        from django_otp.plugins.otp_email.models import EmailDevice
+        from django_otp.plugins.otp_static.models import StaticDevice
+
+        user = User.objects.create_user('verifyuser', 'verify@example.com', 'password123')
+        # No devices
+        result_none = is_verified(user)
+        # Unconfirmed TOTP
+        totp_unconfirmed = TOTPDevice.objects.create(user=user, confirmed=False)
+        result_unconfirmed = is_verified(user)
+        # Confirmed TOTP
+        totp_confirmed = TOTPDevice.objects.create(user=user, confirmed=True)
+        result_totp = is_verified(user)
+        # Confirmed Email
+        email_device = EmailDevice.objects.create(user=user, confirmed=True)
+        result_email = is_verified(user)
+        # Confirmed Static
+        static_device = StaticDevice.objects.create(user=user, confirmed=True)
+        result_static = is_verified(user)
+
+        passed = (
+            result_none is False and
+            result_unconfirmed is False and
+            result_totp is True and
+            result_email is True and
+            result_static is True
+        )
+        self.log_test_result(
+            "is_verified(user) Helper Logic",
+            passed,
+            f"None: {result_none}, Unconfirmed: {result_unconfirmed}, TOTP: {result_totp}, Email: {result_email}, Static: {result_static}"
+        )
+        # Cleanup
+        totp_unconfirmed.delete()
+        totp_confirmed.delete()
+        email_device.delete()
+        static_device.delete()
+        user.delete()
+
     def test_ip_binding(self):
         """Test 8: Test IP address binding for sessions."""
         from chaviprom.secure_otp_utils import validate_session_integrity

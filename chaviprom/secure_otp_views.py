@@ -26,6 +26,26 @@ from django.views.generic import View
 from django_otp import match_token
 from django_otp.decorators import otp_required
 from django import forms
+from django_ratelimit.decorators import ratelimit
+
+from two_factor.views import LoginView
+from two_factor.views.core import SetupView as BaseSetupView
+from django.contrib.auth import views as auth_views
+
+# Rate-limited Login View
+from django.utils.decorators import method_decorator
+
+@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+class RateLimitedLoginView(LoginView):
+    template_name = 'registration/login.html'
+
+# Rate-limited Password Reset View
+@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+class RateLimitedPasswordResetView(auth_views.PasswordResetView):
+    template_name = 'registration/password_reset_form.html'
+    email_template_name = 'registration/password_reset_email.html'
+    subject_template_name = 'registration/password_reset_subject.txt'
+
 
 logger = logging.getLogger('two_factor.security')
 
@@ -249,84 +269,6 @@ class SecureSetupView(BaseSetupView):
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip
-
-
-@method_decorator([csrf_protect, never_cache], name='dispatch')
-class OTPValidationAPIView(View):
-    """
-    API endpoint for secure OTP validation with enhanced security checks.
-    """
-    
-    def post(self, request):
-        """Handle OTP validation requests."""
-        if not request.user.is_authenticated:
-            return JsonResponse({'valid': False, 'error': 'Not authenticated'})
-        
-        token = request.POST.get('token')
-        if not token:
-            return JsonResponse({'valid': False, 'error': 'No token provided'})
-        
-        # Validate session integrity
-        if not self._validate_session_integrity(request):
-            logger.warning(
-                f"Session integrity violation during OTP validation for user "
-                f"{request.user.username}"
-            )
-            return JsonResponse({'valid': False, 'error': 'Session validation failed'})
-        
-        # Check for replay attempts
-        if self._is_replay_attempt(request, token):
-            logger.warning(
-                f"Replay attempt detected during OTP validation for user "
-                f"{request.user.username}"
-            )
-            return JsonResponse({'valid': False, 'error': 'Invalid request'})
-        
-        # Validate the OTP token
-        device = match_token(request.user, token)
-        if device:
-            # Mark token as used
-            self._mark_token_used(request, token)
-            
-            # Log successful validation
-            logger.info(
-                f"OTP validation successful for user {request.user.username} "
-                f"using device {device.__class__.__name__}"
-            )
-            
-            return JsonResponse({'valid': True, 'device_type': device.__class__.__name__})
-        else:
-            logger.warning(
-                f"OTP validation failed for user {request.user.username} "
-                f"with token ending in ...{token[-4:] if len(token) >= 4 else 'short'}"
-            )
-            return JsonResponse({'valid': False, 'error': 'Invalid token'})
-    
-    def _validate_session_integrity(self, request):
-        """Validate session integrity."""
-        session_user_id = request.session.get('_otp_user_id')
-        session_token = request.session.get('_otp_session_token')
-        
-        if not session_user_id or not session_token:
-            return False
-        
-        if session_user_id != request.user.id:
-            return False
-        
-        return True
-    
-    def _is_replay_attempt(self, request, token):
-        """Check if this is a replay attempt."""
-        token_hash = hashlib.sha256(f"{request.user.id}:{token}".encode()).hexdigest()
-        cache_key = f"used_token_{token_hash}"
-        
-        return cache.get(cache_key) is not None
-    
-    def _mark_token_used(self, request, token):
-        """Mark token as used to prevent replay."""
-        token_hash = hashlib.sha256(f"{request.user.id}:{token}".encode()).hexdigest()
-        cache_key = f"used_token_{token_hash}"
-        cache.set(cache_key, True, timeout=300)  # 5 minutes
 
 
 @login_required
