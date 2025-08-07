@@ -565,6 +565,12 @@ if ENVIRONMENT != 'development':
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+    CACHES = {
+        'default': {
+        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+        "LOCATION": "127.0.0.1:11211",
+        }
+    }
 
 # Content Security Policy (CSP) settings
 CSP_DEFAULT_SRC = ("'self'",)

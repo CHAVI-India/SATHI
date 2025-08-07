@@ -42,6 +42,7 @@ pip-check-updates==0.27.0
 psycopg2-binary==2.9.10
 pycparser==2.22
 Pygments==2.19.2
+pymemcache==4.0.0
 pypng==0.20220715.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
