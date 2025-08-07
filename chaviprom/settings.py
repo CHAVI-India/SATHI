@@ -571,6 +571,9 @@ if ENVIRONMENT != 'development':
         "LOCATION": "127.0.0.1:11211",
         }
     }
+    USE_X_FORWARDED_HOST = True
+    RATELIMIT_IP_META_KEY = 'HTTP_X_FORWARDED_FOR'
+
 
 # Content Security Policy (CSP) settings
 CSP_DEFAULT_SRC = ("'self'",)
