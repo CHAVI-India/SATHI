@@ -35,9 +35,12 @@ from django.contrib.auth import views as auth_views
 # Rate-limited Login View
 from django.utils.decorators import method_decorator
 
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
 class RateLimitedLoginView(LoginView):
-    template_name = 'registration/login.html'
+    template_name = 'two_factor/core/login.html'
+
+    @method_decorator(ratelimit(key='ip', rate='5/m', block=True))
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 # Rate-limited Password Reset View
 @method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
