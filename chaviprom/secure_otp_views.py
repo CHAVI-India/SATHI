@@ -13,6 +13,8 @@ import hmac
 import time
 import logging
 import os
+from django.contrib import messages
+from django.urls import reverse_lazy
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
@@ -30,18 +32,132 @@ from django import forms
 from two_factor.views import LoginView
 from two_factor.views.core import SetupView as BaseSetupView
 from django.contrib.auth import views as auth_views
+from django_ratelimit.decorators import ratelimit
+from django_ratelimit.exceptions import Ratelimited
+from django_ratelimit import ALL
 
-# Rate-limited Login View
+# Rate limiting configuration
+RATE_LIMIT_COUNT = getattr(settings, 'AUTH_RATE_LIMIT_COUNT', 6)
+RATE_LIMIT_PERIOD = getattr(settings, 'AUTH_RATE_LIMIT_PERIOD', '60s')
+OTP_RATE_LIMIT_COUNT = getattr(settings, 'OTP_RATE_LIMIT_COUNT', 3)
+
+# Custom key functions for user-based rate limiting
+def login_key(group, request):
+    """Generate rate limit key for login attempts based on username."""
+    username = request.POST.get('auth-username') or request.POST.get('username')
+    if username:
+        return f"login:{username.lower().strip()}"
+    session_key = request.session.session_key
+    if session_key:
+        return f"login_session:{session_key}"
+    return f"login_anon:{request.META.get('HTTP_USER_AGENT', 'unknown')[:50]}"
+
+def password_reset_key(group, request):
+    """Generate rate limit key for password reset attempts based on email."""
+    email = request.POST.get('email')
+    if email:
+        return f"reset:{email.lower().strip()}"
+    session_key = request.session.session_key
+    if session_key:
+        return f"reset_session:{session_key}"
+    return f"reset_anon:{request.META.get('HTTP_USER_AGENT', 'unknown')[:50]}"
+
+def otp_key(group, request):
+    """Generate rate limit key for OTP operations."""
+    if hasattr(request, 'user') and request.user.is_authenticated:
+        return f"otp_user:{request.user.id}"
+    username = request.POST.get('auth-username') or request.POST.get('username')
+    if username:
+        return f"otp_setup:{username.lower().strip()}"
+    session_key = request.session.session_key
+    if session_key:
+        return f"otp_session:{session_key}"
+    return f"otp_anon:{request.META.get('HTTP_USER_AGENT', 'unknown')[:50]}"
+
+def handle_rate_limit_exceeded(request, exception=None):
+    """Handle rate limit exceeded with proper error response."""
+    endpoint_type = "authentication"
+    if 'password_reset' in request.path:
+        endpoint_type = "password reset"
+    elif 'two_factor' in request.path or 'otp' in request.path:
+        endpoint_type = "OTP"
+    
+    logger.warning(f"Rate limit exceeded for {endpoint_type} on {request.path}")
+    
+    if (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 
+        request.headers.get('Accept', '').startswith('application/json')):
+        return JsonResponse({
+            'error': f'Too many {endpoint_type} attempts. Please try again later.',
+            'retry_after': 60,
+            'rate_limited': True
+        }, status=429)
+    
+    messages.error(request, f'Too many {endpoint_type} attempts. Please wait a minute before trying again.')
+    return HttpResponse(
+        f'<h1>Rate Limit Exceeded</h1><p>Too many {endpoint_type} attempts. Please try again in a minute.</p>',
+        status=429
+    )
+
 from django.utils.decorators import method_decorator
 
+@method_decorator(ratelimit(
+    key=login_key, 
+    rate=f'{RATE_LIMIT_COUNT}/{RATE_LIMIT_PERIOD}', 
+    method='POST',
+    block=True
+), name='dispatch')
 class RateLimitedLoginView(LoginView):
+    """Login view with user account-based rate limiting."""
     template_name = 'two_factor/core/login.html'
+    
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            return super().dispatch(request, *args, **kwargs)
+        except Ratelimited as e:
+            return handle_rate_limit_exceeded(request, e)
+    
+    def form_invalid(self, form):
+        """Log failed login attempts."""
+        username = self.request.POST.get('auth-username', 'unknown')
+        logger.warning(f"Failed login attempt for user: {username}")
+        return super().form_invalid(form)
+    
+    def form_valid(self, form):
+        """Log successful login attempts."""
+        username = self.request.POST.get('auth-username', 'unknown')
+        logger.info(f"Successful login for user: {username}")
+        return super().form_valid(form)
 
-# Rate-limited Password Reset View
+@method_decorator(ratelimit(
+    key=password_reset_key, 
+    rate=f'{RATE_LIMIT_COUNT}/{RATE_LIMIT_PERIOD}', 
+    method='POST',
+    block=True
+), name='dispatch')
 class RateLimitedPasswordResetView(auth_views.PasswordResetView):
+    """Password reset view with email-based rate limiting."""
     template_name = 'registration/password_reset_form.html'
     email_template_name = 'registration/password_reset_email.html'
     subject_template_name = 'registration/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+    
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            return super().dispatch(request, *args, **kwargs)
+        except Ratelimited as e:
+            return handle_rate_limit_exceeded(request, e)
+    
+    def form_invalid(self, form):
+        """Log failed password reset attempts."""
+        email = self.request.POST.get('email', 'unknown')
+        logger.warning(f"Failed password reset attempt for email: {email}")
+        return super().form_invalid(form)
+    
+    def form_valid(self, form):
+        """Log successful password reset requests."""
+        email = self.request.POST.get('email', 'unknown')
+        logger.info(f"Password reset requested for email: {email}")
+        return super().form_valid(form)
 
 
 
@@ -218,21 +334,12 @@ class SecureSetupView(BaseSetupView):
     Enhanced setup view for 2FA device configuration with security measures.
     """
     
+    @method_decorator(ratelimit(key=otp_key, rate=OTP_RATE_LIMIT_COUNT, block=True, method=ALL))
     def dispatch(self, request, *args, **kwargs):
-        """Enhanced dispatch with security validation."""
-        # Ensure user is properly authenticated
-        if not request.user.is_authenticated:
-            return redirect('two_factor:login')
-        
-        # Validate session integrity
-        if not self._validate_session_integrity(request):
-            logger.warning(
-                f"Session integrity violation during 2FA setup for user "
-                f"{request.user.username}"
-            )
-            return HttpResponseForbidden("Session validation failed.")
-        
-        return super().dispatch(request, *args, **kwargs)
+        try:
+            return super().dispatch(request, *args, **kwargs)
+        except Ratelimited as e:
+            return handle_rate_limit_exceeded(request, e)
     
     def _validate_session_integrity(self, request):
         """Validate session integrity for 2FA setup."""
