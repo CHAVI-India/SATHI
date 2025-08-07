@@ -43,11 +43,14 @@ class RateLimitedLoginView(LoginView):
         return super().post(request, *args, **kwargs)
 
 # Rate-limited Password Reset View
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
 class RateLimitedPasswordResetView(auth_views.PasswordResetView):
     template_name = 'registration/password_reset_form.html'
     email_template_name = 'registration/password_reset_email.html'
     subject_template_name = 'registration/password_reset_subject.txt'
+
+    @method_decorator(ratelimit(key='ip', rate='5/m', block=True))
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 
 logger = logging.getLogger('two_factor.security')
