@@ -26,7 +26,6 @@ from django.views.generic import View
 from django_otp import match_token
 from django_otp.decorators import otp_required
 from django import forms
-from django_ratelimit.decorators import ratelimit
 
 from two_factor.views import LoginView
 from two_factor.views.core import SetupView as BaseSetupView
@@ -38,19 +37,12 @@ from django.utils.decorators import method_decorator
 class RateLimitedLoginView(LoginView):
     template_name = 'two_factor/core/login.html'
 
-    @method_decorator(ratelimit(key='ip', rate='5/m', block=True))
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
-
 # Rate-limited Password Reset View
 class RateLimitedPasswordResetView(auth_views.PasswordResetView):
     template_name = 'registration/password_reset_form.html'
     email_template_name = 'registration/password_reset_email.html'
     subject_template_name = 'registration/password_reset_subject.txt'
 
-    @method_decorator(ratelimit(key='ip', rate='5/m', block=True))
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
 
 
 logger = logging.getLogger('two_factor.security')
