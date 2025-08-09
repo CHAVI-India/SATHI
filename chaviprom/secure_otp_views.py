@@ -18,7 +18,7 @@ from django.urls import reverse_lazy
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -40,6 +40,10 @@ from django_ratelimit import ALL
 RATE_LIMIT_COUNT = getattr(settings, 'AUTH_RATE_LIMIT_COUNT', 6)
 RATE_LIMIT_PERIOD = getattr(settings, 'AUTH_RATE_LIMIT_PERIOD', '60s')
 OTP_RATE_LIMIT_COUNT = getattr(settings, 'OTP_RATE_LIMIT_COUNT', 3)
+
+# Password reset specific rate limiting (2 attempts per 10 minutes)
+PASSWORD_RESET_RATE_LIMIT_COUNT = getattr(settings, 'PASSWORD_RESET_RATE_LIMIT_COUNT', 2)
+PASSWORD_RESET_RATE_LIMIT_PERIOD = getattr(settings, 'PASSWORD_RESET_RATE_LIMIT_PERIOD', '10m')
 
 # Custom key functions for user-based rate limiting
 def login_key(group, request):
@@ -130,10 +134,10 @@ class RateLimitedLoginView(LoginView):
 
 @method_decorator(ratelimit(
     key=password_reset_key, 
-    rate=f'{RATE_LIMIT_COUNT}/{RATE_LIMIT_PERIOD}', 
+    rate=f'{PASSWORD_RESET_RATE_LIMIT_COUNT}/{PASSWORD_RESET_RATE_LIMIT_PERIOD}', 
     method='POST',
-    block=True
-), name='dispatch')
+    block=False  # Don't block, we'll handle it manually
+), name='post')
 class RateLimitedPasswordResetView(auth_views.PasswordResetView):
     """Password reset view with email-based rate limiting."""
     template_name = 'registration/password_reset_form.html'
@@ -141,11 +145,24 @@ class RateLimitedPasswordResetView(auth_views.PasswordResetView):
     subject_template_name = 'registration/password_reset_subject.txt'
     success_url = reverse_lazy('password_reset_done')
     
-    def dispatch(self, request, *args, **kwargs):
-        try:
-            return super().dispatch(request, *args, **kwargs)
-        except Ratelimited as e:
-            return handle_rate_limit_exceeded(request, e)
+    def post(self, request, *args, **kwargs):
+        """Handle POST request with rate limiting check."""
+        # Debug: Check all request attributes
+        logger.info(f"Request attributes: limited={getattr(request, 'limited', 'NOT_SET')}, ratelimited={getattr(request, 'ratelimited', 'NOT_SET')}")
+        
+        # Check if the request is rate limited (django-ratelimit sets this)
+        if getattr(request, 'limited', False) or getattr(request, 'ratelimited', False):
+            # Show message without sending email
+            email = request.POST.get('email', '')
+            logger.warning(f"Rate limited password reset attempt for email: {email}")
+            messages.error(request, 'You have already requested a reset link for this email. Please check your inbox or wait before requesting again.')
+            
+            # Get form to show validation errors
+            form = self.get_form()
+            form.add_error(None, 'You have already requested a reset link for this email. Please check your inbox or wait before requesting again.')
+            return self.form_invalid(form)
+        
+        return super().post(request, *args, **kwargs)
     
     def form_invalid(self, form):
         """Log failed password reset attempts."""
