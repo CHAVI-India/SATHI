@@ -536,7 +536,9 @@ OTP_TOTP_LOG_LEVEL = 'INFO'   # Log level for TOTP events
 
 # TFA security settings
 TWO_FACTOR_LOGIN_TIMEOUT = 600  # 10 minutes timeout for TFA setup
-TWO_FACTOR_REMEMBER_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
+TWO_FACTOR_REMEMBER_COOKIE_AGE = 60 * 60 * 24 * 15  # 30 days
+
+
 
 # Enhanced OTP Security Settings
 OTP_BIND_SESSION_TO_IP = True  # Bind OTP sessions to IP addresses
@@ -573,6 +575,9 @@ if ENVIRONMENT != 'development':
     }
     USE_X_FORWARDED_HOST = True
     RATELIMIT_IP_META_KEY = 'HTTP_X_FORWARDED_FOR'
+    TWO_FACTOR_REMEMBER_COOKIE_SECURE = True  # Only send over HTTPS
+    TWO_FACTOR_REMEMBER_COOKIE_HTTPONLY = True  # Prevent JavaScript access
+    TWO_FACTOR_REMEMBER_COOKIE_SAMESITE = 'Lax'  # CSRF protection    
 
 
 # Content Security Policy (CSP) settings
