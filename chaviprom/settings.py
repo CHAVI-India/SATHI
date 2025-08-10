@@ -567,6 +567,7 @@ if ENVIRONMENT != 'development':
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+    SECURE_SSL_REDIRECT=True
     CACHES = {
         'default': {
         "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
