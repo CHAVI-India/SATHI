@@ -747,6 +747,60 @@ def prom_review(request, pk):
     bokeh_css = CDN.render_css()
     bokeh_js = CDN.render_js()
     
+    # =========================
+    # Group items by construct
+    # =========================
+    # Create construct ordering: important (topline) constructs first, then others,
+    # and finally any constructs present in item responses but missing from scores lists.
+    important_construct_order = [cs.construct.id for cs in important_construct_scores]
+    other_construct_order = [cs.construct.id for cs in other_construct_scores]
+    construct_order = []
+    for cid in important_construct_order + other_construct_order:
+        if cid not in construct_order:
+            construct_order.append(cid)
+
+    # Add any constructs that appear in item responses but aren't in the above order
+    item_construct_ids = []
+    construct_obj_by_id = {}
+    for resp in item_response_list:
+        cid = getattr(resp.questionnaire_item.item, 'construct_scale_id', None)
+        if cid:
+            item_construct_ids.append(cid)
+            # Cache construct object for template header use
+            construct_obj_by_id[cid] = resp.questionnaire_item.item.construct_scale
+    for cid in item_construct_ids:
+        if cid not in construct_order:
+            construct_order.append(cid)
+
+    # Build grouped structure in the specified order
+    # Map responses by construct id first for efficiency
+    responses_by_construct = {}
+    for resp in item_response_list:
+        cid = getattr(resp.questionnaire_item.item, 'construct_scale_id', None)
+        if not cid:
+            continue
+        responses_by_construct.setdefault(cid, []).append(resp)
+
+    item_responses_grouped = []
+    for cid in construct_order:
+        items = responses_by_construct.get(cid, [])
+        if not items:
+            continue
+        construct_obj = construct_obj_by_id.get(cid)
+        # Fallback: try to obtain construct object from scores if not cached
+        if not construct_obj:
+            for cs in important_construct_scores + other_construct_scores:
+                if cs.construct.id == cid:
+                    construct_obj = cs.construct
+                    break
+        if construct_obj:
+            item_responses_grouped.append({
+                'construct': construct_obj,
+                'items': items,
+            })
+    # Provide important construct ids list for template badges/ordering if needed
+    important_construct_ids_list = [str(cid) for cid in important_construct_order]
+
     # Get available items for the filter (based on current questionnaire filter)
     available_items_query = Item.objects.select_related('construct_scale').prefetch_related('translations')
     
@@ -961,6 +1015,8 @@ def prom_review(request, pk):
         'available_treatment_types': available_treatment_types,
         'aggregation_metadata': aggregation_metadata,
         'patient_current_age': patient_current_age,
+        'item_responses_grouped': item_responses_grouped,
+        'important_construct_ids': important_construct_ids_list,
     }
     
     # If this is an HTMX request, only return the main content section

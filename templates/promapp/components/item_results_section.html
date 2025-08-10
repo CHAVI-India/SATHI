@@ -5,21 +5,50 @@
         <h3 class="text-xl font-extrabold text-gray-900">{% translate "Item-wise Results" %}</h3>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {% for item_response in item_responses %}
-            {% if item_response.questionnaire_item.item.response_type == 'Text' %}
-                {% include "promapp/components/text_item_card.html" %}
-            {% elif item_response.questionnaire_item.item.response_type == 'Likert' %}
-                {% include "promapp/components/likert_item_card.html" %}
-            {% elif item_response.questionnaire_item.item.response_type in 'Number,Range' %}
-                {% include "promapp/components/numeric_item_card.html" %}
-            {% elif item_response.questionnaire_item.item.response_type == 'Media' %}
-                {% include "promapp/components/media_item_card.html" %}
-            {% endif %}
+    {# New grouped rendering by construct (topline constructs first) #}
+    {% if item_responses_grouped %}
+        {% for group in item_responses_grouped %}
+            <div class="mb-2 mt-6 first:mt-0">
+                <h4 class="text-lg font-bold text-gray-800">
+                    {{ group.construct.name }}
+                </h4>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for item_response in group.items %}
+                    {% if item_response.questionnaire_item.item.response_type == 'Text' %}
+                        {% include "promapp/components/text_item_card.html" %}
+                    {% elif item_response.questionnaire_item.item.response_type == 'Likert' %}
+                        {% include "promapp/components/likert_item_card.html" %}
+                    {% elif item_response.questionnaire_item.item.response_type in 'Number,Range' %}
+                        {% include "promapp/components/numeric_item_card.html" %}
+                    {% elif item_response.questionnaire_item.item.response_type == 'Media' %}
+                        {% include "promapp/components/media_item_card.html" %}
+                    {% endif %}
+                {% endfor %}
+            </div>
         {% empty %}
             <div class="col-span-3 text-center py-4">
                 <p class="text-gray-500">{% translate "No items available." %}</p>
             </div>
         {% endfor %}
-    </div>
+    {% else %}
+        {# Fallback to original flat list if grouped data not provided #}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for item_response in item_responses %}
+                {% if item_response.questionnaire_item.item.response_type == 'Text' %}
+                    {% include "promapp/components/text_item_card.html" %}
+                {% elif item_response.questionnaire_item.item.response_type == 'Likert' %}
+                    {% include "promapp/components/likert_item_card.html" %}
+                {% elif item_response.questionnaire_item.item.response_type in 'Number,Range' %}
+                    {% include "promapp/components/numeric_item_card.html" %}
+                {% elif item_response.questionnaire_item.item.response_type == 'Media' %}
+                    {% include "promapp/components/media_item_card.html" %}
+                {% endif %}
+            {% empty %}
+                <div class="col-span-3 text-center py-4">
+                    <p class="text-gray-500">{% translate "No items available." %}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
