@@ -766,10 +766,6 @@ class Questionnaire(TranslatableModel):
         """Return a list of language codes for which translations exist."""
         return list(self.translations.values_list('language_code', flat=True))
 
-
-
-
-
 class QuestionnaireItem(models.Model):
     '''
     Questionnaire Item model. This is used to store the items for the questionnaire. There is a many to many relationship between Questionnaire and Item.
@@ -790,10 +786,6 @@ class QuestionnaireItem(models.Model):
         # Use Parler's safe_translation_getter to get the translated name
         item_name = self.item.safe_translation_getter('name', any_language=True) if hasattr(self.item, 'safe_translation_getter') else str(self.item)
         return f"Q{self.question_number}: {item_name}"
-
-
-
-
 
 class PatientQuestionnaire(models.Model):
     '''
@@ -817,7 +809,6 @@ class PatientQuestionnaire(models.Model):
         
     def __str__(self):
         return f"{self.patient.name} - {self.questionnaire.name}"
-
 
 class QuestionnaireSubmission(models.Model):
     '''
@@ -880,8 +871,6 @@ class QuestionnaireConstructScoreComposite(models.Model):
     class Meta:
         ordering = ['-created_date']
         verbose_name = 'Questionnaire Construct Score Composite'
-
-
 
 class QuestionnaireItemResponse(models.Model):
     '''
