@@ -108,17 +108,19 @@ from django.utils.decorators import method_decorator
     key=login_key, 
     rate=f'{RATE_LIMIT_COUNT}/{RATE_LIMIT_PERIOD}', 
     method='POST',
-    block=True
-), name='dispatch')
+    block=False  # Don't block, we'll handle it manually
+), name='post')
 class RateLimitedLoginView(LoginView):
     """Login view with user account-based rate limiting."""
     template_name = 'two_factor/core/login.html'
     
-    def dispatch(self, request, *args, **kwargs):
-        try:
-            return super().dispatch(request, *args, **kwargs)
-        except Ratelimited as e:
-            return handle_rate_limit_exceeded(request, e)
+    def post(self, request, *args, **kwargs):
+        """Handle POST request with rate limiting check."""
+        # Check if the request is rate limited
+        if getattr(request, 'limited', False):
+            return handle_rate_limit_exceeded(request)
+        
+        return super().post(request, *args, **kwargs)
     
     def form_invalid(self, form):
         """Log failed login attempts."""
