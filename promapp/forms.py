@@ -282,36 +282,78 @@ class ItemForm(TranslatableModelForm):
         else:
             self.fields['likert_response'].widget = forms.HiddenInput()
             self.fields['range_response'].widget = forms.HiddenInput()
+
     def clean(self):
         cleaned_data = super().clean()
-        media = cleaned_data.get('media')
-        if media:
-            name = getattr(media, 'name', None)
-            ext = os.path.splitext(name)[1].lower()
-            if ext not in all_exts:
-                raise ValidationError({'media': f"Invalid file extension '{ext}' for media. Allowed: {', '.join(all_exts)}"})
-            # Guess type by extension
-            expected_type = None
-            for t, v in allowed_types.items():
-                if ext in v['extensions']:
-                    expected_type = t
-                    break
-            # Get MIME type
-            mime_type = None
-            try:
-                mime = magic.Magic(mime=True)
-                media.seek(0)
-                mime_type = mime.from_buffer(media.read(2048))
-                media.seek(0)
-            except Exception:
-                import mimetypes
-                mime_type, _ = mimetypes.guess_type(name)
-            if not mime_type:
-                raise ValidationError({'media': f"Could not determine MIME type for file '{name}'."})
-            valid_mimes = allowed_types[expected_type]['mimetypes'] if expected_type else all_mimes
-            if mime_type not in valid_mimes:
-                raise ValidationError({'media': f"File MIME type '{mime_type}' does not match allowed types for extension '{ext}'. Allowed: {', '.join(valid_mimes)}"})
+        
+        # Check if media is being cleared
+        media_clear = self.data.get('media-clear', False)
+        
+        if media_clear:
+            # Set flag to skip media validation in model
+            self.instance._skip_media_validation = True
+            # If clearing media, remove it from cleaned_data
+            cleaned_data['media'] = None
+            # Also clear from the instance if it exists
+            if self.instance.pk:
+                for translation in self.instance.translations.all():
+                    if translation.media:
+                        translation.media = None
+        else:
+            # Validate new media uploads (model validation only handles existing files)
+            media = cleaned_data.get('media')
+            if media:
+                name = getattr(media, 'name', None)
+                if name:
+                    ext = os.path.splitext(name)[1].lower()
+                    if ext not in all_exts:
+                        raise ValidationError({'media': f"Invalid file extension '{ext}' for media. Allowed: {', '.join(all_exts)}"})
+                    
+                    # Guess type by extension
+                    expected_type = None
+                    for t, v in allowed_types.items():
+                        if ext in v['extensions']:
+                            expected_type = t
+                            break
+                    
+                    # Get MIME type
+                    mime_type = None
+                    try:
+                        mime = magic.Magic(mime=True)
+                        media.seek(0)
+                        mime_type = mime.from_buffer(media.read(2048))
+                        media.seek(0)
+                    except Exception:
+                        import mimetypes
+                        mime_type, _ = mimetypes.guess_type(name)
+                    
+                    if not mime_type:
+                        raise ValidationError({'media': f"Could not determine MIME type for file '{name}'."})
+                    
+                    valid_mimes = allowed_types[expected_type]['mimetypes'] if expected_type else all_mimes
+                    if mime_type not in valid_mimes:
+                        raise ValidationError({'media': f"File MIME type '{mime_type}' does not match allowed types for extension '{ext}'. Allowed: {', '.join(valid_mimes)}"})
+        
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+    
+        # Check if media is being cleared
+        media_clear = self.data.get('media-clear', False)
+        if media_clear:
+            # Clear the media field for all translations
+            if instance.pk:
+                for translation in instance.translations.all():
+                    if translation.media:
+                        translation.media.delete(save=False)
+                        translation.media = None
+                        if commit:
+                            translation.save()
+    
+        if commit:
+            instance.save()
+        return instance
 
 class ConstructScaleForm(forms.ModelForm):
     class Meta:

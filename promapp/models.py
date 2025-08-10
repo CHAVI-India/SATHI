@@ -516,49 +516,53 @@ class Item(TranslatableModel):
         super().save(*args, **kwargs)
 
     def clean(self):
+        # Check if media validation should be skipped (for clearing invalid files)
+        if getattr(self, '_skip_media_validation', False):
+            # Skip media validation - this allows clearing invalid files
+            pass
+        else:
+            # Validate Media file type
+            for translation in self.translations.all():
+                media_file = translation.media
+                if not media_file:
+                    continue
+                name = getattr(media_file, 'name', None)
+                if not name:
+                    continue
+                ext = name[name.rfind('.'):].lower()
+                if ext not in all_exts:
+                    raise ValidationError({'media': f"Invalid file extension '{ext}' for media. Allowed: {', '.join(all_exts)}"})
 
-        # Validate Media file type
-        for translation in self.translations.all():
-            media_file = translation.media
-            if not media_file:
-                continue
-            name = getattr(media_file, 'name', None)
-            if not name:
-                continue
-            ext = name[name.rfind('.'):].lower()
-            if ext not in all_exts:
-                raise ValidationError({'media': f"Invalid file extension '{ext}' for media. Allowed: {', '.join(all_exts)}"})
+                # Guess type by extension
+                expected_type = None
+                for t, v in allowed_types.items():
+                    if ext in v['extensions']:
+                        expected_type = t
+                        break
 
-            # Guess type by extension
-            expected_type = None
-            for t, v in allowed_types.items():
-                if ext in v['extensions']:
-                    expected_type = t
-                    break
+                # Get MIME type
+                mime_type = None
+                try:
+                    mime = magic.Magic(mime=True)
+                    file_obj = None
+                    if hasattr(media_file, 'file'):
+                        file_obj = media_file.file
+                        file_obj.seek(0)
+                        mime_type = mime.from_buffer(file_obj.read(2048))
+                        file_obj.seek(0)
+                    else:
+                        file_path = media_file.path
+                        with open(file_path, 'rb') as f:
+                            mime_type = mime.from_buffer(f.read(2048))
 
-            # Get MIME type
-            mime_type = None
-            try:
-                mime = magic.Magic(mime=True)
-                file_obj = None
-                if hasattr(media_file, 'file'):
-                    file_obj = media_file.file
-                    file_obj.seek(0)
-                    mime_type = mime.from_buffer(file_obj.read(2048))
-                    file_obj.seek(0)
-                else:
-                    file_path = media_file.path
-                    with open(file_path, 'rb') as f:
-                        mime_type = mime.from_buffer(f.read(2048))
-
-            except Exception:
-                mime_type, _ = mimetypes.guess_type(name)
-            if not mime_type:
-                raise ValidationError({'media': f"Could not determine MIME type for file '{name}'."})
-            # Check MIME type is allowed for the extension
-            valid_mimes = allowed_types[expected_type]['mimetypes'] if expected_type else all_mimes
-            if mime_type not in valid_mimes:
-                raise ValidationError({'media': f"File MIME type '{mime_type}' does not match allowed types for extension '{ext}'. Allowed: {', '.join(valid_mimes)}"})        
+                except Exception:
+                    mime_type, _ = mimetypes.guess_type(name)
+                if not mime_type:
+                    raise ValidationError({'media': f"Could not determine MIME type for file '{name}'."})
+                # Check MIME type is allowed for the extension
+                valid_mimes = allowed_types[expected_type]['mimetypes'] if expected_type else all_mimes
+                if mime_type not in valid_mimes:
+                    raise ValidationError({'media': f"File MIME type '{mime_type}' does not match allowed types for extension '{ext}'. Allowed: {', '.join(valid_mimes)}"})        
 
 
         # Validate response type for the item and ensure correct type is selected.
