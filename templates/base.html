@@ -81,6 +81,79 @@
         </div>
     </div>
 
+    <!-- Toast Notifications -->
+    {% if messages %}
+        <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-3">
+            {% for message in messages %}
+                <div class="toast-message bg-white rounded-lg shadow-lg border-l-4 p-4 max-w-sm transform translate-x-full opacity-0 transition-all duration-300 ease-in-out
+                    {% if message.tags == 'error' %}
+                        border-red-500
+                    {% elif message.tags == 'warning' %}
+                        border-yellow-500
+                    {% elif message.tags == 'success' %}
+                        border-green-500
+                    {% elif message.tags == 'info' %}
+                        border-blue-500
+                    {% else %}
+                        border-gray-500
+                    {% endif %}"
+                    data-message-type="{{ message.tags }}">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 mr-3">
+                            {% if message.tags == 'error' %}
+                                <div class="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            {% elif message.tags == 'warning' %}
+                                <div class="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            {% elif message.tags == 'success' %}
+                                <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            {% elif message.tags == 'info' %}
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            {% else %}
+                                <div class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900">
+                                {% if message.tags == 'error' %}Error
+                                {% elif message.tags == 'warning' %}Warning
+                                {% elif message.tags == 'success' %}Success
+                                {% elif message.tags == 'info' %}Info
+                                {% else %}Notice
+                                {% endif %}
+                            </p>
+                            <p class="text-sm text-gray-600 mt-1">{{ message }}</p>
+                        </div>
+                        <button onclick="dismissToast(this)" class="ml-3 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <footer class="bg-gray-800 text-white p-4 mt-auto">
         <div class="container mx-auto">
             {% block footer %}
@@ -103,6 +176,43 @@
 
     {% block extra_js %}{% endblock %}
     <script>
+        // Toast notification functionality
+        function dismissToast(button) {
+            const toast = button.closest('.toast-message');
+            toast.style.transform = 'translateX(100%)';
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                toast.remove();
+                // Remove container if no toasts left
+                const container = document.getElementById('toast-container');
+                if (container && container.children.length === 0) {
+                    container.remove();
+                }
+            }, 300);
+        }
+
+        // Auto-show and auto-dismiss toasts
+        document.addEventListener('DOMContentLoaded', function() {
+            const toasts = document.querySelectorAll('.toast-message');
+            toasts.forEach((toast, index) => {
+                // Stagger the appearance of multiple toasts
+                setTimeout(() => {
+                    toast.style.transform = 'translateX(0)';
+                    toast.style.opacity = '1';
+                    
+                    // Auto-dismiss after 5 seconds (except for errors)
+                    const messageType = toast.getAttribute('data-message-type');
+                    if (messageType !== 'error') {
+                        setTimeout(() => {
+                            if (toast.parentNode) { // Check if still exists
+                                dismissToast(toast.querySelector('button'));
+                            }
+                        }, 5000);
+                    }
+                }, index * 200); // 200ms delay between each toast
+            });
+        });
+
         // Listener for closing modal and handling refresh trigger from server
         document.body.addEventListener('closeModalAndRefreshTreatmentTypes', function(evt) {
             const modalContainer = document.getElementById('modal-container');
