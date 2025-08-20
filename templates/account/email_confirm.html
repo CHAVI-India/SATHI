@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% translate "Confirm E-mail Address" %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8">
+    <div>
+      <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+        <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        {% translate "Confirm E-mail Address" %}
+      </h2>
+    </div>
+
+    <c-card class="mt-8">
+      {% if confirmation %}
+        <div class="text-center space-y-4">
+          <div class="text-sm text-gray-600">
+            <p class="mb-4">
+              {% blocktrans with confirmation.email_address.email as email %}Please confirm that <strong>{{ email }}</strong> is an e-mail address for user {{ confirmation.email_address.user }}.{% endblocktrans %}
+            </p>
+          </div>
+
+          <form method="post" action="{% url 'account_confirm_email' confirmation.key %}" class="space-y-4">
+            {% csrf_token %}
+            
+            <c-button type="submit" variant="primary" full_width="true">
+              {% translate "Confirm" %}
+            </c-button>
+          </form>
+
+          <div class="text-center">
+            <a href="{% url 'account_login' %}" class="font-medium text-blue-600 hover:text-blue-500">
+              {% translate "Back to Login" %}
+            </a>
+          </div>
+        </div>
+      {% else %}
+        <div class="text-center space-y-4">
+          <div class="bg-red-50 border border-red-200 rounded-md p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                  {% translate "Invalid Confirmation Link" %}
+                </h3>
+                <div class="mt-2 text-sm text-red-700">
+                  <p>{% translate "This e-mail confirmation link expired or is invalid. Please request a new confirmation email." %}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <c-button href="{% url 'account_email' %}" variant="primary" full_width="true">
+              {% translate "Request New Confirmation" %}
+            </c-button>
+            
+            <div class="text-center">
+              <a href="{% url 'account_login' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                {% translate "Back to Login" %}
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </c-card>
+
+    <div class="text-center">
+      <p class="text-xs text-gray-500">
+        {% translate "Email confirmation helps secure your account and enables all features." %}
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

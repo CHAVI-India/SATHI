@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load account socialaccount %}
+{% load cotton %}
+
+{% block title %}{% translate "Sign In" %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full">
+    <c-card title="Sign in to your account" class="max-w-md">
+      <form method="POST" action="{% url 'account_login' %}" class="space-y-6">
+        {% csrf_token %}
+        <input type="hidden" name="remember" value="1">
+        
+        <div class="space-y-4">
+          <div>
+            <label for="{{ form.login.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {% translate "Username or Email" %}
+            </label>
+            <input 
+              type="text" 
+              name="{{ form.login.name }}" 
+              id="{{ form.login.id_for_label }}"
+              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              placeholder="{% translate 'Username or Email' %}"
+              value="{{ form.login.value|default:'' }}"
+              required
+            >
+            {% if form.login.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {{ form.login.errors.0 }}
+              </div>
+            {% endif %}
+          </div>
+          
+          <div>
+            <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {% translate "Password" %}
+            </label>
+            <input 
+              type="password" 
+              name="{{ form.password.name }}" 
+              id="{{ form.password.id_for_label }}"
+              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              placeholder="{% translate 'Password' %}"
+              required
+            >
+            {% if form.password.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {{ form.password.errors.0 }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <input 
+              type="checkbox" 
+              name="{{ form.remember.name }}" 
+              id="{{ form.remember.id_for_label }}"
+              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              {% if form.remember.value %}checked{% endif %}
+            >
+            <label for="{{ form.remember.id_for_label }}" class="ml-2 block text-sm text-gray-900">
+              {% translate "Remember me" %}
+            </label>
+          </div>
+
+          <div class="text-center space-y-2">
+            <a href="{% url 'account_reset_password' %}" class="font-medium text-blue-600 hover:text-blue-500">
+              {% translate "Forgot your password?" %}
+            </a>
+            <div class="text-sm text-gray-500">
+              {% translate "or" %}
+            </div>
+            <a href="{% url 'account_request_login_code' %}" class="font-medium text-blue-600 hover:text-blue-500">
+              {% translate "Sign in with email code" %}
+            </a>
+          </div>
+        </div>
+
+        <c-button type="submit" variant="primary" full_width="true">
+          {% translate "Sign In" %}
+        </c-button>
+        
+        {% if form.non_field_errors %}
+          <div class="mt-4 text-sm text-red-600">
+            {{ form.non_field_errors.0 }}
+          </div>
+        {% endif %}
+      </form>
+    </c-card>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% load cotton %}
+{% load i18n %}
+
+{% block title %}{% trans "Two-Factor Authentication" %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">{% trans "Two-Factor Authentication" %}</h1>
+            <p class="mt-2 text-gray-600">{% trans "Your account is protected by two-factor authentication. Please enter an authenticator code:" %}</p>
+        </div>
+
+        <c-card>
+            <div slot="header">
+                <h2 class="text-xl font-semibold text-gray-900">{% trans "Enter Authentication Code" %}</h2>
+            </div>
+            
+            <div slot="body">
+                <div class="text-center mb-6">
+                    <svg class="mx-auto h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+
+                <!-- Main Authentication Form -->
+                <form method="post" action="{% url 'mfa_authenticate' %}" class="mb-6">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+                            {% for error in form.non_field_errors %}
+                                <p class="text-sm text-red-600">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Code Input Field -->
+                    {% for field in form %}
+                        <div class="mb-4">
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ field.label }}
+                            </label>
+                            <input type="{{ field.field.widget.input_type }}" 
+                                   name="{{ field.name }}" 
+                                   id="{{ field.id_for_label }}"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-center text-lg font-mono tracking-wider"
+                                   placeholder="000000"
+                                   maxlength="6"
+                                   autocomplete="off"
+                                   required />
+                            {% if field.errors %}
+                                <div class="mt-2">
+                                    {% for error in field.errors %}
+                                        <p class="text-sm text-red-600">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if field.help_text %}
+                                <p class="mt-2 text-sm text-gray-500">{{ field.help_text }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <button type="submit" 
+                            class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        {% trans "Sign In" %}
+                    </button>
+                </form>
+
+                {% if "webauthn" in MFA_SUPPORTED_TYPES %}
+                    <!-- Divider -->
+                    <div class="relative mb-6">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-300"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-2 bg-white text-gray-500">{% trans "or" %}</span>
+                        </div>
+                    </div>
+
+                    <!-- Alternative Options -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">{% trans "Alternative options" %}</h3>
+                        
+                        <form method="post" action="{% url 'mfa_authenticate' %}" id="mfa_webauthn_authenticate">
+                            {% csrf_token %}
+                            {% for field in webauthn_form %}
+                                {% if field.is_hidden %}
+                                    {{ field }}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <div class="flex space-x-3">
+                                <button type="submit" 
+                                        class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3.586l4.293-4.293a1 1 0 011.414 0L10 14l4-4.707A6 6 0 0121 9z" />
+                                    </svg>
+                                    {% trans "Use a security key" %}
+                                </button>
+                                
+                                <a href="{% url 'account_login' %}" 
+                                   class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    {% trans "Cancel" %}
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+
+                <!-- Help Text -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-medium text-blue-800">{% trans "Need help?" %}</h4>
+                            <div class="mt-2 text-sm text-blue-700">
+                                <p>{% trans "Open your authenticator app and enter the 6-digit code. If you don't have access to your authenticator, you can use a recovery code instead." %}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </c-card>
+    </div>
+</div>
+
+{{ js_data|json_script:"js_data" }}
+{% include "mfa/webauthn/snippets/scripts.html" %}
+
+<script>
+// Auto-format authentication code input
+document.addEventListener('DOMContentLoaded', function() {
+    const codeInputs = document.querySelectorAll('input[maxlength="6"]');
+    codeInputs.forEach(function(input) {
+        input.addEventListener('input', function(e) {
+            // Remove any non-numeric characters
+            this.value = this.value.replace(/\D/g, '');
+            // Limit to 6 digits
+            if (this.value.length > 6) {
+                this.value = this.value.slice(0, 6);
+            }
+        });
+        
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const paste = (e.clipboardData || window.clipboardData).getData('text');
+            const numericPaste = paste.replace(/\D/g, '').slice(0, 6);
+            this.value = numericPaste;
+        });
+    });
+});
+
+// WebAuthn form handling
+{% if "webauthn" in MFA_SUPPORTED_TYPES %}
+allauth.webauthn.forms.authenticateForm({
+    ids: {
+        authenticate: "mfa_webauthn_authenticate",
+        credential: "{{ webauthn_form.credential.auto_id }}"
+    },
+    data: JSON.parse(document.getElementById('js_data').textContent)
+});
+{% endif %}
+</script>
+{% endblock %}

@@ -53,6 +53,11 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.mfa',
     'django.contrib.staticfiles',
     'import_export',
     'secured_fields',
@@ -60,12 +65,12 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_tailwind',
     'django_cotton',
-    'django_otp',
-    'django_otp.plugins.otp_totp',
-    'django_otp.plugins.otp_static',
-    'django_otp.plugins.otp_email',
-    'two_factor',
-    'two_factor.plugins.email',
+    # 'django_otp',
+    # 'django_otp.plugins.otp_totp',
+    # 'django_otp.plugins.otp_static',
+    # 'django_otp.plugins.otp_email',
+    # 'two_factor',
+    # 'two_factor.plugins.email',
     'schema_viewer',
     'promapp',
     'patientapp',
@@ -80,10 +85,11 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django_otp.middleware.OTPMiddleware',
-    'chaviprom.security_middleware.SecureOTPMiddleware',  # Enhanced OTP security
-    'chaviprom.security_middleware.OTPAuditMiddleware',   # OTP audit logging
+    # 'django_otp.middleware.OTPMiddleware',
+    # 'chaviprom.security_middleware.SecureOTPMiddleware',  # Enhanced OTP security
+    # 'chaviprom.security_middleware.OTPAuditMiddleware',   # OTP audit logging
     'django.contrib.messages.middleware.MessageMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "csp.middleware.CSPMiddleware",
 
@@ -123,6 +129,12 @@ DATABASES = {
         'PORT': os.environ.get('DJANGO_DATABASE_PORT','5432'),
     }
 }
+
+# Authentication Backends for Django Allauth
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 
 
 # Password validation
@@ -259,9 +271,23 @@ SECURED_FIELDS_KEY = [processed_key]
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
 
-# Authentication settings
+# Django Allauth settings
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_SIGNUP_ENABLED = False
+ACCOUNT_SIGNUP_REDIRECT_URL = '/account/login/'  # Redirect signup attempts to login
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
+ACCOUNT_LOGOUT_ON_GET = False
+ACCOUNT_SESSION_REMEMBER = True
+
+# Email-based login (magic links) settings
+ACCOUNT_LOGIN_BY_CODE_ENABLED = True
+ACCOUNT_LOGIN_BY_CODE_MAX_ATTEMPTS = 3
+ACCOUNT_LOGIN_BY_CODE_TIMEOUT = 300  # 5 minutes
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 
 # Logging configuration
 LOGGING = {
@@ -370,76 +396,76 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
-        'two_factor.views.core': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'two_factor.views.utils': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'two_factor.gateways.fake': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'two_factor.views.profile': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'two_factor.views.mixins': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'two_factor.plugins.email': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'two_factor.plugins.email.forms': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'two_factor.plugins.email.models': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'two_factor.plugins.email.views': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'django_otp': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'django_otp.plugins.otp_email': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'django_otp.plugins.otp_totp': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'django_otp.plugins.otp_static': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'two_factor': {
-            'handlers': ['console', 'tfa_file', 'security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
+        # 'two_factor.views.core': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
+        # 'two_factor.views.utils': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
+        # 'two_factor.gateways.fake': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
+        # 'two_factor.views.profile': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
+        # 'two_factor.views.mixins': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
+        # 'two_factor.plugins.email': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
+        # 'two_factor.plugins.email.forms': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
+        # 'two_factor.plugins.email.models': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
+        # 'two_factor.plugins.email.views': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
+        # 'django_otp': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
+        # 'django_otp.plugins.otp_email': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
+        # 'django_otp.plugins.otp_totp': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
+        # 'django_otp.plugins.otp_static': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
+        # 'two_factor': {
+        #     'handlers': ['console', 'tfa_file', 'security_file'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
         'django.contrib.auth': {
             'handlers': ['console', 'security_file', 'tfa_file'],
             'level': 'INFO',
@@ -502,8 +528,13 @@ if DEBUG_TOOLBAR_ENABLED:
         'debug_toolbar.panels.profiling.ProfilingPanel',
     ]
 
-# Two-factor authentication settings
-LOGIN_URL = 'two_factor:login'
+# Django Allauth authentication settings
+LOGIN_URL = 'account_login'
+
+# Django Admin settings - restrict admin access
+ADMIN_URL = 'admin/'  # Keep admin accessible for superusers
+# Admin users must be explicitly created as superusers
+# Regular users cannot access admin even if they have valid credentials
 
 
 # Email settings
@@ -519,38 +550,38 @@ EMAIL_USE_TLS = os.getenv('DJANGO_EMAIL_USE_TLS', False)
 DEFAULT_FROM_EMAIL = os.getenv('DJANGO_DEFAULT_FROM_EMAIL', 'no-reply@example.com')
 
 # OTP email settings
-OTP_EMAIL_SUBJECT = "Your OTP token for CHAVI PROM"
-OTP_EMAIL_BODY_TEMPLATE_PATH = os.path.join(BASE_DIR, "templates/otp_email_template.txt")
-OTP_EMAIL_BODY_HTML_TEMPLATE_PATH = os.path.join(BASE_DIR, "templates/otp_email_template.html")
+# OTP_EMAIL_SUBJECT = "Your OTP token for CHAVI PROM"
+# OTP_EMAIL_BODY_TEMPLATE_PATH = os.path.join(BASE_DIR, "templates/otp_email_template.txt")
+# OTP_EMAIL_BODY_HTML_TEMPLATE_PATH = os.path.join(BASE_DIR, "templates/otp_email_template.html")
 
-# OTP Email sender configuration
-OTP_EMAIL_SENDER = DEFAULT_FROM_EMAIL
+# # OTP Email sender configuration
+# OTP_EMAIL_SENDER = DEFAULT_FROM_EMAIL
 
-# OTP Token validity (in seconds) - default is 30 seconds
-OTP_TOTP_TOLERANCE = 1  # Allow 1 step tolerance for time drift
-OTP_EMAIL_TOKEN_VALIDITY = 300  # 5 minutes
+# # OTP Token validity (in seconds) - default is 30 seconds
+# OTP_TOTP_TOLERANCE = 1  # Allow 1 step tolerance for time drift
+# OTP_EMAIL_TOKEN_VALIDITY = 300  # 5 minutes
 
-# Additional TFA logging settings
-OTP_EMAIL_LOG_LEVEL = 'INFO'  # Log level for OTP email events
-OTP_TOTP_LOG_LEVEL = 'INFO'   # Log level for TOTP events
+# # Additional TFA logging settings
+# OTP_EMAIL_LOG_LEVEL = 'INFO'  # Log level for OTP email events
+# OTP_TOTP_LOG_LEVEL = 'INFO'   # Log level for TOTP events
 
-# TFA security settings
-TWO_FACTOR_LOGIN_TIMEOUT = 600  # 10 minutes timeout for TFA setup
-TWO_FACTOR_REMEMBER_COOKIE_AGE = 60 * 60 * 24 * 15  # 30 days
+# # TFA security settings
+# TWO_FACTOR_LOGIN_TIMEOUT = 600  # 10 minutes timeout for TFA setup
+# TWO_FACTOR_REMEMBER_COOKIE_AGE = 60 * 60 * 24 * 15  # 30 days
 
 
 
-# Enhanced OTP Security Settings
-OTP_BIND_SESSION_TO_IP = True  # Bind OTP sessions to IP addresses
-OTP_SESSION_TIMEOUT = 28800  # 8 hours session timeout
-OTP_MAX_ATTEMPTS_PER_IP = 10  # Max failed attempts per IP
-OTP_MAX_ATTEMPTS_PER_USER = 5  # Max failed attempts per user
-OTP_CHALLENGE_TIMEOUT = 300  # 5 minutes for OTP challenge
-OTP_TOKEN_REUSE_PREVENTION = True  # Prevent token reuse
-OTP_AUDIT_LOGGING = True  # Enable comprehensive audit logging
-OTP_ANOMALY_DETECTION = True  # Enable anomaly detection
-OTP_RATE_LIMIT_ATTEMPTS = 5  # Rate limit: max attempts before flagging suspicious activity
-OTP_RATE_LIMIT_WINDOW = 300  # Rate limit: time window in seconds (5 minutes)
+# # Enhanced OTP Security Settings
+# OTP_BIND_SESSION_TO_IP = True  # Bind OTP sessions to IP addresses
+# OTP_SESSION_TIMEOUT = 28800  # 8 hours session timeout
+# OTP_MAX_ATTEMPTS_PER_IP = 10  # Max failed attempts per IP
+# OTP_MAX_ATTEMPTS_PER_USER = 5  # Max failed attempts per user
+# OTP_CHALLENGE_TIMEOUT = 300  # 5 minutes for OTP challenge
+# OTP_TOKEN_REUSE_PREVENTION = True  # Prevent token reuse
+# OTP_AUDIT_LOGGING = True  # Enable comprehensive audit logging
+# OTP_ANOMALY_DETECTION = True  # Enable anomaly detection
+# OTP_RATE_LIMIT_ATTEMPTS = 5  # Rate limit: max attempts before flagging suspicious activity
+# OTP_RATE_LIMIT_WINDOW = 300  # Rate limit: time window in seconds (5 minutes)
 
 # Security settings if not development environment
 ENVIRONMENT = os.getenv('DJANGO_ENVIRONMENT', 'development')
@@ -575,9 +606,9 @@ if ENVIRONMENT != 'development':
     }
     USE_X_FORWARDED_HOST = True
     RATELIMIT_IP_META_KEY = 'HTTP_X_FORWARDED_FOR'
-    TWO_FACTOR_REMEMBER_COOKIE_SECURE = True  # Only send over HTTPS
-    TWO_FACTOR_REMEMBER_COOKIE_HTTPONLY = True  # Prevent JavaScript access
-    TWO_FACTOR_REMEMBER_COOKIE_SAMESITE = 'Lax'  # CSRF protection    
+    # TWO_FACTOR_REMEMBER_COOKIE_SECURE = True  # Only send over HTTPS
+    # TWO_FACTOR_REMEMBER_COOKIE_HTTPONLY = True  # Prevent JavaScript access
+    # TWO_FACTOR_REMEMBER_COOKIE_SAMESITE = 'Lax'  # CSRF protection    
 
 
 # Content Security Policy (CSP) settings
@@ -620,3 +651,5 @@ CSP_FORM_ACTION = ("'self'",)
 # Additional CSP security headers
 CSP_UPGRADE_INSECURE_REQUESTS = ENVIRONMENT != 'development'
 CSP_BLOCK_ALL_MIXED_CONTENT = ENVIRONMENT != 'development'
+
+

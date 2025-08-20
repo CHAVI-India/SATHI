@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% translate "Enter login code" %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full">
+    <c-card title="Enter login code" class="max-w-md">
+      <div class="text-center mb-6">
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+          <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <p class="text-sm text-gray-600">
+          {% translate "We've sent a login code to your email address. Please enter it below to sign in." %}
+        </p>
+      </div>
+      
+      <form method="POST" action="{% url 'account_confirm_login_code' %}" class="space-y-6">
+        {% csrf_token %}
+        
+        <div>
+          <label for="{{ form.code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {% translate "Login code" %}
+          </label>
+          <input 
+            type="text" 
+            name="{{ form.code.name }}" 
+            id="{{ form.code.id_for_label }}"
+            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm text-center text-lg font-mono tracking-widest"
+            placeholder="{% translate 'Enter code' %}"
+            value="{{ form.code.value|default:'' }}"
+            maxlength="6"
+            autocomplete="one-time-code"
+            required
+          >
+          {% if form.code.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {{ form.code.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+
+        <c-button type="submit" variant="primary" full_width="true">
+          {% translate "Sign In" %}
+        </c-button>
+        
+        {% if form.non_field_errors %}
+          <div class="mt-4 text-sm text-red-600">
+            {{ form.non_field_errors.0 }}
+          </div>
+        {% endif %}
+        
+        <div class="text-center space-y-2">
+          <p class="text-sm text-gray-500">
+            {% translate "Didn't receive the code?" %}
+          </p>
+          <a href="{% url 'account_request_login_code' %}" class="font-medium text-blue-600 hover:text-blue-500">
+            {% translate "Request a new code" %}
+          </a>
+        </div>
+      </form>
+    </c-card>
+  </div>
+</div>
+{% endblock %}

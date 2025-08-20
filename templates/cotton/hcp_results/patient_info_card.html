@@ -1,0 +1,105 @@
+<c-vars
+    patient
+    diagnoses
+    treatments
+/>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 print-card">
+    <div class="flex items-start justify-between mb-3">
+        <div>
+            <h2 class="text-lg font-semibold text-gray-900">{{ patient.name }}</h2>
+            <p class="text-sm text-gray-600">Patient ID: {{ patient.patient_id|default:patient.id }}</p>
+        </div>
+        <div class="text-right text-sm text-gray-500">
+            {% if patient.age %}
+                <p>Age: {{ patient.age }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Patient Demographics -->
+    <div class="grid grid-cols-1 gap-2 mb-4">
+        {% if patient.gender %}
+            <div class="flex items-center text-sm">
+                <span class="font-medium text-gray-700 w-20">Gender:</span>
+                <span class="text-gray-600">{{ patient.get_gender_display|default:patient.gender }}</span>
+            </div>
+        {% endif %}
+        
+        {% if patient.institution %}
+            <div class="flex items-center text-sm">
+                <span class="font-medium text-gray-700 w-20">Institution:</span>
+                <span class="text-gray-600">{{ patient.institution.name }}</span>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Diagnoses Section -->
+    <div class="mb-4">
+        <h3 class="text-base font-medium text-gray-900 mb-2 flex items-center">
+            <svg class="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Diagnoses
+        </h3>
+        
+        {% if diagnoses %}
+            <div class="space-y-1.5">
+                {% for diagnosis in diagnoses %}
+                    <div class="flex items-start justify-between p-2 bg-red-50 rounded-md border border-red-100">
+                        <div class="flex-1">
+                            <p class="font-medium text-red-900 text-sm">{{ diagnosis.diagnosis }}</p>
+                        </div>
+                        <span class="text-xs text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+                            {{ diagnosis.created_date|date:"M d, Y" }}
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-500 text-sm italic">No diagnoses recorded</p>
+        {% endif %}
+    </div>
+
+    <!-- Treatments Section -->
+    <div>
+        <h3 class="text-base font-medium text-gray-900 mb-2 flex items-center">
+            <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+            </svg>
+            Treatments
+        </h3>
+        
+        {% if treatments %}
+            <div class="space-y-1.5 max-h-48 overflow-y-auto">
+                {% for treatment in treatments %}
+                    <div class="flex items-start justify-between p-2 bg-green-50 rounded-md border border-green-100">
+                        <div class="flex-1">
+                            <p class="font-medium text-green-900 text-sm">{{ treatment.diagnosis.diagnosis }}</p>
+                            {% if treatment.treatment_type.all %}
+                                <p class="text-xs text-green-700">
+                                    Types: 
+                                    {% for tt in treatment.treatment_type.all %}
+                                        {{ tt.treatment_type }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                </p>
+                            {% endif %}
+                            {% if treatment.treatment_intent %}
+                                <p class="text-xs text-green-600">Intent: {{ treatment.get_treatment_intent_display }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="text-right">
+                            {% if treatment.date_of_start_of_treatment %}
+                                <span class="text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded-full block">
+                                    {{ treatment.date_of_start_of_treatment|date:"M d, Y" }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-500 text-sm italic">No treatments recorded</p>
+        {% endif %}
+    </div>
+</div> 

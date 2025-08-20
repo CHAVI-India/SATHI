@@ -21,17 +21,18 @@ from django.conf.urls.i18n import i18n_patterns
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
-from two_factor.urls import urlpatterns as tf_urls
+#from two_factor.urls import urlpatterns as tf_urls
 
-from chaviprom.secure_otp_views import RateLimitedLoginView, RateLimitedPasswordResetView
+#from chaviprom.secure_otp_views import RateLimitedLoginView, RateLimitedPasswordResetView
 
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
 ]
 
 urlpatterns += i18n_patterns(
-    path('account/login/', RateLimitedLoginView.as_view(), name='login'),
-    path('',include(tf_urls)),  # Use standard two-factor auth (enhanced by middleware)
+    # path('account/login/', RateLimitedLoginView.as_view(), name='login'),
+    # path('',include(tf_urls)),  # Use standard two-factor auth (enhanced by middleware)
+    path('account/', include('allauth.urls')),
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
     path('admin/', admin.site.urls),
     path('schema-viewer/', include('schema_viewer.urls')),
@@ -40,28 +41,27 @@ urlpatterns += i18n_patterns(
     path('promapp/', include('promapp.urls')),
     path('patientapp/', include('patientapp.urls')),
     
-    # Standard logout (login is handled by two-factor)
-    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
+    # Standard logout is now handled by Django Allauth
     
     # Password reset URLs with custom templates
-    path('accounts/password_reset/', 
-         RateLimitedPasswordResetView.as_view(), 
-         name='password_reset'),
-    path('accounts/password_reset/done/', 
-         auth_views.PasswordResetDoneView.as_view(
-             template_name='registration/password_reset_done.html'
-         ), 
-         name='password_reset_done'),
-    path('accounts/reset/<uidb64>/<token>/', 
-         auth_views.PasswordResetConfirmView.as_view(
-             template_name='registration/password_reset_confirm.html'
-         ), 
-         name='password_reset_confirm'),
-    path('accounts/reset/done/', 
-         auth_views.PasswordResetCompleteView.as_view(
-             template_name='registration/password_reset_complete.html'
-         ), 
-         name='password_reset_complete'),
+    # path('accounts/password_reset/', 
+    #      RateLimitedPasswordResetView.as_view(), 
+    #      name='password_reset'),
+    # path('accounts/password_reset/done/', 
+    #      auth_views.PasswordResetDoneView.as_view(
+    #          template_name='registration/password_reset_done.html'
+    #      ), 
+    #      name='password_reset_done'),
+    # path('accounts/reset/<uidb64>/<token>/', 
+    #      auth_views.PasswordResetConfirmView.as_view(
+    #          template_name='registration/password_reset_confirm.html'
+    #      ), 
+    #      name='password_reset_confirm'),
+    # path('accounts/reset/done/', 
+    #      auth_views.PasswordResetCompleteView.as_view(
+    #          template_name='registration/password_reset_complete.html'
+    #      ), 
+    #      name='password_reset_complete'),
     
     prefix_default_language=True,
 )

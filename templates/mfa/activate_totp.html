@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% translate "Activate Authenticator App" %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md mx-auto">
+    <c-card title="{% translate 'Activate Authenticator App' %}" subtitle="{% translate 'Set up two-factor authentication using an authenticator app' %}">
+      <div class="text-center mb-6">
+        <svg class="mx-auto h-12 w-12 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      </div>
+        <div class="space-y-6">
+          <!-- Step 1: Download App -->
+          <div class="border-l-4 border-blue-400 bg-blue-50 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">1</span>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-blue-800">
+                  {% translate "Download an Authenticator App" %}
+                </h3>
+                <div class="mt-2 text-sm text-blue-700">
+                  <p>{% translate "Install one of these apps on your phone:" %}</p>
+                  <ul class="mt-2 list-disc list-inside">
+                    <li>Google Authenticator</li>
+                    <li>Microsoft Authenticator</li>
+                    <li>Authy</li>
+                    <li>1Password</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Scan QR Code -->
+          <div class="border-l-4 border-yellow-400 bg-yellow-50 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-yellow-100 text-yellow-800 text-sm font-medium">2</span>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800">
+                  {% translate "Scan the QR Code" %}
+                </h3>
+                <div class="mt-2 text-sm text-yellow-700">
+                  <p>{% translate "Use your authenticator app to scan this QR code:" %}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- QR Code Display -->
+          {% if qr_code_url %}
+          <div class="text-center bg-white border-2 border-dashed border-gray-300 rounded-lg p-6">
+            <img src="{{ qr_code_url }}" alt="{% translate 'QR Code for authenticator setup' %}" class="mx-auto h-48 w-48">
+            <p class="mt-2 text-sm text-gray-500">
+              {% translate "Scan this QR code with your authenticator app" %}
+            </p>
+          </div>
+          {% endif %}
+
+          <!-- Manual Entry Option -->
+          {% if secret %}
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <h4 class="text-sm font-medium text-gray-900 mb-2">
+              {% translate "Can't scan? Enter manually:" %}
+            </h4>
+            <div class="bg-white border border-gray-300 rounded p-3">
+              <code class="text-sm font-mono text-gray-800 break-all">{{ secret }}</code>
+            </div>
+            <p class="mt-2 text-xs text-gray-500">
+              {% translate "Copy this code into your authenticator app manually" %}
+            </p>
+          </div>
+          {% endif %}
+
+          <!-- Step 3: Enter Code -->
+          <div class="border-l-4 border-green-400 bg-green-50 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-800 text-sm font-medium">3</span>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-green-800">
+                  {% translate "Enter the Verification Code" %}
+                </h3>
+                <div class="mt-2 text-sm text-green-700">
+                  <p>{% translate "Enter the 6-digit code from your authenticator app:" %}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form -->
+          <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+              <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">
+                      {% translate "Error" %}
+                    </h3>
+                    <div class="mt-2 text-sm text-red-700">
+                      {{ form.non_field_errors }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+
+            <div>
+              <label for="{{ form.code.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                {% translate "Verification Code" %}
+              </label>
+              <div class="mt-1">
+                <input type="text" 
+                       name="{{ form.code.name }}" 
+                       id="{{ form.code.id_for_label }}"
+                       class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm font-mono text-center text-lg tracking-widest"
+                       placeholder="000000"
+                       maxlength="6"
+                       autocomplete="one-time-code"
+                       required>
+              </div>
+              {% if form.code.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.code.errors.0 }}</p>
+              {% endif %}
+            </div>
+
+            <div class="flex space-x-3">
+              <c-button variant="primary" type="submit" class="flex-1">
+                {% translate "Activate" %}
+              </c-button>
+              
+              <a href="{% url 'mfa_index' %}" class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                {% translate "Cancel" %}
+              </a>
+            </div>
+          </form>
+        </div>
+    </c-card>
+  </div>
+</div>
+{% endblock %}

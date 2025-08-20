@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% translate "Two-Factor Authentication" %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-2xl mx-auto">
+    <c-card>
+      <div slot="header">
+        <h1 class="text-2xl font-bold text-gray-900">{% translate "Two-Factor Authentication" %}</h1>
+      </div>
+      
+      <div slot="body">
+        {% if "totp" in MFA_SUPPORTED_TYPES %}
+          <div class="mb-8">
+            <h2 class="mt-6 mb-3 text-lg font-semibold text-gray-900">{% translate "Authenticator App" %}</h2>
+            {% if authenticators.totp %}
+              <p class="my-2 text-gray-700">
+                {% translate "Authentication using an authenticator app is active." %}
+              </p>
+              <div class="mt-3">
+                <a href="{% url "mfa_deactivate_totp" %}"
+                   role="button"
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                  {% translate "Deactivate" %}
+                </a>
+              </div>
+            {% else %}
+              <p class="my-2 text-gray-700">{% translate "An authenticator app is not active." %}</p>
+              <div class="mt-3">
+                <a href="{% url "mfa_activate_totp" %}"
+                   role="button"
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                  {% translate "Activate" %}
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {% if "webauthn" in MFA_SUPPORTED_TYPES %}
+          <div class="border-t border-gray-200 pt-8 mb-8">
+            <h2 class="mt-6 mb-3 text-lg font-semibold text-gray-900">{% translate "Security Keys" %}</h2>
+            {% if authenticators.webauthn|length %}
+              <p class="my-2 text-gray-700">
+                {% blocktranslate count count=authenticators.webauthn|length %}You have added {{ count }} security key.{% plural %}You have added {{ count }} security keys.{% endblocktranslate %}
+              </p>
+              <div class="mt-3">
+                <a href="{% url "mfa_list_webauthn" %}"
+                   role="button"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                  {% translate "Manage" %}
+                </a>
+              </div>
+            {% else %}
+              <p class="my-2 text-gray-700">{% translate "No security keys have been added." %}</p>
+              <div class="mt-3">
+                <a href="{% url "mfa_add_webauthn" %}"
+                   role="button"
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                  {% translate "Add" %}
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {% if "recovery_codes" in MFA_SUPPORTED_TYPES %}
+          <div class="border-t border-gray-200 pt-8">
+            {% with total_count=authenticators.recovery_codes.generate_codes|length unused_count=authenticators.recovery_codes.get_unused_codes|length %}
+              <h2 class="mt-6 mb-3 text-lg font-semibold text-gray-900">{% translate "Recovery Codes" %}</h2>
+              <p class="text-gray-700">
+                {% if authenticators.recovery_codes %}
+                  {% blocktranslate count unused_count=unused_count %}There is {{ unused_count }} out of {{ total_count }} recovery codes available.{% plural %}There are {{ unused_count }} out of {{ total_count }} recovery codes available.{% endblocktranslate %}
+                {% else %}
+                  {% translate "No recovery codes set up." %}
+                {% endif %}
+              </p>
+              {% if is_mfa_enabled %}
+                <div class="flex flex-col justify-evenly my-3 md:flex-row gap-3">
+                  {% if authenticators.recovery_codes %}
+                    {% if unused_count > 0 %}
+                      <a href="{% url "mfa_view_recovery_codes" %}"
+                         role="button"
+                         class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        {% translate "View" %}
+                      </a>
+                      <a href="{% url "mfa_download_recovery_codes" %}"
+                         role="button"
+                         class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        {% translate "Download" %}
+                      </a>
+                    {% endif %}
+                  {% endif %}
+                  <a href="{% url "mfa_generate_recovery_codes" %}"
+                     role="button"
+                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    {% translate "Generate" %}
+                  </a>
+                </div>
+              {% endif %}
+            {% endwith %}
+          </div>
+        {% endif %}
+      </div>
+    </c-card>
+  </div>
+</div>
+{% endblock %}

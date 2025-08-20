@@ -1,5 +1,10 @@
 from django.contrib import admin
 from .models import ProviderType, Provider
+from allauth.account.decorators import secure_admin_login
+
+admin.autodiscover()
+admin.site.login = secure_admin_login(admin.site.login)
+
 # Register your models here.
 
 @admin.register(ProviderType)

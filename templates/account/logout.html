@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% translate "Sign Out" %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full">
+    <c-card title="Sign Out" class="max-w-md">
+      <div class="text-center mb-6">
+        <p class="text-sm text-gray-600">
+          {% translate "Are you sure you want to sign out?" %}
+        </p>
+      </div>
+      
+      <form method="post" action="{% url 'account_logout' %}" class="space-y-4">
+        {% csrf_token %}
+        {% if redirect_field_value %}
+        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+        {% endif %}
+        
+        <div class="space-y-3">
+          <c-button type="submit" variant="danger" full_width="true">
+            {% translate "Sign Out" %}
+          </c-button>
+          
+          <c-button type="button" variant="secondary" full_width="true" onclick="window.location.href='{% url 'index' %}'">
+            {% translate "Cancel" %}
+          </c-button>
+        </div>
+      </form>
+    </c-card>
+  </div>
+</div>
+{% endblock %}

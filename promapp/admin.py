@@ -7,9 +7,17 @@ from import_export.admin import ImportExportActionModelAdmin, ImportExportModelA
 from import_export import fields
 from import_export.widgets import ForeignKeyWidget
 from .resources import ItemResource
+from allauth.account.decorators import secure_admin_login
+
+
+
 #from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
 # Register your models here.
 
+
+
+admin.autodiscover()
+admin.site.login = secure_admin_login(admin.site.login)
 
 class LikertScaleResponseOptionInline(TranslatableStackedInline):
     model = LikertScaleResponseOption
