@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.mfa',
+    'django.contrib.humanize',
+    'allauth.usersessions',
     'django.contrib.staticfiles',
     'import_export',
     'secured_fields',
@@ -90,6 +92,7 @@ MIDDLEWARE = [
     # 'chaviprom.security_middleware.OTPAuditMiddleware',   # OTP audit logging
     'django.contrib.messages.middleware.MessageMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'allauth.usersessions.middleware.UserSessionsMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "csp.middleware.CSPMiddleware",
 
@@ -288,6 +291,16 @@ ACCOUNT_LOGIN_BY_CODE_ENABLED = True
 ACCOUNT_LOGIN_BY_CODE_MAX_ATTEMPTS = 3
 ACCOUNT_LOGIN_BY_CODE_TIMEOUT = 300  # 5 minutes
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+
+# Django Allauth user sessions to allow users to check their sessions
+USERSESSIONS_TRACK_ACTIVITY=True
+
+# Django MFA settings
+MFA_TRUST_ENABLED = True
+MFA_TRUST_COOKIE_HTTPONLY = True
+MFA_TRUST_COOKIE_SAMESITE = True
+MFA_TRUST_COOKIE_SECURE = True
+
 
 # Logging configuration
 LOGGING = {

@@ -28,22 +28,7 @@ Welcome to the CHAVI-PROM (Patient Reported Outcomes Measurement) system documen
 
 ---
 
-## 🔐 **Security Documentation**
 
-### [Security Remediation](./SECURITY_REMEDIATION.md)
-**Comprehensive OTP 2FA security vulnerability fixes**
-- OTP bypass vulnerability remediation
-- Enhanced security middleware implementation
-- Anti-replay protection mechanisms
-- Session integrity validation
-- Audit logging and monitoring
-
-### [Rate Limiting Documentation](./RATE_LIMITING_DOCUMENTATION.md)
-**User-based rate limiting implementation**
-- Authentication endpoint protection
-- Reverse proxy compatibility
-- Configurable limits and monitoring
-- Environment-specific settings
 
 ---
 
