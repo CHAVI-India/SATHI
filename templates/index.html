@@ -14,7 +14,7 @@
                     {% translate "Welcome to the Patient Reported Outcome Monitoring Application for CHAVI. This open source application has been designed to allow patients to report their problems and concerns using standardized questionnaires. Questionnaires can be translated into multiple languages. Additionally, the application also provides users with an easy way to view responses to the questions." %}
                 </p>
                 
-                <div class="grid md:grid-cols-2 gap-6 mt-10">
+                <div class="grid md:grid-cols-3 gap-6 mt-10">
                     <div class="bg-blue-50 p-6 rounded-lg shadow-sm">
                         <h2 class="text-xl font-semibold text-blue-800 mb-3">{% translate "For Patients" %}</h2>
                         <p>{% translate "Complete questionnaires about your health and well-being. Your feedback helps healthcare providers understand your needs better." %}</p>
@@ -31,6 +31,16 @@
                         <div class="mt-4">
                             <a href="{% url 'patient_list' %}" class="inline-block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
                                 {% translate "View Results" %}
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-6 rounded-lg shadow-sm">
+                        <h2 class="text-xl font-semibold text-blue-800 mb-3">{% translate "For Questionnaire Developers" %}</h2>
+                        <p>{% translate "Access comprehensive guidance and tools for creating, managing, and configuring questionnaires within the system." %}</p>
+                        <div class="mt-4">
+                            <a href="{% url 'questionnaire_guidance' %}" class="inline-block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
+                                {% translate "Add Questionnaires" %}
                             </a>
                         </div>
                     </div>
