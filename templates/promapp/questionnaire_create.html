@@ -75,12 +75,12 @@
         
         <div class="bg-gray-50 p-4 rounded-md">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold text-gray-800">{% translate "Select Items" %}</h2>
+            <h2 class="text-lg font-semibold text-gray-800">{% translate "Select Items (Questions)" %}</h2>
             <c-link_button 
               href="{% url 'item_create' %}"
               variant="success"
               icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd'/>">
-              {% translate "Create New Item" %}
+              {% translate "Create New Item (Question)" %}
             </c-link_button>
           </div>
           
@@ -106,7 +106,7 @@
               
               {% if available_items %}
                 <div class="item-list border rounded p-2">
-                  <h3 class="font-medium text-gray-700 mb-2">{% translate "Available Items" %}</h3>
+                  <h3 class="font-medium text-gray-700 mb-2">{% translate "Available Items (Questions)" %}</h3>
                   
                   {% regroup available_items by construct_scale as items_by_scale %}
                   
@@ -161,7 +161,7 @@
                     href="{% url 'item_create' %}"
                     variant="success"
                     icon_left="<path fill-rule='evenodd' d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z' clip-rule='evenodd'/>">
-                    {% translate "Create First Item" %}
+                    {% translate "Create First Item (Question)" %}
                   </c-link_button>
                 </div>
               {% endif %}
@@ -171,7 +171,7 @@
             <div class="w-full lg:w-1/3">
               <div class="border rounded p-4 bg-blue-50">
                 <div class="flex justify-between items-center mb-3">
-                  <h3 class="font-medium text-gray-700">{% translate "Selected Items" %} (<span id="selected-count">0</span>)</h3>
+                  <h3 class="font-medium text-gray-700">{% translate "Selected Items (Questions)" %} (<span id="selected-count">0</span>)</h3>
                   <c-button 
                     id="clear-all-btn" 
                     variant="danger" 

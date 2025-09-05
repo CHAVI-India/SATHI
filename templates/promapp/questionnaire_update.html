@@ -91,9 +91,9 @@
         
         <div class="bg-gray-50 p-4 rounded-md">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold text-gray-800">{% translate "Manage Items" %}</h2>
+            <h2 class="text-lg font-semibold text-gray-800">{% translate "Manage Items (Questions)" %}</h2>
             <c-create_button href="{% url 'item_create' %}">
-              {% translate "Create New Item" %}
+              {% translate "Create New Item (Question)" %}
             </c-create_button>
           </div>
           
@@ -120,7 +120,7 @@
               
               {% if available_items %}
                 <div class="item-list border rounded p-2">
-                  <h3 class="font-medium text-gray-700 mb-2">{% translate "Available Items" %}</h3>
+                  <h3 class="font-medium text-gray-700 mb-2">{% translate "Available Items (Questions)" %}</h3>
                   
                   {% regroup available_items by construct_scale as items_by_scale %}
                   
@@ -174,7 +174,7 @@
                 <div class="text-center py-8">
                   <p class="text-gray-600 mb-4">{% translate "No items available. Please create items first." %}</p>
                   <c-create_button href="{% url 'item_create' %}">
-                    {% translate "Create First Item" %}
+                    {% translate "Create First Item (Question)" %}
                   </c-create_button>
                 </div>
               {% endif %}
@@ -184,7 +184,7 @@
             <div class="w-full lg:w-1/3">
               <div class="border rounded p-4 bg-blue-50">
                 <div class="flex justify-between items-center mb-3">
-                  <h3 class="font-medium text-gray-700">{% translate "Selected Items" %} (<span id="selected-count">0</span>)</h3>
+                  <h3 class="font-medium text-gray-700">{% translate "Selected Items (Questions)" %} (<span id="selected-count">0</span>)</h3>
                   <c-button id="clear-all-btn" variant="danger" size="sm">
                     {% translate "Clear All" %}
                   </c-button>

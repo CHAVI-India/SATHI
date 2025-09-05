@@ -225,8 +225,8 @@ class ItemForm(TranslatableModelForm):
             Div(
                 HTML(f'<h3 class="text-lg font-semibold text-gray-800 mb-4">{_("Item Details")}</h3>'),
                 Field('construct_scale'),
-                Field('name'),
-                Field('media'),
+                Field('Question Text'),
+                Field('Question Media File'),
                 Field('is_required'),
                 Field('response_type'),
                 Div(

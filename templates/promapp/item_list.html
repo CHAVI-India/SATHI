@@ -2,16 +2,16 @@
 {% load i18n %}
 {% load cotton %}
 
-{% block title %}{% translate "Items" %}{% endblock %}
+{% block title %}{% translate "Items (Questions)" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-blue-700">{% translate "Items" %}</h1>
+        <h1 class="text-2xl font-bold text-blue-700">{% translate "Items (Questions)" %}</h1>
         <c-create_button href="{% url 'item_create' %}">
-          {% translate "Create New Item" %}
+          {% translate "Create New Item (Question)" %}
         </c-create_button>
       </div>
       
@@ -119,7 +119,7 @@
         <div class="text-center py-8">
           <p class="text-gray-600 mb-4">{% translate "No items available yet." %}</p>
           <c-create_button href="{% url 'item_create' %}">
-            {% translate "Create First Item" %}
+            {% translate "Create First Item (Question)" %}
           </c-create_button>
         </div>
       {% endif %}

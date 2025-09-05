@@ -22,7 +22,7 @@
               </c-link_button>
             {% endif %}
             <c-create_button href="{% url 'item_create' %}?construct_scale={{ scale.id }}" size="sm">
-              {% translate "Add Item" %}
+              {% translate "Add Item (Question)" %}
             </c-create_button>
           </div>
         </div>
@@ -46,7 +46,7 @@
               -
             {% endif %}
             <div class="flex items-center">
-              <span class="font-medium mr-1">{% translate "Items:" %}</span>
+              <span class="font-medium mr-1">{% translate "Items (Questions):" %}</span>
               {{ scale.item_set.count }}
             </div>
           </div>
