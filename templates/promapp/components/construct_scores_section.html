@@ -32,12 +32,16 @@
                             <span>{% translate "Score does not meet clinical threshold" %}</span>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <span class="px-1 py-0.5 rounded text-xs bg-green-200 text-green-800">↑</span>
-                            <span>{% translate "Higher scores are better" %}</span>
+                            <span class="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700 font-medium">Higher is Better</span>
+                            <span>{% translate "Higher scores are better for this construct" %}</span>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <span class="px-1 py-0.5 rounded text-xs bg-red-200 text-red-800">↓</span>
-                            <span>{% translate "Lower scores are better" %}</span>
+                            <span class="px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-medium">Lower is Better</span>
+                            <span>{% translate "Lower scores are better for this construct" %}</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700 font-medium">Middle is Better</span>
+                            <span>{% translate "Middle range scores are better for this construct" %}</span>
                         </div>
                         <div class="text-xs text-gray-300 mt-2">
                             {% translate "Format: Items (Questions) answered/Total items" %}
@@ -55,25 +59,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {% for construct_score in other_construct_scores %}
                         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
                                     <h5 class="font-medium text-gray-900 text-sm truncate">{{ construct_score.construct.name }}</h5>
-                                    <div class="flex items-center space-x-1">
-                                        {% if construct_score.score is not None %}
-                                            <span class="text-lg font-bold text-blue-600">{{ construct_score.score|floatformat:2 }}</span>
-                                            {% if construct_score.score_change is not None %}
-                                                {% if construct_score.score_change > 0 %}
-                                                    <c-icon_trending_up class="text-green-600 w-4 h-4" />
-                                                {% elif construct_score.score_change < 0 %}
-                                                    <c-icon_trending_down class="text-orange-500 w-4 h-4" />
-                                                {% else %}
-                                                    <c-icon_no_change class="text-gray-500 w-4 h-4" />
-                                                {% endif %}
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="text-sm text-gray-500">{% translate "N/A" %}</span>
-                                        {% endif %}
-                                    </div>
                                     <div class="flex items-center space-x-2 text-xs text-gray-500">
                                         <span>{{ construct_score.items_answered|default:"0" }}/{{ construct_score.items_answered|default:"0"|add:construct_score.items_not_answered|default:"0" }}</span>
                                         {% if construct_score.construct.scale_threshold_score and construct_score.score is not None %}
@@ -93,17 +81,39 @@
                                         {% endif %}
                                     </div>
                                 </div>
+                                
+                                <div class="flex items-center space-x-1">
+                                    {% if construct_score.score is not None %}
+                                        <span class="text-lg font-bold text-blue-600">{{ construct_score.score|floatformat:2 }}</span>
+                                        {% if construct_score.score_change is not None %}
+                                            {% if construct_score.score_change > 0 %}
+                                                <c-icon_trending_up class="text-green-600 w-4 h-4" />
+                                            {% elif construct_score.score_change < 0 %}
+                                                <c-icon_trending_down class="text-orange-500 w-4 h-4" />
+                                            {% else %}
+                                                <c-icon_no_change class="text-gray-500 w-4 h-4" />
+                                            {% endif %}
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-sm text-gray-500">{% translate "N/A" %}</span>
+                                    {% endif %}
+                                </div>
+                                
                                 {% if construct_score.construct.scale_better_score_direction %}
-                                    <span class="px-1 py-0.5 rounded text-xs flex-shrink-0
-                                        {% if construct_score.construct.scale_better_score_direction == 'Higher is Better' %}
-                                            bg-green-100 text-green-700
-                                        {% elif construct_score.construct.scale_better_score_direction == 'Lower is Better' %}
-                                            bg-red-100 text-red-700
-                                        {% else %}
-                                            bg-gray-100 text-gray-700
-                                        {% endif %}">
-                                        {% if construct_score.construct.scale_better_score_direction == 'Higher is Better' %}↑{% elif construct_score.construct.scale_better_score_direction == 'Lower is Better' %}↓{% else %}~{% endif %}
-                                    </span>
+                                    <div>
+                                        <span class="px-2 py-1 rounded text-xs font-medium
+                                            {% if construct_score.construct.scale_better_score_direction == 'Higher is Better' %}
+                                                bg-green-100 text-green-700
+                                            {% elif construct_score.construct.scale_better_score_direction == 'Lower is Better' %}
+                                                bg-blue-100 text-blue-700
+                                            {% elif construct_score.construct.scale_better_score_direction == 'Middle is Better' %}
+                                                bg-purple-100 text-purple-700
+                                            {% else %}
+                                                bg-gray-100 text-gray-700
+                                            {% endif %}">
+                                            {{ construct_score.construct.scale_better_score_direction }}
+                                        </span>
+                                    </div>
                                 {% endif %}
                             </div>
                         </div>
