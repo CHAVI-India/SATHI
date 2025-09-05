@@ -12,11 +12,11 @@
                     <div class="space-y-2">
                         <div class="font-semibold">{% translate "Legend:" %}</div>
                         <div class="flex items-center space-x-2">
-                            <c-icon_trending_up class="text-green-400 w-4 h-4" />
+                            <c-icon_trending_up class="text-green-600 w-4 h-4" />
                             <span>{% translate "Score improved from previous submission" %}</span>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <c-icon_trending_down class="text-red-400 w-4 h-4" />
+                            <c-icon_trending_down class="text-orange-500 w-4 h-4" />
                             <span>{% translate "Score declined from previous submission" %}</span>
                         </div>
                         <div class="flex items-center space-x-2">
@@ -65,7 +65,7 @@
                                                 {% if construct_score.score_change > 0 %}
                                                     <c-icon_trending_up class="text-green-600 w-4 h-4" />
                                                 {% elif construct_score.score_change < 0 %}
-                                                    <c-icon_trending_down class="text-red-600 w-4 h-4" />
+                                                    <c-icon_trending_down class="text-orange-500 w-4 h-4" />
                                                 {% else %}
                                                     <c-icon_no_change class="text-gray-500 w-4 h-4" />
                                                 {% endif %}
@@ -129,7 +129,7 @@
                                                 {% if composite_score.score_change > 0 %}
                                                     <c-icon_trending_up class="text-green-600 w-4 h-4" />
                                                 {% elif composite_score.score_change < 0 %}
-                                                    <c-icon_trending_down class="text-red-600 w-4 h-4" />
+                                                    <c-icon_trending_down class="text-orange-500 w-4 h-4" />
                                                 {% else %}
                                                     <c-icon_no_change class="text-gray-500 w-4 h-4" />
                                                 {% endif %}

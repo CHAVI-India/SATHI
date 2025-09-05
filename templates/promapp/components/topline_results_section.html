@@ -17,19 +17,19 @@
                         <div class="space-y-1">
                             <div class="text-xs font-medium text-gray-300">{% translate "Trend Indicators:" %}</div>
                             <div class="flex items-center space-x-2">
-                                <c-icon_trending_up class="text-green-400 w-4 h-4" />
+                                <c-icon_trending_up class="text-green-600 w-4 h-4" />
                                 <span>{% translate "Score improved (beneficial change)" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
-                                <c-icon_trending_up class="text-orange-400 w-4 h-4" />
+                                <c-icon_trending_up class="text-orange-500 w-4 h-4" />
                                 <span>{% translate "Score increased (concerning change)" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
-                                <c-icon_trending_down class="text-green-400 w-4 h-4" />
+                                <c-icon_trending_down class="text-green-600 w-4 h-4" />
                                 <span>{% translate "Score decreased (beneficial change)" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
-                                <c-icon_trending_down class="text-orange-400 w-4 h-4" />
+                                <c-icon_trending_down class="text-orange-500 w-4 h-4" />
                                 <span>{% translate "Score decreased (concerning change)" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
@@ -91,7 +91,7 @@
                         {% if score_data.score_change is not None %}
                             {% if score_data.score_change > 0 %}
                                 {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
-                                    <c-icon_trending_up class="text-green-500 w-5 h-5" />
+                                    <c-icon_trending_up class="text-green-600 w-5 h-5" />
                                 {% else %}
                                     <c-icon_trending_up class="text-orange-500 w-5 h-5" />
                                 {% endif %}
@@ -99,7 +99,7 @@
                                 {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
                                     <c-icon_trending_down class="text-orange-500 w-5 h-5" />
                                 {% else %}
-                                    <c-icon_trending_down class="text-green-500 w-5 h-5" />
+                                    <c-icon_trending_down class="text-green-600 w-5 h-5" />
                                 {% endif %}
                             {% else %}
                                 <c-icon_no_change class="text-gray-500 w-5 h-5" />
