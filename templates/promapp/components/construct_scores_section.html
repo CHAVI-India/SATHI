@@ -20,7 +20,7 @@
                             <span>{% translate "Score declined from previous submission" %}</span>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <c-icon_no_change class="text-gray-400 w-4 h-4" />
+                            <c-icon_no_change class="text-blue-400 w-4 h-4" />
                             <span>{% translate "No change from previous submission" %}</span>
                         </div>
                         <div class="flex items-center space-x-2">
@@ -91,7 +91,7 @@
                                             {% elif construct_score.score_change < 0 %}
                                                 <c-icon_trending_down class="text-orange-500 w-4 h-4" />
                                             {% else %}
-                                                <c-icon_no_change class="text-gray-500 w-4 h-4" />
+                                                <c-icon_no_change class="text-blue-500 w-4 h-4" />
                                             {% endif %}
                                         {% endif %}
                                     {% else %}
@@ -141,7 +141,7 @@
                                                 {% elif composite_score.score_change < 0 %}
                                                     <c-icon_trending_down class="text-orange-500 w-4 h-4" />
                                                 {% else %}
-                                                    <c-icon_no_change class="text-gray-500 w-4 h-4" />
+                                                    <c-icon_no_change class="text-blue-500 w-4 h-4" />
                                                 {% endif %}
                                             {% endif %}
                                         {% else %}

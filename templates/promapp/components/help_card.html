@@ -33,92 +33,92 @@
                 <div class="flex-1">
             
             <div class="text-sm">
-                <!-- Main grid layout for better space utilization -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+                <!-- 5-column layout for compact display -->
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
                     
-                    <!-- Trend Indicators Section -->
+                    <!-- Beneficial Changes -->
                     <div>
-                        <h5 class="font-medium text-blue-800 mb-3">{% translate "Trend Indicators:" %}</h5>
+                        <h5 class="font-medium text-green-800 mb-3">{% translate "Beneficial change:" %}</h5>
                         <div class="space-y-2">
                             <div class="flex items-center space-x-2">
                                 <c-icon_trending_up class="text-green-600 w-4 h-4 flex-shrink-0" aria-hidden="true" />
-                                <span class="text-xs">{% translate "Score improved (beneficial change)" %}</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <c-icon_trending_up class="text-orange-500 w-4 h-4 flex-shrink-0" aria-hidden="true" />
-                                <span class="text-xs">{% translate "Score increased (concerning change)" %}</span>
+                                <span class="text-xs">{% translate "Improved Score" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <c-icon_trending_down class="text-green-600 w-4 h-4 flex-shrink-0" aria-hidden="true" />
-                                <span class="text-xs">{% translate "Score decreased (beneficial change)" %}</span>
+                                <span class="text-xs">{% translate "Decreased Score" %}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Concerning Changes -->
+                    <div>
+                        <h5 class="font-medium text-orange-800 mb-3">{% translate "Concerning Change:" %}</h5>
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-2">
+                                <c-icon_trending_up class="text-orange-500 w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                                <span class="text-xs">{% translate "Increased Score" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <c-icon_trending_down class="text-orange-500 w-4 h-4 flex-shrink-0" aria-hidden="true" />
-                                <span class="text-xs">{% translate "Score decreased (concerning change)" %}</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <c-icon_no_change class="text-gray-500 w-4 h-4 flex-shrink-0" aria-hidden="true" />
-                                <span class="text-xs">{% translate "No change from previous submission" %}</span>
+                                <span class="text-xs">{% translate "Decreased Score" %}</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Status Indicators Section -->
+                    <!-- No Change -->
                     <div>
-                        <h5 class="font-medium text-blue-800 mb-3">{% translate "Status Indicators:" %}</h5>
+                        <h5 class="font-medium text-blue-800 mb-3">{% translate "Stable:" %}</h5>
                         <div class="space-y-2">
                             <div class="flex items-center space-x-2">
-                                <span class="text-green-600 font-bold flex-shrink-0" aria-hidden="true">✓</span>
-                                <span class="text-xs">{% translate "Meets clinical threshold" %}</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-red-600 font-bold flex-shrink-0" aria-hidden="true">⚠</span>
-                                <span class="text-xs">{% translate "Does not meet clinical threshold" %}</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-blue-600 font-bold flex-shrink-0" aria-hidden="true">◯</span>
-                                <span class="text-xs">{% translate "Normative population mean" %}</span>
+                                <c-icon_no_change class="text-blue-500 w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                                <span class="text-xs">{% translate "No change" %}</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Score Direction & Plot Elements Combined -->
-                    <div>
-                        <h5 class="font-medium text-blue-800 mb-3">{% translate "Score Direction:" %}</h5>
-                        <div class="space-y-2">
-                            <div class="flex items-center space-x-2">
-                                <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-800 flex-shrink-0" aria-hidden="true">↑</span>
-                                <span class="text-xs">{% translate "Higher scores are better" %}</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="px-2 py-1 rounded text-xs bg-red-100 text-red-800 flex-shrink-0" aria-hidden="true">↓</span>
-                                <span class="text-xs">{% translate "Lower scores are better" %}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Plot Elements Section -->
+                    <!-- Plot Elements -->
                     <div>
                         <h5 class="font-medium text-blue-800 mb-3">{% translate "Plot Elements:" %}</h5>
                         <div class="space-y-2">
                             <div class="flex items-center space-x-2">
                                 <div class="w-4 h-1 bg-blue-500 flex-shrink-0" aria-hidden="true"></div>
-                                <span class="text-xs">{% translate "Score trend line over time" %}</span>
+                                <span class="text-xs">{% translate "Trend line" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" aria-hidden="true"></div>
-                                <span class="text-xs">{% translate "Individual score points" %}</span>
+                                <span class="text-xs">{% translate "Score points" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <div class="w-4 h-1 bg-red-500 border-dashed border border-red-500 flex-shrink-0" aria-hidden="true"></div>
-                                <span class="text-xs">{% translate "Clinical threshold line" %}</span>
+                                <span class="text-xs">{% translate "Threshold" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <div class="w-4 h-1 bg-gray-500 border-dashed border border-gray-500 flex-shrink-0" aria-hidden="true"></div>
-                                <span class="text-xs">{% translate "Normative mean reference line" %}</span>
+                                <span class="text-xs">{% translate "Normative" %}</span>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Status Indicators -->
+                    <div>
+                        <h5 class="font-medium text-blue-800 mb-3">{% translate "Status:" %}</h5>
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-green-600 font-bold flex-shrink-0" aria-hidden="true">✓</span>
+                                <span class="text-xs">{% translate "Meets threshold" %}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-red-600 font-bold flex-shrink-0" aria-hidden="true">⚠</span>
+                                <span class="text-xs">{% translate "Below threshold" %}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-blue-600 font-bold flex-shrink-0" aria-hidden="true">◯</span>
+                                <span class="text-xs">{% translate "Population mean" %}</span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- Additional Information -->
