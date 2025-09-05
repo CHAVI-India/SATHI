@@ -3870,18 +3870,17 @@ class CompositeConstructScaleScoringDeleteView(LoginRequiredMixin, PermissionReq
 
 class QuestionnaireGuidanceView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     """
-    View for the questionnaire guidance page.
-    This page provides comprehensive explanations of all the key concepts
-    related to questionnaires, constructs, items, and scoring.
+    View for the redesigned questionnaire guidance page with step-by-step workflow.
+    This page provides a clear 4-step process for creating questionnaires
+    with visual workflow and direct links to creation forms.
     """
     template_name = 'promapp/questionnaire_guidance.html'
     permission_required = 'promapp.add_questionnaire'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['page_title'] = 'Questionnaire Guidance'
+        context['page_title'] = 'Questionnaire Creation Guide'
         return context
-
 
 
 

@@ -7,7 +7,7 @@ urlpatterns = [
 
     # Questionnaire URLs
     path('questionnaires/', views.QuestionnaireListView.as_view(), name='questionnaire_list'),
-    path('questionnaires/guidance/', views.QuestionnaireGuidanceView.as_view(), name='questionnaire_guidance'),
+    path('questionnaires/guidance', views.QuestionnaireGuidanceView.as_view(), name='questionnaire_guidance'),
     path('questionnaires/create/', views.QuestionnaireCreateView.as_view(), name='questionnaire_create'),
     path('questionnaires/<uuid:pk>/', views.QuestionnaireDetailView.as_view(), name='questionnaire_detail'),
     path('questionnaires/<uuid:pk>/update/', views.QuestionnaireUpdateView.as_view(), name='questionnaire_update'),
