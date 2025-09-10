@@ -1378,7 +1378,20 @@ def _get_patient_start_date_bulk(patient, start_date_reference, reference_object
     
     KEY DIFFERENCES vs get_patient_start_date():
     ==========================================
-    bokeh
+    
+    DATABASE QUERIES:
+    - get_patient_start_date(): 1-3 queries PER patient (N+1 problem)
+         - _get_patient_start_date_bulk(): 0 queries per patient (uses prefetched data)
+    
+    PERFORMANCE:
+    - get_patient_start_date(): Fine for single patient operations
+         - _get_patient_start_date_bulk(): Optimized for bulk processing (100x faster for large datasets)
+    
+    SETUP REQUIREMENTS:
+    - get_patient_start_date(): No setup required
+         - _get_patient_start_date_bulk(): Requires prefetched patient data and reference_objects_cache
+    
+    USAGE:
     - get_patient_start_date(): General-purpose, single patient operations
          - _get_patient_start_date_bulk(): Specialized for bulk aggregation functions only
     
@@ -2071,7 +2084,17 @@ def calculate_aggregation_statistics(aggregated_data, aggregation_type='median_i
                 'upper': ci[1],
                 'n': n
             }
-            cbokehelif aggregation_type.startswith('mean_'):
+            calculation_data.append({
+                'Time_Interval': f"{interval:.1f}",
+                'Value_Count': n,
+                'Status': 'Calculated',
+                'Central': f"{mean:.2f} (mean)",
+                'Lower': f"{ci[0]:.2f} (95% CI lower)",
+                'Upper': f"{ci[1]:.2f} (95% CI upper)",
+                'Values': f"[{', '.join([f'{v:.1f}' for v in sorted(values)])}]"
+            })
+            
+        elif aggregation_type.startswith('mean_'):
             mean = np.mean(values_array)
             std = np.std(values_array, ddof=1)  # Sample standard deviation
             
