@@ -87,11 +87,19 @@
                                         <span class="text-lg font-bold text-blue-600">{{ construct_score.score|floatformat:2 }}</span>
                                         {% if construct_score.score_change is not None %}
                                             {% if construct_score.score_change > 0 %}
-                                                <c-icon_trending_up class="text-green-600 w-4 h-4" />
+                                                {% if construct_score.construct.scale_better_score_direction == 'Higher is Better' %}
+                                                    <c-icon_trending_up class="text-green-600 w-5 h-5" />
+                                                {% else %}
+                                                    <c-icon_trending_up class="text-orange-500 w-5 h-5" />
+                                                {% endif %}
                                             {% elif construct_score.score_change < 0 %}
-                                                <c-icon_trending_down class="text-orange-500 w-4 h-4" />
+                                                {% if construct_score.construct.scale_better_score_direction == 'Higher is Better' %}
+                                                    <c-icon_trending_down class="text-orange-500 w-5 h-5" />
+                                                {% else %}
+                                                    <c-icon_trending_down class="text-green-600 w-5 h-5" />
+                                                {% endif %}
                                             {% else %}
-                                                <c-icon_no_change class="text-blue-500 w-4 h-4" />
+                                                <c-icon_no_change class="text-blue-500 w-5 h-5" />
                                             {% endif %}
                                         {% endif %}
                                     {% else %}
