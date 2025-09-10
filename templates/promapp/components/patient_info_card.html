@@ -1,85 +1,145 @@
 {% load i18n %}
 
-<div class="bg-white shadow-sm rounded-lg border border-gray-200 p-4 patient-info-card">
+<div class="bg-white shadow-lg rounded-xl border border-gray-200 p-6 patient-info-card">
     <!-- Patient Basic Info Header -->
-    <div class="mb-3 pb-3 border-b border-gray-100">
-        <div class="flex flex-wrap items-baseline gap-x-2">
-            <h3 class="text-lg font-medium text-gray-900">{{ patient.name|default:"N/A" }}</h3>
-            <p class="text-sm text-gray-600">(ID: {{ patient.patient_id|default:"N/A" }})</p>
-        </div>
-        <div class="text-xs text-gray-500 flex flex-wrap gap-x-3 gap-y-1 mt-0.5">
-            {% if patient.age %}<span>{% translate "Age" %}: {{ patient.age }}</span>{% endif %}
-            {% if patient.gender %}<span>{{ patient.gender }}</span>{% endif %}
-            {% if patient.date_of_registration %}
-                <span>{% translate "Reg. Date" %}: {{ patient.date_of_registration|date:"d M Y" }}</span>
-            {% endif %}
+    <div class="mb-3 pb-3 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-x-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                    {{ patient.name|default:"N"|first|upper }}
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">{{ patient.name|default:"N/A" }}</h3>
+                    <p class="text-xs text-gray-600">ID: {{ patient.patient_id|default:"N/A" }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-x-4 text-xs">
+                {% if patient.age %}
+                <div class="flex items-center gap-x-1">
+                    <span class="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
+                    <span class="text-gray-600">{% translate "Age" %}:</span>
+                    <span class="font-medium text-gray-900">{{ patient.age }}</span>
+                </div>
+                {% endif %}
+                {% if patient.gender %}
+                <div class="flex items-center gap-x-1">
+                    <span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                    <span class="text-gray-600">{% translate "Gender" %}:</span>
+                    <span class="font-medium text-gray-900">{{ patient.gender }}</span>
+                </div>
+                {% endif %}
+                {% if patient.date_of_registration %}
+                <div class="flex items-center gap-x-1">
+                    <span class="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+                    <span class="text-gray-600">{% translate "Registered" %}:</span>
+                    <span class="font-medium text-gray-900">{{ patient.date_of_registration|date:"d M Y" }}</span>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <!-- Clinical Information Header -->
-    <div class="mb-3 pb-2 border-b border-gray-100">
-        <h4 class="text-sm font-semibold text-gray-700">
-            <svg class="w-4 h-4 inline mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            {% translate "Clinical Information" %}
-        </h4>
+    <!-- Combined Clinical Information & Plot Indicators Header -->
+    <div class="mb-3 pb-2 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-gray-800 flex items-center gap-x-2">
+                <div class="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                {% translate "Clinical Information & Plot Indicators" %}
+            </h4>
+            <p class="text-xs text-gray-500">
+                <svg class="w-3 h-3 inline mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                {% translate "Check dates to show on plots" %}
+            </p>
+        </div>
     </div>
 
-    <!-- Diagnoses & Treatments Tree (Scrollable) -->
-    <div class="max-h-80 overflow-y-auto border border-gray-100 rounded-md bg-gray-50 p-3">
+    <!-- Diagnoses & Treatments Grid (Horizontal Layout) -->
+    <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-lg bg-gradient-to-br from-gray-50 to-white p-3">
         {% if patient.diagnosis_set.all %}
-            <div class="space-y-2">
+            <div class="space-y-3">
                 {% for diagnosis in patient.diagnosis_set.all %}
-                <div class="text-sm bg-white rounded-md p-2 shadow-sm border border-gray-100 diagnosis-card">
+                <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow diagnosis-card">
                     <!-- Diagnosis Level -->
-                    <div class="flex items-start gap-x-2 py-1">
-                        <div class="flex-1">
-                            <div class="flex items-start gap-x-2">
-                                <div class="flex items-center gap-x-1">
-                                    <span class="text-blue-600">📋</span>
-                                    <span class="font-semibold text-gray-800">{{ diagnosis.diagnosis.diagnosis|default:"Unnamed Diagnosis" }}</span>
-                                </div>
-                                {% if diagnosis.date_of_diagnosis %}
-                                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                                    {{ diagnosis.date_of_diagnosis|date:"d M Y" }}
-                                </span>
-                                {% endif %}
+                    <div class="flex items-center gap-x-2 mb-2">
+                        <input type="checkbox" 
+                               class="plot-indicator-checkbox w-3 h-3 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-1" 
+                               data-type="diagnosis" 
+                               data-id="{{ diagnosis.id }}" 
+                               data-date="{{ diagnosis.date_of_diagnosis|date:'Y-m-d' }}" 
+                               data-label="{{ diagnosis.diagnosis.diagnosis }}">
+                        <div class="flex items-center gap-x-2 flex-1">
+                            <div class="w-6 h-6 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
                             </div>
-                            {% if diagnosis.description %}
-                            <div class="text-xs text-gray-600 mt-1 ml-5">{{ diagnosis.description|truncatechars:80 }}</div>
-                            {% endif %}
+                            <div class="flex-1 min-w-0">
+                                <span class="font-medium text-gray-900 text-xs block truncate">{{ diagnosis.diagnosis.diagnosis }}</span>
+                                <div class="text-xs text-gray-500">Diagnosis</div>
+                            </div>
                         </div>
+                        {% if diagnosis.date_of_diagnosis %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200 whitespace-nowrap">
+                                {{ diagnosis.date_of_diagnosis|date:"d M Y" }}
+                            </span>
+                        {% endif %}
                     </div>
-                    
+
                     <!-- Treatments under this diagnosis -->
                     {% if diagnosis.treatment_set.all %}
-                    <div class="ml-6 mt-2 border-l-2 border-blue-200 pl-3 space-y-1.5">
-                        {% for treatment in diagnosis.treatment_set.all %}
-                        <div class="flex items-start gap-x-2 py-1 bg-green-50 rounded-md px-2 treatment-item">
-                            <div class="flex-1 text-xs">
-                                <div class="flex items-start gap-x-2">
-                                    <div class="flex items-center gap-x-1">
-                                        <span class="text-green-600">🩺</span>
-                                        <span class="font-medium text-gray-800">
-                                            {% for type in treatment.treatment_type.all %}
-                                                {{ type.treatment_type }}{% if not forloop.last %}, {% endif %}
-                                            {% empty %}
-                                                {% translate "N/A" %}
-                                            {% endfor %}
-                                        </span>
-                                    </div>
-                                    <div class="flex flex-wrap gap-1">
-                                        {% if treatment.treatment_intent %}
-                                        <span class="text-gray-600 bg-gray-200 px-1.5 py-0.5 rounded-full text-xs">
-                                            {{ treatment.treatment_intent }}
-                                        </span>
-                                        {% endif %}
-                                        {% if treatment.date_of_start_of_treatment %}
-                                        <span class="text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full text-xs">
-                                            {{ treatment.date_of_start_of_treatment|date:"d M Y" }}
-                                        </span>
-                                        {% endif %}
+                    <div class="ml-4 mt-2 border-l-2 border-blue-200 pl-2 space-y-2">
+                        {% for treatment in diagnosis.treatment_set.all|dictsort:"date_of_start_of_treatment" %}
+                        <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-md p-2 border border-green-200 treatment-item">
+                            <div class="flex items-center gap-x-2 text-xs">
+                                <div class="w-4 h-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                    </svg>
+                                </div>
+                                <span class="font-medium text-gray-900 text-xs truncate">
+                                    {% for type in treatment.treatment_type.all %}
+                                        {{ type.treatment_type }}{% if not forloop.last %}, {% endif %}
+                                    {% empty %}
+                                        {% translate "Treatment" %}
+                                    {% endfor %}
+                                </span>
+                                {% if treatment.treatment_intent %}
+                                <span class="text-gray-600 bg-gray-200 px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap">
+                                    {{ treatment.treatment_intent }}
+                                </span>
+                                {% endif %}
+                                {% if treatment.date_of_start_of_treatment %}
+                                <label class="flex items-center gap-x-1">
+                                    <input type="checkbox" 
+                                           class="plot-indicator-checkbox treatment-checkbox w-3 h-3 text-green-600 focus:ring-green-500 border-gray-300 rounded" 
+                                           data-type="treatment_start" 
+                                           data-id="{{ treatment.id }}" 
+                                           data-date="{{ treatment.date_of_start_of_treatment|date:'Y-m-d' }}" 
+                                           data-label="{% for type in treatment.treatment_type.all %}{{ type.treatment_type }}{% if not forloop.last %}, {% endif %}{% empty %}Treatment{% endfor %} Start ({{ diagnosis.diagnosis.diagnosis|default:'Unnamed Diagnosis' }})"
+                                           id="treatment_start_{{ treatment.id }}">
+                                    <span class="text-green-600 font-medium">{% translate "Start Date" %}</span>
+                                    <span class="text-gray-500">{{ treatment.date_of_start_of_treatment|date:"d M Y" }}</span>
+                                </label>
+                                {% endif %}
+                                {% if treatment.date_of_end_of_treatment %}
+                                <label class="flex items-center gap-x-1">
+                                    <input type="checkbox" 
+                                           class="plot-indicator-checkbox treatment-checkbox w-3 h-3 text-red-600 focus:ring-red-500 border-gray-300 rounded" 
+                                           data-type="treatment_end" 
+                                           data-id="{{ treatment.id }}" 
+                                           data-date="{{ treatment.date_of_end_of_treatment|date:'Y-m-d' }}" 
+                                           data-label="{% for type in treatment.treatment_type.all %}{{ type.treatment_type }}{% if not forloop.last %}, {% endif %}{% empty %}Treatment{% endfor %} End ({{ diagnosis.diagnosis.diagnosis|default:'Unnamed Diagnosis' }})"
+                                           id="treatment_end_{{ treatment.id }}">
+                                    <span class="text-red-600 font-medium">{% translate "End Date" %}</span>
+                                    <span class="text-gray-500">{{ treatment.date_of_end_of_treatment|date:"d M Y" }}</span>
+                                </label>
+                                {% endif %}
                                     </div>
                                 </div>
                                 {% if treatment.notes %}

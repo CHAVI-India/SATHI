@@ -52,6 +52,18 @@ def prom_review(request, pk):
     start_date_reference = request.GET.get('start_date_reference', 'date_of_registration')
     time_interval = request.GET.get('time_interval', 'weeks')
     
+    # Get selected indicators for plot display
+    selected_indicators_param = request.GET.get('selected_indicators')
+    selected_indicators = []
+    if selected_indicators_param:
+        try:
+            import json
+            selected_indicators = json.loads(selected_indicators_param)
+            logger.info(f"Selected indicators: {len(selected_indicators)} indicators")
+        except (json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Failed to parse selected_indicators parameter: {e}")
+            selected_indicators = []
+    
     # Convert max_time_interval to float if provided
     max_time_interval_value = None
     if max_time_interval:
@@ -435,7 +447,8 @@ def prom_review(request, pk):
                     response.questionnaire_item.item,
                     patient,
                     start_date_reference,
-                    time_interval
+                    time_interval,
+                    selected_indicators
                 )
                 if not response.bokeh_plot:
                     logger.warning(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): create_item_response_plot returned None or empty string.")
@@ -724,7 +737,8 @@ def prom_review(request, pk):
             time_interval=time_interval,
             aggregated_statistics=aggregated_statistics,  # Pass aggregated statistics
             aggregation_metadata=aggregation_metadata,  # Pass aggregation metadata
-            aggregation_type=aggregation_type  # Pass aggregation type for tooltips
+            aggregation_type=aggregation_type,  # Pass aggregation type for tooltips
+            selected_indicators=selected_indicators  # Pass selected indicators for plot display
         )
 
         # Only include if it's an important construct
@@ -1331,7 +1345,8 @@ def patient_portal(request):
                     item,
                     patient,
                     'date_of_registration',  # Use registration date as reference
-                    'weeks'  # Use weeks as time interval
+                    'weeks',  # Use weeks as time interval
+                    selected_indicators
                 )
                 
                 item_plots.append({
@@ -1365,8 +1380,8 @@ def patient_portal(request):
     bokeh_css = CDN.render_css()
     bokeh_js = CDN.render_js()
     
-    # Get patient's diagnoses and treatments for display
-    diagnoses = patient.diagnosis_set.all().order_by('-date_of_diagnosis')
+    # Get patient's diagnoses and treatments for display (chronological order - earliest first)
+    diagnoses = patient.diagnosis_set.all().order_by('date_of_diagnosis')
     
     context = {
         'patient': patient,

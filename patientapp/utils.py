@@ -280,6 +280,107 @@ def filter_positive_intervals_construct(historical_scores, start_date, time_inte
     
     return filtered_scores
 
+def add_clinical_indicators_to_plot(p, selected_indicators, start_date, time_interval, x_min, x_max, y_max=None):
+    """Add diagnosis and treatment indicators to a Bokeh plot.
+    
+    Args:
+        p: Bokeh plot figure
+        selected_indicators: List of indicator dictionaries with type, date, and label
+        start_date: Reference start date for time calculations
+        time_interval: Time interval type for calculations
+        x_min, x_max: X-axis range limits
+        y_max: Maximum Y value for positioning markers (optional)
+    """
+    if not selected_indicators or not start_date:
+        return
+    
+    plotting_logger.info(f"Adding {len(selected_indicators)} clinical indicators to plot")
+    
+    for indicator in selected_indicators:
+        try:
+            indicator_date = datetime.strptime(indicator['date'], '%Y-%m-%d').date()
+            indicator_time = calculate_time_interval_value(indicator_date, start_date, time_interval)
+            
+            # Only add indicators that fall within the plot range
+            if indicator_time >= x_min and indicator_time <= x_max:
+                # Color coding: blue for diagnosis, green for treatment start, red for treatment end
+                if indicator['type'] == 'diagnosis':
+                    line_color = '#3b82f6'  # Blue
+                    line_alpha = 0.8
+                    marker_type = 'triangle'
+                elif indicator['type'] == 'treatment_start':
+                    line_color = '#10b981'  # Green
+                    line_alpha = 0.8
+                    marker_type = 'circle'
+                elif indicator['type'] == 'treatment_end':
+                    line_color = '#ef4444'  # Red
+                    line_alpha = 0.8
+                    marker_type = 'circle'
+                else:
+                    line_color = '#6b7280'  # Gray fallback
+                    line_alpha = 0.6
+                    marker_type = 'circle'
+                
+                # Add vertical line indicator
+                indicator_line = Span(
+                    location=indicator_time,
+                    dimension='height',
+                    line_color=line_color,
+                    line_dash='dashed',
+                    line_width=2,
+                    line_alpha=line_alpha
+                )
+                p.add_layout(indicator_line)
+                
+                # Determine y position for marker
+                if y_max is None:
+                    # Try to get y_max from plot range
+                    if hasattr(p.y_range, 'end'):
+                        y_position = p.y_range.end * 0.95
+                    else:
+                        y_position = 0.95  # Fallback for categorical plots
+                else:
+                    y_position = y_max * 0.95
+                
+                # Create a data source for the indicator marker
+                indicator_source = ColumnDataSource(data=dict(
+                    x=[indicator_time],
+                    y=[y_position],
+                    label=[indicator['label']],
+                    type=[indicator['type']],
+                    date=[indicator['date']]
+                ))
+                
+                # Add marker
+                indicator_marker = p.scatter(
+                    x='x',
+                    y='y',
+                    source=indicator_source,
+                    size=8,
+                    fill_color=line_color,
+                    line_color=line_color,
+                    marker=marker_type,
+                    alpha=0.9
+                )
+                
+                # Add hover tool for indicator
+                indicator_hover = HoverTool(
+                    tooltips=[
+                        ('Event', '@label'),
+                        ('Type', '@type'),
+                        ('Date', '@date'),
+                        ('Time Interval', f'@x{{0.1}} {get_interval_label(time_interval).lower()}')
+                    ],
+                    mode='mouse',
+                    point_policy='follow_mouse',
+                    renderers=[indicator_marker]
+                )
+                p.add_tools(indicator_hover)
+                
+                plotting_logger.info(f"Added {indicator['type']} indicator at time {indicator_time:.1f}: {indicator['label']}")
+        except Exception as e:
+            plotting_logger.error(f"Error adding indicator {indicator}: {e}")
+
 def calculate_percentage(value: Optional[Decimal], max_value: Optional[Decimal]) -> float:
     """Calculate the percentage of a value relative to a maximum value.
     
@@ -301,7 +402,8 @@ class ConstructScoreData:
     def __init__(self, construct: ConstructScale, current_score: Optional[Decimal],
                  previous_score: Optional[Decimal], historical_scores: List[QuestionnaireConstructScore],
                  patient=None, start_date_reference='date_of_registration', time_interval='weeks',
-                 aggregated_statistics=None, aggregation_metadata=None, aggregation_type='median_iqr'):
+                 aggregated_statistics=None, aggregation_metadata=None, aggregation_type='median_iqr',
+                 selected_indicators=None):
         self.construct = construct
         self.score = current_score
         self.previous_score = previous_score
@@ -312,6 +414,7 @@ class ConstructScoreData:
         self.aggregated_statistics = aggregated_statistics or {}
         self.aggregation_metadata = aggregation_metadata or {}
         self.aggregation_type = aggregation_type
+        self.selected_indicators = selected_indicators or []
         self.bokeh_plot = self._create_bokeh_plot(historical_scores)
         
         # Generate clinical significance explanations
@@ -988,6 +1091,13 @@ class ConstructScoreData:
         p.add_tools(individual_hover)
         
         plotting_logger.info("Added hover tooltips for individual data")
+        
+        # Add diagnosis and treatment indicators if selected
+        # Filter out None values when calculating max for indicators
+        valid_scores = [s for s in scores if s is not None]
+        y_max_for_indicators = max(valid_scores) if valid_scores else 100
+        add_clinical_indicators_to_plot(p, self.selected_indicators, start_date, self.time_interval, x_min, x_max, y_max_for_indicators)
+        
         plotting_logger.info("="*80)
         plotting_logger.info(f"END PLOTTING DATA for {self.construct.name}")
         plotting_logger.info("="*80)
@@ -1022,7 +1132,8 @@ class ConstructScoreData:
         return is_significant
 
 def create_item_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item',
-                             patient=None, start_date_reference='date_of_registration', time_interval='weeks') -> str:
+                             patient=None, start_date_reference='date_of_registration', time_interval='weeks', 
+                             selected_indicators=None) -> str:
     """Create a Bokeh plot for item responses over time.
     
     Args:
@@ -1037,12 +1148,13 @@ def create_item_response_plot(historical_responses: List['QuestionnaireItemRespo
     """
     logger.debug(f"create_item_response_plot called for item {item.id}, type: {item.response_type}, has likert_response: {bool(item.likert_response)}, has range_response: {bool(item.range_response)}")
     if item.response_type == 'Likert' and item.likert_response:
-        return create_likert_response_plot(historical_responses, item, patient, start_date_reference, time_interval)
+        return create_likert_response_plot(historical_responses, item, patient, start_date_reference, time_interval, selected_indicators)
     else:
-        return create_numeric_response_plot(historical_responses, item, patient, start_date_reference, time_interval)
+        return create_numeric_response_plot(historical_responses, item, patient, start_date_reference, time_interval, selected_indicators)
 
 def create_likert_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item',
-                               patient=None, start_date_reference='date_of_registration', time_interval='weeks') -> str:
+                               patient=None, start_date_reference='date_of_registration', time_interval='weeks', 
+                               selected_indicators=None) -> str:
     """Create a Bokeh plot specifically for Likert responses.
     
     Args:
@@ -1207,12 +1319,16 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
     )
     p.add_tools(hover)
     
+    # Add diagnosis and treatment indicators if selected
+    add_clinical_indicators_to_plot(p, selected_indicators, start_date, time_interval, x_min, x_max)
+    
     # Get the plot components
     script, div = components(p)
     return script + div
 
 def create_numeric_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item',
-                                patient=None, start_date_reference='date_of_registration', time_interval='weeks') -> str:
+                                patient=None, start_date_reference='date_of_registration', time_interval='weeks', 
+                                selected_indicators=None) -> str:
     """Create a Bokeh plot for numeric responses.
     
     Args:
@@ -1364,6 +1480,12 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
         renderers=[individual_scatter]
     )
     p.add_tools(hover)
+    
+    # Add diagnosis and treatment indicators if selected
+    # Filter out None values when calculating max for indicators
+    valid_values = [v for v in values if v is not None]
+    y_max_for_indicators = max(valid_values) if valid_values else 100
+    add_clinical_indicators_to_plot(p, selected_indicators, start_date, time_interval, x_min, x_max, y_max_for_indicators)
     
     # Get the plot components
     script, div = components(p)

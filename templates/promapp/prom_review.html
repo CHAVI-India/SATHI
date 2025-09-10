@@ -56,6 +56,9 @@
         // Initialize item filter functionality
         initializeItemFilter();
         
+        // Initialize plot indicator functionality
+        initializePlotIndicators();
+        
         // Restore filter state on page load
         restoreFilterState();
         
@@ -68,6 +71,8 @@
         if (event.detail.target.id === 'filterable-content') {
             // Reinitialize item filter functionality after HTMX content swap
             initializeItemFilter();
+            // Reinitialize plot indicator functionality after HTMX content swap
+            initializePlotIndicators();
         }
     });
     
@@ -316,6 +321,101 @@
             details.classList.add('hidden');
             chevron.classList.remove('rotate-90');
         }
+    }
+
+    // Function to initialize plot indicator functionality
+    function initializePlotIndicators() {
+        // Add event listeners to all plot indicator checkboxes
+        const checkboxes = document.querySelectorAll('.plot-indicator-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', handlePlotIndicatorChange);
+        });
+        
+        // Restore previously selected indicators from URL parameters or localStorage
+        restorePlotIndicatorState();
+    }
+
+    // Function to restore plot indicator state
+    function restorePlotIndicatorState() {
+        // First check if there are selected indicators in the URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedIndicatorsParam = urlParams.get('selected_indicators');
+        
+        // Also check localStorage for persistent state
+        const storedIndicators = localStorage.getItem('selected_plot_indicators');
+        
+        let indicatorsToRestore = [];
+        
+        if (selectedIndicatorsParam) {
+            try {
+                indicatorsToRestore = JSON.parse(selectedIndicatorsParam);
+            } catch (e) {
+                console.warn('Failed to parse selected indicators from URL:', e);
+            }
+        } else if (storedIndicators) {
+            try {
+                indicatorsToRestore = JSON.parse(storedIndicators);
+            } catch (e) {
+                console.warn('Failed to parse stored indicators:', e);
+            }
+        }
+        
+        // Restore checkbox states
+        indicatorsToRestore.forEach(indicator => {
+            const checkbox = document.querySelector(`[data-type="${indicator.type}"][data-id="${indicator.id}"]`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+    }
+
+    // Function to handle plot indicator checkbox changes
+    function handlePlotIndicatorChange() {
+        // Collect all selected indicators
+        const selectedIndicators = [];
+        const checkboxes = document.querySelectorAll('.plot-indicator-checkbox:checked');
+        
+        checkboxes.forEach(checkbox => {
+            selectedIndicators.push({
+                type: checkbox.dataset.type,
+                id: checkbox.dataset.id,
+                date: checkbox.dataset.date,
+                label: checkbox.dataset.label
+            });
+        });
+        
+        // Store selected indicators in a hidden input for form submission
+        let indicatorsInput = document.getElementById('selected-indicators-input');
+        if (!indicatorsInput) {
+            indicatorsInput = document.createElement('input');
+            indicatorsInput.type = 'hidden';
+            indicatorsInput.id = 'selected-indicators-input';
+            indicatorsInput.name = 'selected_indicators';
+            document.body.appendChild(indicatorsInput);
+        }
+        
+        indicatorsInput.value = JSON.stringify(selectedIndicators);
+        
+        // Store selected indicators in localStorage for persistence
+        localStorage.setItem('selected_plot_indicators', JSON.stringify(selectedIndicators));
+        
+        // Trigger HTMX update to refresh plots with indicators
+        const inputs = document.querySelectorAll('#item-filter-inputs input, [name="questionnaire_filter"], [name="time_range"], [name="submission_date"], [name="start_date_reference"], [name="time_interval"], [name="aggregation_type"], [name="patient_filter_gender"], [name="patient_filter_diagnosis"], [name="patient_filter_treatment"], [name="patient_filter_min_age"], [name="patient_filter_max_age"], [name="max_time_interval"], [name="selected_indicators"]');
+        
+        // Create URLSearchParams for the GET request
+        const params = new URLSearchParams();
+        inputs.forEach(input => {
+            if (input.value && input.value.trim() !== '') {
+                params.append(input.name, input.value);
+            }
+        });
+        
+        const url = "{% url 'prom_review' patient.id %}" + '?' + params.toString();
+        
+        htmx.ajax('GET', url, {
+            target: '#filterable-content',
+            indicator: '#filters-loading'
+        });
     }
 
     // Function to open image in modal (optional enhancement)
