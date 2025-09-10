@@ -499,6 +499,19 @@ class ItemCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     success_url = reverse_lazy('item_list')
     permission_required = 'promapp.add_item'
 
+    def get_initial(self):
+        initial = super().get_initial()
+        # Pre-populate construct_scale if passed as URL parameter
+        construct_scale_id = self.request.GET.get('construct_scale')
+        if construct_scale_id:
+            try:
+                # Validate that the construct scale exists
+                ConstructScale.objects.get(id=construct_scale_id)
+                initial['construct_scale'] = construct_scale_id
+            except ConstructScale.DoesNotExist:
+                pass  # Invalid ID, ignore
+        return initial
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['likert_scales'] = LikertScale.objects.all()

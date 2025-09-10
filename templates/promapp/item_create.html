@@ -95,7 +95,7 @@
               <select name="construct_scale" id="id_construct_scale" class="w-full px-3 py-2 border rounded">
                 <option value="">---------</option>
                 {% for scale in form.construct_scale.field.queryset %}
-                  <option value="{{ scale.id }}" {% if form.construct_scale.value == scale.id %}selected{% endif %}>
+                  <option value="{{ scale.id }}" {% if form.construct_scale.value|stringformat:"s" == scale.id|stringformat:"s" %}selected{% endif %}>
                     {{ scale.name }}{% if scale.instrument_name %} ({{ scale.instrument_name }}{% if scale.instrument_version %} v{{ scale.instrument_version }}{% endif %}){% endif %}
                   </option>
                 {% endfor %}
