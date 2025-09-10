@@ -98,29 +98,17 @@ function toggleAdvancedSettings() {
     }
 }
 
-// Auto-expand if there are errors in advanced fields
+// Auto-expand advanced settings by default and if there are errors in advanced fields
 document.addEventListener('DOMContentLoaded', function() {
-    const advancedFields = [
-        'id_scale_better_score_direction',
-        'id_scale_threshold_score', 
-        'id_scale_minimum_clinical_important_difference',
-        'id_scale_normative_score_mean',
-        'id_scale_normative_score_standard_deviation'
-    ];
+    const content = document.getElementById('advanced-settings-content');
+    const chevron = document.getElementById('chevron-icon');
     
-    let hasErrors = false;
-    advancedFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field && field.closest('.field-wrapper')) {
-            const errorDiv = field.closest('.field-wrapper').querySelector('.text-red-500, .errorlist');
-            if (errorDiv) {
-                hasErrors = true;
-            }
+    // Always expand the advanced settings section by default
+    if (content && content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        if (chevron) {
+            chevron.style.transform = 'rotate(180deg)';
         }
-    });
-    
-    if (hasErrors) {
-        toggleAdvancedSettings();
     }
 });
 </script>

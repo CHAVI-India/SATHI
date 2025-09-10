@@ -15,10 +15,10 @@
           <div class="flex space-x-2">
             {% if perms.promapp.change_constructscale %}
               <c-edit_button href="{% url 'construct_scale_update' scale.pk %}" size="sm">
-                {% translate "Edit" %}
+                {% translate "Edit Construct Scale" %}
               </c-edit_button>
               <c-link_button href="{% url 'construct_equation_update' scale.pk %}" variant="outline" size="sm" class="border-purple-300 text-purple-700 hover:bg-purple-50">
-                {% translate "Equation" %}
+                {% translate "Add or Edit Equation" %}
               </c-link_button>
             {% endif %}
             <c-create_button href="{% url 'item_create' %}?construct_scale={{ scale.id }}" size="sm">
@@ -59,7 +59,7 @@
         {% if scale.scale_equation %}
           <div class="mt-4 p-3 bg-gray-50 rounded-md">
             <div class="text-sm">
-              <span class="font-medium text-gray-700">{% translate "Equation:" %}</span>
+              <span class="font-medium text-gray-700">{% translate "Current Equation:" %}</span>
               <code class="ml-2 text-blue-600 break-all">{{ scale.scale_equation }}</code>
             </div>
           </div>
