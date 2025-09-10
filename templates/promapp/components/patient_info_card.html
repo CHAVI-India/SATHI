@@ -140,12 +140,10 @@
                                     <span class="text-gray-500">{{ treatment.date_of_end_of_treatment|date:"d M Y" }}</span>
                                 </label>
                                 {% endif %}
-                                    </div>
-                                </div>
-                                {% if treatment.notes %}
-                                <div class="text-xs text-gray-600 mt-1 ml-5">{{ treatment.notes|truncatechars:60 }}</div>
-                                {% endif %}
                             </div>
+                            {% if treatment.notes %}
+                            <div class="text-xs text-gray-600 mt-1 ml-5">{{ treatment.notes|truncatechars:60 }}</div>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
