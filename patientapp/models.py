@@ -5,6 +5,9 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 import secured_fields
 import uuid
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Create your models here.
 
@@ -38,13 +41,22 @@ class Patient(models.Model):
     Patient model.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    institution = models.ForeignKey(Institution, on_delete=models.CASCADE, db_index=True)
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE, db_index=True,help_text="Please select the Institution from the List")
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    name = secured_fields.EncryptedCharField(max_length=255, searchable=True, null=True, blank=True)
-    patient_id = secured_fields.EncryptedCharField(max_length=255, searchable=True, null=True, blank=True)
-    date_of_registration = secured_fields.EncryptedDateField(verbose_name="Date of Registration",null=True, blank=True, searchable=True)
-    age = models.PositiveIntegerField(null=True, blank=True, db_index=True)
-    gender = models.CharField(max_length=255, choices=GenderChoices.choices, null=True, blank=True, db_index=True)
+    name = secured_fields.EncryptedCharField(max_length=255, searchable=True, null=True, blank=True,help_text="Please enter the Full Name of the Patient")
+    patient_id = secured_fields.EncryptedCharField(max_length=255, searchable=True, null=True, blank=True,help_text="Please enter the Patient ID")
+    date_of_registration = secured_fields.EncryptedDateField(verbose_name="Date of Registration",null=True, blank=True, searchable=True,help_text="Please select the Date of Registration from the Calendar")
+    age = models.PositiveIntegerField(null=True, blank=True, db_index=True,help_text="Please enter the Age of the Patient")
+    gender = models.CharField(max_length=255, choices=GenderChoices.choices, null=True, blank=True, db_index=True,help_text="Please select the Gender of the Patient")
+    preferred_language = models.CharField(
+        max_length=10, 
+        choices=settings.LANGUAGES, 
+        default=settings.LANGUAGE_CODE,
+        null=True, 
+        blank=True, 
+        db_index=True,
+        help_text=_("Please select the Preferred Language of the Patient")
+    )
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
@@ -59,7 +71,30 @@ class Patient(models.Model):
         ]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.patient_id})" if self.patient_id else f"{self.name}"
+
+    def save(self, *args, **kwargs):
+        # Ensure the preferred_language is one of the supported languages
+        if self.preferred_language not in dict(settings.LANGUAGES).keys():
+            self.preferred_language = settings.LANGUAGE_CODE
+        super().save(*args, **kwargs)
+
+
+@receiver(post_save, sender=Patient)
+def update_user_language(sender, instance, **kwargs):
+    """
+    Signal to update the user's session language when their preferred language changes
+    """
+    from django.utils import translation
+    from django.conf import settings
+    
+    if hasattr(instance, 'user'):
+        # Update the language in the user's session
+        if hasattr(instance.user, 'session'):
+            session = instance.user.session
+            session[translation.LANGUAGE_SESSION_KEY] = instance.preferred_language or settings.LANGUAGE_CODE
+            session.save()
+
 
 class DiagnosisList(models.Model):
     '''
