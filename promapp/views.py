@@ -3724,7 +3724,7 @@ def add_to_equation(request):
     question = request.GET.get('question', '')
     if not question:
         return HttpResponse('')
-    return HttpResponse(question)
+    return HttpResponse(html.escape(question))
 
 class CompositeConstructScaleScoringListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     """
