@@ -1262,22 +1262,24 @@ msgid ""
 "Open your authenticator app and enter the 6-digit code. If you don't have "
 "access to your authenticator, you can use a recovery code instead."
 msgstr ""
+"अपनी प्रमाणक (ऑथेंटिकेटर) ऐप खोलें और 6-अंकीय कोड दर्ज करें। यदि आपके पास अपने "
+"प्रमाणक तक पहुंच नहीं है, तो आप एक रिकवरी कोड का उपयोग कर सकते हैं।"
 
 #: .\templates\mfa\deactivate_totp.html:5
 #: .\templates\mfa\deactivate_totp.html:10
 #: .\templates\mfa\totp\deactivate_form.html:5
 #: .\templates\mfa\totp\deactivate_form.html:11
 msgid "Deactivate Authenticator App"
-msgstr ""
+msgstr "प्रमाणक ऐप निष्क्रिय करें"
 
 #: .\templates\mfa\deactivate_totp.html:10
 msgid "Remove two-factor authentication from your account"
-msgstr ""
+msgstr "आपके एकाउंट से दो-फैक्टर एन्यूटीएचएफए को हटाएं"
 
 #: .\templates\mfa\deactivate_totp.html:27
 #: .\templates\mfa\totp\deactivate_form.html:37
 msgid "Security Warning"
-msgstr ""
+msgstr "सुरक्षा बिना"
 
 #: .\templates\mfa\deactivate_totp.html:30
 #: .\templates\mfa\totp\deactivate_form.html:40
@@ -1285,6 +1287,8 @@ msgid ""
 "Deactivating your authenticator app will reduce the security of your "
 "account. You will only need your password to log in."
 msgstr ""
+"अपने प्रमाणक ऐप को निष्क्रिय करने से आपके खाते की सुरक्षा कम हो जाएगी। लॉगिन के लिए "
+"आपको केवल अपने पासवर्ड की आवश्यकता होगी।"
 
 #: .\templates\mfa\deactivate_totp.html:39
 #: .\templates\mfa\totp\deactivate_form.html:49
@@ -1292,59 +1296,61 @@ msgid ""
 "Are you sure you want to deactivate your authenticator app? This action will "
 "remove two-factor authentication from your account."
 msgstr ""
+"क्या आप वाकई अपना प्रमाणक ऐप निष्क्रिय करना चाहते हैं? यह कार्रवाई आपके खाते से दो-चरणीय "
+"प्रमाणीकरण को हटा देगी।"
 
 #: .\templates\mfa\deactivate_totp.html:69
 msgid "Yes, Deactivate"
-msgstr ""
+msgstr "हाँ, निष्क्रिय करें"
 
 #: .\templates\mfa\index.html:18
 msgid "Authenticator App"
-msgstr ""
+msgstr "प्रमाणक ऐप"
 
 #: .\templates\mfa\index.html:21
 msgid "Authentication using an authenticator app is active."
-msgstr ""
+msgstr "एक प्रमाणक ऐप का उपयोग करके एन्यूटीएचएफए सक्रिय है।"
 
 #: .\templates\mfa\index.html:27 .\templates\mfa\totp\deactivate_form.html:68
 msgid "Deactivate"
-msgstr ""
+msgstr "निष्क्रिय करें"
 
 #: .\templates\mfa\index.html:31
 msgid "An authenticator app is not active."
-msgstr ""
+msgstr "एक प्रमाणक ऐप सक्रिय नहीं है।"
 
 #: .\templates\mfa\index.html:45
 msgid "Security Keys"
-msgstr ""
+msgstr "सुरक्षा की कुंजी"
 
 #: .\templates\mfa\index.html:48
 #, python-format
 msgid "You have added %(count)s security key."
 msgid_plural "You have added %(count)s security keys."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "आपने %(count)s सुरक्षा कुंजी जोड़ी है।"
+msgstr[1] "आपने %(count)s सुरक्षा कुंजियाँ जोड़ी हैं।"
 
 #: .\templates\mfa\index.html:54
 msgid "Manage"
-msgstr ""
+msgstr "प्रबंधित करें"
 
 #: .\templates\mfa\index.html:58
 msgid "No security keys have been added."
-msgstr ""
+msgstr "कोई सुरक्षा कुंजी जोड़ी नहीं है।"
 
 #: .\templates\mfa\index.html:63 .\templates\patientapp\diagnosis_form.html:23
 #: .\templates\patientapp\partials\treatment_type_form_modal.html:21
 #: .\templates\patientapp\treatment_form.html:101
 #: .\templates\patientapp\treatment_type_form.html:23
 msgid "Add"
-msgstr ""
+msgstr "जोड़ें"
 
 #: .\templates\mfa\index.html:73 .\templates\mfa\recovery_codes\generate.html:5
 #: .\templates\mfa\recovery_codes\generate.html:11
 #: .\templates\mfa\recovery_codes\index.html:5
 #: .\templates\mfa\recovery_codes\index.html:11
 msgid "Recovery Codes"
-msgstr ""
+msgstr "रिकवरी कोड"
 
 #: .\templates\mfa\index.html:76 .\templates\mfa\recovery_codes\index.html:13
 #, python-format
@@ -1352,241 +1358,260 @@ msgid ""
 "There is %(unused_count)s out of %(total_count)s recovery codes available."
 msgid_plural ""
 "There are %(unused_count)s out of %(total_count)s recovery codes available."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(total_count)s में से %(unused_count)s रिकवरी कोड उपलब्ध है।"
+msgstr[1] "%(total_count)s में से %(unused_count)s रिकवरी कोड उपलब्ध हैं।"
 
 #: .\templates\mfa\index.html:78
 msgid "No recovery codes set up."
-msgstr ""
+msgstr "कोई रिकवरी कोड सेटअप नहीं है।"
 
 #: .\templates\mfa\index.html:93
 msgid "Download"
-msgstr ""
+msgstr "डाउनलोड"
 
 #: .\templates\mfa\index.html:100
 #: .\templates\mfa\recovery_codes\generate.html:76
 msgid "Generate"
-msgstr ""
+msgstr "बनाएँ"
 
 #: .\templates\mfa\reauthenticate.html:5 .\templates\mfa\reauthenticate.html:11
 msgid "Reauthenticate"
-msgstr ""
+msgstr "पुनराधिकारीकरण"
 
 #: .\templates\mfa\reauthenticate.html:12
 msgid "Please confirm your identity to continue"
-msgstr ""
+msgstr "जारी रखने के लिए कृपया अपनी पहचान सत्यापित करें"
 
 #: .\templates\mfa\reauthenticate.html:17
 msgid "Security Verification"
-msgstr ""
+msgstr "सुरक्षा सत्यापन"
 
 #: .\templates\mfa\reauthenticate.html:30
 msgid "Enter an authenticator code:"
-msgstr ""
+msgstr "एक प्रमाणक कोड दर्ज करें:"
 
 #: .\templates\mfa\reauthenticate.html:89
 msgid "Why am I seeing this?"
-msgstr ""
+msgstr "मैं यह क्यों देख रहा/रही हूँ?"
 
 #: .\templates\mfa\reauthenticate.html:91
 msgid ""
 "For security reasons, you need to verify your identity before accessing "
 "sensitive account settings. Enter the 6-digit code from your authenticator "
 "app."
-msgstr ""
+msgstr "सुरक्षा कारणों से, संवेदनशील खाता सेटिंग्स तक पहुँचने से पहले आपको अपनी पहचान सत्यापित "
+"करनी होगी। अपने प्रमाणक ऐप से 6-अंकीय कोड दर्ज करें।"
 
 #: .\templates\mfa\recovery_codes\generate.html:12
 msgid "You are about to generate a new set of recovery codes for your account."
-msgstr ""
+msgstr "आपके खाते के लिए एक नया सेट रिकवरी कोड बनाने की तयारी कर रहे हैं।"    
 
 #: .\templates\mfa\recovery_codes\generate.html:17
 msgid "Generate New Recovery Codes"
-msgstr ""
+msgstr "नई रिकवरी कोड बनाएँ"
 
 #: .\templates\mfa\recovery_codes\generate.html:37
 #: .\templates\mfa\recovery_codes\index.html:33
 msgid "Important"
-msgstr ""
+msgstr "महत्वपूर्ण"
 
 #: .\templates\mfa\recovery_codes\generate.html:42
 msgid "This action will invalidate your existing codes."
-msgstr ""
+msgstr "इस कार्रवाई आपके पहले सभी कोडों को अवैध बनाएगी।"
 
 #: .\templates\mfa\recovery_codes\generate.html:44
 msgid "Are you sure?"
-msgstr ""
+msgstr "क्या आप वाकई चाहते हैं?"
 
 #: .\templates\mfa\recovery_codes\generate.html:54
 msgid ""
 "Generating new recovery codes will replace all existing codes. Make sure you "
 "have saved your current codes if needed."
 msgstr ""
+"नए रिकवरी कोड जनरेट करने से सभी मौजूदा कोड बदल जाएंगे। यदि आवश्यक हो तो कृपया अपने "
+"वर्तमान कोड सहेज लें।"
 
 #: .\templates\mfa\recovery_codes\generate.html:95
 msgid "What happens next?"
-msgstr ""
+msgstr "आगे क्या होगा?"
 
 #: .\templates\mfa\recovery_codes\generate.html:98
 msgid "New recovery codes will be generated"
-msgstr ""
+msgstr "नए रिकवरी कोड बनाएंगे।"
 
 #: .\templates\mfa\recovery_codes\generate.html:99
 msgid "All existing codes will be invalidated"
-msgstr ""
+msgstr "सभी मौजूदा कोड अवैध होंगे।"
 
 #: .\templates\mfa\recovery_codes\generate.html:100
 msgid "You'll be able to download the new codes"
-msgstr ""
+msgstr "आप नए कोडों को डाउनलोड करने में सक्षम होंगे।"
 
 #: .\templates\mfa\recovery_codes\generate.html:101
 msgid "Store the new codes in a secure location"
-msgstr ""
+msgstr "नए कोडों को सुरक्षित स्थान में स्थापित करें।"
 
 #: .\templates\mfa\recovery_codes\generate.html:117
 #: .\templates\mfa\recovery_codes\index.html:106
 msgid "Back to MFA Settings"
-msgstr ""
+msgstr "MFA सेटिंग्स पर वापस जाएं"
 
 #: .\templates\mfa\recovery_codes\index.html:19
 msgid "Your Recovery Codes"
-msgstr ""
+msgstr "आपके रिकवरी कोड"
 
 #: .\templates\mfa\recovery_codes\index.html:36
 msgid ""
 "Store these recovery codes in a safe place. Each code can only be used once "
 "to access your account if you lose your authenticator device."
 msgstr ""
+"इन रिकवरी कोडों को सुरक्षित स्थान पर सहेजें। यदि आप अपना प्रमाणक डिवाइस खो देते हैं, तो "
+"आपके खाते तक पहुँचने के लिए प्रत्येक कोड का उपयोग केवल एक बार किया जा सकता है।"
 
 #: .\templates\mfa\recovery_codes\index.html:45
 msgid "Unused codes"
-msgstr ""
+msgstr "अवैध कोड"
 
 #: .\templates\mfa\recovery_codes\index.html:63
 msgid "Download codes"
-msgstr ""
+msgstr "कोड डाउनलोड"
 
 #: .\templates\mfa\recovery_codes\index.html:71
 msgid "Generate new codes"
-msgstr ""
+msgstr "नए कोड बनाएँ"
 
 #: .\templates\mfa\recovery_codes\index.html:84
 msgid "Security Tips"
-msgstr ""
+msgstr "सुरक्षा सुझाव"
 
 #: .\templates\mfa\recovery_codes\index.html:87
 msgid "Print these codes and store them in a secure location"
-msgstr ""
+msgstr "इन कोडों को टाइप करके बिना सुरक्षित स्थान पर सहेजें"
 
 #: .\templates\mfa\recovery_codes\index.html:88
 msgid "Each code can only be used once"
-msgstr ""
+msgstr "प्रत्येक कोड का उपयोग केवल एक बार किया जा सकता है।"
 
 #: .\templates\mfa\recovery_codes\index.html:89
 msgid "Generate new codes if you suspect these have been compromised"
-msgstr ""
+msgstr "इन कोडों को अपने प्रमाणक डिवाइस को खो देने से पहले नए कोड बनाएँ।"
 
 #: .\templates\mfa\recovery_codes\index.html:90
 msgid "Keep these codes separate from your authenticator device"
-msgstr ""
+msgstr "इन कोडों को अपने प्रमाणक डिवाइस से अलग रखें।"
 
 #: .\templates\mfa\totp\activate_form.html:12
 msgid ""
 "To protect your account with two-factor authentication, scan the QR code "
 "below with your authenticator app. Then, input the verification code "
 "generated by the app below."
-msgstr ""
+msgstr "अपने खाते को दो-चरणीय प्रमाणीकरण से सुरक्षित करने के लिए, नीचे दिए गए QR कोड को "
+"अपने प्रमाणक ऐप से स्कैन करें। फिर, ऐप द्वारा उत्पन्न सत्यापन कोड नीचे दिए गए स्थान "
+"पर दर्ज करें।"
 
 #: .\templates\mfa\totp\activate_form.html:17
 msgid "Setup Two-Factor Authentication"
-msgstr ""
+msgstr "दो-चरणीय प्रमाणीकरण सेटअप"
 
 #: .\templates\mfa\totp\activate_form.html:28
 msgid "Install an Authenticator App"
-msgstr ""
+msgstr "एक प्रमाणक ऐप इनस्टॉल करें"
 
 #: .\templates\mfa\totp\activate_form.html:30
-msgid ""
-"Download and install one of these authenticator apps on your mobile device:"
-msgstr ""
+msgid "Download and install one of these authenticator apps on your mobile device:"
+msgstr "एक प्रमाणक ऐप इनस्टॉल करें"
 
 #: .\templates\mfa\totp\activate_form.html:57
 msgid "Scan QR Code"
-msgstr ""
+msgstr "QR कोड स्कैन करें"
 
 #: .\templates\mfa\totp\activate_form.html:59
 msgid "Open your authenticator app and scan this QR code:"
-msgstr ""
+msgstr "अपने प्रमाणक ऐप खोलें और नीचे दिए गए QR कोड को स्कैन करें:"
 
 #: .\templates\mfa\totp\activate_form.html:71
 msgid "Can't scan the code?"
-msgstr ""
+msgstr "कोड स्कैन नहीं कर सकते?"
 
 #: .\templates\mfa\totp\activate_form.html:72
 msgid ""
 "You can store this secret and use it to reinstall your authenticator app at "
 "a later time."
 msgstr ""
+"आप इस सेक्रेट को सहेजें और "
+"बाद में अपने प्रमाणक ऐप को इनस्टॉल करने के लिए इसे उपयोग कर सकते हैं।"
 
 #: .\templates\mfa\totp\activate_form.html:74
 msgid "Authenticator secret"
-msgstr ""
+msgstr "प्रमाणक सेक्रेट"
 
 #: .\templates\mfa\totp\activate_form.html:81
 msgid ""
 "Enter this code manually in your authenticator app if you cannot scan the QR "
 "code."
 msgstr ""
+"यदि आप QR कोड स्कैन नहीं कर सकते हैं, तो इस कोड को अपने प्रमाणक ऐप में "
+"मैन्युअली दर्ज करें।"
 
 #: .\templates\mfa\totp\activate_form.html:89
 msgid "Enter Verification Code"
-msgstr ""
+msgstr "सत्यापन कोड दर्ज करें"
 
 #: .\templates\mfa\totp\activate_form.html:136
 msgid "Security Tip"
-msgstr ""
+msgstr "सुरक्षा सुझाव"
 
 #: .\templates\mfa\totp\activate_form.html:138
 msgid ""
 "Keep your authenticator app secure and backed up. If you lose access to your "
 "device, you can use recovery codes to regain access to your account."
 msgstr ""
+"आपके प्रमाणक ऐप को सुरक्षित रखें और बैकअप करें। यदि आपके "
+"डिवाइस को खो देते हैं, तो आपके खाते को वापस ले आने के लिए "
+"रिकवरी कोडों का उपयोग कर सकते हैं।"
 
 #: .\templates\mfa\totp\deactivate_form.html:12
 msgid ""
 "You are about to deactivate authenticator app based authentication. Are you "
 "sure?"
 msgstr ""
+"आपको अपने प्रमाणक ऐप के आधार पर प्रमाणीकरण को अक्षम करने के लिए "
+"आपको यह निश्चित करने के लिए यह निश्चित करने के लिए "
+"आपको यह निश्चित करने के लिए "
 
 #: .\templates\mfa\totp\deactivate_form.html:17
 msgid "Confirm Deactivation"
-msgstr ""
+msgstr "निष्क्रियकरण की पुष्टि करें"
 
 #: .\templates\mfa\trust.html:5 .\templates\mfa\trust.html:11
 msgid "Trust this Browser?"
-msgstr ""
+msgstr "क्या इस ब्राउज़र पर भरोसा करें?"
 
 #: .\templates\mfa\trust.html:16
 msgid "Browser Trust Settings"
-msgstr ""
+msgstr "ब्राउजर भरोसा सेटिंग"
 
 #: .\templates\mfa\trust.html:28
 msgid ""
 "If you choose to trust this browser, you will not be asked for a "
 "verification code the next time you sign in."
 msgstr ""
+"यदि आप इस ब्राउजर पर भरोसा करते हैं, तो आपको अगली "
+"समय वाले लॉगिन के लिए सत्यापन कोड दर्ज करने की "
+"आवश्यकता नहीं होगी।"
 
 #: .\templates\mfa\trust.html:60
 #, python-format
 msgid "Trust for %(period)s"
-msgstr ""
+msgstr "भरोसा करें %(period)s"
 
 #: .\templates\mfa\trust.html:70
 msgid "Don't Trust"
-msgstr ""
+msgstr "भरोसा नहीं करें"
 
 #: .\templates\mfa\trust.html:93
 msgid "Security Information"
-msgstr ""
+msgstr "सुरक्षा जानकारी"
 
 #: .\templates\mfa\trust.html:95
 msgid ""
@@ -1594,10 +1619,14 @@ msgid ""
 "authentication for future logins. Only trust devices you own and use "
 "regularly."
 msgstr ""
+"यदि आप इस ब्राउजर पर भरोसा करते हैं, तो आपके डिवाइस को "
+"मिलाकर आपको अगली "
+"समय वाले लॉगिन के लिए सत्यापन कोड दर्ज करने की "
+"आवश्यकता नहीं होगी।"
 
 #: .\templates\navbar.html:12 .\templates\navbar.html:220
 msgid "Home"
-msgstr ""
+msgstr "होम"
 
 #: .\templates\navbar.html:14 .\templates\navbar.html:222
 #: .\templates\patientapp\patient_list.html:6
@@ -1606,11 +1635,11 @@ msgstr ""
 #: .\templates\promapp\components\aggregation_metadata_card.html:109
 #: .\templates\promapp\components\aggregation_metadata_card.html:144
 msgid "Patients"
-msgstr ""
+msgstr "रोगी"
 
 #: .\templates\navbar.html:19 .\templates\navbar.html:226
 msgid "Instruments"
-msgstr ""
+msgstr "प्रश्नावली"
 
 #: .\templates\navbar.html:28 .\templates\navbar.html:229
 #: .\templates\patientapp\patient_list.html:27
@@ -1618,503 +1647,507 @@ msgstr ""
 #: .\templates\promapp\questionnaire_create.html:210
 #: .\templates\promapp\questionnaire_guidance.html:86
 msgid "Create Questionnaire"
-msgstr ""
+msgstr "प्रश्नावली बनाएं"
 
 #: .\templates\navbar.html:32 .\templates\navbar.html:232
 #: .\templates\promapp\construct_scale_list.html:5
 #: .\templates\promapp\construct_scale_list.html:12
 #: .\templates\promapp\questionnaire_guidance.html:580
 msgid "Construct Scales"
-msgstr ""
+msgstr "स्केल"
 
 #: .\templates\navbar.html:37 .\templates\navbar.html:237
 msgid "Composite Construct Scales"
-msgstr ""
+msgstr "संयोजित स्केल"
 
 #: .\templates\navbar.html:42 .\templates\promapp\item_list.html:5
 #: .\templates\promapp\item_list.html:12
 #: .\templates\promapp\questionnaire_guidance.html:152
 #: .\templates\promapp\questionnaire_guidance.html:363
 msgid "Items (Questions)"
-msgstr ""
+msgstr "प्रश्न"
 
 #: .\templates\navbar.html:46 .\templates\navbar.html:246
 #: .\templates\patientapp\patient_list.html:110
 #: .\templates\promapp\questionnaire_list.html:5
 #: .\templates\promapp\questionnaire_list.html:12
 msgid "Questionnaires"
-msgstr ""
+msgstr "प्रश्नावली"
 
 #: .\templates\navbar.html:50 .\templates\navbar.html:250
 #: .\templates\promapp\likert_scale_list.html:5
 #: .\templates\promapp\likert_scale_list.html:12
 msgid "Likert Scales"
-msgstr ""
+msgstr "लिकर्ट स्केल"
 
 #: .\templates\navbar.html:55 .\templates\navbar.html:255
 #: .\templates\promapp\range_scale_list.html:5
 #: .\templates\promapp\range_scale_list.html:12
 msgid "Range Scales"
-msgstr ""
+msgstr "रेंज स्केल"
 
 #: .\templates\navbar.html:64 .\templates\navbar.html:263
 msgid "Help & Guidance"
-msgstr ""
+msgstr "सहायता & निर्देश"
 
 #: .\templates\navbar.html:67 .\templates\navbar.html:265
 msgid "Questionnaire Guidance"
-msgstr ""
+msgstr "प्रश्नावली निर्देश"
 
 #: .\templates\navbar.html:75 .\templates\navbar.html:272
 msgid "Manage Questionnaire"
-msgstr ""
+msgstr "प्रश्नावली का प्रबंधन"
 
 #: .\templates\navbar.html:79 .\templates\navbar.html:275
 msgid "Assign Questionnaire to Patient"
-msgstr ""
+msgstr "प्रश्नावली को रोगी देखाएं"
 
 #: .\templates\navbar.html:85 .\templates\navbar.html:281
 #: .\templates\promapp\questionnaire_export_list.html:5
 #: .\templates\promapp\questionnaire_export_list.html:12
 msgid "Export Questionnaire Responses"
-msgstr ""
+msgstr "प्रश्नावली उत्तर निर्यात करें"
 
 #: .\templates\navbar.html:95 .\templates\navbar.html:288
 msgid "Admin"
-msgstr ""
+msgstr "प्रशासन"
 
 #: .\templates\navbar.html:102 .\templates\navbar.html:295
 #: .\templates\patientapp\patient_portal.html:5
 msgid "My Portal"
-msgstr ""
+msgstr "मेरा पोर्टल"
 
 #: .\templates\navbar.html:141 .\templates\navbar.html:321
 msgid "Account Settings"
-msgstr ""
+msgstr "खाता सेटिंग"
 
 #: .\templates\navbar.html:147 .\templates\navbar.html:323
 msgid "Change Email"
-msgstr ""
+msgstr "ईमेल बदलें"
 
 #: .\templates\navbar.html:159 .\templates\navbar.html:329
 #: .\templates\socialaccount\connections.html:5
 #: .\templates\socialaccount\connections.html:12
 msgid "Account Connections"
-msgstr ""
+msgstr "खाता संबंध" 
 
 #: .\templates\navbar.html:167 .\templates\navbar.html:334
 msgid "Security"
-msgstr ""
+msgstr "सुरक्षा"
 
 #: .\templates\navbar.html:179 .\templates\navbar.html:339
 #: .\templates\usersessions\usersession_list.html:6
 msgid "Sessions"
-msgstr ""
+msgstr "सत्र"
 
 #: .\templates\navbar.html:198 .\templates\navbar.html:354
 msgid "Login"
-msgstr ""
+msgstr "लॉगिन"
 
 #: .\templates\navbar.html:208
 msgid "Open main menu"
-msgstr ""
+msgstr "मुख्य मेनू खोलें"
 
 #: .\templates\navbar.html:242
 msgid "Items"
-msgstr ""
+msgstr "प्रश्न"
 
 #: .\templates\patientapp\diagnosis_confirm_delete.html:15
 msgid "Delete Diagnosis"
-msgstr ""
+msgstr "निदान हटाएं"
 
 #: .\templates\patientapp\diagnosis_confirm_delete.html:20
 msgid ""
 "Are you sure you want to delete this diagnosis? This action cannot be undone."
 msgstr ""
+"क्या आप वाकई इस निदान को हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।"
 
 #: .\templates\patientapp\diagnosis_form.html:23
 #: .\templates\patientapp\treatment_form.html:101
 #: .\templates\patientapp\treatment_type_form.html:23
 msgid "Update"
-msgstr ""
+msgstr "अपडेट"
 
 #: .\templates\patientapp\partials\patient_portal_media_card.html:23
 msgid "Latest Media Response"
-msgstr ""
+msgstr "नवीनतम मीडिया प्रतिक्रिया"
 
 #: .\templates\patientapp\partials\patient_portal_media_card.html:41
 #: .\templates\promapp\components\media_item_card.html:21
 msgid "Your browser does not support the audio element."
-msgstr ""
+msgstr "आपका ब्राउजर ऑडियो अवलोकन नहीं करता है।"
 
 #: .\templates\patientapp\partials\patient_portal_media_card.html:45
 #: .\templates\promapp\components\media_item_card.html:25
 msgid "Audio Response"
-msgstr ""
+msgstr "ऑडियो प्रतिक्रिया"
 
 #: .\templates\patientapp\partials\patient_portal_media_card.html:55
 #: .\templates\promapp\components\media_item_card.html:35
 msgid "Your browser does not support the video element."
-msgstr ""
+msgstr "आपका ब्राउजर वीडियो अवलोकन नहीं करता है।"
 
 #: .\templates\patientapp\partials\patient_portal_media_card.html:59
 #: .\templates\promapp\components\media_item_card.html:39
 msgid "Video Response"
-msgstr ""
+msgstr "वीडियो प्रतिक्रिया"
 
 #: .\templates\patientapp\partials\patient_portal_media_card.html:66
 #: .\templates\patientapp\partials\patient_portal_media_card.html:71
 #: .\templates\promapp\components\media_item_card.html:46
 #: .\templates\promapp\components\media_item_card.html:51
 msgid "Image Response"
-msgstr ""
+msgstr "इमेज प्रतिक्रिया"
 
 #: .\templates\patientapp\partials\patient_portal_media_card.html:71
 #: .\templates\promapp\components\media_item_card.html:51
 msgid "Click to enlarge"
-msgstr ""
+msgstr "बड़ा करने के लिए क्लिक करें"
 
 #: .\templates\patientapp\partials\patient_portal_media_card.html:82
 #: .\templates\promapp\components\media_item_card.html:62
 msgid "Download Media File"
-msgstr ""
+msgstr "मीडिया फाइल डाउनलोड करें"
 
 #: .\templates\patientapp\partials\patient_portal_media_card.html:87
 #: .\templates\promapp\components\media_item_card.html:67
 msgid "Media Response"
-msgstr ""
+msgstr "मीडिया प्रतिक्रिया"
 
 #: .\templates\patientapp\partials\patient_portal_media_card.html:98
 #: .\templates\promapp\components\media_item_card.html:78
 msgid "No media response provided"
-msgstr ""
+msgstr "मीडिया प्रतिक्रिया प्रदान नहीं की गई।"
 
 #: .\templates\patientapp\partials\patient_portal_media_card.html:107
 msgid "No responses yet"
-msgstr ""
+msgstr "आज तक कोई उत्तर नहीं दिया गया।"
 
 #: .\templates\patientapp\partials\patient_portal_media_card.html:115
 msgid "Latest response shown"
-msgstr ""
+msgstr "नवीनतम प्रतिक्रिया दिखाई जा रही है"
 
 #: .\templates\patientapp\partials\patient_portal_plots.html:10
 msgid "Response Trends"
-msgstr ""
+msgstr "उत्तर त्रंग"
 
 #: .\templates\patientapp\partials\patient_portal_plots.html:36
 msgid "Latest Response"
-msgstr ""
+msgstr "नवीनतम प्रतिक्रिया"
 
 #: .\templates\patientapp\partials\patient_portal_plots.html:72
 msgid "Plot Legend"
-msgstr ""
+msgstr "आलेख कथा"
 
 #: .\templates\patientapp\partials\patient_portal_plots.html:76
 msgid "Your responses"
-msgstr ""
+msgstr "आपकी प्रतिक्रियाएं"
 
 #: .\templates\patientapp\partials\patient_portal_plots.html:80
 msgid "Threshold line (if available)"
-msgstr ""
+msgstr "अनुमानित रेखा (यदि उपलब्ध है)"
 
 #: .\templates\patientapp\partials\patient_portal_plots.html:84
 msgid "Normal range (if available)"
-msgstr ""
+msgstr "सामान्य रेंज (यदि उपलब्ध है)"
 
 #: .\templates\patientapp\partials\patient_portal_plots.html:88
 msgid "Normal range band (if available)"
-msgstr ""
+msgstr "सामान्य रेंज बैंड (यदि उपलब्ध है)"
 
 #: .\templates\patientapp\partials\patient_portal_plots.html:100
 msgid "Media Responses"
-msgstr ""
+msgstr "मीडिया प्रतिक्रियाएं"
 
 #: .\templates\patientapp\partials\patient_portal_plots.html:120
 msgid "No responses for selected items"
-msgstr ""
+msgstr "चयनित आइटम्स के लिए कोई प्रतिक्रिया नहीं मिली"
 
 #: .\templates\patientapp\partials\patient_portal_plots.html:122
 msgid ""
 "You haven't responded to the selected items yet, or try selecting different "
 "items to view your response trends."
 msgstr ""
+"आपने चयनित आइटम्स का अभी तक जवाब नहीं दिया है, या अपने प्रतिक्रिया रुझान देखने के लिए अलग-अलग आइटम्स का चयन करने का प्रयास करें।"
 
 #: .\templates\patientapp\partials\patient_portal_plots.html:129
 msgid "No response data yet"
-msgstr ""
+msgstr "अभी तक कोई प्रतिक्रिया नहीं मिली"
 
 #: .\templates\patientapp\partials\patient_portal_plots.html:131
 msgid ""
 "Complete some questionnaires to see your response trends and patterns over "
 "time."
 msgstr ""
+"समय के साथ अपने प्रतिक्रिया रुझान और पैटर्न देखने के लिए "
+"कुछ प्रश्नावली पूरी करें।"
 
 #: .\templates\patientapp\partials\patient_table.html:31
 msgid "questionnaires"
-msgstr ""
+msgstr "प्रश्नावली"
 
 #: .\templates\patientapp\partials\patient_table.html:44
 msgid "View Patient"
-msgstr ""
+msgstr "पूर्वीकृत व्यक्ति देखें"
 
 #: .\templates\patientapp\partials\patient_table.html:48
 #: .\templates\patientapp\patient_detail.html:17
 #: .\templates\promapp\questionnaire_guidance.html:468
 msgid "Manage Questionnaires"
-msgstr ""
+msgstr "प्रश्नावली का प्रबंधन"
 
 #: .\templates\patientapp\partials\patient_table.html:52
 msgid "View Responses"
-msgstr ""
+msgstr "प्रतिक्रियाएं देखें"
 
 #: .\templates\patientapp\partials\patient_table.html:64
 #: .\templates\patientapp\patient_detail.html:110
 msgid "Diagnoses"
-msgstr ""
+msgstr "निदान"
 
 #: .\templates\patientapp\partials\patient_table.html:74
 #: .\templates\patientapp\patient_detail.html:201
 #: .\templates\promapp\components\patient_info_card.html:161
 msgid "No diagnoses recorded"
-msgstr ""
+msgstr "निदान नहीं मिली"
 
 #: .\templates\patientapp\partials\patient_table.html:80
 #: .\templates\patientapp\patient_detail.html:149
 msgid "Treatments"
-msgstr ""
+msgstr "उपचार"
 
 #: .\templates\patientapp\partials\patient_table.html:95
 #: .\templates\patientapp\patient_detail.html:194
 #: .\templates\promapp\components\patient_info_card.html:151
 msgid "No treatments recorded"
-msgstr ""
+msgstr "उपचार नहीं मिली"
 
 #: .\templates\patientapp\partials\patient_table.html:101
 msgid "Assigned Questionnaires"
-msgstr ""
+msgstr "प्रश्नावली का निर्धारण"
 
 #: .\templates\patientapp\partials\patient_table.html:111
 msgid "No questionnaires assigned"
-msgstr ""
+msgstr "प्रश्नावली का निर्धारण नहीं मिली"
 
 #: .\templates\patientapp\partials\patient_table.html:127
 msgid "No patients found"
-msgstr ""
+msgstr "पूर्वीकृत व्यक्ति नहीं मिली"
 
 #: .\templates\patientapp\partials\patient_table.html:128
 msgid "Try adjusting your search or filter criteria"
-msgstr ""
+msgstr "अपनी खोज या फ़िल्टर शर्तों को समायोजित करने का प्रयास करें"
 
 #: .\templates\patientapp\partials\patient_table.html:131
 #: .\templates\patientapp\patient_list.html:22
 msgid "Add Patient"
-msgstr ""
+msgstr "रोगी जोड़ें"
 
 #: .\templates\patientapp\partials\treatment_type_form_modal.html:9
 #: .\templates\patientapp\treatment_form.html:55
 msgid "Add New Treatment Type"
-msgstr ""
+msgstr "नया उपचार जोड़ें"
 
 #: .\templates\patientapp\patient_detail.html:6
 #: .\templates\patientapp\patient_detail.html:13
 msgid "Patient Details"
-msgstr ""
+msgstr "रोगी का विवरण"
 
 #: .\templates\patientapp\patient_detail.html:22
 msgid "View PRO Review"
-msgstr ""
+msgstr "PRO रिव्युवार देखें"
 
 #: .\templates\patientapp\patient_detail.html:45
 #: .\templates\patientapp\patient_form.html:53
 #: .\templates\patientapp\patient_restricted_update_form.html:29
 msgid "Patient Information"
-msgstr ""
+msgstr "रोगी का विवरण"
 
 #: .\templates\patientapp\patient_detail.html:63
 #: .\templates\promapp\components\patient_info_card.html:20
 msgid "Age"
-msgstr ""
+msgstr "आयु"
 
 #: .\templates\patientapp\patient_detail.html:69
 #: .\templates\patientapp\patient_list.html:102
 #: .\templates\promapp\components\patient_info_card.html:27
 msgid "Gender"
-msgstr ""
+msgstr "लिंग"
 
 #: .\templates\patientapp\patient_detail.html:82
 msgid "Date of Registration"
-msgstr ""
+msgstr "पंजीकरण तिथि"
 
 #: .\templates\patientapp\patient_detail.html:89
 msgid "Preferred Language"
-msgstr ""
+msgstr "पसंदीदा भाषा"
 
 #: .\templates\patientapp\patient_detail.html:125
 msgid "Diagnosed"
-msgstr ""
+msgstr "निदानित"
 
 #: .\templates\patientapp\patient_detail.html:159
 #: .\templates\promapp\components\construct_scores_section.html:62
 #: .\templates\promapp\components\construct_scores_section.html:112
 msgid "N/A"
-msgstr ""
+msgstr "N/A"
 
 #: .\templates\patientapp\patient_detail.html:165
 #: .\templates\patientapp\patient_portal.html:119
 msgid "Started"
-msgstr ""
+msgstr "शुरू किया गया"
 
 #: .\templates\patientapp\patient_detail.html:171
 #: .\templates\promapp\patient_questionnaire_management.html:50
 #: .\templates\usersessions\usersession_list.html:47
 msgid "Status"
-msgstr ""
+msgstr "स्थिति"
 
 #: .\templates\patientapp\patient_detail.html:173
 msgid "Ongoing"
-msgstr ""
+msgstr "चल रहा"
 
 #: .\templates\patientapp\patient_detail.html:178
 msgid "Completed"
-msgstr ""
+msgstr "पूर्ण"
 
 #: .\templates\patientapp\patient_form.html:29
 msgid "User Account Information"
-msgstr ""
+msgstr "उपयोगकर्ता खाता जानकारी"
 
 #: .\templates\patientapp\patient_form.html:71
 msgid "User Groups"
-msgstr ""
+msgstr "उपयोगकर्ता समूह"
 
 #: .\templates\patientapp\patient_form.html:83
 msgid "Update Patient"
-msgstr ""
+msgstr "रोगी अपडेट करें"
 
 #: .\templates\patientapp\patient_form.html:83
 msgid "Create Patient"
-msgstr ""
+msgstr "रोगी रिकॉर्ड बनाएं"
 
 #: .\templates\patientapp\patient_list.html:16
 msgid "Manage patients and their questionnaires"
-msgstr ""
+msgstr "रोगी और उनके प्रश्नावली का प्रबंधन"
 
 #: .\templates\patientapp\patient_list.html:46
 msgid "Search & Filter"
-msgstr ""
+msgstr "खोज & फिल्टर"
 
 #: .\templates\patientapp\patient_list.html:55
 msgid "Search by Name"
-msgstr ""
+msgstr "नाम से खोज"
 
 #: .\templates\patientapp\patient_list.html:66
 msgid "Enter exact name..."
-msgstr ""
+msgstr "नाम भरें..."
 
 #: .\templates\patientapp\patient_list.html:73
 msgid "Search by ID"
-msgstr ""
+msgstr "ID से खोज"
 
 #: .\templates\patientapp\patient_list.html:84
 msgid "Enter exact ID..."
-msgstr ""
+msgstr "ID भरें..."
 
 #: .\templates\patientapp\patient_list.html:95
 msgid "All Institutions"
-msgstr ""
+msgstr "सभी संस्थाएं"
 
 #: .\templates\patientapp\patient_list.html:103
 #: .\templates\promapp\components\filters_section.html:170
 msgid "All Genders"
-msgstr ""
+msgstr "सभी लिंग"
 
 #: .\templates\patientapp\patient_list.html:111
 msgid "All"
-msgstr ""
+msgstr "सभी"
 
 #: .\templates\patientapp\patient_list.html:118
 msgid "Diagnosis"
-msgstr ""
+msgstr "निदान"
 
 #: .\templates\patientapp\patient_list.html:119
 #: .\templates\promapp\components\filters_section.html:192
 msgid "All Diagnoses"
-msgstr ""
+msgstr "सभी निदान"
 
 #: .\templates\patientapp\patient_list.html:126
 #: .\templates\patientapp\treatment_type_list.html:32
 msgid "Treatment Type"
-msgstr ""
+msgstr "उपचार तरीका"
 
 #: .\templates\patientapp\patient_list.html:127
 msgid "All Treatment Types"
-msgstr ""
+msgstr "सभी उपचार तरीके"
 
 #: .\templates\patientapp\patient_list.html:134
 msgid "Sort By"
-msgstr ""
+msgstr "से विभाजित"
 
 #: .\templates\patientapp\patient_portal.html:20
 msgid "Welcome"
-msgstr ""
+msgstr "स्वागत है"
 
 #: .\templates\patientapp\patient_portal.html:22
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #: .\templates\patientapp\patient_portal.html:24
 #: .\templates\promapp\components\patient_info_card.html:34
 msgid "Registered"
-msgstr ""
+msgstr "पंजीकरण तिथि"
 
 #: .\templates\patientapp\patient_portal.html:27
 #: .\templates\promapp\components\aggregated_results_section.html:51
 #: .\templates\promapp\components\aggregation_metadata_card.html:149
 msgid "Responses"
-msgstr ""
+msgstr "उत्तर"
 
 #: .\templates\patientapp\patient_portal.html:37
 msgid "Complete Questionnaires"
-msgstr ""
+msgstr "पूर्ण प्रश्नावली"
 
 #: .\templates\patientapp\patient_portal.html:47
 #: .\templates\promapp\my_questionnaire_list.html:20
 msgid "Available Questionnaires"
-msgstr ""
+msgstr "उपलब्ध प्रश्नावली"
 
 #: .\templates\patientapp\patient_portal.html:68
 msgid "View all"
-msgstr ""
+msgstr "सभी देखें"
 
 #: .\templates\patientapp\patient_portal.html:77
 msgid "No questionnaires available"
-msgstr ""
+msgstr "उपलब्ध प्रश्नावली नहीं मिली"
 
 #: .\templates\patientapp\patient_portal.html:92
 msgid "Clinical Information"
-msgstr ""
+msgstr "क्षेत्रीय स्वास्थ्य जानकारी"
 
 #: .\templates\patientapp\patient_portal.html:102
 msgid "Diagnosed on"
-msgstr ""
+msgstr "निदानित तिथि"
 
 #: .\templates\patientapp\patient_portal.html:111
 #: .\templates\promapp\components\patient_info_card.html:109
 msgid "Treatment"
-msgstr ""
+msgstr "उपचार"
 
 #: .\templates\patientapp\patient_portal.html:143
 msgid "Response History"
-msgstr ""
+msgstr "उत्तर इतिहास"
 
 #: .\templates\patientapp\patient_portal.html:144
 msgid "responses"
-msgstr ""
+msgstr "उत्तर"
 
 #: .\templates\patientapp\patient_portal.html:154
 #: .\templates\patientapp\patient_portal.html:481
 #: .\templates\promapp\patient_questionnaire_management.html:105
 msgid "Show"
-msgstr ""
+msgstr "दिखाएं"
 
 #: .\templates\patientapp\patient_portal.html:164
 #: .\templates\promapp\patient_questionnaire_management.html:47
@@ -2123,19 +2156,15 @@ msgstr ""
 #: .\templates\promapp\questionnaire_guidance.html:158
 #: .\templates\promapp\questionnaire_guidance.html:433
 msgid "Questionnaire"
-msgstr ""
+msgstr "प्रश्नावली"
 
 #: .\templates\patientapp\patient_portal.html:167
 msgid "Completed Date"
-msgstr ""
+msgstr "पूर्ण तिथि"
 
 #: .\templates\patientapp\patient_portal.html:170
 msgid "Time Ago"
-msgstr ""
-
-#: .\templates\patientapp\patient_portal.html:186
-msgid "ago"
-msgstr ""
+msgstr "पहले"
 
 #: .\templates\patientapp\patient_portal.html:196
 #, python-format
@@ -2147,89 +2176,92 @@ msgid_plural ""
 "\n"
 "                            Showing 10 of %(counter)s responses\n"
 "                            "
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "\n                            %(counter)s में से 10 प्रतिक्रियाएं दिखाई जा रही हैं\n                            "
+msgstr[1] "\n                            %(counter)s में से 10 प्रतिक्रियाएं दिखाई जा रही हैं\n                            "
 
 #: .\templates\patientapp\patient_portal.html:218
 msgid "My Response Trends"
-msgstr ""
+msgstr "मेरी प्रतिक्रिया ट्रेंड"
 
 #: .\templates\patientapp\patient_portal.html:227
 msgid "Filter Items (Questions)"
-msgstr ""
+msgstr "फिल्टर आइटम (प्रश्न)"
 
 #: .\templates\patientapp\patient_portal.html:239
 msgid "Search items..."
-msgstr ""
+msgstr "आइटम खोज..."
 
 #: .\templates\patientapp\patient_portal.html:247
 #: .\templates\patientapp\patient_portal.html:383
 #: .\templates\promapp\prom_review.html:226
 msgid "item"
-msgstr ""
+msgstr "प्रश्न"
 
 #: .\templates\patientapp\patient_portal.html:247
 #: .\templates\patientapp\patient_portal.html:383
 #: .\templates\promapp\prom_review.html:226
 msgid "selected"
-msgstr ""
+msgstr "चुना गया"
 
 #: .\templates\patientapp\patient_portal.html:250
 #: .\templates\patientapp\patient_portal.html:379
 #: .\templates\promapp\prom_review.html:222
 msgid "All items shown"
-msgstr ""
+msgstr "सभी आइटम दिखाई दिए गए"
 
 #: .\templates\patientapp\patient_portal.html:271
 msgid "Apply Filter"
-msgstr ""
+msgstr "फिल्टर लागू करें"
 
 #: .\templates\patientapp\patient_portal.html:274
 #: .\templates\promapp\questionnaire_create.html:180
 #: .\templates\promapp\questionnaire_update.html:189
 msgid "Clear All"
-msgstr ""
+msgstr "सभी साफ़ करें"
 
 #: .\templates\patientapp\patient_portal.html:387
 #: .\templates\promapp\prom_review.html:230
 msgid "more"
-msgstr ""
+msgstr "और"
 
 #: .\templates\patientapp\patient_portal.html:475
 #: .\templates\promapp\patient_questionnaire_management.html:103
 msgid "Hide"
-msgstr ""
+msgstr "छुपाएं"
 
 #: .\templates\patientapp\treatment_confirm_delete.html:22
 msgid "Delete Treatment"
-msgstr ""
+msgstr "उपचार को हटाएं"
 
 #: .\templates\patientapp\treatment_confirm_delete.html:26
 msgid ""
 "Are you sure you want to delete this treatment? This action cannot be undone."
 msgstr ""
+"क्या आप वाकई इस उपचार को हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।"
 
 #: .\templates\patientapp\treatment_form.html:22
 msgid "Treatment Entry Guidelines"
-msgstr ""
+msgstr "उपचार इन्ट्री गाइडलाइन"
 
 #: .\templates\patientapp\treatment_type_confirm_delete.html:15
 msgid "Delete Treatment Type"
-msgstr ""
+msgstr "उपचार तरीका को हटाएं"
 
 #: .\templates\patientapp\treatment_type_confirm_delete.html:20
 msgid ""
 "Are you sure you want to delete this treatment type? This action cannot be "
 "undone."
 msgstr ""
+"क्या आप वाकई इस उपचार तरीके को हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं "
+"किया जा सकता।"
 
 #: .\templates\patientapp\treatment_type_list.html:35
 msgid "Created Date"
-msgstr ""
+msgstr "बनाने की तिथि"
 
 #: .\templates\patientapp\treatment_type_list.html:38
 msgid "Modified Date"
-msgstr ""
+msgstr "संशोधित तिथि"
 
 #: .\templates\patientapp\treatment_type_list.html:41
 #: .\templates\promapp\patient_questionnaire_management.html:56
@@ -2237,137 +2269,137 @@ msgstr ""
 #: .\templates\promapp\questionnaire_export_patient_list.html:68
 #: .\templates\promapp\questionnaire_item_rules_list.html:118
 msgid "Actions"
-msgstr ""
+msgstr "क्रियाएं"
 
 #: .\templates\patientapp\treatment_type_list.html:71
 msgid "No treatment types found"
-msgstr ""
+msgstr "उपचार तरीके नहीं मिली"
 
 #: .\templates\promapp\components\aggregated_results_section.html:16
 msgid "Population Comparison"
-msgstr ""
+msgstr "समुदाय तुलना"
 
 #: .\templates\promapp\components\aggregated_results_section.html:19
 #: .\templates\usersessions\usersession_list.html:90
 msgid "Active"
-msgstr ""
+msgstr "कार्यान्विष्ट"
 
 #: .\templates\promapp\components\aggregated_results_section.html:23
 msgid "Available"
-msgstr ""
+msgstr "उपलब्ध"
 
 #: .\templates\promapp\components\aggregated_results_section.html:28
 msgid "Enable to see population data overlaid on plots"
-msgstr ""
+msgstr "समुदाय तथ्यांश ग्राफ पर अवस्थित होने के लिए सक्षम करें"
 
 #: .\templates\promapp\components\aggregated_results_section.html:38
 msgid "Eligible"
-msgstr ""
+msgstr "स्वीकार्य"
 
 #: .\templates\promapp\components\aggregated_results_section.html:45
 #: .\templates\promapp\components\aggregation_metadata_card.html:143
 msgid "Contributing"
-msgstr ""
+msgstr "सहयोगी"
 
 #: .\templates\promapp\components\aggregated_results_section.html:57
 msgid "Time Points"
-msgstr ""
+msgstr "समय बिंदु"
 
 #: .\templates\promapp\components\aggregated_results_section.html:66
 msgid "Method:"
-msgstr ""
+msgstr "संकल्पना:"
 
 #: .\templates\promapp\components\aggregated_results_section.html:69
 #: .\templates\promapp\components\aggregated_results_section.html:81
 msgid "Median+IQR"
-msgstr ""
+msgstr "मध्यम+IQR"
 
 #: .\templates\promapp\components\aggregated_results_section.html:71
 #, python-format
 msgid "Mean+95%%CI"
-msgstr ""
+msgstr "माध्य+95%%CI"
 
 #: .\templates\promapp\components\aggregated_results_section.html:73
 msgid "Mean±0.5SD"
-msgstr ""
+msgstr "माध्य±0.5SD"
 
 #: .\templates\promapp\components\aggregated_results_section.html:75
 msgid "Mean±1SD"
-msgstr ""
+msgstr "माध्य±1SD"
 
 #: .\templates\promapp\components\aggregated_results_section.html:77
 msgid "Mean±2SD"
-msgstr ""
+msgstr "माध्य±2SD"
 
 #: .\templates\promapp\components\aggregated_results_section.html:79
 msgid "Mean±2.5SD"
-msgstr ""
+msgstr "माध्य±2.5SD"
 
 #: .\templates\promapp\components\aggregated_results_section.html:88
 msgid "Gender:"
-msgstr ""
+msgstr "लिंग:"
 
 #: .\templates\promapp\components\aggregated_results_section.html:91
 #: .\templates\promapp\components\aggregated_results_section.html:104
 #: .\templates\promapp\components\aggregated_results_section.html:117
 msgid "Match"
-msgstr ""
+msgstr "संगत"
 
 #: .\templates\promapp\components\aggregated_results_section.html:101
 msgid "Diagnosis:"
-msgstr ""
+msgstr "निदान: "
 
 #: .\templates\promapp\components\aggregated_results_section.html:114
 msgid "Treatment:"
-msgstr ""
+msgstr "उपचार:"
 
 #: .\templates\promapp\components\aggregated_results_section.html:128
 msgid "Coverage:"
-msgstr ""
+msgstr "कवरेज:"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:17
 #: .\templates\promapp\components\aggregation_metadata_card.html:22
 msgid "Population Comparison Not Available"
-msgstr ""
+msgstr "समुदाय तुलना उपलब्ध नहीं है"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:27
 msgid "Population Comparison Active"
-msgstr ""
+msgstr "समुदाय तुलना कार्यान्विष्ट"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:29
 #: .\templates\promapp\components\filters_section.html:16
 msgid "Click to expand"
-msgstr ""
+msgstr "विस्तार करने के लिए क्लिक करें"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:63
 #: .\templates\promapp\components\aggregation_metadata_card.html:103
 msgid "With Selected"
-msgstr ""
+msgstr "चयनित के साथ"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:64
 #: .\templates\promapp\components\aggregation_metadata_card.html:104
 msgid "Start Date Type"
-msgstr ""
+msgstr "सुरुआत तिथि का प्रकार"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:68
 #: .\templates\promapp\components\aggregation_metadata_card.html:108
 #: .\templates\promapp\components\aggregation_metadata_card.html:148
 msgid "Total"
-msgstr ""
+msgstr "समग्र"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:73
 #: .\templates\promapp\questionnaire_guidance.html:592
 msgid "Minimum"
-msgstr ""
+msgstr "मिनिमम"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:74
 msgid "Required"
-msgstr ""
+msgstr "आवश्यक"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:84
 #: .\templates\promapp\components\aggregation_metadata_card.html:124
 msgid "Suggestion"
-msgstr ""
+msgstr "सुझाव"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:86
 msgid ""
@@ -2375,14 +2407,17 @@ msgid ""
 "the population filters to include more patients with the selected start date "
 "type."
 msgstr ""
+"'तिथि पंजीकरण' को प्रारंभ तिथि संदर्भ के रूप में चुनने का प्रयास करें, या चयनित "
+"प्रारंभ तिथि प्रकार के साथ अधिक रोगियों को शामिल करने के लिए जनसंख्या फिल्टर "
+"समायोजित करें।"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:113
 msgid "With Data"
-msgstr ""
+msgstr "डेटा के साथ"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:114
 msgid "In Time Range"
-msgstr ""
+msgstr "समय रेंज में"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:126
 msgid ""
@@ -2390,6 +2425,8 @@ msgid ""
 "selecting a different questionnaire to include more responses in the "
 "aggregation."
 msgstr ""
+"समय सीमा बढ़ाने, सबमिशन तिथि फ़िल्टर समायोजित करने, या एग्रीगेशन में अधिक "
+"प्रतिक्रियाओं को शामिल करने के लिए कोई अन्य प्रश्नावली चुनने का प्रयास करें।"
 
 #: .\templates\promapp\components\aggregation_metadata_card.html:136
 msgid ""
