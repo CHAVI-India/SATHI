@@ -84,6 +84,13 @@
                     {# No type="date", treat as plain string. The component will render the pre-formatted string. #}
                     layout="horizontal" />
                 {% endwith %}
+                
+                <c-field_display 
+                    label="{% translate 'Preferred Language' %}"
+                    value="{{ patient.get_preferred_language_display }}"
+                    type="badge"
+                    badge_color="green"
+                    layout="horizontal" />
             </dl>
         </c-card>
       </div>

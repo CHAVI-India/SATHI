@@ -93,6 +93,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'allauth.usersessions.middleware.UserSessionsMiddleware',
+    'patientapp.middleware.PatientLanguageMiddleware',  # Auto-switch language for patients
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "csp.middleware.CSPMiddleware",
 

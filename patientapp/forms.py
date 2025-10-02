@@ -29,7 +29,7 @@ class PatientForm(forms.ModelForm):
     
     class Meta:
         model = Patient
-        fields = ['patient_id', 'name', 'age', 'gender', 'institution','date_of_registration' , 'username', 'email', 'password1', 'password2', 'groups']
+        fields = ['patient_id', 'name', 'age', 'gender', 'institution','date_of_registration', 'preferred_language', 'username', 'email', 'password1', 'password2', 'groups']
         widgets = {
             'age': forms.NumberInput(attrs={'min': 0, 'max': 150}),
             'password1': forms.PasswordInput(),
@@ -62,10 +62,12 @@ class PatientForm(forms.ModelForm):
             HTML('<h3 class="text-lg font-medium text-gray-900 mt-6 mb-4">{% translate "Patient Information" %}</h3>'),
             Div(
                 Field('name', css_class='w-full px-3 py-2 border rounded'),
+                Field('patient_id', css_class='w-full px-3 py-2 border rounded'),
                 Field('age', css_class='w-full px-3 py-2 border rounded'),
                 Field('gender', css_class='w-full px-3 py-2 border rounded'),
                 Field('institution', css_class='w-full px-3 py-2 border rounded'),
                 Field('date_of_registration',css_class='w-full px-3 py-2 border rounded'),
+                Field('preferred_language', css_class='w-full px-3 py-2 border rounded'),
                 css_class='space-y-4'
             ),
             
@@ -112,7 +114,7 @@ class DiagnosisForm(forms.ModelForm):
 class PatientRestrictedUpdateForm(forms.ModelForm):
     class Meta:
         model = Patient
-        fields = ['age', 'gender', 'institution', 'date_of_registration']
+        fields = ['age', 'gender', 'institution', 'date_of_registration', 'preferred_language']
         widgets = {
             'age': forms.NumberInput(attrs={'min': 0, 'max': 150}),
             'date_of_registration': forms.DateInput(attrs={'type': 'date'}),
