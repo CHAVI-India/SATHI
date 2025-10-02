@@ -7,6 +7,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Django's session key for language preference
+LANGUAGE_SESSION_KEY = '_language'
+
 
 class PatientLanguageMiddleware:
     """
@@ -38,7 +41,7 @@ class PatientLanguageMiddleware:
                             request.LANGUAGE_CODE = preferred_language
                             
                             # Set the language in the session for persistence
-                            request.session[translation.LANGUAGE_SESSION_KEY] = preferred_language
+                            request.session[LANGUAGE_SESSION_KEY] = preferred_language
                             
                             logger.info(f"Language switched to {preferred_language} for patient {patient.name} (ID: {patient.id})")
                             
