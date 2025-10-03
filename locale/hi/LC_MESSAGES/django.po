@@ -2901,7 +2901,7 @@ msgstr ""
 
 #: .\templates\promapp\components\questionnaire_overview_card.html:39
 msgid "No questionnaires available for this patient."
-msgstr ""
+msgstr "इस रोगी के लिए कोई प्रश्नावली उपलब्ध नहीं है।"
 
 #: .\templates\promapp\components\results_container.html:6
 #: .\templates\promapp\components\topline_results_section.html:7
@@ -3854,7 +3854,7 @@ msgstr ""
 
 #: .\templates\promapp\my_questionnaire_list.html:70
 msgid "No questionnaires are currently available for you."
-msgstr ""
+msgstr "वर्तमान में आपके लिए कोई प्रश्नावली उपलब्ध नहीं है।"
 
 #: .\templates\promapp\partials\composite_construct_scale_scoring_list_table.html:32
 msgid "Scoring Type:"
@@ -3986,7 +3986,7 @@ msgstr ""
 
 #: .\templates\promapp\partials\questionnaire_list_table.html:71
 msgid "No questionnaires found."
-msgstr ""
+msgstr "कोई प्रश्नावली नहीं मिली।"
 
 #: .\templates\promapp\partials\range_scale_list_table.html:29
 #: .\templates\promapp\questionnaire_guidance.html:400
@@ -4067,12 +4067,12 @@ msgstr ""
 
 #: .\templates\promapp\patient_questionnaire_management.html:132
 msgid "No questionnaires available."
-msgstr ""
+msgstr "कोई प्रश्नावली उपलब्ध नहीं है।"
 
 #: .\templates\promapp\prom_review.html:6
 #: .\templates\promapp\prom_review.html:21
 msgid "PRO Review"
-msgstr ""
+msgstr "PRO Review"
 
 #: .\templates\promapp\prom_review.html:249
 msgid "Show less"
@@ -4212,11 +4212,11 @@ msgstr ""
 
 #: .\templates\promapp\questionnaire_export_list.html:76
 msgid "No questionnaires with responses available."
-msgstr ""
+msgstr "कोई भी प्रश्नावली उत्तरों के साथ उपलब्ध नहीं है।"
 
 #: .\templates\promapp\questionnaire_export_list.html:97
 msgid "No questionnaires with responses available yet."
-msgstr ""
+msgstr "कोई भी प्रश्नावली उत्तरों के साथ उपलब्ध नहीं है।"
 
 #: .\templates\promapp\questionnaire_export_patient_list.html:5
 #: .\templates\promapp\questionnaire_export_patient_list.html:14
@@ -5510,15 +5510,15 @@ msgstr ""
 
 #: .\templates\promapp\questionnaire_list.html:52
 msgid "No questionnaires available yet."
-msgstr ""
+msgstr "कोई प्रश्नावली उपलब्ध नहीं है।"
 
 #: .\templates\promapp\questionnaire_list.html:54
 msgid "Create First Questionnaire"
-msgstr ""
+msgstr "पहला प्रश्नावली बनाएं"
 
 #: .\templates\promapp\questionnaire_response.html:5
 msgid "Questionnaire Response"
-msgstr ""
+msgstr "प्रश्नावली उत्तर"
 
 #: .\templates\promapp\questionnaire_response.html:42
 #, python-format
