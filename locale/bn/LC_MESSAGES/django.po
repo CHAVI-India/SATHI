@@ -1339,16 +1339,16 @@ msgstr ""
 #: .\templates\mfa\totp\deactivate_form.html:5
 #: .\templates\mfa\totp\deactivate_form.html:11
 msgid "Deactivate Authenticator App"
-msgstr ""
+msgstr "অথেন্টিকেটর অ্যাপ নিষ্ক্রিয় করুন"
 
 #: .\templates\mfa\deactivate_totp.html:10
 msgid "Remove two-factor authentication from your account"
-msgstr ""
+msgstr "আপনার অ্যাকাউন্ট থেকে দুই-ফ্যাক্টর প্রমাণীকরণ সরান"
 
 #: .\templates\mfa\deactivate_totp.html:27
 #: .\templates\mfa\totp\deactivate_form.html:37
 msgid "Security Warning"
-msgstr ""
+msgstr "সুরক্ষা সতর্কতা"
 
 #: .\templates\mfa\deactivate_totp.html:30
 #: .\templates\mfa\totp\deactivate_form.html:40
@@ -1356,6 +1356,8 @@ msgid ""
 "Deactivating your authenticator app will reduce the security of your "
 "account. You will only need your password to log in."
 msgstr ""
+"আপনার অথেন্টিকেটর অ্যাপ নিষ্ক্রিয় করা আপনার অ্যাকাউন্টের নিরাপত্তা হ্রাস করবে।" 
+"লগইন করতে আপনার শুধুমাত্র পাসওয়ার্ডের প্রয়োজন হবে।"
 
 #: .\templates\mfa\deactivate_totp.html:39
 #: .\templates\mfa\totp\deactivate_form.html:49
@@ -1363,32 +1365,34 @@ msgid ""
 "Are you sure you want to deactivate your authenticator app? This action will "
 "remove two-factor authentication from your account."
 msgstr ""
+"আপনি কি নিশ্চিত যে আপনি আপনার অথেন্টিকেটর অ্যাপ নিষ্ক্রিয় করতে চান?"
+"এই পদক্ষেপটি আপনার অ্যাকাউন্ট থেকে দুই-ফ্যাক্টর প্রমাণীকরণ সরিয়ে দেবে।"
 
 #: .\templates\mfa\deactivate_totp.html:69
 msgid "Yes, Deactivate"
-msgstr ""
+msgstr "নিষ্ক্রিয় করুন"
 
 #: .\templates\mfa\index.html:18
 msgid "Authenticator App"
-msgstr ""
+msgstr "অথেন্টিকেটর অ্যাপ"
 
 #: .\templates\mfa\index.html:21
 msgid "Authentication using an authenticator app is active."
-msgstr ""
+msgstr "আপনার অথেন্টিকেটর অ্যাপ সক্রিয়।"
 
 #: .\templates\mfa\index.html:27 .\templates\mfa\totp\deactivate_form.html:68
 #, fuzzy
 #| msgid "Active"
 msgid "Deactivate"
-msgstr "সক্রিয়"
+msgstr "নিষ্ক্রিয় করুন"
 
 #: .\templates\mfa\index.html:31
 msgid "An authenticator app is not active."
-msgstr ""
+msgstr "আপনার অথেন্টিকেটর অ্যাপ সক্রিয় নয়।"
 
 #: .\templates\mfa\index.html:45
 msgid "Security Keys"
-msgstr ""
+msgstr "নিরাপদ কী"
 
 #: .\templates\mfa\index.html:48
 #, python-format
