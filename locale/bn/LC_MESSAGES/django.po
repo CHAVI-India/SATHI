@@ -1236,56 +1236,56 @@ msgstr "বিস্তৃত রিপোর্টিং এবং ভিজু
 #: .\templates\mfa\totp\activate_form.html:5
 #: .\templates\mfa\totp\activate_form.html:11
 msgid "Activate Authenticator App"
-msgstr ""
+msgstr "অথেন্টিকেটর অ্যাপ সক্রিয় করুন"
 
 #: .\templates\mfa\activate_totp.html:10
 msgid "Set up two-factor authentication using an authenticator app"
-msgstr ""
+msgstr "একটি অথেন্টিকেটর অ্যাপ ব্যবহার করে দুই-ফ্যাক্টর প্রমাণীকরণ সেট আপ করুন"
 
 #: .\templates\mfa\activate_totp.html:25
 msgid "Download an Authenticator App"
-msgstr ""
+msgstr "অথেন্টিকেটর অ্যাপ ডাউনলোড করুন"
 
 #: .\templates\mfa\activate_totp.html:28
 msgid "Install one of these apps on your phone:"
-msgstr ""
+msgstr "একটি এস্প্লিকেশন আপলোড করুন:"
 
 #: .\templates\mfa\activate_totp.html:48
 msgid "Scan the QR Code"
-msgstr ""
+msgstr "QR কোড স্ক্যান করুন"
 
 #: .\templates\mfa\activate_totp.html:51
 msgid "Use your authenticator app to scan this QR code:"
-msgstr ""
+msgstr "এই QR কোড স্ক্যান করতে আপনার অথেন্টিকেটর অ্যাপ ব্যবহার করুন:"
 
 #: .\templates\mfa\activate_totp.html:60
 msgid "QR Code for authenticator setup"
-msgstr ""
+msgstr "অথেন্টিকেটর সেট আপ করার জন্য QR কোড"
 
 #: .\templates\mfa\activate_totp.html:62
 msgid "Scan this QR code with your authenticator app"
-msgstr ""
+msgstr "এই QR কোড স্ক্যান করতে আপনার অথেন্টিকেটর অ্যাপ ব্যবহার করুন:"
 
 #: .\templates\mfa\activate_totp.html:71
 msgid "Can't scan? Enter manually:"
-msgstr ""
+msgstr "স্ক্যান করতে পারলেনি? স্বাভাবিকভাবে প্রবেশ করুন:"
 
 #: .\templates\mfa\activate_totp.html:77
 msgid "Copy this code into your authenticator app manually"
-msgstr ""
+msgstr "এই কোডটি আপনার অথেন্টিকেটর অ্যাপ স্বাভাবিকভাবে প্রবেশ করুন:"
 
 #: .\templates\mfa\activate_totp.html:90
 msgid "Enter the Verification Code"
-msgstr ""
+msgstr "যাচাইকরণ কোডটি প্রবেশ করুন"
 
 #: .\templates\mfa\activate_totp.html:93
 #: .\templates\mfa\totp\activate_form.html:91
 msgid "Enter the 6-digit code from your authenticator app:"
-msgstr ""
+msgstr "আপনার অথেন্টিকেটর অ্যাপ থেকে ৬-অঙ্কের কোডটি প্রবেশ করুন:"
 
 #: .\templates\mfa\activate_totp.html:125
 msgid "Verification Code"
-msgstr ""
+msgstr "যাচাইকরণ কোড"
 
 #: .\templates\mfa\activate_totp.html:144 .\templates\mfa\index.html:36
 #: .\templates\mfa\totp\activate_form.html:152
@@ -1298,17 +1298,19 @@ msgstr "সক্রিয়"
 #: .\templates\mfa\index.html:5 .\templates\mfa\index.html:12
 #: .\templates\navbar.html:173 .\templates\navbar.html:336
 msgid "Two-Factor Authentication"
-msgstr ""
+msgstr "দুই-ফ্যাক্টর প্রমাণীকরণ"
 
 #: .\templates\mfa\authenticate.html:12
 msgid ""
 "Your account is protected by two-factor authentication. Please enter an "
 "authenticator code:"
 msgstr ""
+"আপনার অ্যাকাউন্টটি দুই-ফ্যাক্টর প্রমাণীকরণের সাহায্যে সুরক্ষিত। আপনার অথেন্টিকেটর "
+"কোডটি প্রবেশ করুন:"
 
 #: .\templates\mfa\authenticate.html:17
 msgid "Enter Authentication Code"
-msgstr ""
+msgstr "প্রমাণীকরণ কোডটি প্রবেশ করুন"
 
 #: .\templates\mfa\authenticate.html:85
 #, fuzzy
@@ -1318,17 +1320,19 @@ msgstr "বিকল্প সরান"
 
 #: .\templates\mfa\authenticate.html:101
 msgid "Use a security key"
-msgstr ""
+msgstr "নিরাপদ কী ব্যবহার করুন"
 
 #: .\templates\mfa\authenticate.html:122
 msgid "Need help?"
-msgstr ""
+msgstr "সাহায্য করতে পারলেনি?"
 
 #: .\templates\mfa\authenticate.html:124
 msgid ""
 "Open your authenticator app and enter the 6-digit code. If you don't have "
 "access to your authenticator, you can use a recovery code instead."
 msgstr ""
+"আপনার অথেন্টিকেটর অ্যাপ খুলুন এবং ৬-অঙ্কের কোডটি প্রবেশ করুন।"
+"আপনার যদি অথেন্টিকেটরে অ্যাক্সেস না থাকে, তাহলে আপনি একটি রিকভারি কোড ব্যবহার করতে পারেন।"
 
 #: .\templates\mfa\deactivate_totp.html:5
 #: .\templates\mfa\deactivate_totp.html:10
