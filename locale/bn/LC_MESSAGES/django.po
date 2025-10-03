@@ -47,7 +47,7 @@ msgstr "এই ইমেইল দিয়ে ইতিমধ্যে এক�
 
 #: .\patientapp\models.py:58
 msgid "Please select the Preferred Language of the Patient"
-msgstr ""
+msgstr "অনুগ্রহ করে রোগীর পছন্দের ভাষা নির্বাচন করুন"
 
 #: .\patientapp\models.py:197
 msgid "Start date cannot be in the future."
@@ -218,7 +218,7 @@ msgstr ""
 #: .\promapp\forms.py:255
 msgid ""
 "Configure scoring direction, thresholds, and normative values for this item"
-msgstr ""
+msgstr "এই আইটেমের জন্য স্কোরিং দিক, থ্রেশহোল্ড এবং আদর্শ মান কনফিগার করুন"
 
 #: .\promapp\forms.py:385 .\promapp\forms.py:1086
 #, fuzzy
@@ -495,53 +495,53 @@ msgstr "বৃদ্ধি লিখুন"
 #: .\templates\account\password_reset_from_key_done.html:29
 #: .\templates\mfa\authenticate.html:68
 msgid "Sign In"
-msgstr ""
+msgstr "সাইন ইন করুন"
 
 #: .\templates\account\confirm_login_code.html:59
 msgid "Didn't receive the code?"
-msgstr ""
+msgstr "কোডটি পাননি?"
 
 #: .\templates\account\confirm_login_code.html:62
 msgid "Request a new code"
-msgstr ""
+msgstr "নতুন কোড অনুরোধ করুন"
 
 #: .\templates\account\email.html:5 .\templates\account\email.html:12
 msgid "E-mail Addresses"
-msgstr ""
+msgstr "ইমেল ঠিকানা"
 
 #: .\templates\account\email.html:15
 msgid "Manage your email addresses and verification status"
-msgstr ""
+msgstr "আপনার ইমেল ঠিকানা এবং যাচাইকরণের অবস্থা পরিচালনা করুন"
 
 #: .\templates\account\email.html:22
 #, fuzzy
 #| msgid "Your responses"
 msgid "Your Email Addresses"
-msgstr "আপনার প্রতিক্রিয়াসমূহ"
+msgstr "আপনার ইমেল ঠিকানাসমূহ"
 
 #: .\templates\account\email.html:42
 msgid "Verified"
-msgstr ""
+msgstr "অনুমোদিত"
 
 #: .\templates\account\email.html:44
 msgid "Unverified"
-msgstr ""
+msgstr "অনুমোদিত না"
 
 #: .\templates\account\email.html:47
 msgid "Primary"
-msgstr ""
+msgstr "প্রধান"
 
 #: .\templates\account\email.html:59
 msgid "Re-send Verification"
-msgstr ""
+msgstr "নতুন যাচাইকরণ অনুরোধ করুন"
 
 #: .\templates\account\email.html:71
 msgid "Add E-mail Address"
-msgstr ""
+msgstr "ইমেল ঠিকানা যোগ করুন"
 
 #: .\templates\account\email.html:78
 msgid "Add E-mail"
-msgstr ""
+msgstr "ইমেল যোগ করুন"
 
 #: .\templates\account\email.html:86 .\templates\account\email_confirm.html:40
 #: .\templates\account\email_confirm.html:71
@@ -554,7 +554,7 @@ msgstr "তালিকায় ফিরে যান"
 #: .\templates\account\email_confirm.html:5
 #: .\templates\account\email_confirm.html:17
 msgid "Confirm E-mail Address"
-msgstr ""
+msgstr "ইমেল ঠিকানা নিশ্চিত করুন"
 
 #: .\templates\account\email_confirm.html:26
 #, python-format
@@ -562,6 +562,8 @@ msgid ""
 "Please confirm that <strong>%(email)s</strong> is an e-mail address for user "
 "%(confirmation.email_address.user)s."
 msgstr ""
+"অনুগ্রহ করে নিশ্চিত করুন যে <strong>%(email)s</strong> ব্যবহারকারী "
+"%(confirmation.email_address.user)s-এর একটি ইমেল ঠিকানা।"
 
 #: .\templates\account\email_confirm.html:34
 #: .\templates\mfa\reauthenticate.html:75
@@ -572,21 +574,23 @@ msgstr "মুছে ফেলা নিশ্চিত করুন"
 
 #: .\templates\account\email_confirm.html:55
 msgid "Invalid Confirmation Link"
-msgstr ""
+msgstr "অবৈধ নিশ্চিতকরণ লিংক"
 
 #: .\templates\account\email_confirm.html:58
 msgid ""
 "This e-mail confirmation link expired or is invalid. Please request a new "
 "confirmation email."
 msgstr ""
+"এই ইমেইল নিশ্চিতকরণ লিংকটির মেয়াদ শেষ হয়ে গেছে বা এটি অবৈধ। অনুগ্রহ করে একটি নতুন "
+"নিশ্চিতকরণ ইমেইল অনুরোধ করুন।"
 
 #: .\templates\account\email_confirm.html:66
 msgid "Request New Confirmation"
-msgstr ""
+msgstr "নতুন নিশ্চিতকরণ অনুরোধ করুন"
 
 #: .\templates\account\email_confirm.html:81
 msgid "Email confirmation helps secure your account and enables all features."
-msgstr ""
+msgstr "ইমেল নিশ্চিতকরণ আপনার অ্যাকাউন্টটি সুরক্ষিত করে এবং সব ফিচার সক্রিয় করে।"
 
 #: .\templates\account\inactive.html:5 .\templates\account\inactive.html:17
 #, fuzzy
@@ -599,25 +603,27 @@ msgid ""
 "Your account is currently inactive. Please contact your administrator to "
 "activate your account."
 msgstr ""
+"আপনার অ্যাকাউন্টটি বর্তমানে নিষ্ক্রিয়। অনুগ্রহ করে আপনার অ্যাকাউন্ট সক্রিয় "
+"করার জন্য আপনার প্রশাসকের সাথে যোগাযোগ করুন।"
 
 #: .\templates\account\inactive.html:38
 msgid "You cannot access the application until your account is activated."
-msgstr ""
+msgstr "আপনার অ্যাকাউন্ট সক্রিয় না হওয়া পর্যন্ত আপনি অ্যাপ্লিকেশনটি অ্যাক্সেস করতে পারবেন না।"
 
 #: .\templates\account\inactive.html:45 .\templates\account\logout.html:5
 #: .\templates\account\logout.html:25 .\templates\navbar.html:191
 #: .\templates\navbar.html:348
 #: .\templates\usersessions\usersession_list.html:114
 msgid "Sign Out"
-msgstr ""
+msgstr "সাইন আউট"
 
 #: .\templates\account\login.html:19 .\templates\account\login.html:26
 msgid "Username or Email"
-msgstr ""
+msgstr "ব্যবহারকারীর নাম বা ইমেইল"
 
 #: .\templates\account\login.html:67
 msgid "Remember me"
-msgstr ""
+msgstr "আমাকে মনে রাখুন"
 
 #: .\templates\account\login.html:73
 #, fuzzy
@@ -636,15 +642,15 @@ msgstr "আরো"
 #: .\templates\account\request_login_code.html:5
 #: .\templates\account\request_login_code.html:12
 msgid "Sign in with email code"
-msgstr ""
+msgstr "ইমেল কোড দিয়ে সাইন ইন করুন"
 
 #: .\templates\account\login_by_code.html:5
 msgid "Sign in by email"
-msgstr ""
+msgstr "ইমেল দ্বারা সাইন ইন করুন"
 
 #: .\templates\account\login_by_code.html:13
 msgid "Enter your email address and we'll send you a secure login code."
-msgstr ""
+msgstr "ইমেইল দ্বারা সাইন ইন"
 
 #: .\templates\account\login_by_code.html:22
 #: .\templates\account\login_by_code.html:29
@@ -653,11 +659,11 @@ msgstr ""
 #: .\templates\account\request_login_code.html:45
 #: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1920
 msgid "Email address"
-msgstr ""
+msgstr "ইমেইল ঠিকানা"
 
 #: .\templates\account\login_by_code.html:41
 msgid "Send Login Code"
-msgstr ""
+msgstr "লগইন কোড পাঠিক করুন"
 
 #: .\templates\account\login_by_code.html:52
 #, fuzzy
@@ -773,50 +779,59 @@ msgstr "পাসওয়ার্ড মিলছে না"
 
 #: .\templates\account\password_reset_done.html:20
 msgid "Check your email"
-msgstr ""
+msgstr "আপনার ইমেইল চেক করুন"
 
 #: .\templates\account\password_reset_done.html:23
 msgid ""
 "We've emailed you instructions for setting your password, if an account with "
 "that email address exists. You should receive them shortly."
 msgstr ""
+"আপনি যদি প্রদানকৃত ইমেইল ঠিকানায় কোন অ্যাকাউন্ট থেকে থাকে, তাহলে আমরা আপনার পাসওয়ার্ড সেট করার জন্য নির্দেশাবলী ইমেইল করে দিয়েছি।"
+"আপনি শীঘ্রই এটি পাবেন।"
 
 #: .\templates\account\password_reset_done.html:29
 msgid ""
 "If you don't receive an email, please make sure you've entered the address "
 "you registered with, and check your spam folder."
 msgstr ""
+"আপনি যদি ইমেইল না পান, অনুগ্রহ করে নিশ্চিত করুন যে আপনি সঠিক ইমেইল ঠিকানা দিয়েছেন "
+"যেটি দিয়ে আপনি নিবন্ধন করেছেন, এবং আপনার স্প্যাম ফোল্ডারটি পরীক্ষা করুন।"
+
 
 #: .\templates\account\password_reset_from_key.html:21
 msgid "Bad Token"
-msgstr ""
+msgstr "অবৈধ টোকেন"
 
 #: .\templates\account\password_reset_from_key.html:24
 msgid ""
 "The password reset link was invalid, possibly because it has already been "
 "used. Please request a new password reset."
 msgstr ""
+"পাসওয়ার্ড রিসেট লিংকটি অবৈধ, সম্ভবত এটি ইতিমধ্যে ব্যবহার করা হয়েছে। "
+"অনুগ্রহ করে একটি নতুন পাসওয়ার্ড রিসেটের জন্য অনুরোধ করুন।"
 
 #: .\templates\account\password_reset_from_key.html:30
 msgid "Request New Reset"
-msgstr ""
+msgstr "নতুন পাসওয়ার্ড রিসেট অনুরোধ করুন"
 
 #: .\templates\account\password_reset_from_key.html:37
 msgid ""
 "Please enter your new password twice so we can verify you typed it in "
 "correctly."
 msgstr ""
+"দয়া করে আপনার নতুন পাসওয়ার্ডটি দুবার লিখুন যাতে আমরা এটিকে সঠিকভাবে টাইপ করেছেন কিনা "
+"তা যাচাই করতে পারি।"
 
 #: .\templates\account\password_reset_from_key.html:46
 #: .\templates\account\password_reset_from_key.html:53
 #, fuzzy
 #| msgid "Password"
 msgid "New password"
-msgstr "পাসওয়ার্ড"
+msgstr "নতুন পাসওয়ার্ড"
 
 #: .\templates\account\password_reset_from_key.html:65
 msgid "New password confirmation"
-msgstr ""
+msgstr "নতুন পাসওয়ার্ড পুনরাবৃত্তি"
 
 #: .\templates\account\password_reset_from_key.html:72
 #, fuzzy
@@ -838,11 +853,11 @@ msgstr "পাসওয়ার্ড"
 
 #: .\templates\account\password_reset_from_key_done.html:20
 msgid "Password successfully changed"
-msgstr ""
+msgstr "পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।"
 
 #: .\templates\account\password_reset_from_key_done.html:23
 msgid "Your password has been set. You may go ahead and sign in now."
-msgstr ""
+msgstr "আপনি পাসওয়ার্ড সেট করেছেন। আপনি এখন সাইন ইন করতে পারেন।"
 
 #: .\templates\account\password_set.html:5
 #: .\templates\account\password_set.html:12
@@ -854,19 +869,19 @@ msgstr "পাসওয়ার্ড পুনরাবৃত্তি কর�
 
 #: .\templates\account\password_set.html:15
 msgid "Set a password for your account"
-msgstr ""
+msgstr "আপনার অ্যাকাউন্টে একটি পাসওয়ার্ড সেট করুন"
 
 #: .\templates\account\password_set.html:56
 #: .\templates\account\reauthenticate.html:84
 #, fuzzy
 #| msgid "Password"
 msgid "Confirm Password"
-msgstr "পাসওয়ার্ড"
+msgstr "পাসওয়ার্ড নিশ্চিত করুন"
 
 #: .\templates\account\reauthenticate.html:6
 #: .\templates\account\reauthenticate.html:11
 msgid "Confirm Your Password"
-msgstr ""
+msgstr "পাসওয়ার্ড নিশ্চিত করুন"
 
 #: .\templates\account\reauthenticate.html:11
 #, fuzzy
@@ -876,19 +891,21 @@ msgstr "অনুগ্রহ করে একটি গ্রুপের ক�
 
 #: .\templates\account\reauthenticate.html:28
 msgid "Security Check"
-msgstr ""
+msgstr "সুরক্ষা চেক"
 
 #: .\templates\account\reauthenticate.html:31
 msgid ""
 "For your security, please confirm your password before accessing sensitive "
 "account settings."
 msgstr ""
+"আপনার নিরাপত্তার জন্য, সংবেদনশীল অ্যাকাউন্ট সেটিংসে অ্যাক্সেস করার আগে অনুগ্রহ করে "
+"আপনার পাসওয়ার্ড নিশ্চিত করুন।"
 
 #: .\templates\account\reauthenticate.html:50
 #: .\templates\mfa\activate_totp.html:113
 #: .\templates\mfa\deactivate_totp.html:57
 msgid "Error"
-msgstr ""
+msgstr "ত্রুটি"
 
 #: .\templates\account\reauthenticate.html:69
 #, fuzzy
@@ -898,15 +915,15 @@ msgstr "পাসওয়ার্ড ভুলে গেছেন?"
 
 #: .\templates\account\reauthenticate.html:96
 msgid "This verification helps protect your account from unauthorized changes."
-msgstr ""
+msgstr "এই সত্যাবিষ্টি আপনার অ্যাকাউন্ট অনুমতি নেওয়ার বিষম্ভ থেকে পরিবর্তন করা হতে পারে না।"
 
 #: .\templates\account\request_login_code.html:15
 msgid "Enter your email address and we'll send you a secure login code"
-msgstr ""
+msgstr "আপনার ইমেইল ঠিকানা দিনো এবং আপনি একটি সুরক্ষিত লগইন কোড পাঠিক করব।"
 
 #: .\templates\account\request_login_code.html:56
 msgid "Enter your email address"
-msgstr ""
+msgstr "আপনার ইমেইল ঠিকানা দিনো"
 
 #: .\templates\account\request_login_code.html:72
 #, fuzzy
@@ -916,31 +933,33 @@ msgstr "আইটেম তৈরিতে ফিরে যান"
 
 #: .\templates\account\request_login_code.html:78
 msgid "Send login code"
-msgstr ""
+msgstr "লগইন কোড পাঠিক করুন"
 
 #: .\templates\account\request_login_code.html:85
 msgid "The login code will expire in 5 minutes for security"
-msgstr ""
+msgstr "সুরক্ষা করে লগইন কোড 5 মিনিটে পরে পরিণত হবে"
 
 #: .\templates\account\signup.html:5
 msgid "Registration Disabled"
-msgstr ""
+msgstr "নিবন্ধন বন্ধ"
 
 #: .\templates\account\signup.html:17
 #, fuzzy
 #| msgid "Rule Creation Not Allowed"
 msgid "Registration Not Available"
-msgstr "নিয়ম তৈরি করার অনুমতি নেই"
+msgstr "নিবন্ধন তৈরি করার অনুমতি নেই"
 
 #: .\templates\account\signup.html:25
 msgid ""
 "User registration is currently disabled. Please contact your administrator "
 "for access to this system."
 msgstr ""
+"ব্যবহারকারী নিবন্ধন বর্তমানে নিষ্ক্রিয় করা আছে। এই সিস্টেমে অ্যাক্সেসের জন্য অনুগ্রহ "
+"করে আপনার প্রশাসকের সাথে যোগাযোগ করুন।"
 
 #: .\templates\account\signup.html:38
 msgid "If you already have an account, please use the login page instead."
-msgstr ""
+msgstr "আপনি যদি একটি অ্যাকাউন্ট থাকেন, তাহলে লগইন পেজে ব্যবহার করুন।"
 
 #: .\templates\account\signup.html:46
 #, fuzzy
@@ -957,7 +976,7 @@ msgstr "আইটেমে ফিরে যান"
 #: .\templates\account\verification_sent.html:5
 #: .\templates\account\verification_sent.html:17
 msgid "Verify Your E-mail Address"
-msgstr ""
+msgstr "আপনার ইমেইল ঠিকানা যাচাই করুন"
 
 #: .\templates\account\verification_sent.html:25
 msgid ""
@@ -965,18 +984,20 @@ msgid ""
 "finalize the signup process. Please contact us if you do not receive it "
 "within a few minutes."
 msgstr ""
+"আমরা আপনাকে যাচাইকরণের জন্য একটি ইমেইল পাঠিয়েছি। সাইনআপ প্রক্রিয়া সম্পন্ন করতে প্রদত্ত "
+"লিংকটি অনুসরণ করুন। আপনি যদি কয়েক মিনিটের মধ্যে এটি না পান তবে আমাদের সাথে যোগাযোগ করুন।"
 
 #: .\templates\account\verification_sent.html:38
 msgid "Check your email inbox and spam folder for the verification link."
-msgstr ""
+msgstr "আপনার ইমেইল ইনবক্স এবং স্পাম ফোল্ডারে যাচাইকরণের লিংকটি দেখুন।"
 
 #: .\templates\account\verification_sent.html:46
 msgid "Manage Email Addresses"
-msgstr ""
+msgstr "ইমেইল ঠিকানা সম্পাদন"
 
 #: .\templates\account\verification_sent.html:60
 msgid "The verification link will expire after 24 hours for security reasons."
-msgstr ""
+msgstr "সুরক্ষা করে যাচাইকরণের লিংক 24 ঘন্টার পরে পরিণত হবে।"
 
 #: .\templates\base.html:59
 msgid "Select Language"
@@ -1179,6 +1200,7 @@ msgid ""
 "Access comprehensive guidance and tools for creating, managing, and "
 "configuring questionnaires within the system."
 msgstr ""
+"সিস্টেমের মধ্যে প্রশ্নাবলী তৈরি, পরিচালনা এবং কনফিগার করার জন্য বিস্তারিত নির্দেশিকা এবং সরঞ্জামগুলি অ্যাক্সেস করুন।"
 
 #: .\templates\index.html:43
 #, fuzzy
