@@ -1206,7 +1206,7 @@ msgstr ""
 #, fuzzy
 #| msgid "All Questionnaires"
 msgid "Add Questionnaires"
-msgstr "সব প্রশ্নাবলী"
+msgstr "প্রশ্নাবলী যোগ করুন"
 
 #: .\templates\index.html:50
 msgid "Key Features"
