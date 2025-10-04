@@ -1111,10 +1111,8 @@ msgstr ""
 "रोगी द्वारा दिया गया अंतर्दृष्टि / अनुभव मापक इलेक्ट्रॉनिक वर्गीकरणों को जोड़ें।"
 
 #: templates/index.html:120
-#, fuzzy
-#| msgid "Add Questionnaires"
 msgid "Answer Questionnaires"
-msgstr "प्रश्नावली जोड़ें"
+msgstr "प्रश्नावली का उत्तर दें"
 
 #: templates/index.html:123
 msgid "Answer questionnaires about your health and well-being"
@@ -1134,50 +1132,40 @@ msgid "View the answers you have provided in the past."
 msgstr "पिछले में दिए गए उत्तरों को देखें।"
 
 #: templates/index.html:154
-#, fuzzy
-#| msgid "Patient Details"
 msgid "Patient Portal"
-msgstr "रोगी का विवरण"
+msgstr "रोगी का पोर्टल"
 
 #: templates/index.html:172
-#, fuzzy
-#| msgid "For Healthcare Providers"
 msgid "Healthcare Provider Dashboard"
 msgstr "स्वास्थ्य सेवा प्रदाताओं के लिए"
 
 #: templates/index.html:175
 msgid "Review patient outcomes and responses"
-msgstr ""
+msgstr "रोगी के अंतर्दृष्टि / अनुभव मापक इलेक्ट्रॉनिक वर्गीकरणों को देखें"
 
 #: templates/index.html:181
-#, fuzzy
-#| msgid "View Patient"
 msgid "View Patients"
-msgstr "पूर्वीकृत व्यक्ति देखें"
+msgstr "रोगी देखें"
 
 #: templates/index.html:199
-#, fuzzy
-#| msgid "Questionnaire Count"
 msgid "Questionnaire Management"
-msgstr "प्रश्नावली संख्या"
+msgstr "प्रश्नावली संगठन"
 
 #: templates/index.html:202
 msgid "Create and manage electronic patient-reported outcome questionnaires"
-msgstr ""
+msgstr "इलेक्ट्रॉनिक रोगी द्वारा दिया गया अंतर्दृष्टि / अनुभव मापक इलेक्ट्रॉनिक वर्गीकरणों को बनाएं और संगठन करें"
 
 #: templates/index.html:208 templates/navbar.html:67 templates/navbar.html:265
 msgid "Questionnaire Guidance"
 msgstr "प्रश्नावली निर्देश"
 
 #: templates/index.html:221
-#, fuzzy
-#| msgid "Key Features"
 msgid "Goals and Features"
-msgstr "महत्वपूर्ण विशेषताएं"
+msgstr "लक्ष्य और विशेषताएं"
 
 #: templates/index.html:228
 msgid "Our Goals"
-msgstr ""
+msgstr "हमारे लक्ष्य"
 
 #: templates/index.html:233
 msgid ""
@@ -1190,6 +1178,11 @@ msgid ""
 "healthcare providers with insights into these issues to improve the patient-"
 "provider relationship."
 msgstr ""
+"SATHI रोगियों की बेहतर देखभाल के लिए बनाया गया है। यह रोगियों के अनुभव और स्वास्थ्य परिणामों "
+"को इलेक्ट्रॉनिक रूप से दर्ज करके उन्हें रोज़मर्रा की चिकित्सा सेवाओं में शामिल करता है। "
+"SATHI पूरी तरह से मुफ्त और ओपन सोर्स सॉफ्टवेयर है (Apache 2.0 लाइसेंस), जिसे कोई भी संगठन "
+"अपनी ज़रूरत के अनुसार उपयोग कर सकता है। हमारा मक़सद है कि मरीज़ अपने इलाज में सक्रिय भागीदार बनें "
+"और डॉक्टरों को मरीज़ों की समस्याओं की गहरी समझ मिले, जिससे दोनों के बीच का रिश्ता मज़बूत हो।"
 
 #: templates/index.html:241
 msgid "Key Features"
@@ -1199,32 +1192,32 @@ msgstr "महत्वपूर्ण विशेषताएं"
 msgid ""
 "Any type of patient reported outcome and experience measures can be "
 "integrated."
-msgstr ""
+msgstr "किसी भी तरह के रोगी अनुभव और स्वास्थ्य परिणाम मापक को जोड़ा जा सकता है।"
 
 #: templates/index.html:246
 msgid "Translations can be integrated for each questionnaire "
-msgstr ""
+msgstr "हर प्रश्नावली के लिए अनुवाद जोड़े जा सकते हैं।"
 
 #: templates/index.html:247
 msgid ""
 "Native multi-lingual support and internationalization thanks to the awesome "
 "Django Project which currently supports "
-msgstr ""
+msgstr "Django Project की बदौलत बहुभाषी समर्थन उपलब्ध है, जो वर्तमान में "
 
 #: templates/index.html:248
 msgid ""
 "Integration of media elements like audio, video and images in the questions "
 "to enable design of modern questionnaires."
-msgstr ""
+msgstr "प्रश्नों में ऑडियो, वीडियो और चित्र जोड़े जा सकते हैं, जिससे आधुनिक प्रश्नावली बनाई जा सकती है।"
 
 #: templates/index.html:249
 msgid "Providers can review responses provided over a period of time."
-msgstr ""
+msgstr "डॉक्टर समय के साथ दिए गए उत्तरों की समीक्षा कर सकते हैं।"
 
 #: templates/index.html:250
 msgid ""
 "Automatic guidance about the important healthcare issues based on the PROMs."
-msgstr ""
+msgstr "रोगी के उत्तरों के आधार पर महत्वपूर्ण स्वास्थ्य मुद्दों के बारे में स्वचालित मार्गदर्शन।"
 
 #: templates/index.html:251
 msgid ""
@@ -1232,6 +1225,7 @@ msgid ""
 "same questionnaire during their healthcare journey and compare it with the "
 "current patient."
 msgstr ""
+"अन्य मरीज़ों द्वारा दिए गए उत्तरों को देखने और वर्तमान मरीज़ से तुलना करने की सुविधा।"
 
 #: templates/mfa/activate_totp.html:5 templates/mfa/activate_totp.html:10
 #: templates/mfa/totp/activate_form.html:5
