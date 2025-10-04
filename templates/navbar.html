@@ -1,11 +1,14 @@
 {% load i18n %}
+{% load static %}
 
 <nav class="bg-blue-600">
   <div class="mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
       <div class="flex items-center">
         <div class="flex-shrink-0">
-          <a href="/" class="text-white font-bold text-xl">SATHI</a>
+          <a href="/" class="flex items-center">
+            <img src="{% static 'images/logo.png' %}" alt="SATHI Logo" class="h-12 w-12 rounded-full object-cover">
+          </a>
         </div>
         <div class="hidden md:block">
           <div class="ml-10 flex items-baseline space-x-4">
