@@ -2,13 +2,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # Santam Chakraborty <EMAIL@ADDRESS>, 2025.
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-03 21:43+0530\n"
+"POT-Creation-Date: 2025-10-04 07:50+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Santam Chakraborty <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1101,104 +1101,203 @@ msgstr "অনুবাদ উপলব্ধ - সম্পাদনা কর�
 msgid "No translation - click to add"
 msgstr "কোন অনুবাদ নেই - যোগ করতে ক্লিক করুন"
 
-#: templates/cotton/view_results_button.html:13 templates/index.html:33
+#: templates/cotton/view_results_button.html:13
 msgid "View Results"
 msgstr "ফলাফল দেখুন"
 
-#: templates/index.html:4
-msgid "Welcome to Chavi PROM Application"
-msgstr "CHAVI PROM অ্যাপ্লিকেশনে স্বাগতম"
+#: templates/index.html:5 templates/index.html:23
+msgid "SATHI"
+msgstr "সাথী"
 
-#: templates/index.html:10
-msgid "Patient Reported Outcome Monitoring"
-msgstr "রোগী কর্তৃক রিপোর্টকৃত ফলাফল পর্যবেক্ষণ"
+#: templates/index.html:16
+msgid "SAATHI App Image"
+msgstr "সাথী অ্যাপ চিত্র"
 
-#: templates/index.html:14
-msgid ""
-"Welcome to the Patient Reported Outcome Monitoring Application for CHAVI. "
-"This open source application has been designed to allow patients to report "
-"their problems and concerns using standardized questionnaires. "
-"Questionnaires can be translated into multiple languages. Additionally, the "
-"application also provides users with an easy way to view responses to the "
-"questions."
-msgstr ""
-"CHAVI রোগী কর্তৃক রিপোর্টকৃত ফলাফল পর্যবেক্ষণ অ্যাপ্লিকেশনে স্বাগতম। এই ওপেন সোর্স "
-"অ্যাপ্লিকেশনটি রোগীদের মানসম্মত প্রশ্নাবলী ব্যবহার করে তাদের সমস্যা ও উদ্বেগ রিপোর্ট "
-"করার জন্য ডিজাইন করা হয়েছে। প্রশ্নাবলী একাধিক ভাষায় অনুবাদ করা যায়। উপরন্তু, "
-"অ্যাপ্লিকেশনটি ব্যবহারকারীদের প্রশ্নের উত্তর দেখার একটি সহজ উপায়ও প্রদান করে।"
-
-#: templates/index.html:19
-msgid "For Patients"
-msgstr "রোগীদের জন্য"
-
-#: templates/index.html:20
-msgid ""
-"Complete questionnaires about your health and well-being. Your feedback "
-"helps healthcare providers understand your needs better."
-msgstr ""
-"আপনার স্বাস্থ্য এবং কল্যাণ সম্পর্কে প্রশ্নাবলী পূরণ করুন। আপনার মতামত স্বাস্থ্যসেবা "
-"প্রদানকারীদের আপনার প্রয়োজন আরও ভালভাবে বুঝতে সাহায্য করে।"
-
-#: templates/index.html:23 templates/navbar.html:99 templates/navbar.html:292
-#: templates/patientapp/partials/patient_portal_plots.html:138
-msgid "Complete a Questionnaire"
-msgstr "একটি প্রশ্নাবলী পূরণ করুন"
-
-#: templates/index.html:29
-msgid "For Healthcare Providers"
-msgstr "স্বাস্থ্যসেবকদের জন্য"
+#: templates/index.html:26
+msgid "Self Reported Assessment and Tracking for Health Insights"
+msgstr "স্বাস্থ্য সম্পর্কে অন্তর্দৃষ্টির জন্য নিজস্ব মূল্যায়ন ও পর্যবেক্ষণ"
 
 #: templates/index.html:30
 msgid ""
-"Review patient-reported outcomes and gain insights into patient health "
-"status and treatment effectiveness."
+"SATHI allows patients to answer questionnaires about their health and well-"
+"being. Healthcare workers can view these answers to gain a better "
+"understanding about their patients health."
 msgstr ""
-"রোগীর রিপোর্ট করা ফলাফল পর্যালোচনা করুন এবং রোগীর স্বাস্থ্য অবস্থা এবং চিকিৎসার "
-"কার্যকারিতা সম্পর্কে অন্তর্দৃষ্টি অর্জন করুন।"
+"সাথী রোগীদের তাদের স্বাস্থ্য ও সুস্থতা সম্পর্কে প্রশ্নাবলীর উত্তর দিতে সাহায্য করে। "
+"স্বাস্থ্যকর্মীরা এই উত্তরগুলি দেখে রোগীদের স্বাস্থ্য সম্পর্কে আরও ভালোভাবে বুঝতে পারেন।"
 
-#: templates/index.html:39
-#, fuzzy
-#| msgid "Questionnaire Details"
-msgid "For Questionnaire Developers"
-msgstr "প্রশ্নাবলীর বিবরণ"
+#: templates/index.html:49 templates/navbar.html:14 templates/navbar.html:222
+#: templates/patientapp/patient_list.html:6
+#: templates/patientapp/patient_list.html:14
+#: templates/promapp/components/aggregation_metadata_card.html:69
+#: templates/promapp/components/aggregation_metadata_card.html:109
+#: templates/promapp/components/aggregation_metadata_card.html:144
+msgid "Patients"
+msgstr "রোগী"
 
-#: templates/index.html:40
+#: templates/index.html:52
 msgid ""
-"Access comprehensive guidance and tools for creating, managing, and "
-"configuring questionnaires within the system."
-msgstr ""
-"সিস্টেমের মধ্যে প্রশ্নাবলী তৈরি, পরিচালনা এবং কনফিগার করার জন্য বিস্তারিত "
-"নির্দেশিকা এবং সরঞ্জামগুলি অ্যাক্সেস করুন।"
+"Answer questionnaires about your health and well-being using your phone or "
+"computer."
+msgstr "আপনার ফোন বা কম্পিউটার ব্যবহার করে আপনার স্বাস্থ্য ও সুস্থতা সম্পর্কে প্রশ্নাবলীর উত্তর দিন।"
 
-#: templates/index.html:43
+
+#: templates/index.html:56 templates/index.html:77 templates/index.html:98
+msgid "Login to Start"
+msgstr "শুরু করতে লগইন করুন"
+
+#: templates/index.html:70
+msgid "Healthcare Providers"
+msgstr "স্বাস্থ্যসেবকদের জন্য"
+
+#: templates/index.html:73
+msgid "Understand the important health issues during treatment and followup."
+msgstr "চিকিৎসা এবং চিকিৎসার পরে পর্যবেক্ষণের সময় স্বাস্থ্য সম্পর্কিত অসুবিধার ব্যাপারে জানুন"
+
+#: templates/index.html:91
+#| msgid "Questionnaire Guidance"
+msgid "Questionnaire Creators"
+msgstr "প্রশ্নাবলী নির্দেশনা"
+
+#: templates/index.html:94
+msgid ""
+"Add electronic versions of Patient Reported Outcome / Experience Measures"
+msgstr "রোগী দ্বারা বর্ণিত ফলাফল ও অভিজ্ঞতা পরিমাপের ইলেকট্রনিক সংস্করণ যোগ করুন"
+
+#: templates/index.html:120
 #, fuzzy
-#| msgid "All Questionnaires"
-msgid "Add Questionnaires"
-msgstr "প্রশ্নাবলী যোগ করুন"
+#| msgid "Answer Questionnaire"
+msgid "Answer Questionnaires"
+msgstr "প্রশ্নাবলীর উত্তর দিন"
 
-#: templates/index.html:50
+#: templates/index.html:123
+msgid "Answer questionnaires about your health and well-being"
+msgstr "আপনার স্বাস্থ্য ও সুস্থতা সম্পর্কে প্রশ্নাবলীর উত্তর দিন"
+
+#: templates/index.html:129 templates/promapp/my_questionnaire_list.html:4
+msgid "My Questionnaires"
+msgstr "আমার প্রশ্নাবলী"
+
+#: templates/index.html:145 templates/navbar.html:102 templates/navbar.html:295
+#: templates/patientapp/patient_portal.html:5
+msgid "My Portal"
+msgstr "আমার পোর্টাল"
+
+#: templates/index.html:148
+msgid "View the answers you have provided in the past."
+msgstr "পূর্বে দেওয়া উত্তরগুলি দেখুন"
+
+#: templates/index.html:154
+#, fuzzy
+#| msgid "Patient Details"
+msgid "Patient Portal"
+msgstr "রোগীর বিবরণ"
+
+#: templates/index.html:172
+#, fuzzy
+#| msgid "For Healthcare Providers"
+msgid "Healthcare Provider Dashboard"
+msgstr "স্বাস্থ্যসেবকদের জন্য"
+
+#: templates/index.html:175
+msgid "Review patient outcomes and responses"
+msgstr "রোগীর ফলাফল ও উত্তরগুলি দেখুন"
+
+#: templates/index.html:181
+#, fuzzy
+#| msgid "View Patient"
+msgid "View Patients"
+msgstr "রোগী দেখুন"
+
+#: templates/index.html:199
+#, fuzzy
+#| msgid "Questionnaire Count"
+msgid "Questionnaire Management"
+msgstr "প্রশ্নাবলী ব্যবস্থাপনা"
+
+#: templates/index.html:202
+#, fuzzy
+#| msgid ""
+#| "A comprehensive guide to understanding the key concepts and components "
+#| "used in Patient Reported Outcome Measures (PROMs) questionnaires."
+msgid "Create and manage electronic patient-reported outcome questionnaires"
+msgstr ""
+"রোগী রিপোর্ট করা ফলাফল পরিমাপ (PROMs) প্রশ্নাবলীতে ব্যবহৃত মূল ধারণা এবং উপাদানগুলি "
+"বোঝার জন্য একটি ব্যাপক গাইড।"
+
+#: templates/index.html:208 templates/navbar.html:67 templates/navbar.html:265
+msgid "Questionnaire Guidance"
+msgstr "প্রশ্নাবলী নির্দেশনা"
+
+#: templates/index.html:221
+msgid "Goals and Features"
+msgstr "লক্ষ্য ও বৈশিষ্ট্য"
+
+#: templates/index.html:228
+msgid "Our Goals"
+msgstr "আমাদের লক্ষ্য"
+
+#: templates/index.html:233
+msgid ""
+"SATHI aims to improve patient care by enabling integration of electronic "
+"patient-reported outcome and experience measures in routine clinical "
+"practice. The software is released under an open source Apache 2.0 liscence "
+"to accelerate developement and adoption. SATHI is also free software and can "
+"be installed and used by any organization. Our goal is to empower patients "
+"to actively participate in their healthcare journey while providing "
+"healthcare providers with insights into these issues to improve the patient-"
+"provider relationship."
+msgstr ""
+"সাথী'র লক্ষ্য হল নিয়মিত চিকিৎসা পদ্ধতিতে রোগী দ্বারা বর্ণিত ফলাফল ও অভিজ্ঞতা পরিমাপের "
+"ইলেকট্রনিক সংযোজন সক্ষম করে রোগীর যত্ন উন্নত করা। সফটওয়্যারটি উন্নয়ন ও গ্রহণযোগ্যতা ত্বরান্বিত "
+"করতে ওপেন সোর্স Apache 2.0 লাইসেন্সের অধীনে প্রকাশিত। সাথী একটি বিনামূল্যের সফটওয়্যার এবং "
+"যেকোনো প্রতিষ্ঠান এটি ইনস্টল ও ব্যবহার করতে পারে। আমাদের লক্ষ্য হল রোগীদের তাদের স্বাস্থ্যসেবা "
+"যাত্রায় সক্রিয়ভাবে অংশগ্রহণ করতে সক্ষম করা এবং স্বাস্থ্যসেবা প্রদানকারীদের এই বিষয়গুলি সম্পর্কে "
+"অন্তর্দৃষ্টি প্রদান করে রোগী-প্রদানকারী সম্পর্ক উন্নত করা।"
+
+#: templates/index.html:241
 msgid "Key Features"
 msgstr "মূল বৈশিষ্ট্য"
 
-#: templates/index.html:52
-msgid "Multilingual support for questionnaires"
-msgstr "প্রশ্নাবলী বিভিন্ন ভাষায় অনুবাদ করা যায়"
+#: templates/index.html:245
+msgid ""
+"Any type of patient reported outcome and experience measures can be "
+"integrated."
+msgstr "যেকোনো ধরনের রোগী দ্বারা বর্ণিত ফলাফল ও অভিজ্ঞতা পরিমাপ সংযোজন করা যায়।"
 
-#: templates/index.html:53
-msgid "Standardized assessment tools"
-msgstr "মানসম্পন্ন মূল্যায়ন সরঞ্জাম"
+#: templates/index.html:246
+msgid "Translations can be integrated for each questionnaire "
+msgstr "প্রতিটি প্রশ্নাবলীর জন্য অনুবাদ সংযোজন করা যায়"
 
-#: templates/index.html:54
-msgid "Secure data storage and privacy protection"
-msgstr "নিরাপদ ডেটা সংরক্ষণ এবং গোপনীয়তা সুরক্ষা"
+#: templates/index.html:247
+msgid ""
+"Native multi-lingual support and internationalization thanks to the awesome "
+"Django Project which currently supports "
+msgstr "চমৎকার Django প্রজেক্টের জন্য স্থানীয় বহুভাষিক সমর্থন ও আন্তর্জাতিকীকরণ যা বর্তমানে সমর্থন করে"
 
-#: templates/index.html:55
-msgid "Easy-to-use interface for patients and providers"
-msgstr "রোগী এবং প্রদানকারীদের জন্য সহজ ব্যবহারযোগ্য ইন্টারফেস"
+#: templates/index.html:248
+msgid ""
+"Integration of media elements like audio, video and images in the questions "
+"to enable design of modern questionnaires."
+msgstr "আধুনিক প্রশ্নাবলী ডিজাইন করতে প্রশ্নে অডিও, ভিডিও এবং ছবির মতো মিডিয়া উপাদান সংযোজন।"
 
-#: templates/index.html:56
-msgid "Comprehensive reporting and visualization tools"
-msgstr "বিস্তৃত রিপোর্টিং এবং ভিজুয়ালাইজেশন সরঞ্জাম"
+#: templates/index.html:249
+msgid "Providers can review responses provided over a period of time."
+msgstr "প্রদানকারীরা একটি নির্দিষ্ট সময়ের মধ্যে দেওয়া উত্তরগুলি পর্যালোচনা করতে পারেন।"
+
+#: templates/index.html:250
+msgid ""
+"Automatic guidance about the important healthcare issues based on the PROMs."
+msgstr "PROM-এর উপর ভিত্তি করে গুরুত্বপূর্ণ স্বাস্থ্যসেবা বিষয়গুলি সম্পর্কে স্বয়ংক্রিয় নির্দেশনা।"
+
+#: templates/index.html:251
+msgid ""
+"Ability to view aggregated responses obtained from other patients to the "
+"same questionnaire during their healthcare journey and compare it with the "
+"current patient."
+msgstr ""
+"অন্যান্য রোগীদের স্বাস্থ্যসেবা যাত্রায় একই প্রশ্নাবলীতে প্রাপ্ত সমন্বিত উত্তরগুলি দেখার এবং "
+"বর্তমান রোগীর সাথে তুলনা করার ক্ষমতা।"
 
 #: templates/mfa/activate_totp.html:5 templates/mfa/activate_totp.html:10
 #: templates/mfa/totp/activate_form.html:5
@@ -1655,15 +1754,6 @@ msgstr ""
 msgid "Home"
 msgstr "হোম"
 
-#: templates/navbar.html:14 templates/navbar.html:222
-#: templates/patientapp/patient_list.html:6
-#: templates/patientapp/patient_list.html:14
-#: templates/promapp/components/aggregation_metadata_card.html:69
-#: templates/promapp/components/aggregation_metadata_card.html:109
-#: templates/promapp/components/aggregation_metadata_card.html:144
-msgid "Patients"
-msgstr "রোগী"
-
 #: templates/navbar.html:19 templates/navbar.html:226
 msgid "Instruments"
 msgstr "যন্ত্র"
@@ -1719,10 +1809,6 @@ msgstr "পরিসীমা স্কেল"
 msgid "Help & Guidance"
 msgstr "সহায়তা ও নির্দেশনা"
 
-#: templates/navbar.html:67 templates/navbar.html:265
-msgid "Questionnaire Guidance"
-msgstr "প্রশ্নাবলী নির্দেশনা"
-
 #: templates/navbar.html:75 templates/navbar.html:272
 msgid "Manage Questionnaire"
 msgstr "প্রশ্নাবলী পরিচালনা করুন"
@@ -1743,10 +1829,10 @@ msgstr "প্রশ্নাবলীর প্রতিক্রিয়া"
 msgid "Admin"
 msgstr "প্রশাসক"
 
-#: templates/navbar.html:102 templates/navbar.html:295
-#: templates/patientapp/patient_portal.html:5
-msgid "My Portal"
-msgstr "আমার পোর্টাল"
+#: templates/navbar.html:99 templates/navbar.html:292
+#: templates/patientapp/partials/patient_portal_plots.html:138
+msgid "Complete a Questionnaire"
+msgstr "একটি প্রশ্নাবলী পূরণ করুন"
 
 #: templates/navbar.html:141 templates/navbar.html:321
 msgid "Account Settings"
@@ -3955,10 +4041,6 @@ msgstr "অপশন মিডিয়া"
 #: templates/promapp/likert_scale_response_option_translation_form.html:132
 msgid "No media"
 msgstr "কোন মিডিয়া নেই"
-
-#: templates/promapp/my_questionnaire_list.html:4
-msgid "My Questionnaires"
-msgstr "আমার প্রশ্নাবলী"
 
 #: templates/promapp/my_questionnaire_list.html:40
 msgid "Last answered:"
@@ -7527,6 +7609,68 @@ msgstr ""
 msgctxt "stick"
 msgid "club"
 msgstr ""
+
+#~ msgid "Welcome to Chavi PROM Application"
+#~ msgstr "CHAVI PROM অ্যাপ্লিকেশনে স্বাগতম"
+
+#~ msgid "Patient Reported Outcome Monitoring"
+#~ msgstr "রোগী কর্তৃক রিপোর্টকৃত ফলাফল পর্যবেক্ষণ"
+
+#~ msgid ""
+#~ "Welcome to the Patient Reported Outcome Monitoring Application for CHAVI. "
+#~ "This open source application has been designed to allow patients to "
+#~ "report their problems and concerns using standardized questionnaires. "
+#~ "Questionnaires can be translated into multiple languages. Additionally, "
+#~ "the application also provides users with an easy way to view responses to "
+#~ "the questions."
+#~ msgstr ""
+#~ "CHAVI রোগী কর্তৃক রিপোর্টকৃত ফলাফল পর্যবেক্ষণ অ্যাপ্লিকেশনে স্বাগতম। এই ওপেন সোর্স "
+#~ "অ্যাপ্লিকেশনটি রোগীদের মানসম্মত প্রশ্নাবলী ব্যবহার করে তাদের সমস্যা ও উদ্বেগ "
+#~ "রিপোর্ট করার জন্য ডিজাইন করা হয়েছে। প্রশ্নাবলী একাধিক ভাষায় অনুবাদ করা যায়। "
+#~ "উপরন্তু, অ্যাপ্লিকেশনটি ব্যবহারকারীদের প্রশ্নের উত্তর দেখার একটি সহজ উপায়ও প্রদান "
+#~ "করে।"
+
+#~ msgid "For Patients"
+#~ msgstr "রোগীদের জন্য"
+
+#~ msgid ""
+#~ "Review patient-reported outcomes and gain insights into patient health "
+#~ "status and treatment effectiveness."
+#~ msgstr ""
+#~ "রোগীর রিপোর্ট করা ফলাফল পর্যালোচনা করুন এবং রোগীর স্বাস্থ্য অবস্থা এবং চিকিৎসার "
+#~ "কার্যকারিতা সম্পর্কে অন্তর্দৃষ্টি অর্জন করুন।"
+
+#, fuzzy
+#~| msgid "Questionnaire Details"
+#~ msgid "For Questionnaire Developers"
+#~ msgstr "প্রশ্নাবলীর বিবরণ"
+
+#~ msgid ""
+#~ "Access comprehensive guidance and tools for creating, managing, and "
+#~ "configuring questionnaires within the system."
+#~ msgstr ""
+#~ "সিস্টেমের মধ্যে প্রশ্নাবলী তৈরি, পরিচালনা এবং কনফিগার করার জন্য বিস্তারিত "
+#~ "নির্দেশিকা এবং সরঞ্জামগুলি অ্যাক্সেস করুন।"
+
+#, fuzzy
+#~| msgid "All Questionnaires"
+#~ msgid "Add Questionnaires"
+#~ msgstr "প্রশ্নাবলী যোগ করুন"
+
+#~ msgid "Multilingual support for questionnaires"
+#~ msgstr "প্রশ্নাবলী বিভিন্ন ভাষায় অনুবাদ করা যায়"
+
+#~ msgid "Standardized assessment tools"
+#~ msgstr "মানসম্পন্ন মূল্যায়ন সরঞ্জাম"
+
+#~ msgid "Secure data storage and privacy protection"
+#~ msgstr "নিরাপদ ডেটা সংরক্ষণ এবং গোপনীয়তা সুরক্ষা"
+
+#~ msgid "Easy-to-use interface for patients and providers"
+#~ msgstr "রোগী এবং প্রদানকারীদের জন্য সহজ ব্যবহারযোগ্য ইন্টারফেস"
+
+#~ msgid "Comprehensive reporting and visualization tools"
+#~ msgstr "বিস্তৃত রিপোর্টিং এবং ভিজুয়ালাইজেশন সরঞ্জাম"
 
 #~ msgid ""
 #~ "Configure scoring direction, thresholds, and normative values for this "
