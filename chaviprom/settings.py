@@ -216,19 +216,19 @@ PARLER_LANGUAGES = {
 }
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
+# # Static files (CSS, JavaScript, Images)
+# # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+# STATIC_URL = 'static/'
 
 
-# Static files
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, 'static'),
-# ]
+# # Static files
+# # STATICFILES_DIRS = [
+# #     os.path.join(BASE_DIR, 'static'),
+# # ]
 
-# See https://stackoverflow.com/questions/68729983/django-admin-interface-missing-css-styling-in-production
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# # See https://stackoverflow.com/questions/68729983/django-admin-interface-missing-css-styling-in-production
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
 
@@ -507,8 +507,6 @@ LOGGING = {
         },
     },
 }
-
-
 # Media files (uploaded content)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -567,39 +565,7 @@ EMAIL_USE_TLS = os.getenv('DJANGO_EMAIL_USE_TLS', False)
 # Default from email address
 DEFAULT_FROM_EMAIL = os.getenv('DJANGO_DEFAULT_FROM_EMAIL', 'no-reply@example.com')
 
-# OTP email settings
-# OTP_EMAIL_SUBJECT = "Your OTP token for CHAVI PROM"
-# OTP_EMAIL_BODY_TEMPLATE_PATH = os.path.join(BASE_DIR, "templates/otp_email_template.txt")
-# OTP_EMAIL_BODY_HTML_TEMPLATE_PATH = os.path.join(BASE_DIR, "templates/otp_email_template.html")
 
-# # OTP Email sender configuration
-# OTP_EMAIL_SENDER = DEFAULT_FROM_EMAIL
-
-# # OTP Token validity (in seconds) - default is 30 seconds
-# OTP_TOTP_TOLERANCE = 1  # Allow 1 step tolerance for time drift
-# OTP_EMAIL_TOKEN_VALIDITY = 300  # 5 minutes
-
-# # Additional TFA logging settings
-# OTP_EMAIL_LOG_LEVEL = 'INFO'  # Log level for OTP email events
-# OTP_TOTP_LOG_LEVEL = 'INFO'   # Log level for TOTP events
-
-# # TFA security settings
-# TWO_FACTOR_LOGIN_TIMEOUT = 600  # 10 minutes timeout for TFA setup
-# TWO_FACTOR_REMEMBER_COOKIE_AGE = 60 * 60 * 24 * 15  # 30 days
-
-
-
-# # Enhanced OTP Security Settings
-# OTP_BIND_SESSION_TO_IP = True  # Bind OTP sessions to IP addresses
-# OTP_SESSION_TIMEOUT = 28800  # 8 hours session timeout
-# OTP_MAX_ATTEMPTS_PER_IP = 10  # Max failed attempts per IP
-# OTP_MAX_ATTEMPTS_PER_USER = 5  # Max failed attempts per user
-# OTP_CHALLENGE_TIMEOUT = 300  # 5 minutes for OTP challenge
-# OTP_TOKEN_REUSE_PREVENTION = True  # Prevent token reuse
-# OTP_AUDIT_LOGGING = True  # Enable comprehensive audit logging
-# OTP_ANOMALY_DETECTION = True  # Enable anomaly detection
-# OTP_RATE_LIMIT_ATTEMPTS = 5  # Rate limit: max attempts before flagging suspicious activity
-# OTP_RATE_LIMIT_WINDOW = 300  # Rate limit: time window in seconds (5 minutes)
 
 # Security settings if not development environment
 ENVIRONMENT = os.getenv('DJANGO_ENVIRONMENT', 'development')
@@ -627,7 +593,15 @@ if ENVIRONMENT != 'development':
     # TWO_FACTOR_REMEMBER_COOKIE_SECURE = True  # Only send over HTTPS
     # TWO_FACTOR_REMEMBER_COOKIE_HTTPONLY = True  # Prevent JavaScript access
     # TWO_FACTOR_REMEMBER_COOKIE_SAMESITE = 'Lax'  # CSRF protection    
+    STATIC_URL = 'static/'
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+if ENVIRONMENT == 'development':
+    STATICFILES_DIRS = [
+        os.path.join(BASE_DIR, 'static'),
+    ]
+    STATIC_URL = 'static/'
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Content Security Policy (CSP) settings
 CSP_DEFAULT_SRC = ("'self'",)

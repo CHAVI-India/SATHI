@@ -1,63 +1,261 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load static %}
 
-{% block title %}{% translate "Welcome to Chavi PROM Application" %}{% endblock %}
+{% block title %}{% translate "SATHI" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto">
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
-        <div class="p-6">
-            <h1 class="text-2xl font-bold text-blue-700 mb-6">{% translate "Patient Reported Outcome Monitoring" %}</h1>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    {# Hero Section - Image Left, Text Right #}
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8 p-8">
+        <div class="flex flex-col md:flex-row items-center gap-8">
+            {# Image on Left #}
+            <div class="w-full md:w-1/2 flex justify-center">
+                <img src="{% static 'images/hero-image.png' %}" 
+                     alt="{% translate 'SAATHI App Image' %}" 
+                     class="max-w-sm w-full h-auto object-contain">
+            </div>
             
-            <div class="prose max-w-none">
-                <p class="mb-4 text-lg">
-                    {% translate "Welcome to the Patient Reported Outcome Monitoring Application for CHAVI. This open source application has been designed to allow patients to report their problems and concerns using standardized questionnaires. Questionnaires can be translated into multiple languages. Additionally, the application also provides users with an easy way to view responses to the questions." %}
-                </p>
-                
-                <div class="grid md:grid-cols-3 gap-6 mt-10">
-                    <div class="bg-blue-50 p-6 rounded-lg shadow-sm">
-                        <h2 class="text-xl font-semibold text-blue-800 mb-3">{% translate "For Patients" %}</h2>
-                        <p>{% translate "Complete questionnaires about your health and well-being. Your feedback helps healthcare providers understand your needs better." %}</p>
-                        <div class="mt-4">
-                            <a href="{% url 'my_questionnaire_list' %}" class="inline-block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
-                                {% translate "Complete a Questionnaire" %}
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-blue-50 p-6 rounded-lg shadow-sm">
-                        <h2 class="text-xl font-semibold text-blue-800 mb-3">{% translate "For Healthcare Providers" %}</h2>
-                        <p>{% translate "Review patient-reported outcomes and gain insights into patient health status and treatment effectiveness." %}</p>
-                        <div class="mt-4">
-                            <a href="{% url 'patient_list' %}" class="inline-block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
-                                {% translate "View Results" %}
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-blue-50 p-6 rounded-lg shadow-sm">
-                        <h2 class="text-xl font-semibold text-blue-800 mb-3">{% translate "For Questionnaire Developers" %}</h2>
-                        <p>{% translate "Access comprehensive guidance and tools for creating, managing, and configuring questionnaires within the system." %}</p>
-                        <div class="mt-4">
-                            <a href="{% url 'questionnaire_guidance' %}" class="inline-block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
-                                {% translate "Add Questionnaires" %}
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mt-10">
-                    <h2 class="text-2xl font-semibold text-blue-800 mb-4">{% translate "Key Features" %}</h2>
-                    <ul class="list-disc pl-6 space-y-2">
-                        <li>{% translate "Multilingual support for questionnaires" %}</li>
-                        <li>{% translate "Standardized assessment tools" %}</li>
-                        <li>{% translate "Secure data storage and privacy protection" %}</li>
-                        <li>{% translate "Easy-to-use interface for patients and providers" %}</li>
-                        <li>{% translate "Comprehensive reporting and visualization tools" %}</li>
-                    </ul>
+            {# Text on Right - PLACEHOLDER #}
+            <div class="w-full md:w-1/2">
+                <h1 class="text-3xl md:text-4xl font-bold text-blue-700 mb-6">
+                    {% translate "SATHI" %}
+                </h1>
+                <h4 class="text-xl font-semibold text-gray-800 mb-3">
+                    {% translate "Self Reported Assessment and Tracking for Health Insights" %}
+                </h4>
+                <div class="text-gray-600 space-y-4">
+                    <p class="text-lg leading-relaxed">
+                        {% translate "SATHI allows patients to answer questionnaires about their health and well-being. Healthcare workers can view these answers to gain a better understanding about their patients health." %}
+                    </p>
                 </div>
             </div>
         </div>
     </div>
+
+    {# User Type Cards - Only for Anonymous Users #}
+    {% if not user.is_authenticated %}
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            {# Card 1: For Patients #}
+            <div class="text-center flex">
+                <div class="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-shadow flex flex-col w-full">
+                    <div class="mb-4">
+                        <svg class="w-16 h-16 mx-auto text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-blue-800 mb-3">
+                        {% translate "Patients" %}
+                    </h3>
+                    <p class="text-gray-600 mb-4 flex-grow">
+                        {% translate "Answer questionnaires about your health and well-being using your phone or computer." %}
+                    </p>
+                    <a href="{% url 'account_login' %}" 
+                       class="inline-block w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg mt-auto">
+                        {% translate "Login to Start" %}
+                    </a>
+                </div>
+            </div>
+
+            {# Card 2: Healthcare Providers #}
+            <div class="text-center flex">
+                <div class="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-shadow flex flex-col w-full">
+                    <div class="mb-4">
+                        <svg class="w-16 h-16 mx-auto text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M10 2h4v7h7v4h-7v9h-4v-9H3v-4h7V2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-green-800 mb-3">
+                        {% translate "Healthcare Providers" %}
+                    </h3>
+                    <p class="text-gray-600 mb-4 flex-grow">
+                        {% translate "Understand the important health issues during treatment and followup." %}
+                    </p>
+                    <a href="{% url 'account_login' %}" 
+                       class="inline-block w-full bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg mt-auto">
+                        {% translate "Login to Start" %}
+                    </a>
+                </div>
+            </div>
+
+            {# Card 3: For Questionnaire Developers #}
+            <div class="text-center flex">
+                <div class="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-shadow flex flex-col w-full">
+                    <div class="mb-4">
+                        <svg class="w-16 h-16 mx-auto text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-purple-800 mb-3">
+                        {% translate "Questionnaire Creators" %}
+                    </h3>
+                    <p class="text-gray-600 mb-4 flex-grow">
+                        {% translate "Add electronic versions of Patient Reported Outcome / Experience Measures" %}
+                    </p>
+                    <a href="{% url 'account_login' %}" 
+                       class="inline-block w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 transition-colors shadow-md hover:shadow-lg mt-auto">
+                        {% translate "Login to Start" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Quick Access Section - Only for Logged-in Users (Profile-based) #}
+    {% if user.is_authenticated %}
+        <div class="space-y-6 mb-8">
+            {# Patient Access - For users with patient profile #}
+            {% if user.patient %}
+            {# Answer Questionnaires Card #}
+            <div class="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-shadow">
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <div class="flex-shrink-0">
+                        <svg class="w-16 h-16 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-grow text-center md:text-left">
+                        <h3 class="text-2xl font-semibold text-blue-800 mb-2">
+                            {% translate "Answer Questionnaires" %}
+                        </h3>
+                        <p class="text-gray-600">
+                            {% translate "Answer questionnaires about your health and well-being" %}
+                        </p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="{% url 'my_questionnaire_list' %}" 
+                           class="inline-block bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg whitespace-nowrap">
+                            {% translate "My Questionnaires" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {# Patient Portal Card #}
+            <div class="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-shadow">
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <div class="flex-shrink-0">
+                        <svg class="w-16 h-16 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-grow text-center md:text-left">
+                        <h3 class="text-2xl font-semibold text-indigo-800 mb-2">
+                            {% translate "My Portal" %}
+                        </h3>
+                        <p class="text-gray-600">
+                            {% translate "View the answers you have provided in the past." %}
+                        </p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="{% url 'patient_portal' %}" 
+                           class="inline-block bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg whitespace-nowrap">
+                            {% translate "Patient Portal" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Healthcare Provider Access - For users with provider profile #}
+            {% if user.provider %}
+            <div class="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-shadow">
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <div class="flex-shrink-0">
+                        <svg class="w-16 h-16 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M10 2h4v7h7v4h-7v9h-4v-9H3v-4h7V2z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-grow text-center md:text-left">
+                        <h3 class="text-2xl font-semibold text-green-800 mb-2">
+                            {% translate "Healthcare Provider Dashboard" %}
+                        </h3>
+                        <p class="text-gray-600">
+                            {% translate "Review patient outcomes and responses" %}
+                        </p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="{% url 'patient_list' %}" 
+                           class="inline-block bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg whitespace-nowrap">
+                            {% translate "View Patients" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Questionnaire Creator Access - For users with questionnaire creation permissions #}
+            {% if perms.promapp.add_questionnaire or perms.promapp.change_questionnaire %}
+            <div class="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-shadow">
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <div class="flex-shrink-0">
+                        <svg class="w-16 h-16 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-grow text-center md:text-left">
+                        <h3 class="text-2xl font-semibold text-purple-800 mb-2">
+                            {% translate "Questionnaire Management" %}
+                        </h3>
+                        <p class="text-gray-600">
+                            {% translate "Create and manage electronic patient-reported outcome questionnaires" %}
+                        </p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="{% url 'questionnaire_guidance' %}" 
+                           class="inline-block bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 transition-colors shadow-md hover:shadow-lg whitespace-nowrap">
+                            {% translate "Questionnaire Guidance" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {# Goals and Features Section - Only for Anonymous Users #}
+    {% if not user.is_authenticated %}
+    <div class="bg-gray-50 rounded-lg shadow-md p-8 mb-8">
+        <h2 class="text-2xl font-bold text-gray-700 mb-6 text-center">
+            {% translate "Goals and Features" %}
+        </h2>
+        
+        <div class="max-w-4xl mx-auto space-y-6">
+            {# Goals Section #}
+            <div>
+                <h3 class="text-xl font-semibold text-gray-600 mb-3">
+                    {% translate "Our Goals" %}
+                </h3>
+                <div class="text-gray-500 space-y-3">
+                    <p class="leading-relaxed">
+                        <!-- Add your goals text here -->
+                        {% translate "SATHI aims to improve patient care by enabling integration of electronic patient-reported outcome and experience measures in routine clinical practice. The software is released under an open source Apache 2.0 liscence to accelerate developement and adoption. SATHI is also free software and can be installed and used by any organization. Our goal is to empower patients to actively participate in their healthcare journey while providing healthcare providers with insights into these issues to improve the patient-provider relationship." %}
+                    </p>
+                </div>
+            </div>
+
+            {# Features Section #}
+            <div>
+                <h3 class="text-xl font-semibold text-gray-600 mb-3">
+                    {% translate "Key Features" %}
+                </h3>
+                <div class="text-gray-500 space-y-2">
+                    <ul class="list-disc list-inside space-y-2">
+                        <li>{% translate "Any type of patient reported outcome and experience measures can be integrated." %}</li>
+                        <li>{% translate "Translations can be integrated for each questionnaire " %}</li>
+                        <li>{% translate "Native multi-lingual support and internationalization thanks to the awesome Django Project which currently supports " %}</li>
+                        <li>{% translate "Integration of media elements like audio, video and images in the questions to enable design of modern questionnaires." %}</li>
+                        <li>{% translate "Providers can review responses provided over a period of time." %}</li>
+                        <li>{% translate "Automatic guidance about the important healthcare issues based on the PROMs." %}</li>
+                        <li>{% translate "Ability to view aggregated responses obtained from other patients to the same questionnaire during their healthcare journey and compare it with the current patient." %}</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}
