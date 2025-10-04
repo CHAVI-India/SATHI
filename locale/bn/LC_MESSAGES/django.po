@@ -730,20 +730,15 @@ msgstr ""
 "নির্দেশনা ইমেইল করব।"
 
 #: templates/account/password_reset.html:41
-#, fuzzy
-#| msgid "Repeat Password"
 msgid "Reset My Password"
 msgstr "পাসওয়ার্ড পুনরাবৃত্তি করুন"
 
 #: templates/account/password_reset.html:52
 #: templates/account/password_reset_done.html:35
-#, fuzzy
-#| msgid "Back to List"
 msgid "Back to Sign In"
-msgstr "তালিকায় ফিরে যান"
+msgstr "সাইন ইন ফিরে যান"
 
 #: templates/account/password_reset_done.html:5
-#, fuzzy
 #| msgid "Passwords don't match"
 msgid "Password reset sent"
 msgstr "পাসওয়ার্ড মিলছে না"
