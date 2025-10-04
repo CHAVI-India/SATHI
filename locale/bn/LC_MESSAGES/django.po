@@ -599,8 +599,6 @@ msgid "Remember me"
 msgstr "আমাকে মনে রাখুন"
 
 #: templates/account/login.html:73
-#, fuzzy
-#| msgid "Forgot password?"
 msgid "Forgot your password?"
 msgstr "পাসওয়ার্ড ভুলে গেছেন?"
 
@@ -728,6 +726,8 @@ msgid ""
 "Forgotten your password? Enter your email address below, and we'll email "
 "instructions for setting a new one."
 msgstr ""
+"পাসওয়ার্ড ভুলে গেছেন? নিচে আপনার ইমেইল ঠিকানা লিখুন, এবং আমরা নতুন পাসওয়ার্ড সেট করার "
+"নির্দেশনা ইমেইল করব।"
 
 #: templates/account/password_reset.html:41
 #, fuzzy
@@ -804,10 +804,8 @@ msgid "New password confirmation"
 msgstr "নতুন পাসওয়ার্ড পুনরাবৃত্তি"
 
 #: templates/account/password_reset_from_key.html:72
-#, fuzzy
-#| msgid "Forgot password?"
 msgid "Confirm new password"
-msgstr "পাসওয়ার্ড ভুলে গেছেন?"
+msgstr "নতুন পাসওয়ার্ড পুনরাবৃত্তি"
 
 #: templates/account/password_reset_from_key.html:83
 #, fuzzy
@@ -876,10 +874,8 @@ msgid "Error"
 msgstr "ত্রুটি"
 
 #: templates/account/reauthenticate.html:69
-#, fuzzy
-#| msgid "Forgot password?"
 msgid "Enter your password"
-msgstr "পাসওয়ার্ড ভুলে গেছেন?"
+msgstr "আপনার পাসওয়ার্ড লিখুন"
 
 #: templates/account/reauthenticate.html:96
 msgid "This verification helps protect your account from unauthorized changes."
