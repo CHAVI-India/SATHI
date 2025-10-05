@@ -1849,7 +1849,12 @@ def treatment_type_list(request):
     })
 
 
-
+def get_patient_count():
+    """
+    Get the total count of patients in the system.
+    Returns an integer count.
+    """
+    return Patient.objects.count()
 
 
 

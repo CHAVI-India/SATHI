@@ -21,6 +21,7 @@ from django.conf.urls.i18n import i18n_patterns
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
+from chaviprom.views import IndexView
 #from two_factor.urls import urlpatterns as tf_urls
 
 #from chaviprom.secure_otp_views import RateLimitedLoginView, RateLimitedPasswordResetView
@@ -33,7 +34,7 @@ urlpatterns += i18n_patterns(
     # path('account/login/', RateLimitedLoginView.as_view(), name='login'),
     # path('',include(tf_urls)),  # Use standard two-factor auth (enhanced by middleware)
     path('account/', include('allauth.urls')),
-    path('', TemplateView.as_view(template_name='index.html'), name='index'),
+    path('', IndexView.as_view(), name='index'),
     path('admin/', admin.site.urls),
     path('schema-viewer/', include('schema_viewer.urls')),
     

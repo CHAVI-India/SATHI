@@ -3914,4 +3914,25 @@ class QuestionnaireGuidanceView(LoginRequiredMixin, PermissionRequiredMixin, Tem
         return context
 
 
+def get_questionnaire_count():
+    """
+    Get the total count of questionnaires in the system.
+    Returns an integer count.
+    """
+    return Questionnaire.objects.count()
 
+
+def get_item_count():
+    """
+    Get the total count of items (questions) in the system.
+    Returns an integer count.
+    """
+    return Item.objects.count()
+
+
+def get_questionnaire_submission_count():
+    """
+    Get the total count of questionnaire submissions (responses) in the system.
+    Returns an integer count.
+    """
+    return QuestionnaireSubmission.objects.count()
