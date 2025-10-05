@@ -64,7 +64,7 @@ logconfig_dict = {
         },
         'error_file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/var/www/chavi-prom/logs/gunicorn_error.log',
+            'filename': os.path.join(log_dir, "gunicorn-error.log"),
             'maxBytes': 1024*1024*15,  # 15MB
             'backupCount': 10,
             'formatter': 'generic',
