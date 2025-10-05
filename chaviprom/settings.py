@@ -523,6 +523,7 @@ if DEBUG_TOOLBAR_ENABLED:
         'SHOW_TOOLBAR_CALLBACK': lambda request: True,
         'SHOW_COLLAPSED': True,
         'SHOW_TEMPLATE_CONTEXT': True,
+        'IS_RUNNING_TESTS': False,  # Disable debug toolbar during tests
     }
 
     INTERNAL_IPS = ['127.0.0.1']

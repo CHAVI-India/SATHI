@@ -10,7 +10,7 @@
         {% if messages %}
         <div class="mb-6">
             {% for message in messages %}
-            <div class="p-4 mb-4 {% if message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-green-100 text-green-700 border border-green-200{% endif %} rounded-md">
+            <div class="p-4 mb-4 {% if message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-green-100 text-green-700 border border-green-200{% endif %} rounded-md whitespace-pre-line font-mono text-sm">
                 {{ message }}
             </div>
             {% endfor %}
@@ -60,10 +60,6 @@
                                 rows="6"
                                 class="block w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono bg-gray-50"
                                 placeholder="Enter your equation here..."
-                                hx-get="{% url 'validate_equation' %}"
-                                hx-trigger="keyup changed delay:500ms"
-                                hx-target="#equation-validation"
-                                hx-include="[name='scale_id']"
                             >{{ form.scale_equation.value|default:'' }}</textarea>
                         {% else %}
                             <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -95,14 +91,13 @@
                             ></textarea>
                         {% endif %}
                         {% if form.scale_equation.errors %}
-                        <div class="mt-2 text-sm text-red-600">
+                        <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                             {% for error in form.scale_equation.errors %}
-                            <p>{{ error }}</p>
+                            <div class="text-sm text-red-800 whitespace-pre-line font-mono">{{ error }}</div>
                             {% endfor %}
                         </div>
                         {% endif %}
                     </div>
-                    <div id="equation-validation" class="mt-2"></div>
                     
                     <!-- Help Section -->
                     <div class="mt-4">
@@ -124,6 +119,8 @@
                                         <li>{% translate "Basic arithmetic: +, -, *, /, ^ (power)" %}</li>
                                         <li>{% translate "Parentheses () for grouping" %}</li>
                                         <li>{% translate "Equations can span multiple lines for better readability" %}</li>
+                                        <li>{% translate "Variables: Use = to assign values (e.g., RS = {q1} + {q2})" %}</li>
+                                        <li>{% translate "Variable names can contain letters, numbers, and underscores" %}</li>
                                     </ul>
                                 </div>
 
@@ -206,6 +203,39 @@ else 0</pre>
 )</pre>
                                             <p class="text-gray-600 mt-1">{% translate "Function with nested conditional" %}</p>
                                         </div>
+
+                                        <!-- Variable Assignment -->
+                                        <div class="bg-white p-2 rounded border">
+                                            <pre class="text-indigo-600 whitespace-pre-wrap">RS = {q1} + {q2} + {q3}
+RS / 3</pre>
+                                            <p class="text-gray-600 mt-1">{% translate "Using variables to simplify complex equations" %}</p>
+                                        </div>
+
+                                        <!-- Multiple Variables -->
+                                        <div class="bg-white p-2 rounded border">
+                                            <pre class="text-indigo-600 whitespace-pre-wrap">total_score = sum({q1}, {q2}, {q3}, {q4})
+item_count = count_available({q1}, {q2}, {q3}, {q4})
+if item_count >= 3 then total_score / item_count else null</pre>
+                                            <p class="text-gray-600 mt-1">{% translate "Multiple variables for complex scoring logic" %}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Variable Return Values -->
+                                <div>
+                                    <h4 class="font-medium text-gray-800">{% translate "Variable Return Values" %}</h4>
+                                    <div class="space-y-2 text-sm text-gray-600">
+                                        <p class="font-medium text-gray-700">{% translate "Important: The final line of your equation determines the construct score!" %}</p>
+                                        <ul class="list-disc pl-5 space-y-1">
+                                            <li>{% translate "Single assignment returns the assigned value" %}</li>
+                                            <li>{% translate "Multiple statements return the value of the LAST statement" %}</li>
+                                            <li>{% translate "Intermediate variables are for organizing your calculation" %}</li>
+                                        </ul>
+                                        <div class="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                                            <p class="text-xs font-medium text-blue-800 mb-1">{% translate "Example:" %}</p>
+                                            <pre class="text-xs text-blue-900">RS = {q1} + {q2}     ← Stores value in RS
+RS / 2              ← This value is saved as the score</pre>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -218,6 +248,8 @@ else 0</pre>
                                         <li>{% translate "Group related conditions together" %}</li>
                                         <li>{% translate "Always include an else clause to handle unexpected cases" %}</li>
                                         <li>{% translate "Use parentheses to clarify operator precedence" %}</li>
+                                        <li>{% translate "Use variables to break down complex calculations into steps" %}</li>
+                                        <li>{% translate "Variable names should be descriptive (e.g., total_score, item_count)" %}</li>
                                     </ul>
                                 </div>
                             </div>
@@ -345,9 +377,6 @@ function addQuestionToEquation(question) {
     textarea.value = before + questionRef + after;
     textarea.focus();
     textarea.selectionStart = textarea.selectionEnd = start + questionRef.length;
-    
-    // Trigger HTMX validation
-    htmx.trigger(textarea, 'keyup');
 }
 
 document.addEventListener('DOMContentLoaded', function() {

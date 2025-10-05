@@ -192,6 +192,105 @@ Two types of scores are computed:
 1. Construct score : These are directly related to the items and support complex equations
 2. Composite scores : These are obtained by combining multiple construct scores. Simple addition, multiplication, average, median, mode, minimum and maximum are supported.
 
+## Construct Scale Equations
+
+Construct scale equations allow you to define how item responses are combined to calculate a construct score. The equation system supports a powerful syntax including arithmetic operations, functions, conditionals, and variable assignments.
+
+### Basic Syntax
+
+- **Question References**: Use `{qN}` to reference items (e.g., `{q1}`, `{q2}`)
+- **Arithmetic Operators**: `+`, `-`, `*`, `/`, `^` (power)
+- **Parentheses**: Use `()` for grouping operations
+- **Multi-line Equations**: Equations can span multiple lines for better readability
+
+### Available Functions
+
+- `abs(x)` - Absolute value
+- `min(x, y, ...)` - Minimum value
+- `max(x, y, ...)` - Maximum value
+- `sum(x, y, ...)` - Sum of values
+- `round(x)` - Round to nearest integer
+- `sqrt(x)` - Square root
+- `count_available(x, y, ...)` - Count non-null values
+
+### Conditional Logic
+
+- **Basic if-then-else**: `if condition then value1 else value2`
+- **Multiple conditions**: `if condition1 then value1 elif condition2 then value2 else value3`
+- **Comparison operators**: `>`, `<`, `>=`, `<=`, `==`, `!=`
+- **Logical operators**: `and`, `or`, `xor`
+
+### Variable Assignments
+
+Variables allow you to break complex equations into readable, maintainable steps. Use the `=` operator to assign values to variables.
+
+**Variable Naming Rules:**
+- Must start with a letter or underscore
+- Can contain letters, numbers, and underscores
+- Cannot use reserved keywords: `if`, `then`, `else`, `elif`, `and`, `or`, `xor`, `null`, `abs`, `min`, `max`, `sum`, `round`, `sqrt`, `count_available`
+
+**Return Value:**
+- Single assignment returns the assigned value
+- Multiple statements return the value of the **last statement**
+- The final line determines the construct scale score
+
+### Equation Examples
+
+**Simple Average:**
+```
+({q1} + {q2} + {q3}) / 3
+```
+
+**Using Variables:**
+```
+RS = {q1} + {q2} + {q3}
+RS / 3
+```
+
+**Complex Scoring with Variables:**
+```
+total_score = sum({q1}, {q2}, {q3}, {q4})
+item_count = count_available({q1}, {q2}, {q3}, {q4})
+if item_count >= 3 then total_score / item_count else null
+```
+
+**Conditional Scoring:**
+```
+if {q1} == 1 and {q2} == 1 then 1
+elif {q1} == 1 and {q2} == 2 then 2
+elif {q1} == 2 and {q2} == 1 then 3
+else 0
+```
+
+**Percentage Score with Variables:**
+```
+raw_score = sum({q1}, {q2}, {q3})
+max_score = 15
+(raw_score / max_score) * 100
+```
+
+**Handling Missing Data:**
+```
+available = count_available({q1}, {q2}, {q3}, {q4}, {q5})
+total = sum({q1}, {q2}, {q3}, {q4}, {q5})
+if available >= 3 then (total / available) * 5 else null
+```
+
+### Minimum Number of Items
+
+You can specify a minimum number of items that must be answered for the score to be calculated. If fewer items are answered, the score will be `null`. This is set separately from the equation and helps ensure score validity.
+
+### Validation
+
+Equations are validated when saved to ensure:
+- Correct syntax
+- Valid question references (only questions in the construct scale)
+- Proper use of functions and operators
+- Variables are assigned before use
+- No reserved keywords used as variable names
+
+Validation errors provide clear, user-friendly messages to help you fix any issues.
+
 
 # Health care provider interface
 

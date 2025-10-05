@@ -1,8 +1,9 @@
 from lark import Lark, Transformer, v_args
-from lark.exceptions import VisitError
+from lark.exceptions import VisitError, UnexpectedCharacters, UnexpectedToken
 from django.core.exceptions import ValidationError
 import math
 import os
+import re
 
 # Get the directory containing this file
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,8 +24,137 @@ class EquationValidator:
         try:
             self.parser.parse(equation)
             return True
+        except UnexpectedCharacters as e:
+            # Handle unexpected character errors
+            char = e.char if hasattr(e, 'char') else 'unknown'
+            line = e.line if hasattr(e, 'line') else 1
+            column = e.column if hasattr(e, 'column') else 0
+            
+            # Get context around the error
+            lines = equation.split('\n')
+            if line <= len(lines):
+                error_line = lines[line - 1]
+                # Show a snippet of the problematic area
+                start = max(0, column - 10)
+                end = min(len(error_line), column + 10)
+                context = error_line[start:end]
+                pointer = ' ' * (column - start) + '^'
+                
+                raise ValidationError(
+                    f"Invalid character '{char}' at position {column} in your equation.\n"
+                    f"Context: ...{context}...\n"
+                    f"         {pointer}\n"
+                    f"Please check for typos or unsupported characters."
+                )
+            else:
+                raise ValidationError(
+                    f"Invalid character '{char}' found in your equation. "
+                    f"Please check for typos or unsupported characters."
+                )
+                
+        except UnexpectedToken as e:
+            # Handle unexpected token errors with user-friendly messages
+            token = e.token if hasattr(e, 'token') else None
+            line = token.line if token and hasattr(token, 'line') else 1
+            column = token.column if token and hasattr(token, 'column') else 0
+            
+            # Get the problematic token value
+            token_value = str(token.value) if token and hasattr(token, 'value') else 'unknown'
+            
+            # Get context around the error
+            lines = equation.split('\n')
+            if line <= len(lines):
+                error_line = lines[line - 1]
+                # Show a snippet of the problematic area
+                start = max(0, column - 15)
+                end = min(len(error_line), column + 15)
+                context = error_line[start:end]
+                pointer = ' ' * (column - start) + '^'
+                
+                # Provide helpful suggestions based on common errors
+                suggestion = self._get_error_suggestion(token_value, str(e))
+                
+                raise ValidationError(
+                    f"Syntax error near '{token_value}' at position {column}.\n"
+                    f"Context: ...{context}...\n"
+                    f"         {pointer}\n"
+                    f"{suggestion}"
+                )
+            else:
+                suggestion = self._get_error_suggestion(token_value, str(e))
+                raise ValidationError(
+                    f"Syntax error near '{token_value}'. {suggestion}"
+                )
+                
         except Exception as e:
-            raise ValidationError(f"Invalid equation syntax: {str(e)}")
+            # Generic error handler with simplified message
+            error_msg = str(e)
+            
+            # Try to extract useful information from the error
+            if "No terminal matches" in error_msg:
+                # Extract the problematic character/token
+                match = re.search(r"No terminal matches '([^']+)'", error_msg)
+                if match:
+                    bad_char = match.group(1)
+                    raise ValidationError(
+                        f"Invalid character or symbol '{bad_char}' found in your equation. "
+                        f"Please check that you're only using:\n"
+                        f"- Question references like {{q1}}, {{q2}}, etc.\n"
+                        f"- Numbers (e.g., 1, 2.5, 100)\n"
+                        f"- Operators: +, -, *, /, ^ (power)\n"
+                        f"- Functions: sum(), min(), max(), abs(), round(), sqrt()\n"
+                        f"- Conditionals: if...then...else, elif\n"
+                        f"- Parentheses for grouping: ( )"
+                    )
+            
+            # For other errors, provide a generic but helpful message
+            raise ValidationError(
+                f"Invalid equation syntax. Please check your equation for:\n"
+                f"- Matching parentheses\n"
+                f"- Valid question references ({{q1}}, {{q2}}, etc.)\n"
+                f"- Proper operator usage (+, -, *, /, ^)\n"
+                f"- Correct function syntax (e.g., sum({{q1}}, {{q2}}))\n"
+                f"- Complete if-then-else statements"
+            )
+    
+    def _get_error_suggestion(self, token_value, error_msg):
+        """
+        Provide helpful suggestions based on the error context.
+        """
+        token_lower = token_value.lower()
+        
+        # Check for common mistakes
+        if token_value.isalpha() and len(token_value) == 1:
+            return (
+                f"Hint: '{token_value}' looks like a variable. Did you mean to use a question reference like {{q{token_value}}}? "
+                f"Or perhaps a function name?"
+            )
+        
+        if token_value.isalpha() and token_value not in ['if', 'then', 'else', 'elif', 'and', 'or', 'xor', 'null']:
+            return (
+                f"Hint: '{token_value}' is not recognized. "
+                f"Valid functions are: sum, min, max, abs, round, sqrt, count_available. "
+                f"Valid keywords are: if, then, else, elif, and, or, xor, null. "
+                f"You can also use variables (e.g., RS = {{q1}} + {{q2}})."
+            )
+        
+        if token_value in ['{', '}']:
+            return "Hint: Question references should be in the format {qN}, e.g., {q1}, {q2}."
+        
+        if token_value in ['[', ']', '<', '>'] and 'Expected' not in error_msg:
+            return f"Hint: '{token_value}' is not a valid operator. Use comparison operators: ==, !=, >=, <=, >, <"
+        
+        if token_value == '=':
+            return "Hint: Use '=' for variable assignment (e.g., RS = {q1} + {q2}). For equality comparison, use '==' (double equals)."
+        
+        if token_value in ['&', '|', '!']:
+            return f"Hint: Use 'and', 'or', or '!=' instead of '{token_value}'."
+        
+        # Generic suggestion
+        return (
+            "Hint: Check that all operators, functions, and question references are properly formatted. "
+            "Refer to the syntax guide below for examples."
+        )
 
 class EquationTransformer(Transformer):
     """
@@ -39,6 +169,7 @@ class EquationTransformer(Transformer):
         """
         self.question_values = question_values or {}
         self.minimum_required_items = minimum_required_items
+        self.variables = {}  # Store assigned variables
 
     def transform(self, tree):
         """
@@ -455,5 +586,42 @@ class EquationTransformer(Transformer):
             return False
         return bool(a) != bool(b)
 
+    def statements(self, args):
+        """Handle multiple statements, return the last expression value"""
+        result = None
+        for statement in args:
+            result = statement
+        return result
+    
+    def assignment(self, args):
+        """Handle variable assignment: VARNAME = expr"""
+        var_name = str(args[0])
+        value = args[1]
+        
+        # Check if variable name conflicts with reserved keywords
+        reserved = ['if', 'then', 'else', 'elif', 'and', 'or', 'xor', 'null', 
+                   'abs', 'min', 'max', 'sum', 'round', 'sqrt', 'count_available']
+        if var_name.lower() in reserved:
+            raise ValidationError(f"Variable name '{var_name}' is reserved. Please use a different name.")
+        
+        # Store the variable value
+        self.variables[var_name] = value
+        return value
+    
+    def var_ref(self, args):
+        """Handle variable reference"""
+        var_name = str(args[0])
+        
+        # Check if it's a reserved keyword being used incorrectly
+        reserved = ['if', 'then', 'else', 'elif', 'and', 'or', 'xor', 'null']
+        if var_name.lower() in reserved:
+            raise ValidationError(f"'{var_name}' is a reserved keyword and cannot be used as a variable.")
+        
+        # Check if variable has been assigned
+        if var_name not in self.variables:
+            raise ValidationError(f"Variable '{var_name}' is used before being assigned. Please assign a value to it first.")
+        
+        return self.variables[var_name]
+    
     def start(self, expr):
         return expr 

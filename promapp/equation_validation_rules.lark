@@ -1,4 +1,11 @@
-?start: expr
+?start: statements
+
+?statements: statement+
+
+?statement: assignment
+          | expr
+
+?assignment: VARNAME "=" expr
 
 ?expr: logic_expr
 
@@ -29,10 +36,11 @@
 ?atom: "-" atom                     -> neg
      | func
      | QUESTION_REF
+     | if_expr
+     | VARNAME                      -> var_ref
      | NUMBER
      | "null"                      -> null
      | "(" expr ")"
-     | if_expr
 
 ?if_expr: if_then_else
 
@@ -44,6 +52,7 @@
 ?func: FUNCNAME "(" [expr ("," expr)*] ")" -> func
 
 FUNCNAME: "abs" | "min" | "max" | "sum" | "round" | "sqrt" | "count_available"
+VARNAME: /(?!(if|then|else|elif|and|or|xor|null|abs|min|max|sum|round|sqrt|count_available)\b)[a-zA-Z_][a-zA-Z0-9_]*/
 QUESTION_REF: /\{q\d+\}/
 NUMBER: /\d+(\.\d+)?/
 

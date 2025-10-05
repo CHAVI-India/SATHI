@@ -203,13 +203,121 @@ class EquationParserTest(TestCase):
             "{q1} +",           # Incomplete expression
             "if {q1} > {q2}",   # Incomplete if statement
             "{q1} ** {q2}",     # Invalid operator
-            "unknown({q1})",    # Unknown function
         ]
 
         for equation in test_cases:
             with self.subTest(equation=equation):
                 with self.assertRaises(ValidationError):
                     self.validator.validate(equation)
+        
+        # Test unknown function - this should parse but fail at transform time
+        equation = "unknown({q1})"
+        tree = self.parser.parse(equation)
+        with self.assertRaises(ValidationError) as context:
+            EquationTransformer(self.question_values).transform(tree)
+        self.assertIn("unknown", str(context.exception).lower())
+    
+    def test_user_friendly_error_messages(self):
+        """Test that user-friendly error messages are provided for common mistakes"""
+        test_cases = [
+            # Single equals instead of double in comparison
+            ("if {q1} = {q2} then {q3} else {q4}", "double equals"),
+            
+            # Invalid operators
+            ("{q1} & {q2}", "Use 'and'"),
+            ("{q1} | {q2}", "Use 'or'"),
+        ]
+
+        for equation, expected_hint in test_cases:
+            with self.subTest(equation=equation):
+                with self.assertRaises(ValidationError) as context:
+                    self.validator.validate(equation)
+                error_msg = str(context.exception)
+                # Check that the error message contains helpful hints
+                self.assertTrue(
+                    expected_hint.lower() in error_msg.lower() or
+                    "hint" in error_msg.lower() or
+                    "please check" in error_msg.lower(),
+                    f"Expected helpful error message for '{equation}', got: {error_msg}"
+                )
+        
+        # Test cases that now parse successfully but fail at transform time
+        transform_test_cases = [
+            # Variable used before assignment
+            ("{q1} + B", "used before being assigned"),
+            ("B * {q2}", "used before being assigned"),
+            
+            # Unknown function
+            ("unknown({q1})", "unknown"),
+        ]
+        
+        for equation, expected_hint in transform_test_cases:
+            with self.subTest(equation=equation):
+                tree = self.parser.parse(equation)
+                with self.assertRaises(ValidationError) as context:
+                    EquationTransformer(self.question_values).transform(tree)
+                error_msg = str(context.exception)
+                self.assertIn(expected_hint.lower(), error_msg.lower())
+    
+    def test_variable_assignments(self):
+        """Test variable assignment and usage in equations"""
+        test_cases = [
+            # Simple variable assignment
+            ("RS = {q1} + {q2}\nRS", 15),  # 10 + 5 = 15
+            
+            # Variable used in calculation
+            ("total = {q1} + {q2} + {q3}\ntotal / 3", 5.666666666666667),  # (10 + 5 + 2) / 3
+            
+            # Multiple variables
+            ("sum_val = sum({q1}, {q2}, {q3})\ncount = 3\nsum_val / count", 5.666666666666667),
+            
+            # Variable in conditional
+            ("avg = ({q1} + {q2}) / 2\nif avg > 5 then {q3} else {q4}", 2),  # avg = 7.5 > 5, so q3 = 2
+            
+            # Complex variable usage
+            ("total_score = sum({q1}, {q2}, {q3}, {q4})\nitem_count = 4\ntotal_score / item_count", 6.25),  # (10+5+2+8)/4
+            
+            # Variable with underscore
+            ("raw_score = {q1} * {q2}\nraw_score / 10", 5.0),  # (10 * 5) / 10 = 5
+            
+            # Variable with numbers
+            ("score1 = {q1} + {q2}\nscore2 = {q3} + {q4}\n(score1 + score2) / 2", 12.5),  # ((15) + (10)) / 2
+        ]
+
+        for equation, expected in test_cases:
+            with self.subTest(equation=equation):
+                tree = self.parser.parse(equation)
+                result = EquationTransformer(self.question_values).transform(tree)
+                self.assertAlmostEqual(result, expected)
+    
+    def test_variable_errors(self):
+        """Test error handling for variable-related issues"""
+        # Test cases that should fail at parse time (syntax errors)
+        parse_error_cases = [
+            # Reserved keyword as variable name - caught at parse time
+            "if = {q1} + {q2}\nif",
+            "sum = {q1} + {q2}\nsum",
+            "then + {q1}",
+        ]
+        
+        for equation in parse_error_cases:
+            with self.subTest(equation=equation, error_type="parse"):
+                with self.assertRaises(Exception):  # Lark raises various exceptions
+                    self.parser.parse(equation)
+        
+        # Test cases that should fail at transform time (semantic errors)
+        transform_error_cases = [
+            # Using variable before assignment
+            ("RS + {q1}", "used before being assigned"),
+        ]
+        
+        for equation, expected_error in transform_error_cases:
+            with self.subTest(equation=equation, error_type="transform"):
+                tree = self.parser.parse(equation)
+                with self.assertRaises(ValidationError) as context:
+                    EquationTransformer(self.question_values).transform(tree)
+                error_msg = str(context.exception)
+                self.assertIn(expected_error.lower(), error_msg.lower())
 
     def test_missing_question_values(self):
         """Test handling of missing question values in equations"""
