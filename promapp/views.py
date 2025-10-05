@@ -217,6 +217,15 @@ class QuestionnaireCreateView(LoginRequiredMixin, PermissionRequiredMixin, Creat
         
         context['available_items'] = unique_items
         context['construct_scales'] = ConstructScale.objects.all().order_by('name')
+        
+        # Get unique instrument names for filtering
+        instrument_names = ConstructScale.objects.exclude(
+            instrument_name__isnull=True
+        ).exclude(
+            instrument_name__exact=''
+        ).values_list('instrument_name', flat=True).distinct().order_by('instrument_name')
+        context['instrument_names'] = instrument_names
+        
         context['questionnaire_items'] = []  # Always empty for create view
         
         # Add rules and rule groups context
