@@ -3379,7 +3379,7 @@ class RangeScaleTranslationView(LoginRequiredMixin, PermissionRequiredMixin, Upd
         return redirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse('range_scale_translation_list')
+        return reverse('range_scale_list')
 
 class RangeScaleTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     """
