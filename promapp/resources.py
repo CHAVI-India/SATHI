@@ -5,11 +5,59 @@ for handling translations.
 """
 
 from import_export import resources, fields
-from import_export.widgets import ForeignKeyWidget
-from .models import Item, ConstructScale, LikertScale, RangeScale
+from import_export.widgets import ForeignKeyWidget, CharWidget
+from .models import Item, ConstructScale, LikertScale, RangeScale, ResponseTypeChoices
 from parler.models import TranslatableModel
 from django.utils.translation import get_language
 from django.conf import settings
+
+
+class ResponseTypeWidget(CharWidget):
+    """
+    Custom widget to handle response_type field imports.
+    Accepts both the choice value (e.g., 'Likert') and the display name (e.g., 'Likert Scale').
+    """
+    def clean(self, value, row=None, *args, **kwargs):
+        """
+        Clean the response_type value from CSV.
+        Handles both choice values and display names.
+        """
+        if not value:
+            return value
+        
+        # Convert to string and strip whitespace
+        value = str(value).strip()
+        
+        # Create a mapping of both values and labels to choice values
+        choice_mapping = {
+            # Direct values (case-insensitive)
+            'text': ResponseTypeChoices.TEXT,
+            'number': ResponseTypeChoices.NUMBER,
+            'likert': ResponseTypeChoices.LIKERT,
+            'range': ResponseTypeChoices.RANGE,
+            'media': ResponseTypeChoices.MEDIA,
+            # Display names (case-insensitive)
+            'text response': ResponseTypeChoices.TEXT,
+            'numeric response': ResponseTypeChoices.NUMBER,
+            'likert scale': ResponseTypeChoices.LIKERT,
+            'range response': ResponseTypeChoices.RANGE,
+            'media response': ResponseTypeChoices.MEDIA,
+        }
+        
+        # Try to find a match (case-insensitive)
+        value_lower = value.lower()
+        if value_lower in choice_mapping:
+            return choice_mapping[value_lower]
+        
+        # If exact match found in valid choices, return as-is
+        valid_choices = [choice[0] for choice in ResponseTypeChoices.choices]
+        if value in valid_choices:
+            return value
+        
+        # If no match found, return the original value
+        # This will trigger a validation error if it's invalid
+        return value
+
 
 class ItemTranslationResource(resources.ModelResource):
     """
@@ -55,6 +103,15 @@ class ItemResource(resources.ModelResource):
         attribute='construct_scale',    # Field name in the Item model
         widget=ForeignKeyWidget(ConstructScale, 'id')  # Widget to handle the foreign key relationship
     )
+    
+    # Response type field with custom widget
+    # This widget handles both choice values ('Likert') and display names ('Likert Scale')
+    response_type = fields.Field(
+        column_name='response_type',
+        attribute='response_type',
+        widget=ResponseTypeWidget()
+    )
+    
     likert_response = fields.Field(
         column_name='likert_response',
         attribute='likert_response',
