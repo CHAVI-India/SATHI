@@ -107,6 +107,15 @@
                   <input type="text" id="item-search" class="w-full px-3 py-2 border rounded" placeholder="{% translate 'Search by name...' %}" aria-label="{% translate 'Search items' %}">
                 </div>
                 <div class="w-full md:w-64">
+                  <label for="instrument-filter" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Filter by instrument" %}</label>
+                  <select id="instrument-filter" class="w-full px-3 py-2 border rounded">
+                    <option value="all">{% translate "All instruments" %}</option>
+                    {% for instrument_name in instrument_names %}
+                      <option value="{{ instrument_name }}">{{ instrument_name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="w-full md:w-64">
                   <label for="construct-filter" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Filter by construct scale" %}</label>
                   <select id="construct-filter" class="w-full px-3 py-2 border rounded">
                     <option value="all">{% translate "All construct scales" %}</option>
@@ -125,7 +134,7 @@
                   {% regroup available_items by construct_scale as items_by_scale %}
                   
                   {% for scale_group in items_by_scale %}
-                    <div class="mb-6 scale-group" data-scale-id="{{ scale_group.grouper.id|default:'none' }}">
+                    <div class="mb-6 scale-group" data-scale-id="{{ scale_group.grouper.id|default:'none' }}" data-instrument-name="{{ scale_group.grouper.instrument_name|default:'' }}">
                       <div class="construct-scale-header p-2 mb-2 bg-blue-100 rounded">
                         <h3 class="font-medium">
                           {{ scale_group.grouper.name|default:"No Construct Scale" }}
@@ -140,6 +149,7 @@
                           <div class="flex items-start p-2 hover:bg-gray-50 rounded item-row" 
                                data-item-name="{{ item.name|default:'Untitled Item'|lower }}" 
                                data-scale-id="{{ item.construct_scale.id|default:'none' }}"
+                               data-instrument-name="{{ item.construct_scale.instrument_name|default:'' }}"
                                data-item-id="{{ item.id }}">
                             <input type="checkbox" 
                                    name="items" 
@@ -235,6 +245,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('item-search');
+    const instrumentFilter = document.getElementById('instrument-filter');
     const constructFilter = document.getElementById('construct-filter');
     const selectedItemsList = document.getElementById('selected-items-list');
     const emptySelectionMessage = document.getElementById('empty-selection-message');
@@ -259,6 +270,9 @@
     
     // Handle search input
     searchInput.addEventListener('input', filterItems);
+    
+    // Handle instrument filter
+    instrumentFilter.addEventListener('change', filterItems);
     
     // Handle construct scale filter
     constructFilter.addEventListener('change', filterItems);
@@ -455,6 +469,7 @@
     // Combined filter function
     function filterItems() {
       const searchTerm = searchInput.value.toLowerCase().trim();
+      const selectedInstrument = instrumentFilter.value;
       const selectedScale = constructFilter.value;
       
       // Get all item rows
@@ -468,14 +483,16 @@
       itemRows.forEach(row => {
         const itemName = row.getAttribute('data-item-name');
         const scaleId = row.getAttribute('data-scale-id');
+        const instrumentName = row.getAttribute('data-instrument-name');
         const scaleVisible = scaleVisibility[scaleId] || false;
         
-        // Check if item matches search term and scale filter
+        // Check if item matches search term, instrument filter, and scale filter
         const matchesSearch = !searchTerm || itemName.includes(searchTerm);
+        const matchesInstrument = selectedInstrument === 'all' || selectedInstrument === instrumentName;
         const matchesScale = selectedScale === 'all' || selectedScale === scaleId;
         
         // Show/hide the item based on filters
-        if (matchesSearch && matchesScale) {
+        if (matchesSearch && matchesInstrument && matchesScale) {
           row.classList.remove('filtered-out');
           scaleVisibility[scaleId] = true;
         } else {
@@ -490,7 +507,12 @@
       // Show/hide scale groups based on whether they have visible items
       scaleGroups.forEach(group => {
         const scaleId = group.getAttribute('data-scale-id');
-        if (scaleVisibility[scaleId] || selectedScale === 'all' && !searchTerm) {
+        const groupInstrumentName = group.getAttribute('data-instrument-name');
+        
+        // Check if group matches instrument filter and has visible items
+        const matchesInstrument = selectedInstrument === 'all' || selectedInstrument === groupInstrumentName;
+        
+        if (scaleVisibility[scaleId] && matchesInstrument) {
           group.classList.remove('filtered-out');
         } else {
           group.classList.add('filtered-out');
