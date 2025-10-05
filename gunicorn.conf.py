@@ -9,7 +9,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 
 # Gunicorn server socket binding
-bind = "unix:/var/www/chavi-prom/chavi-prom.sock"
+bind = f"unix:{os.path.join(BASE_DIR, 'chavi-prom.sock')}"
 
 # Gunicorn configuration
 workers = 5 # as using 2 cpus  
@@ -23,7 +23,8 @@ worker_connections = 1000
 
 # Additional timeout settings for long-running requests
 graceful_timeout = 3600  # 1 hour graceful shutdown
-worker_tmp_dir = '/var/www/chavi-prom/tmp'  # Changed from /dev/shm to /tmp to save memory
+worker_tmp_dir = os.path.join(BASE_DIR, 'tmp')  # Changed from /dev/shm to /tmp to save memory
+os.makedirs(worker_tmp_dir, exist_ok=True)
 
 
 # Create logs directory if it doesn't exist
