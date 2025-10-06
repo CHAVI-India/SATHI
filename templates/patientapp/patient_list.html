@@ -45,47 +45,17 @@
         <div class="mb-2">
           <span class="text-sm font-semibold text-gray-700">{% translate "Search & Filter" %}</span>
         </div>
-        <form hx-get="{% url 'patient_list' %}" hx-target="#patientsTable" hx-trigger="change, keyup[enter] from:input">
+        <form hx-get="{% url 'patient_list' %}" hx-target="#patientsTable" hx-trigger="change from:#patient_select, change from:select">
           <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <!-- Search Boxes -->
+            <!-- Patient Select2 Search -->
             <div class="md:col-span-2 lg:col-span-2">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Name Search -->
-                <div>
-                  <label for="name_search" class="block text-sm font-medium text-gray-700">{% translate "Search by Name" %}</label>
-                  <div class="relative mt-1">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-                      </svg>
-                    </div>
-                    <input type="text" 
-                           name="name_search" 
-                           id="name_search" 
-                           class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                           placeholder="{% translate 'Enter exact name...' %}"
-                           value="{{ request.GET.name_search|default:'' }}">
-                  </div>
-                </div>
-
-                <!-- ID Search -->
-                <div>
-                  <label for="id_search" class="block text-sm font-medium text-gray-700">{% translate "Search by ID" %}</label>
-                  <div class="relative mt-1">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-                      </svg>
-                    </div>
-                    <input type="text" 
-                           name="id_search" 
-                           id="id_search" 
-                           class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                           placeholder="{% translate 'Enter exact ID...' %}"
-                           value="{{ request.GET.id_search|default:'' }}">
-                  </div>
-                </div>
-              </div>
+              <label for="patient_select" class="block text-sm font-medium text-gray-700 mb-1">{% translate "Search Patient by Name or ID" %}</label>
+              <select name="patient_select" 
+                      id="patient_select" 
+                      class="block w-full border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      style="width: 100%;">
+                <option value="">{% translate "All Patients" %}</option>
+              </select>
             </div>
 
             <!-- Institution Filter -->
@@ -150,8 +120,87 @@
 
 {% endblock %}
 
+{% block extra_css %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    /* Custom Select2 styling to match Tailwind */
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 38px;
+        padding-left: 12px;
+        color: #374151;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--single {
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 1px #3b82f6;
+    }
+    .select2-dropdown {
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #3b82f6;
+    }
+</style>
+{% endblock %}
+
 {% block extra_js %}
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
+    $(document).ready(function() {
+        // Initialize Select2 for patient search
+        $('#patient_select').select2({
+            ajax: {
+                url: '{% url "patient_search_api" %}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term // search term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            },
+            placeholder: '{% translate "Search by name or ID..." %}',
+            allowClear: true,
+            minimumInputLength: 0,
+            width: '100%'
+        });
+
+        // Set initial value if present in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const patientSelect = urlParams.get('patient_select');
+        if (patientSelect) {
+            // Keep the selected value
+            $('#patient_select').val(patientSelect).trigger('change');
+        }
+
+        // Trigger HTMX request when Select2 changes
+        $('#patient_select').on('select2:select select2:clear', function (e) {
+            // Get the form and trigger HTMX
+            const form = $(this).closest('form')[0];
+            htmx.trigger(form, 'change');
+        });
+    });
+
     // Handle HTMX after swap to update URL with search parameters
     document.body.addEventListener('htmx:afterSwap', function(evt) {
         if (evt.detail.target.id === 'patientsTable') {

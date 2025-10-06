@@ -1407,10 +1407,61 @@ def patient_portal(request):
 
 @login_required
 @permission_required('patientapp.view_patient', raise_exception=True)
+def patient_search_api(request):
+    """
+    API endpoint for Select2 widget to search patients by name or ID.
+    Returns decrypted patient data in Select2 format.
+    """
+    search_term = request.GET.get('q', '').strip()
+    
+    # Start with base queryset and apply institution filtering
+    patients = Patient.objects.select_related('institution').all()
+    patients = filter_patients_by_institution(patients, request.user)
+    
+    # Get all patients and decrypt their data for searching
+    results = []
+    for patient in patients:
+        # Decrypt the name and patient_id for comparison
+        patient_name = patient.name or ''
+        patient_id = patient.patient_id or ''
+        
+        # If there's a search term, filter by it
+        if search_term:
+            # Case-insensitive search in both name and ID
+            if (search_term.lower() in patient_name.lower() or 
+                search_term.lower() in patient_id.lower()):
+                results.append({
+                    'id': str(patient.id),
+                    'text': f"{patient_name} (ID: {patient_id})",
+                    'name': patient_name,
+                    'patient_id': patient_id
+                })
+        else:
+            # No search term, return all patients (limited to first 50)
+            results.append({
+                'id': str(patient.id),
+                'text': f"{patient_name} (ID: {patient_id})",
+                'name': patient_name,
+                'patient_id': patient_id
+            })
+    
+    # Sort results by name
+    results.sort(key=lambda x: x['name'].lower() if x['name'] else '')
+    
+    # Limit results to 50 for performance
+    results = results[:50]
+    
+    return JsonResponse({
+        'results': results,
+        'pagination': {'more': False}
+    })
+
+
+@login_required
+@permission_required('patientapp.view_patient', raise_exception=True)
 def patient_list(request):
     # Get filter parameters
-    name_search = request.GET.get('name_search', '')
-    id_search = request.GET.get('id_search', '')
+    patient_select = request.GET.get('patient_select', '')  # Select2 patient selection
     institution_id = request.GET.get('institution', '')
     gender = request.GET.get('gender', '')
     diagnosis = request.GET.get('diagnosis', '')
@@ -1422,12 +1473,10 @@ def patient_list(request):
     patients = Patient.objects.select_related('user', 'institution').all()
     patients = filter_patients_by_institution(patients, request.user)
     
-    # Apply filters
-    if name_search:
-        patients = patients.filter(name__exact=name_search)
-    
-    if id_search:
-        patients = patients.filter(patient_id__exact=id_search)
+    # Apply patient selection filter (from Select2)
+    if patient_select:
+        # Filter by the specific patient UUID selected from Select2
+        patients = patients.filter(id=patient_select)
     
     if institution_id:
         patients = patients.filter(institution_id=institution_id)
