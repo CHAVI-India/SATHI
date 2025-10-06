@@ -195,9 +195,16 @@
 
         // Trigger HTMX request when Select2 changes
         $('#patient_select').on('select2:select select2:clear', function (e) {
-            // Get the form and trigger HTMX
+            // Get the form and submit via HTMX
             const form = $(this).closest('form')[0];
-            htmx.trigger(form, 'change');
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData).toString();
+            
+            // Trigger HTMX GET request with form parameters
+            htmx.ajax('GET', '{% url "patient_list" %}?' + params, {
+                target: '#patientsTable',
+                swap: 'innerHTML'
+            });
         });
     });
 
@@ -205,20 +212,33 @@
     document.body.addEventListener('htmx:afterSwap', function(evt) {
         if (evt.detail.target.id === 'patientsTable') {
             const url = new URL(window.location);
-            const form = evt.detail.trigger.closest('form');
-            const formData = new FormData(form);
             
-            // Update URL with form data
-            for (let [key, value] of formData.entries()) {
-                if (value) {
-                    url.searchParams.set(key, value);
-                } else {
-                    url.searchParams.delete(key);
-                }
+            // Try to get form from trigger, or find it in the document
+            let form = evt.detail.trigger ? evt.detail.trigger.closest('form') : null;
+            if (!form) {
+                form = document.querySelector('form[hx-get]');
             }
             
-            // Update browser history without reload
-            window.history.pushState({}, '', url);
+            if (form) {
+                const formData = new FormData(form);
+                
+                // Clear all existing search params
+                const keysToDelete = [];
+                for (let key of url.searchParams.keys()) {
+                    keysToDelete.push(key);
+                }
+                keysToDelete.forEach(key => url.searchParams.delete(key));
+                
+                // Update URL with form data
+                for (let [key, value] of formData.entries()) {
+                    if (value) {
+                        url.searchParams.set(key, value);
+                    }
+                }
+                
+                // Update browser history without reload
+                window.history.pushState({}, '', url);
+            }
         }
     });
 </script>
