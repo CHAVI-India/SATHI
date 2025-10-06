@@ -169,12 +169,17 @@
                 delay: 250,
                 data: function (params) {
                     return {
-                        q: params.term // search term
+                        q: params.term, // search term
+                        page: params.page || 1 // page number for pagination
                     };
                 },
-                processResults: function (data) {
+                processResults: function (data, params) {
+                    params.page = params.page || 1;
                     return {
-                        results: data.results
+                        results: data.results,
+                        pagination: {
+                            more: data.pagination.more
+                        }
                     };
                 },
                 cache: true
@@ -182,7 +187,21 @@
             placeholder: '{% translate "Search by name or ID..." %}',
             allowClear: true,
             minimumInputLength: 0,
-            width: '100%'
+            width: '100%',
+            language: {
+                inputTooShort: function() {
+                    return '{% translate "Start typing to search patients..." %}';
+                },
+                searching: function() {
+                    return '{% translate "Searching..." %}';
+                },
+                noResults: function() {
+                    return '{% translate "No patients found" %}';
+                },
+                loadingMore: function() {
+                    return '{% translate "Loading more results..." %}';
+                }
+            }
         });
 
         // Set initial value if present in URL

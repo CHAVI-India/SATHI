@@ -1410,16 +1410,18 @@ def patient_portal(request):
 def patient_search_api(request):
     """
     API endpoint for Select2 widget to search patients by name or ID.
-    Returns decrypted patient data in Select2 format.
+    Returns decrypted patient data in Select2 format with pagination support.
     """
     search_term = request.GET.get('q', '').strip()
+    page = int(request.GET.get('page', 1))
+    page_size = 50
     
     # Start with base queryset and apply institution filtering
     patients = Patient.objects.select_related('institution').all()
     patients = filter_patients_by_institution(patients, request.user)
     
     # Get all patients and decrypt their data for searching
-    results = []
+    all_results = []
     for patient in patients:
         # Decrypt the name and patient_id for comparison
         patient_name = patient.name or ''
@@ -1430,15 +1432,15 @@ def patient_search_api(request):
             # Case-insensitive search in both name and ID
             if (search_term.lower() in patient_name.lower() or 
                 search_term.lower() in patient_id.lower()):
-                results.append({
+                all_results.append({
                     'id': str(patient.id),
                     'text': f"{patient_name} (ID: {patient_id})",
                     'name': patient_name,
                     'patient_id': patient_id
                 })
         else:
-            # No search term, return all patients (limited to first 50)
-            results.append({
+            # No search term, return all patients with pagination
+            all_results.append({
                 'id': str(patient.id),
                 'text': f"{patient_name} (ID: {patient_id})",
                 'name': patient_name,
@@ -1446,14 +1448,19 @@ def patient_search_api(request):
             })
     
     # Sort results by name
-    results.sort(key=lambda x: x['name'].lower() if x['name'] else '')
+    all_results.sort(key=lambda x: x['name'].lower() if x['name'] else '')
     
-    # Limit results to 50 for performance
-    results = results[:50]
+    # Calculate pagination
+    start_index = (page - 1) * page_size
+    end_index = start_index + page_size
+    results = all_results[start_index:end_index]
+    has_more = end_index < len(all_results)
     
     return JsonResponse({
         'results': results,
-        'pagination': {'more': False}
+        'pagination': {
+            'more': has_more
+        }
     })
 
 
