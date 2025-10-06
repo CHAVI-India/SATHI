@@ -136,7 +136,7 @@ class ItemResource(resources.ModelResource):
         """
         model = Item
         fields = (
-            'id', 'construct_scale', 'item_number', 'response_type',
+            'id', 'construct_scale', 'abbreviated_item_id', 'item_number', 'response_type',
             'likert_response', 'range_response', 'is_required',
             'item_missing_value', 'item_better_score_direction',
             'item_threshold_score', 'item_minimum_clinical_important_difference',
