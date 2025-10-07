@@ -1645,7 +1645,7 @@ class PatientCreateView(InstitutionFilterMixin, LoginRequiredMixin, PermissionRe
     model = Patient
     form_class = PatientForm
     template_name = 'patientapp/patient_form.html'
-    success_url = reverse_lazy('patient_questionnaire_list')
+    success_url = reverse_lazy('patient_list')
     permission_required = 'patientapp.add_patient'
 
     def get_form(self, form_class=None):
