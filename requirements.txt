@@ -16,7 +16,7 @@ django-csp==4.0
 django-debug-toolbar==6.0.0
 django-formtools==2.5.1
 django-google-fonts==0.0.3
-django-htmx==1.23.2
+django-htmx==1.26.0
 django-import-export==4.3.9
 django-parler==2.3
 django-phonenumber-field==8.1.0
