@@ -156,7 +156,18 @@
                                             {% else %}
                                                 <strong>{% translate "remained stable" %}</strong>
                                             {% endif %}
-                                            {% translate "compared to the last assessment" %}.
+                                            {% translate "compared to the last assessment" %}
+                                            {% if score_data.construct.scale_minimum_clinical_important_difference and score_data.construct.scale_minimum_clinical_important_difference > 0 %}
+                                                {% with change_abs=score_data.score_change|abs_value %}
+                                                {% with mid_ratio=change_abs|divide:score_data.construct.scale_minimum_clinical_important_difference %}
+                                                {% if mid_ratio >= 1.0 %}
+                                                    ({% translate "clinically significant:" %} {{ mid_ratio|floatformat:1 }}× {% translate "MID" %})
+                                                {% else %}
+                                                    ({% translate "not clinically significant:" %} {{ mid_ratio|floatformat:1 }}× {% translate "MID" %})
+                                                {% endif %}
+                                                {% endwith %}
+                                                {% endwith %}
+                                            {% endif %}.
                                         {% else %}
                                             .
                                         {% endif %}
@@ -210,23 +221,6 @@
                                         {% endif %}
                                         {% endwith %}
                                     </p>
-                                    {% endif %}
-                                    
-                                    {% if score_data.construct.scale_minimum_clinical_important_difference and score_data.score_change is not None %}
-                                        {% if score_data.construct.scale_minimum_clinical_important_difference > 0 %}
-                                    <p>
-                                        {% with change_abs=score_data.score_change|abs_value %}
-                                        {% with mid_ratio=change_abs|divide:score_data.construct.scale_minimum_clinical_important_difference %}
-                                        <strong>{% translate "Clinical significance of change:" %}</strong> {% translate "The change of" %} <strong>{{ change_abs|floatformat:1 }} {% translate "points" %}</strong> 
-                                        {% if mid_ratio >= 1.0 %}
-                                            {% translate "is clinically significant, being" %} <strong>{{ mid_ratio|floatformat:1 }}</strong> {% translate "times the minimum clinically important difference of" %} {{ score_data.construct.scale_minimum_clinical_important_difference|floatformat:1 }}.
-                                        {% else %}
-                                            {% translate "is less than the minimum clinically important difference of" %} {{ score_data.construct.scale_minimum_clinical_important_difference|floatformat:1 }} ({{ mid_ratio|floatformat:1 }} {% translate "times" %}), {% translate "and may not be clinically significant" %}.
-                                        {% endif %}
-                                        {% endwith %}
-                                        {% endwith %}
-                                    </p>
-                                        {% endif %}
                                     {% endif %}
                                     
                                     <!-- Aggregated Population Data Summary -->
