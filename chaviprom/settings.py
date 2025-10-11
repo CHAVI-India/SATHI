@@ -511,6 +511,11 @@ LOGGING = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# File upload settings for large video files
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100 MB - files larger than this go to disk
+FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100 MB - max size before writing to temp file
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000  # Increase if needed for complex forms
+
 
 # Django Debug Toolbar settings
 

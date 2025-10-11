@@ -839,13 +839,17 @@
               window.location.href = '/questionnaires/my/';
             }
           });
+        } else if (response.status === 413) {
+          // File too large error
+          console.error('File upload too large:', response);
+          alert('{% translate "The uploaded file is too large. Please record a shorter video or contact your administrator." %}');
         } else {
           console.error('Form submission failed:', response);
-          alert('There was an error submitting your responses. Please try again.');
+          alert('{% translate "There was an error submitting your responses. Please try again." %}');
         }
       }).catch(error => {
         console.error('Form submission error:', error);
-        alert('There was an error submitting your responses. Please try again.');
+        alert('{% translate "There was an error submitting your responses. Please try again." %}');
       });
     });
 

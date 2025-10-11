@@ -21,6 +21,11 @@ max_requests_jitter = 50
 keepalive=150
 worker_connections = 1000
 
+# Large file upload support
+limit_request_line = 0  # No limit on request line size
+limit_request_fields = 100  # Number of header fields
+limit_request_field_size = 0  # No limit on header field size
+
 # Additional timeout settings for long-running requests
 graceful_timeout = 3600  # 1 hour graceful shutdown
 worker_tmp_dir = os.path.join(BASE_DIR, 'tmp')  # Changed from /dev/shm to /tmp to save memory
