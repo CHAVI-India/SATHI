@@ -162,62 +162,71 @@
                                         {% endif %}
                                     </p>
                                     
-                                    {% if construct_score.construct.scale_threshold_score or construct_score.construct.scale_normative_score_mean %}
+                                    {% if construct_score.construct.scale_threshold_score %}
                                     <p>
-                                        {% if construct_score.construct.scale_threshold_score %}
-                                            {% if construct_score.construct.scale_better_score_direction == 'Higher is Better' %}
-                                                {% if construct_score.score >= construct_score.construct.scale_threshold_score %}
-                                                    {% translate "The score is" %} <strong class="text-green-700">{{ construct_score.score|subtract:construct_score.construct.scale_threshold_score|abs_value|floatformat:1 }} {% translate "points above" %}</strong> {% translate "the threshold score of" %} {{ construct_score.construct.scale_threshold_score|floatformat:1 }}, {% translate "which is favorable" %}.
-                                                {% else %}
-                                                    {% translate "The score is" %} <strong class="text-red-700">{{ construct_score.construct.scale_threshold_score|subtract:construct_score.score|abs_value|floatformat:1 }} {% translate "points below" %}</strong> {% translate "the threshold score of" %} {{ construct_score.construct.scale_threshold_score|floatformat:1 }}, {% translate "which is concerning" %}.
-                                                {% endif %}
-                                            {% elif construct_score.construct.scale_better_score_direction == 'Lower is Better' %}
-                                                {% if construct_score.score <= construct_score.construct.scale_threshold_score %}
-                                                    {% translate "The score is" %} <strong class="text-green-700">{{ construct_score.construct.scale_threshold_score|subtract:construct_score.score|abs_value|floatformat:1 }} {% translate "points below" %}</strong> {% translate "the threshold score of" %} {{ construct_score.construct.scale_threshold_score|floatformat:1 }}, {% translate "which is favorable" %}.
-                                                {% else %}
-                                                    {% translate "The score is" %} <strong class="text-red-700">{{ construct_score.score|subtract:construct_score.construct.scale_threshold_score|abs_value|floatformat:1 }} {% translate "points above" %}</strong> {% translate "the threshold score of" %} {{ construct_score.construct.scale_threshold_score|floatformat:1 }}, {% translate "which is concerning" %}.
-                                                {% endif %}
-                                            {% endif %}
-                                        {% endif %}
-                                        
-                                        {% if construct_score.construct.scale_normative_score_mean %}
-                                            {% with diff=construct_score.score|subtract:construct_score.construct.scale_normative_score_mean|abs_value %}
-                                            {% if construct_score.score > construct_score.construct.scale_normative_score_mean %}
-                                                {% if construct_score.construct.scale_better_score_direction == 'Higher is Better' %}
-                                                    {% translate "The score is" %} <strong class="text-green-700">{{ diff|floatformat:1 }} {% translate "points above" %}</strong> {% translate "the normative score of" %} {{ construct_score.construct.scale_normative_score_mean|floatformat:1 }}, {% translate "which is better than average" %}.
-                                                {% else %}
-                                                    {% translate "The score is" %} <strong class="text-red-700">{{ diff|floatformat:1 }} {% translate "points above" %}</strong> {% translate "the normative score of" %} {{ construct_score.construct.scale_normative_score_mean|floatformat:1 }}, {% translate "which is worse than average" %}.
-                                                {% endif %}
-                                                {% if construct_score.construct.scale_minimum_clinical_important_difference %}
-                                                    {% if construct_score.construct.scale_minimum_clinical_important_difference > 0 %}
-                                                        {% translate "As the minimum clinically important difference is" %} {{ construct_score.construct.scale_minimum_clinical_important_difference|floatformat:1 }}, {% translate "this difference is" %} <strong>{{ diff|divide:construct_score.construct.scale_minimum_clinical_important_difference|floatformat:1 }}</strong> {% translate "times the minimum clinically important difference" %}.
-                                                    {% endif %}
-                                                {% elif construct_score.construct.scale_normative_score_standard_deviation %}
-                                                    {% if construct_score.construct.scale_normative_score_standard_deviation > 0 %}
-                                                        {% translate "As the standard deviation is" %} {{ construct_score.construct.scale_normative_score_standard_deviation|floatformat:1 }}, {% translate "this score is more than" %} <strong>{{ diff|divide:construct_score.construct.scale_normative_score_standard_deviation|floatformat:1 }}</strong> {% translate "standard deviations from the mean normative score" %}.
-                                                    {% endif %}
-                                                {% endif %}
-                                            {% elif construct_score.score < construct_score.construct.scale_normative_score_mean %}
-                                                {% if construct_score.construct.scale_better_score_direction == 'Higher is Better' %}
-                                                    {% translate "The score is" %} <strong class="text-red-700">{{ diff|floatformat:1 }} {% translate "points below" %}</strong> {% translate "the normative score of" %} {{ construct_score.construct.scale_normative_score_mean|floatformat:1 }}, {% translate "which is worse than average" %}.
-                                                {% else %}
-                                                    {% translate "The score is" %} <strong class="text-green-700">{{ diff|floatformat:1 }} {% translate "points below" %}</strong> {% translate "the normative score of" %} {{ construct_score.construct.scale_normative_score_mean|floatformat:1 }}, {% translate "which is better than average" %}.
-                                                {% endif %}
-                                                {% if construct_score.construct.scale_minimum_clinical_important_difference %}
-                                                    {% if construct_score.construct.scale_minimum_clinical_important_difference > 0 %}
-                                                        {% translate "As the minimum clinically important difference is" %} {{ construct_score.construct.scale_minimum_clinical_important_difference|floatformat:1 }}, {% translate "this difference is" %} <strong>{{ diff|divide:construct_score.construct.scale_minimum_clinical_important_difference|floatformat:1 }}</strong> {% translate "times the minimum clinically important difference" %}.
-                                                    {% endif %}
-                                                {% elif construct_score.construct.scale_normative_score_standard_deviation %}
-                                                    {% if construct_score.construct.scale_normative_score_standard_deviation > 0 %}
-                                                        {% translate "As the standard deviation is" %} {{ construct_score.construct.scale_normative_score_standard_deviation|floatformat:1 }}, {% translate "this score is more than" %} <strong>{{ diff|divide:construct_score.construct.scale_normative_score_standard_deviation|floatformat:1 }}</strong> {% translate "standard deviations from the mean normative score" %}.
-                                                    {% endif %}
-                                                {% endif %}
+                                        {% if construct_score.construct.scale_better_score_direction == 'Higher is Better' %}
+                                            {% if construct_score.score >= construct_score.construct.scale_threshold_score %}
+                                                <strong>{% translate "Threshold comparison:" %}</strong> {% translate "The score is" %} <strong class="text-green-700">{{ construct_score.score|subtract:construct_score.construct.scale_threshold_score|abs_value|floatformat:1 }} {% translate "points above" %}</strong> {% translate "the threshold score of" %} {{ construct_score.construct.scale_threshold_score|floatformat:1 }}, {% translate "which is favorable" %}.
                                             {% else %}
-                                                {% translate "The score is at the normative score of" %} {{ construct_score.construct.scale_normative_score_mean|floatformat:1 }}.
+                                                <strong>{% translate "Threshold comparison:" %}</strong> {% translate "The score is" %} <strong class="text-red-700">{{ construct_score.construct.scale_threshold_score|subtract:construct_score.score|abs_value|floatformat:1 }} {% translate "points below" %}</strong> {% translate "the threshold score of" %} {{ construct_score.construct.scale_threshold_score|floatformat:1 }}, {% translate "which is concerning" %}.
                                             {% endif %}
-                                            {% endwith %}
+                                        {% elif construct_score.construct.scale_better_score_direction == 'Lower is Better' %}
+                                            {% if construct_score.score <= construct_score.construct.scale_threshold_score %}
+                                                <strong>{% translate "Threshold comparison:" %}</strong> {% translate "The score is" %} <strong class="text-green-700">{{ construct_score.construct.scale_threshold_score|subtract:construct_score.score|abs_value|floatformat:1 }} {% translate "points below" %}</strong> {% translate "the threshold score of" %} {{ construct_score.construct.scale_threshold_score|floatformat:1 }}, {% translate "which is favorable" %}.
+                                            {% else %}
+                                                <strong>{% translate "Threshold comparison:" %}</strong> {% translate "The score is" %} <strong class="text-red-700">{{ construct_score.score|subtract:construct_score.construct.scale_threshold_score|abs_value|floatformat:1 }} {% translate "points above" %}</strong> {% translate "the threshold score of" %} {{ construct_score.construct.scale_threshold_score|floatformat:1 }}, {% translate "which is concerning" %}.
+                                            {% endif %}
                                         {% endif %}
                                     </p>
+                                    {% endif %}
+                                        
+                                    {% if construct_score.construct.scale_normative_score_mean %}
+                                    <p>
+                                        {% with diff=construct_score.score|subtract:construct_score.construct.scale_normative_score_mean|abs_value %}
+                                        {% if construct_score.score > construct_score.construct.scale_normative_score_mean %}
+                                            {% if construct_score.construct.scale_better_score_direction == 'Higher is Better' %}
+                                                <strong>{% translate "Normative comparison:" %}</strong> {% translate "The score is" %} <strong class="text-green-700">{{ diff|floatformat:1 }} {% translate "points above" %}</strong> {% translate "the normative score of" %} {{ construct_score.construct.scale_normative_score_mean|floatformat:1 }}, {% translate "which is better than average" %}.
+                                            {% else %}
+                                                <strong>{% translate "Normative comparison:" %}</strong> {% translate "The score is" %} <strong class="text-red-700">{{ diff|floatformat:1 }} {% translate "points above" %}</strong> {% translate "the normative score of" %} {{ construct_score.construct.scale_normative_score_mean|floatformat:1 }}, {% translate "which is worse than average" %}.
+                                            {% endif %}
+                                            {% if construct_score.construct.scale_normative_score_standard_deviation %}
+                                                {% if construct_score.construct.scale_normative_score_standard_deviation > 0 %}
+                                                    {% translate "As the standard deviation is" %} {{ construct_score.construct.scale_normative_score_standard_deviation|floatformat:1 }}, {% translate "this score is more than" %} <strong>{{ diff|divide:construct_score.construct.scale_normative_score_standard_deviation|floatformat:1 }}</strong> {% translate "standard deviations from the mean normative score" %}.
+                                                {% endif %}
+                                            {% endif %}
+                                        {% elif construct_score.score < construct_score.construct.scale_normative_score_mean %}
+                                            {% if construct_score.construct.scale_better_score_direction == 'Higher is Better' %}
+                                                <strong>{% translate "Normative comparison:" %}</strong> {% translate "The score is" %} <strong class="text-red-700">{{ diff|floatformat:1 }} {% translate "points below" %}</strong> {% translate "the normative score of" %} {{ construct_score.construct.scale_normative_score_mean|floatformat:1 }}, {% translate "which is worse than average" %}.
+                                            {% else %}
+                                                <strong>{% translate "Normative comparison:" %}</strong> {% translate "The score is" %} <strong class="text-green-700">{{ diff|floatformat:1 }} {% translate "points below" %}</strong> {% translate "the normative score of" %} {{ construct_score.construct.scale_normative_score_mean|floatformat:1 }}, {% translate "which is better than average" %}.
+                                            {% endif %}
+                                            {% if construct_score.construct.scale_normative_score_standard_deviation %}
+                                                {% if construct_score.construct.scale_normative_score_standard_deviation > 0 %}
+                                                    {% translate "As the standard deviation is" %} {{ construct_score.construct.scale_normative_score_standard_deviation|floatformat:1 }}, {% translate "this score is more than" %} <strong>{{ diff|divide:construct_score.construct.scale_normative_score_standard_deviation|floatformat:1 }}</strong> {% translate "standard deviations from the mean normative score" %}.
+                                                {% endif %}
+                                            {% endif %}
+                                        {% else %}
+                                            <strong>{% translate "Normative comparison:" %}</strong> {% translate "The score is at the normative score of" %} {{ construct_score.construct.scale_normative_score_mean|floatformat:1 }}.
+                                        {% endif %}
+                                        {% endwith %}
+                                    </p>
+                                    {% endif %}
+                                    
+                                    {% if construct_score.construct.scale_minimum_clinical_important_difference and construct_score.score_change is not None %}
+                                        {% if construct_score.construct.scale_minimum_clinical_important_difference > 0 %}
+                                    <p>
+                                        {% with change_abs=construct_score.score_change|abs_value %}
+                                        {% with mid_ratio=change_abs|divide:construct_score.construct.scale_minimum_clinical_important_difference %}
+                                        <strong>{% translate "Clinical significance of change:" %}</strong> {% translate "The change of" %} <strong>{{ change_abs|floatformat:1 }} {% translate "points" %}</strong> 
+                                        {% if mid_ratio >= 1.0 %}
+                                            {% translate "is clinically significant, being" %} <strong>{{ mid_ratio|floatformat:1 }}</strong> {% translate "times the minimum clinically important difference of" %} {{ construct_score.construct.scale_minimum_clinical_important_difference|floatformat:1 }}.
+                                        {% else %}
+                                            {% translate "is less than the minimum clinically important difference of" %} {{ construct_score.construct.scale_minimum_clinical_important_difference|floatformat:1 }} ({{ mid_ratio|floatformat:1 }} {% translate "times" %}), {% translate "and may not be clinically significant" %}.
+                                        {% endif %}
+                                        {% endwith %}
+                                        {% endwith %}
+                                    </p>
+                                        {% endif %}
                                     {% endif %}
                                     
                                     <!-- Aggregated Population Data Summary -->
