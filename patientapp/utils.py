@@ -1236,7 +1236,7 @@ def create_likert_response_plot(historical_responses: List['QuestionnaireItemRes
     interval_label = get_interval_label(time_interval)
     p = figure(
         width=400,
-        height=200,
+        height=220,
         tools="pan,box_zoom,reset",
         toolbar_location=None,
         sizing_mode="scale_width",
@@ -1392,7 +1392,7 @@ def create_numeric_response_plot(historical_responses: List['QuestionnaireItemRe
     interval_label = get_interval_label(time_interval)
     p = figure(
         width=400,
-        height=200,
+        height=220,
         tools="pan,box_zoom,reset",
         toolbar_location=None,
         sizing_mode="scale_width",

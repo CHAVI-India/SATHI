@@ -35,7 +35,7 @@
 {% endblock %}
 
 {% block item_plot %}
-<div class="mt-4 plot-container" id="plot-item-{{ item_response.questionnaire_item.item.id }}">
+<div class="mt-4 plot-container" id="plot-item-{{ item_response.questionnaire_item.item.id }}" style="min-height: 280px;">
     {{ item_response.bokeh_plot|safe }}
 </div>
 {% endblock %} 
