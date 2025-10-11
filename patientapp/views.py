@@ -804,9 +804,42 @@ def prom_review(request, pk):
                     construct_obj = cs.construct
                     break
         if construct_obj:
+            # Identify worsened items for this construct
+            worsened_items = []
+            improved_items = []
+            stable_items = []
+            
+            for item_resp in items:
+                # Only consider items with numeric/likert responses that have change data
+                if item_resp.value_change is not None:
+                    item_better_direction = item_resp.questionnaire_item.item.item_better_score_direction or 'Higher is Better'
+                    
+                    # Determine if item has worsened based on direction
+                    if item_better_direction == 'Higher is Better':
+                        if item_resp.value_change < 0:  # Score decreased = worsened
+                            worsened_items.append(item_resp)
+                        elif item_resp.value_change > 0:  # Score increased = improved
+                            improved_items.append(item_resp)
+                        else:
+                            stable_items.append(item_resp)
+                    elif item_better_direction == 'Lower is Better':
+                        if item_resp.value_change > 0:  # Score increased = worsened
+                            worsened_items.append(item_resp)
+                        elif item_resp.value_change < 0:  # Score decreased = improved
+                            improved_items.append(item_resp)
+                        else:
+                            stable_items.append(item_resp)
+            
+            # Sort worsened items by magnitude of worsening (largest first)
+            worsened_items.sort(key=lambda x: abs(x.value_change), reverse=True)
+            improved_items.sort(key=lambda x: abs(x.value_change), reverse=True)
+            
             item_responses_grouped.append({
                 'construct': construct_obj,
                 'items': items,
+                'worsened_items': worsened_items,
+                'improved_items': improved_items,
+                'stable_items': stable_items,
             })
     # Provide important construct ids list for template badges/ordering if needed
     important_construct_ids_list = [str(cid) for cid in important_construct_order]

@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load static %}
+{% load prom_filters %}
 
 {% if important_construct_scores %}
 <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
@@ -39,15 +40,15 @@
                 aria-labelledby="topline-tab-btn-{{ score_data.construct.id }}"
                 class="topline-tab-content {% if not forloop.first %}hidden{% endif %}">
                 
-                <!-- Two Column Layout: Construct Score | Related Items -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Left Column: Construct Score Details -->
+                <!-- Grid Layout: Construct Score + Items -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Construct Score Card - 1 column -->
                     <div class="bg-gray-50 rounded-lg p-4">
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ score_data.construct.name }}</h3>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-2xl font-bold text-gray-900">{{ score_data.score|floatformat:1 }}</span>
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ score_data.construct.name }}</h3>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-2xl font-bold text-gray-900">{{ score_data.score|floatformat:1 }}</span>
                                 {% if score_data.score_change is not None %}
                                     {% if score_data.score_change > 0 %}
                                         {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
@@ -88,25 +89,6 @@
                         {{ score_data.bokeh_plot|safe }}
                     </div>
                     
-                    <!-- Clinical Significance -->
-                    {% if score_data.clinical_significance_summary %}
-                        <div class="bg-orange-50 border-l-4 border-orange-400 p-3 mb-3">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm text-orange-700">
-                                        <span class="font-medium">{% translate "Clinical Significance:" %}</span>
-                                        {{ score_data.clinical_significance_summary }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                    
                     <!-- Threshold and Normative Information -->
                     <div class="flex justify-between items-center text-xs text-gray-600 border-t pt-2">
                         <div class="flex items-center space-x-4">
@@ -140,32 +122,173 @@
                         </div>
                     </div>
                     </div>
-
-                    <!-- Right Column: Related Items -->
-                    <div>
-                        <h4 class="text-base font-semibold text-gray-800 mb-3">{% translate "Related Items" %}</h4>
-                        {% if item_responses_grouped %}
-                            {% for group in item_responses_grouped %}
-                                {% if group.construct.id == score_data.construct.id %}
-                                    <div class="space-y-4">
-                                    {% for item_response in group.items %}
-                                        {% if item_response.questionnaire_item.item.response_type == 'Text' %}
-                                            {% include "promapp/components/text_item_card.html" %}
-                                        {% elif item_response.questionnaire_item.item.response_type == 'Likert' %}
-                                            {% include "promapp/components/likert_item_card.html" %}
-                                        {% elif item_response.questionnaire_item.item.response_type in 'Number,Range' %}
-                                            {% include "promapp/components/numeric_item_card.html" %}
-                                        {% elif item_response.questionnaire_item.item.response_type == 'Media' %}
-                                            {% include "promapp/components/media_item_card.html" %}
+                    
+                    <!-- Plain Language Summary - Second Column -->
+                    <div class="bg-white rounded-lg shadow-sm p-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="h-6 w-6 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <h4 class="text-base font-semibold text-gray-900 mb-2">{% translate "Summary" %}</h4>
+                                <div class="text-sm text-gray-700 space-y-2">
+                                    <p>
+                                        {% translate "The" %} <strong>{{ score_data.construct.name }}</strong> {% translate "score is" %} <strong>{{ score_data.score|floatformat:1 }}</strong>
+                                        
+                                        {% if score_data.score_change is not None %}
+                                            {% translate "and has" %}
+                                            {% if score_data.score_change > 0 %}
+                                                {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
+                                                    <strong class="text-green-700">{% translate "improved" %}</strong>
+                                                {% else %}
+                                                    <strong class="text-orange-700">{% translate "worsened" %}</strong>
+                                                {% endif %}
+                                                {% translate "by" %} {{ score_data.score_change|floatformat:1 }} {% translate "points" %}
+                                            {% elif score_data.score_change < 0 %}
+                                                {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
+                                                    <strong class="text-orange-700">{% translate "worsened" %}</strong>
+                                                {% else %}
+                                                    <strong class="text-green-700">{% translate "improved" %}</strong>
+                                                {% endif %}
+                                                {% translate "by" %} {{ score_data.score_change|abs_value|floatformat:1 }} {% translate "points" %}
+                                            {% else %}
+                                                <strong>{% translate "remained stable" %}</strong>
+                                            {% endif %}
+                                            {% translate "compared to the last assessment" %}.
+                                        {% else %}
+                                            .
                                         {% endif %}
-                                    {% endfor %}
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        {% else %}
-                            <p class="text-gray-500 text-sm">{% translate "No items available for this construct." %}</p>
-                        {% endif %}
+                                    </p>
+                                    
+                                    {% if score_data.construct.scale_threshold_score or score_data.construct.scale_normative_score_mean %}
+                                    <p>
+                                        {% if score_data.construct.scale_threshold_score %}
+                                            {% if score_data.construct.scale_better_score_direction == 'Higher is Better' %}
+                                                {% if score_data.score >= score_data.construct.scale_threshold_score %}
+                                                    {% translate "The score is" %} <strong class="text-green-700">{{ score_data.score|subtract:score_data.construct.scale_threshold_score|abs_value|floatformat:1 }} {% translate "points above" %}</strong> {% translate "the threshold score of" %} {{ score_data.construct.scale_threshold_score|floatformat:1 }}.
+                                                {% else %}
+                                                    {% translate "The score is" %} <strong class="text-red-700">{{ score_data.construct.scale_threshold_score|subtract:score_data.score|abs_value|floatformat:1 }} {% translate "points below" %}</strong> {% translate "the threshold score of" %} {{ score_data.construct.scale_threshold_score|floatformat:1 }}.
+                                                {% endif %}
+                                            {% elif score_data.construct.scale_better_score_direction == 'Lower is Better' %}
+                                                {% if score_data.score <= score_data.construct.scale_threshold_score %}
+                                                    {% translate "The score is" %} <strong class="text-green-700">{{ score_data.construct.scale_threshold_score|subtract:score_data.score|abs_value|floatformat:1 }} {% translate "points below" %}</strong> {% translate "the threshold score of" %} {{ score_data.construct.scale_threshold_score|floatformat:1 }}.
+                                                {% else %}
+                                                    {% translate "The score is" %} <strong class="text-red-700">{{ score_data.score|subtract:score_data.construct.scale_threshold_score|abs_value|floatformat:1 }} {% translate "points above" %}</strong> {% translate "the threshold score of" %} {{ score_data.construct.scale_threshold_score|floatformat:1 }}.
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endif %}
+                                        
+                                        {% if score_data.construct.scale_normative_score_mean %}
+                                            {% with diff=score_data.score|subtract:score_data.construct.scale_normative_score_mean|abs_value %}
+                                            {% if score_data.score > score_data.construct.scale_normative_score_mean %}
+                                                {% translate "The score is" %} <strong>{{ diff|floatformat:1 }} {% translate "points above" %}</strong> {% translate "the normative score of" %} {{ score_data.construct.scale_normative_score_mean|floatformat:1 }}.
+                                                {% if score_data.construct.scale_minimum_clinical_important_difference %}
+                                                    {% if score_data.construct.scale_minimum_clinical_important_difference > 0 %}
+                                                        {% translate "As the minimum clinically important difference is" %} {{ score_data.construct.scale_minimum_clinical_important_difference|floatformat:1 }}, {% translate "this score is" %} <strong>{{ diff|divide:score_data.construct.scale_minimum_clinical_important_difference|floatformat:1 }}</strong> {% translate "times higher than the minimum clinically important difference" %}.
+                                                    {% endif %}
+                                                {% elif score_data.construct.scale_normative_score_standard_deviation %}
+                                                    {% if score_data.construct.scale_normative_score_standard_deviation > 0 %}
+                                                        {% translate "As the standard deviation is" %} {{ score_data.construct.scale_normative_score_standard_deviation|floatformat:1 }}, {% translate "this score is more than" %} <strong>{{ diff|divide:score_data.construct.scale_normative_score_standard_deviation|floatformat:1 }}</strong> {% translate "standard deviations higher than the mean normative score value" %}.
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% elif score_data.score < score_data.construct.scale_normative_score_mean %}
+                                                {% translate "The score is" %} <strong>{{ diff|floatformat:1 }} {% translate "points below" %}</strong> {% translate "the normative score of" %} {{ score_data.construct.scale_normative_score_mean|floatformat:1 }}.
+                                                {% if score_data.construct.scale_minimum_clinical_important_difference %}
+                                                    {% if score_data.construct.scale_minimum_clinical_important_difference > 0 %}
+                                                        {% translate "As the minimum clinically important difference is" %} {{ score_data.construct.scale_minimum_clinical_important_difference|floatformat:1 }}, {% translate "this score is" %} <strong>{{ diff|divide:score_data.construct.scale_minimum_clinical_important_difference|floatformat:1 }}</strong> {% translate "times lower than the minimum clinically important difference" %}.
+                                                    {% endif %}
+                                                {% elif score_data.construct.scale_normative_score_standard_deviation %}
+                                                    {% if score_data.construct.scale_normative_score_standard_deviation > 0 %}
+                                                        {% translate "As the standard deviation is" %} {{ score_data.construct.scale_normative_score_standard_deviation|floatformat:1 }}, {% translate "this score is more than" %} <strong>{{ diff|divide:score_data.construct.scale_normative_score_standard_deviation|floatformat:1 }}</strong> {% translate "standard deviations lower than the mean normative score value" %}.
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% else %}
+                                                {% translate "The score is at the normative score of" %} {{ score_data.construct.scale_normative_score_mean|floatformat:1 }}.
+                                            {% endif %}
+                                            {% endwith %}
+                                        {% endif %}
+                                    </p>
+                                    {% endif %}
+                                    
+                                    <!-- Aggregated Population Data Summary -->
+                                    {% if score_data.aggregated_statistics %}
+                                        {% with latest_agg=score_data.aggregated_statistics|get_latest_aggregated_stat %}
+                                        {% if latest_agg %}
+                                    <p>
+                                        {% if score_data.aggregation_type == 'median_iqr' %}
+                                            {% translate "Comparative population score at this time point is" %} <strong>{{ latest_agg.central|floatformat:1 }}</strong> ({% translate "median" %}) {% translate "with an interquartile range between" %} {{ latest_agg.lower|floatformat:1 }}-{{ latest_agg.upper|floatformat:1 }} (n={{ latest_agg.n }}).
+                                        {% elif score_data.aggregation_type == 'mean_95ci' %}
+                                            {% translate "Comparative population score at this time point is" %} <strong>{{ latest_agg.central|floatformat:1 }}</strong> ({% translate "mean" %}) {% translate "with a 95% confidence interval between" %} {{ latest_agg.lower|floatformat:1 }}-{{ latest_agg.upper|floatformat:1 }} (n={{ latest_agg.n }}).
+                                        {% elif 'sd' in score_data.aggregation_type %}
+                                            {% translate "Comparative population score at this time point is" %} <strong>{{ latest_agg.central|floatformat:1 }}</strong> ({% translate "mean" %}) {% translate "with a standard deviation range between" %} {{ latest_agg.lower|floatformat:1 }}-{{ latest_agg.upper|floatformat:1 }} (n={{ latest_agg.n }}).
+                                        {% endif %}
+                                    </p>
+                                        {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
+                                    
+                                    <!-- Item Trajectory Summary -->
+                                    {% if item_responses_grouped %}
+                                        {% for group in item_responses_grouped %}
+                                            {% if group.construct.id == score_data.construct.id %}
+                                                <p>
+                                                    <strong>{% translate "Related items:" %}</strong>
+                                                    {% if group.worsened_items %}
+                                                        {% if group.worsened_items|length == 1 %}
+                                                            {% translate "The item that has" %} <strong class="text-red-700">{% translate "worsened" %}</strong> {% translate "is" %}:
+                                                        {% else %}
+                                                            {% translate "The items that have" %} <strong class="text-red-700">{% translate "worsened" %}</strong> {% translate "are" %}:
+                                                        {% endif %}
+                                                        {% for item_response in group.worsened_items|slice:":5" %}
+                                                            <em>{{ item_response.questionnaire_item.item.name }}</em> ({% if item_response.value_change > 0 %}+{% endif %}{{ item_response.value_change|floatformat:1 }}){% if not forloop.last %}, {% endif %}
+                                                        {% endfor %}{% if group.worsened_items|length > 5 %}, {% translate "and" %} {{ group.worsened_items|length|add:"-5" }} {% translate "others" %}{% endif %}.
+                                                    {% elif group.improved_items %}
+                                                        {% if group.improved_items|length == 1 %}
+                                                            {% translate "The item that has" %} <strong class="text-green-700">{% translate "improved" %}</strong> {% translate "is" %}:
+                                                        {% else %}
+                                                            {% translate "The items that have" %} <strong class="text-green-700">{% translate "improved" %}</strong> {% translate "are" %}:
+                                                        {% endif %}
+                                                        {% for item_response in group.improved_items|slice:":5" %}
+                                                            <em>{{ item_response.questionnaire_item.item.name }}</em> ({% if item_response.value_change > 0 %}+{% endif %}{{ item_response.value_change|floatformat:1 }}){% if not forloop.last %}, {% endif %}
+                                                        {% endfor %}{% if group.improved_items|length > 5 %}, {% translate "and" %} {{ group.improved_items|length|add:"-5" }} {% translate "others" %}{% endif %}.
+                                                    {% elif group.stable_items %}
+                                                        {% if group.stable_items|length == 1 %}
+                                                            {% translate "The item has remained stable since the last assessment" %}.
+                                                        {% else %}
+                                                            {% translate "All" %} {{ group.stable_items|length }} {% translate "items have remained stable since the last assessment" %}.
+                                                        {% endif %}
+                                                    {% else %}
+                                                        {% translate "This construct has" %} {{ group.items|length }} {% translate "items" %}. {% translate "No previous assessment data available for comparison" %}.
+                                                    {% endif %}
+                                                </p>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    
+                    <!-- Related Items in Same Grid -->
+                    {% if item_responses_grouped %}
+                        {% for group in item_responses_grouped %}
+                            {% if group.construct.id == score_data.construct.id %}
+                                {% for item_response in group.items %}
+                                    {% if item_response.questionnaire_item.item.response_type == 'Text' %}
+                                        {% include "promapp/components/text_item_card.html" %}
+                                    {% elif item_response.questionnaire_item.item.response_type == 'Likert' %}
+                                        {% include "promapp/components/likert_item_card.html" %}
+                                    {% elif item_response.questionnaire_item.item.response_type in 'Number,Range' %}
+                                        {% include "promapp/components/numeric_item_card.html" %}
+                                    {% elif item_response.questionnaire_item.item.response_type == 'Media' %}
+                                        {% include "promapp/components/media_item_card.html" %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}

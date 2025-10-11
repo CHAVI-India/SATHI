@@ -899,7 +899,7 @@ class ConstructScoreData:
         interval_label = get_interval_label(self.time_interval)
         p = figure(
             width=400,
-            height=200,
+            height=180,
             tools="pan,box_zoom,reset",
             toolbar_location=None,
             sizing_mode="scale_width",
