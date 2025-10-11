@@ -609,9 +609,10 @@ def prom_review(request, pk):
         if composite_score.score is not None and composite_score.previous_score is not None:
             composite_score.score_change = composite_score.score - composite_score.previous_score
 
-    # Get important construct scores
+    # Get all construct scores with plots (both important and other)
     important_construct_scores = []
-    logger.info("Processing construct scores to find important ones...")
+    other_construct_scores_with_plots = []
+    logger.info("Processing construct scores to create plot data...")
     
     # Log plotting session start
     from patientapp.utils import log_plotting_session_start
@@ -741,21 +742,16 @@ def prom_review(request, pk):
             selected_indicators=selected_indicators  # Pass selected indicators for plot display
         )
 
-        # Only include if it's an important construct
+        # Categorize as important or other construct
         if ConstructScoreData.is_important_construct(construct, construct_score.score):
             logger.info(f"Adding {construct.name} to important constructs")
             important_construct_scores.append(score_data)
         else:
-            logger.info(f"{construct.name} not marked as important")
+            logger.info(f"Adding {construct.name} to other constructs")
+            other_construct_scores_with_plots.append(score_data)
     
     logger.info(f"Found {len(important_construct_scores)} important construct scores")
-    
-    # Filter out important construct scores from the main construct_scores list
-    # to avoid duplication between topline results and construct scores section
-    important_construct_ids = {score_data.construct.id for score_data in important_construct_scores}
-    other_construct_scores = [cs for cs in construct_scores_list if cs.construct.id not in important_construct_ids]
-    
-    logger.info(f"Found {len(other_construct_scores)} other construct scores (excluding important ones)")
+    logger.info(f"Found {len(other_construct_scores_with_plots)} other construct scores with plots")
     
     # Get Bokeh resources
     bokeh_css = CDN.render_css()
@@ -767,7 +763,7 @@ def prom_review(request, pk):
     # Create construct ordering: important (topline) constructs first, then others,
     # and finally any constructs present in item responses but missing from scores lists.
     important_construct_order = [cs.construct.id for cs in important_construct_scores]
-    other_construct_order = [cs.construct.id for cs in other_construct_scores]
+    other_construct_order = [cs.construct.id for cs in other_construct_scores_with_plots]
     construct_order = []
     for cid in important_construct_order + other_construct_order:
         if cid not in construct_order:
@@ -803,7 +799,7 @@ def prom_review(request, pk):
         construct_obj = construct_obj_by_id.get(cid)
         # Fallback: try to obtain construct object from scores if not cached
         if not construct_obj:
-            for cs in important_construct_scores + other_construct_scores:
+            for cs in important_construct_scores + other_construct_scores_with_plots:
                 if cs.construct.id == cid:
                     construct_obj = cs.construct
                     break
@@ -1012,10 +1008,10 @@ def prom_review(request, pk):
         'available_questionnaires': [pq.questionnaire for pq in all_assigned_questionnaires], # For the questionnaire filter dropdown
         'item_responses': item_response_list,  # Use the list instead of queryset
         'construct_scores': construct_scores_list,  # Use the list instead of queryset
-        'other_construct_scores': other_construct_scores,
+        'other_construct_scores': other_construct_scores_with_plots,  # ConstructScoreData objects with plots
         'composite_construct_scores': composite_construct_scores_list,  # Use the list instead of queryset
         'questionnaire_submission_counts': questionnaire_submission_counts,
-        'important_construct_scores': important_construct_scores,
+        'important_construct_scores': important_construct_scores,  # ConstructScoreData objects with plots
         'available_items': available_items,
         'selected_items_data': selected_items_data,
         'item_filter': item_filter,

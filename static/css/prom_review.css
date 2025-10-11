@@ -281,3 +281,135 @@
 .media-placeholder:hover {
     background-color: #f9fafb;
 }
+
+/* Vertical Tabs Styles */
+.topline-tab-btn,
+.other-tab-btn {
+    transition: all 0.2s ease-in-out;
+    position: relative;
+}
+
+.topline-tab-btn:hover,
+.other-tab-btn:hover {
+    transform: translateX(2px);
+}
+
+.topline-tab-btn:focus,
+.other-tab-btn:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Tab content fade-in animation */
+.topline-tab-content,
+.other-tab-content {
+    animation: tabFadeIn 0.3s ease-in-out;
+}
+
+@keyframes tabFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tab indicator circles */
+.topline-tab-btn span.w-3,
+.other-tab-btn span.w-3 {
+    transition: all 0.2s ease-in-out;
+}
+
+.topline-tab-btn:hover span.w-3,
+.other-tab-btn:hover span.w-3 {
+    transform: scale(1.2);
+}
+
+/* Active tab border animation */
+.topline-tab-btn.border-l-4,
+.other-tab-btn.border-l-4 {
+    animation: borderSlideIn 0.2s ease-in-out;
+}
+
+@keyframes borderSlideIn {
+    from {
+        border-left-width: 0;
+    }
+    to {
+        border-left-width: 4px;
+    }
+}
+
+/* Vertical tabs sidebar scrollbar */
+.topline-tab-btn::-webkit-scrollbar,
+.other-tab-btn::-webkit-scrollbar {
+    width: 6px;
+}
+
+.topline-tab-btn::-webkit-scrollbar-track,
+.other-tab-btn::-webkit-scrollbar-track {
+    background: #f7fafc;
+    border-radius: 3px;
+}
+
+.topline-tab-btn::-webkit-scrollbar-thumb,
+.other-tab-btn::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 3px;
+}
+
+/* Responsive adjustments for vertical tabs */
+@media (max-width: 768px) {
+    .topline-tab-btn,
+    .other-tab-btn {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .topline-tab-btn span.w-3,
+    .other-tab-btn span.w-3 {
+        width: 0.5rem;
+        height: 0.5rem;
+    }
+}
+
+/* Bokeh plot sizing improvements */
+.plot-container {
+    position: relative;
+}
+
+.plot-container .bk-root {
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* Construct score plot height control */
+.topline-tab-content > div > div:first-child .plot-container,
+.other-tab-content > div > div:first-child .plot-container {
+    max-height: 280px;
+    overflow: hidden;
+}
+
+/* Item card styling in vertical stack */
+.topline-tab-content .space-y-4 > div,
+.other-tab-content .space-y-4 > div {
+    width: 100%;
+}
+
+/* Item plot containers within cards */
+.topline-tab-content .space-y-4 .plot-container,
+.other-tab-content .space-y-4 .plot-container {
+    max-height: 200px;
+    overflow: hidden;
+}
+
+/* Two column layout responsiveness */
+@media (max-width: 1024px) {
+    .topline-tab-content > div,
+    .other-tab-content > div {
+        grid-template-columns: 1fr;
+    }
+}

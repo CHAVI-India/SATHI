@@ -440,5 +440,41 @@
         modal.appendChild(imageContainer);
         document.body.appendChild(modal);
     }
+
+    // Function to switch between vertical tabs
+    function switchTab(section, constructId) {
+        // Determine which section we're working with
+        const tabBtnClass = section === 'topline' ? 'topline-tab-btn' : 'other-tab-btn';
+        const tabContentClass = section === 'topline' ? 'topline-tab-content' : 'other-tab-content';
+        const activeColor = section === 'topline' ? 'red' : 'green';
+        
+        // Hide all tab contents in this section
+        const allContents = document.querySelectorAll('.' + tabContentClass);
+        allContents.forEach(content => {
+            content.classList.add('hidden');
+        });
+        
+        // Remove active state from all tab buttons in this section
+        const allButtons = document.querySelectorAll('.' + tabBtnClass);
+        allButtons.forEach(btn => {
+            btn.classList.remove('bg-' + activeColor + '-50', 'border-l-4', 'border-' + activeColor + '-500', 'text-' + activeColor + '-700');
+            btn.classList.add('text-gray-700', 'hover:bg-gray-50');
+            btn.setAttribute('aria-selected', 'false');
+        });
+        
+        // Show the selected tab content
+        const selectedContent = document.getElementById(section + '-tab-' + constructId);
+        if (selectedContent) {
+            selectedContent.classList.remove('hidden');
+        }
+        
+        // Add active state to the clicked button
+        const selectedButton = document.getElementById(section + '-tab-btn-' + constructId);
+        if (selectedButton) {
+            selectedButton.classList.remove('text-gray-700', 'hover:bg-gray-50');
+            selectedButton.classList.add('bg-' + activeColor + '-50', 'border-l-4', 'border-' + activeColor + '-500', 'text-' + activeColor + '-700');
+            selectedButton.setAttribute('aria-selected', 'true');
+        }
+    }
 </script>
 {% endblock %}
