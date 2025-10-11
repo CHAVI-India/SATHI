@@ -1137,6 +1137,18 @@ def patient_portal(request):
     # Get item filter parameters for item selection
     item_filter = request.GET.getlist('item_filter')
     
+    # Get selected indicators for plot display
+    selected_indicators_param = request.GET.get('selected_indicators')
+    selected_indicators = []
+    if selected_indicators_param:
+        try:
+            import json
+            selected_indicators = json.loads(selected_indicators_param)
+            logger.info(f"Selected indicators: {len(selected_indicators)} indicators")
+        except (json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Failed to parse selected_indicators parameter: {e}")
+            selected_indicators = []
+    
     # Get all questionnaire submissions for this patient
     submissions = QuestionnaireSubmission.objects.filter(
         patient=patient
