@@ -12,7 +12,7 @@ from django.db.models import Q, Count, Max
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
 from .models import Patient, Diagnosis, DiagnosisList, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
-from .forms import PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm
+from .forms import PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm, DiagnosisListForm
 from promapp.models import *
 from .utils import (
     ConstructScoreData, calculate_percentage, create_item_response_plot, get_patient_start_date, 
@@ -1827,6 +1827,42 @@ class DiagnosisUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
         return reverse('patient_detail', kwargs={'pk': self.object.patient.pk})
 
 # DiagnosisDeleteView removed as per request to restrict delete to admin only.
+
+class DiagnosisListCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    """View for adding new diagnosis types to the DiagnosisList."""
+    model = DiagnosisList
+    form_class = DiagnosisListForm
+    template_name = 'patientapp/diagnosislist_form.html'
+    permission_required = 'patientapp.add_diagnosislist'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('Add New Diagnosis Type')
+        # Get the return URL from query parameter if provided
+        context['return_url'] = self.request.GET.get('return_url', '')
+        return context
+    
+    def form_valid(self, form):
+        messages.success(self.request, _('Diagnosis type added successfully.'))
+        response = super().form_valid(form)
+        
+        # If this was opened from a diagnosis form, redirect back with the new diagnosis selected
+        return_url = self.request.GET.get('return_url', '')
+        if return_url:
+            # Add the newly created diagnosis ID as a query parameter
+            from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+            parsed = urlparse(return_url)
+            query_params = parse_qs(parsed.query)
+            query_params['new_diagnosis_id'] = [str(self.object.id)]
+            new_query = urlencode(query_params, doseq=True)
+            new_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
+            return redirect(new_url)
+        
+        return response
+    
+    def get_success_url(self):
+        # Default success URL if no return_url is provided
+        return reverse('diagnosislist_create')
 
 # Treatment Views
 class TreatmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):

@@ -98,6 +98,15 @@ class PatientForm(forms.ModelForm):
             raise forms.ValidationError(_("A user with that email already exists."))
         return email
 
+class DiagnosisListForm(forms.ModelForm):
+    class Meta:
+        model = DiagnosisList
+        fields = ['diagnosis', 'icd_11_code']
+        labels = {
+            'diagnosis': _('Diagnosis Name'),
+            'icd_11_code': _('ICD-11 Code'),
+        }
+
 class DiagnosisForm(forms.ModelForm):
     class Meta:
         model = Diagnosis

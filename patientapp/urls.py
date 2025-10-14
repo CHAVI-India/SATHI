@@ -13,6 +13,7 @@ urlpatterns = [
     path('patients/<uuid:patient_pk>/diagnoses/create/', views.DiagnosisCreateView.as_view(), name='diagnosis_create'),
     path('diagnoses/<uuid:pk>/update/', views.DiagnosisUpdateView.as_view(), name='diagnosis_update'),
     # path('diagnoses/<uuid:pk>/delete/', views.DiagnosisDeleteView.as_view(), name='diagnosis_delete'), # Removed as per request
+    path('diagnosislist/create/', views.DiagnosisListCreateView.as_view(), name='diagnosislist_create'),
     
     # Treatment URLs
     path('diagnoses/<uuid:diagnosis_pk>/treatments/create/', views.TreatmentCreateView.as_view(), name='treatment_create'),

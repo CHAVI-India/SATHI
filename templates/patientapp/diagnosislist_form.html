@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load cotton %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-900">
+                {{ title }}
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">
+                {% translate "Add a new diagnosis type to the system. This will be available for selection when adding patient diagnoses." %}
+            </p>
+        </div>
+        <div class="px-6 py-4">
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="mt-6 flex justify-end space-x-3">
+                    {% if return_url %}
+                        <c-link_button href="{{ return_url }}" variant="secondary">
+                            {% translate "Cancel" %}
+                        </c-link_button>
+                    {% else %}
+                        <c-link_button href="javascript:history.back()" variant="secondary">
+                            {% translate "Cancel" %}
+                        </c-link_button>
+                    {% endif %}
+                    <c-save_button>
+                        {% translate "Add Diagnosis Type" %}
+                    </c-save_button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

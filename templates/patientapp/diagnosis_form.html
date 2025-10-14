@@ -12,9 +12,26 @@
             </h2>
         </div>
         <div class="px-6 py-4">
-            <form method="post">
+            <form method="post" id="diagnosis-form">
                 {% csrf_token %}
+                
+                <!-- Add New Diagnosis Button at the top -->
+                <div class="mb-6">
+                    <a href="{% url 'diagnosislist_create' %}?return_url={{ request.get_full_path|urlencode }}" 
+                       target="_blank" 
+                       class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        {% translate "Add New Diagnosis Type" %}
+                    </a>
+                    <p class="text-xs text-gray-500 mt-1">
+                        {% translate "Opens in a new tab. After adding, refresh this page to see the new diagnosis." %}
+                    </p>
+                </div>
+                
                 {{ form|crispy }}
+                
                 <div class="mt-6 flex justify-end space-x-3">
                     <c-link_button href="{% url 'patient_detail' patient.id %}" variant="secondary">
                         {% translate "Cancel" %}
@@ -27,4 +44,33 @@
         </div>
     </div>
 </div>
+
+<script>
+// Auto-select newly created diagnosis if returned from diagnosislist_create
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const newDiagnosisId = urlParams.get('new_diagnosis_id');
+    
+    if (newDiagnosisId) {
+        // Find the diagnosis select field
+        const diagnosisSelect = document.querySelector('select[name="diagnosis"]');
+        if (diagnosisSelect) {
+            // Set the value to the newly created diagnosis
+            diagnosisSelect.value = newDiagnosisId;
+            
+            // Show a success message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded';
+            messageDiv.innerHTML = '{% translate "New diagnosis type has been added and selected." %}';
+            
+            const form = document.getElementById('diagnosis-form');
+            form.insertBefore(messageDiv, form.firstChild);
+            
+            // Remove the query parameter from the URL without reloading
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }
+});
+</script>
 {% endblock %} 
