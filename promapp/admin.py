@@ -196,9 +196,9 @@ class ItemAdmin(ImportExportModelAdmin):
 
 @admin.register(QuestionnaireSubmission)
 class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
-    list_display = ('patient', 'patient_questionnaire', 'submission_date')
-    search_fields = ('patient', 'patient_questionnaire', 'submission_date')
-    list_filter = ('patient', 'patient_questionnaire', 'submission_date')
+    list_display = ('patient', 'patient_questionnaire', 'user_submitting_questionnaire', 'submission_date')
+    search_fields = ('patient__name', 'patient_questionnaire__questionnaire__name', 'user_submitting_questionnaire__username')
+    list_filter = ('patient', 'patient_questionnaire', 'user_submitting_questionnaire', 'submission_date')
     ordering = ('-submission_date',)
     readonly_fields = ('created_date', 'modified_date')
 

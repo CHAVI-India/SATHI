@@ -1568,7 +1568,8 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
                     # Create a new submission record
                     submission = QuestionnaireSubmission.objects.create(
                         patient=request.user.patient,
-                        patient_questionnaire=patient_questionnaire
+                        patient_questionnaire=patient_questionnaire,
+                        user_submitting_questionnaire=request.user
                     )
                     
                     # Create responses for all items, including unanswered ones

@@ -4,6 +4,7 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from patientapp.models import Patient,Diagnosis,Treatment
+from django.contrib.auth.models import User
 from parler.models import TranslatableModel, TranslatedFields
 from django.db.models import Q
 from django.db.models.signals import pre_save, post_save
@@ -821,8 +822,9 @@ class QuestionnaireSubmission(models.Model):
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, help_text = "The patient to which the submission belongs")
+    user_submitting_questionnaire = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, help_text = "The user submitting the questionnaire")
     patient_questionnaire = models.ForeignKey(PatientQuestionnaire, on_delete=models.CASCADE, help_text = "The patient questionnaire to which the submission belongs")
-    submission_date = models.DateTimeField(help_text = "The date and time of the submission",auto_now_add=True)
+    submission_date = models.DateTimeField(help_text = "The date and time of the submission",default=timezone.now)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
     
@@ -1401,17 +1403,12 @@ def calculate_composite_scores_for_submission(submission):
     Calculate composite construct scores for a questionnaire submission.
     
     This function calculates composite scores based on CompositeConstructScaleScoring
-    definitions. Missing construct scores are treated as 0 for the computation.
+    definitions. Only composite scales that have at least one component construct
+    present in the current submission will be processed. Missing construct scores 
+    are treated as 0 for the computation.
     """
     
     logger.info(f"Calculating composite construct scores for submission {submission.id}")
-    
-    # Get all composite construct scale scoring definitions
-    composite_scales = CompositeConstructScaleScoring.objects.all().prefetch_related('construct_scales')
-    
-    if not composite_scales.exists():
-        logger.debug("No composite construct scale scoring definitions found")
-        return
     
     # Get all construct scores for this submission
     construct_scores = QuestionnaireConstructScore.objects.filter(
@@ -1420,12 +1417,31 @@ def calculate_composite_scores_for_submission(submission):
     
     # Create a mapping of construct_id to score for quick lookup
     construct_score_map = {}
+    calculated_construct_ids = set()
     for cs in construct_scores:
+        calculated_construct_ids.add(cs.construct.id)
         # Only include scores that were successfully calculated (not None)
         if cs.score is not None:
             construct_score_map[cs.construct.id] = float(cs.score)
     
     logger.debug(f"Found {len(construct_score_map)} valid construct scores for composite calculation")
+    
+    # If no construct scores were calculated, skip composite score calculation
+    if not calculated_construct_ids:
+        logger.debug("No construct scores calculated for this submission, skipping composite score calculation")
+        return
+    
+    # Get only composite construct scale scoring definitions that are relevant to this submission
+    # A composite scale is relevant if at least one of its component constructs was calculated
+    composite_scales = CompositeConstructScaleScoring.objects.filter(
+        construct_scales__id__in=calculated_construct_ids
+    ).distinct().prefetch_related('construct_scales')
+    
+    if not composite_scales.exists():
+        logger.debug("No relevant composite construct scale scoring definitions found for this submission")
+        return
+    
+    logger.info(f"Found {composite_scales.count()} relevant composite scales to process")
     
     # Process each composite construct scale
     for composite_scale in composite_scales:
