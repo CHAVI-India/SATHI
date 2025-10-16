@@ -13,6 +13,7 @@ urlpatterns = [
     path('questionnaires/<uuid:pk>/update/', views.QuestionnaireUpdateView.as_view(), name='questionnaire_update'),
     path('questionnaires/<uuid:pk>/rules/', views.QuestionnaireRulesView.as_view(), name='questionnaire_rules'),
     path('questionnaire/<uuid:pk>/response/', views.QuestionnaireResponseView.as_view(), name='questionnaire_response'),
+    path('questionnaire/<uuid:pk>/staff-response/', views.StaffQuestionnaireResponseView.as_view(), name='staff_questionnaire_response'),
     path('questionnaires/<uuid:pk>/save-question-numbers/', views.save_question_numbers, name='save_question_numbers'),
     
     # Item URLs

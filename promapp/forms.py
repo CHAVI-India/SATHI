@@ -1123,3 +1123,109 @@ class CompositeConstructScaleScoringForm(forms.ModelForm):
             raise forms.ValidationError("A composite score requires at least two construct scales.")
         return construct_scales
 
+
+class StaffQuestionnaireResponseForm(forms.Form):
+    """
+    Form for staff to submit questionnaire responses on behalf of patients.
+    Includes patient selection and custom submission date.
+    """
+    patient = forms.CharField(
+        required=True,
+        widget=forms.HiddenInput(attrs={'id': 'patient-select-hidden'}),
+        label=_('Patient')
+    )
+    submission_date = forms.DateTimeField(
+        required=True,
+        widget=forms.DateTimeInput(attrs={
+            'type': 'datetime-local',
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+        }),
+        label=_('Submission Date and Time')
+    )
+    
+    def __init__(self, *args, **kwargs):
+        questionnaire_items = kwargs.pop('questionnaire_items', [])
+        super().__init__(*args, **kwargs)
+        
+        # Store questionnaire_items as an instance attribute
+        self.questionnaire_items = questionnaire_items
+        
+        # Get the current language
+        current_language = get_language()
+        
+        # Add response fields for each questionnaire item
+        for qi in questionnaire_items:
+            if qi.item.response_type == 'Text':
+                self.fields[f'response_{qi.id}'] = forms.CharField(
+                    required=False,
+                    widget=forms.Textarea(attrs={
+                        'class': 'w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+                        'rows': 3,
+                        'placeholder': _('Enter response here...')
+                    })
+                )
+            elif qi.item.response_type == 'Number':
+                self.fields[f'response_{qi.id}'] = forms.IntegerField(
+                    required=False,
+                    widget=forms.NumberInput(attrs={
+                        'class': 'w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+                        'placeholder': _('Enter a number...')
+                    })
+                )
+            elif qi.item.response_type == 'Likert':
+                # Get options with fallback to default language
+                try:
+                    options = qi.item.likert_response.likertscaleresponseoption_set.language(current_language)
+                except:
+                    options = qi.item.likert_response.likertscaleresponseoption_set.language('en-gb')
+                
+                choices = [('', '-- Select --')] + [(option.option_value, option.option_text) for option in options]
+                
+                self.fields[f'response_{qi.id}'] = forms.ChoiceField(
+                    required=False,
+                    choices=choices,
+                    widget=forms.RadioSelect(attrs={
+                        'class': 'likert-options'
+                    })
+                )
+            elif qi.item.response_type == 'Range':
+                self.fields[f'response_{qi.id}'] = forms.IntegerField(
+                    required=False,
+                    min_value=qi.item.range_response.min_value,
+                    max_value=qi.item.range_response.max_value,
+                    widget=forms.NumberInput(attrs={
+                        'class': 'w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+                        'type': 'range',
+                        'min': qi.item.range_response.min_value,
+                        'max': qi.item.range_response.max_value,
+                        'step': qi.item.range_response.increment
+                    })
+                )
+            elif qi.item.response_type == 'Media':
+                self.fields[f'response_{qi.id}'] = forms.CharField(
+                    required=False,
+                    widget=forms.HiddenInput()
+                )
+    
+    def clean_patient(self):
+        patient_id = self.cleaned_data.get('patient')
+        if not patient_id:
+            raise forms.ValidationError(_('Please select a patient.'))
+        
+        from patientapp.models import Patient
+        try:
+            patient = Patient.objects.get(id=patient_id)
+            return patient
+        except Patient.DoesNotExist:
+            raise forms.ValidationError(_('Invalid patient selected.'))
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        # Convert empty strings to None
+        for qi in self.questionnaire_items:
+            field_name = f'response_{qi.id}'
+            value = cleaned_data.get(field_name)
+            if value == '':
+                cleaned_data[field_name] = None
+        return cleaned_data
+

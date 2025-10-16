@@ -2414,21 +2414,30 @@ def filter_patients_by_institution(queryset, user):
 def check_patient_access(user, patient):
     """
     Check if a user can access a specific patient.
-    Raises PermissionDenied if access is not allowed.
+    Returns True if access is allowed, False otherwise.
+    Provider users can only access patients from their institution.
     """
     user_institution = get_user_institution(user)
-    if user_institution and patient.institution != user_institution:
-        raise PermissionDenied(
-            "You do not have permission to access patients from other institutions."
-        )
+    
+    # If user has an institution, check if it matches the patient's institution
+    if user_institution:
+        return patient.institution == user_institution
+    
+    # If user has no institution (not a provider), deny access
+    # Only providers should be submitting questionnaires
+    return False
 
 def get_accessible_patient_or_404(user, pk):
     """
     Get a patient by pk, ensuring the user has access to it.
     Raises 404 if patient doesn't exist, PermissionDenied if no access.
     """
+    from django.core.exceptions import PermissionDenied
     patient = get_object_or_404(Patient, pk=pk)
-    check_patient_access(user, patient)
+    if not check_patient_access(user, patient):
+        raise PermissionDenied(
+            "You do not have permission to access patients from other institutions."
+        )
     return patient
 
 # Institution Filtering Mixin for Class-Based Views

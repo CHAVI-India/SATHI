@@ -1447,19 +1447,37 @@ def patient_portal(request):
 
 
 @login_required
-@permission_required('patientapp.view_patient', raise_exception=True)
 def patient_search_api(request):
     """
     API endpoint for Select2 widget to search patients by name or ID.
     Returns decrypted patient data in Select2 format with pagination support.
+    Accessible to users with Provider profile or view_patient permission.
+    Optionally filters by questionnaire assignment if questionnaire_id is provided.
     """
+    # Check if user has Provider profile or view_patient permission
+    from providerapp.models import Provider
+    has_provider_profile = hasattr(request.user, 'provider') and Provider.objects.filter(user=request.user).exists()
+    has_permission = request.user.has_perm('patientapp.view_patient')
+    
+    if not (has_provider_profile or has_permission):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
     search_term = request.GET.get('q', '').strip()
     page = int(request.GET.get('page', 1))
     page_size = 50
+    questionnaire_id = request.GET.get('questionnaire_id', '').strip()
     
     # Start with base queryset and apply institution filtering
     patients = Patient.objects.select_related('institution').all()
     patients = filter_patients_by_institution(patients, request.user)
+    
+    # Filter by questionnaire assignment if questionnaire_id is provided
+    if questionnaire_id:
+        from promapp.models import PatientQuestionnaire
+        # Only show patients who have this questionnaire assigned
+        patients = patients.filter(
+            patientquestionnaire__questionnaire_id=questionnaire_id
+        ).distinct()
     
     # Get all patients and decrypt their data for searching
     all_results = []

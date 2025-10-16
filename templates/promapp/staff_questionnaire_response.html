@@ -1,0 +1,381 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% translate "Staff Questionnaire Entry" %} - {{ questionnaire.name }}{% endblock %}
+
+{% block extra_css %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<style>
+  /* Custom Select2 styling to match Tailwind */
+  .select2-container--default .select2-selection--single {
+    height: 42px;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 26px;
+    color: #374151;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 40px;
+  }
+  .select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #3b82f6;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  .select2-dropdown {
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+  }
+  .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #3b82f6;
+  }
+  
+  /* Question card styling */
+  .question-card {
+    border-left: 4px solid #3b82f6;
+  }
+  
+  /* Likert options styling */
+  .likert-options {
+    display: grid;
+    gap: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="bg-white shadow rounded-lg p-6">
+    <!-- Header -->
+    <div class="mb-8 border-b pb-6">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">{% translate "Staff Questionnaire Entry" %}</h1>
+      <h2 class="text-xl text-gray-700 mb-4">{{ questionnaire.name }}</h2>
+      {% if questionnaire.description %}
+        <p class="text-gray-600">{{ questionnaire.description }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+      <div class="mb-6">
+        {% for message in messages %}
+          <div class="{% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 rounded border mb-4" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Questionnaire Form -->
+    <form method="post" id="staff-questionnaire-form" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      <!-- Patient Selection and Submission Date -->
+      <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">{% translate "Submission Information" %}</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Patient Selection -->
+          <div>
+            <label for="patient-select" class="block text-sm font-medium text-gray-700 mb-2">
+              {% translate "Select Patient" %} <span class="text-red-600">*</span>
+            </label>
+            <select id="patient-select" name="patient-select" class="w-full" required>
+              <option value="">{% translate "-- Search and select a patient --" %}</option>
+            </select>
+            {{ form.patient }}
+            {% if form.patient.errors %}
+              <p class="mt-2 text-sm text-red-600">{{ form.patient.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- Submission Date -->
+          <div>
+            <label for="{{ form.submission_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+              {{ form.submission_date.label }} <span class="text-red-600">*</span>
+            </label>
+            {{ form.submission_date }}
+            {% if form.submission_date.errors %}
+              <p class="mt-2 text-sm text-red-600">{{ form.submission_date.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">{% translate "Enter the date and time when this questionnaire was completed" %}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- All Questions in Single Page -->
+      <div class="space-y-6">
+        {% for item_data in items_with_translations %}
+          {% with qi=item_data.questionnaire_item %}
+          <div class="question-card bg-gray-50 p-6 rounded-lg border border-gray-200">
+            
+            <div class="flex items-start mb-4">
+              <div class="question-number-display font-bold mr-4 w-10 h-10 rounded-full bg-blue-500 text-white flex-shrink-0 flex items-center justify-center text-lg">
+                {{ qi.question_number }}
+              </div>
+              <div class="flex-1">
+                <h3 class="text-lg font-medium text-gray-900 mb-3">
+                  {% with item_name=qi.item.name %}
+                    {% if item_name %}
+                      {{ item_name }}
+                    {% else %}
+                      {% with item=qi.item %}
+                        {% with item_translation=item.translations.language %}
+                          {% if item_translation %}
+                            {{ item_translation.name }}
+                          {% else %}
+                            {% with en_translation=item.translations.language %}
+                              {% if en_translation %}
+                                {{ en_translation.name }}
+                              {% else %}
+                                {{ item.translations.all.0.name }}
+                              {% endif %}
+                            {% endwith %}
+                          {% endif %}
+                        {% endwith %}
+                      {% endwith %}
+                    {% endif %}
+                  {% endwith %}
+                </h3>
+                
+                <!-- Media display for item -->
+                {% with item=qi.item %}
+                  {% if item.media %}
+                    {% with media_url=item.media.url media_name=item.media.name media_type=item.get_media_type %}
+                      <div class="mb-4">
+                        {% if media_type == 'audio' %}
+                          <audio controls class="w-full max-w-md">
+                            <source src="{{ media_url }}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                          </audio>
+                        {% elif media_type == 'video' %}
+                          <video controls class="w-full max-w-md h-auto rounded">
+                            <source src="{{ media_url }}" type="video/mp4">
+                            Your browser does not support the video element.
+                          </video>
+                        {% elif media_type == 'image' %}
+                          <img src="{{ media_url }}" alt="{{ qi.item.name|default:qi.item.translations.all.0.name }}" class="max-w-full h-auto rounded">
+                        {% else %}
+                          <div class="p-4 border border-gray-300 rounded">
+                            <a href="{{ media_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                              📎 {{ media_name|default:"Download media file" }}
+                            </a>
+                          </div>
+                        {% endif %}
+                      </div>
+                    {% endwith %}
+                  {% endif %}
+                {% endwith %}
+              </div>
+            </div>
+
+            <!-- Response Field -->
+            <div class="response-field ml-14">
+              {% if qi.item.response_type == 'Text' %}
+                <textarea name="response_{{ qi.id }}" 
+                          class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          rows="3"
+                          placeholder="{% translate 'Enter response here...' %}"></textarea>
+
+              {% elif qi.item.response_type == 'Number' %}
+                <input type="number" 
+                       name="response_{{ qi.id }}"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="{% translate 'Enter a number...' %}">
+
+              {% elif qi.item.response_type == 'Likert' %}
+                {% with option_count=item_data.translated_options|length %}
+                  {% if option_count <= 6 %}
+                    <div class="likert-options grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-{{ option_count }} gap-4">
+                      {% for option in item_data.translated_options %}
+                        <label class="likert-option relative">
+                          <input type="radio" 
+                                 name="response_{{ qi.id }}" 
+                                 value="{{ option.option_value }}"
+                                 class="peer sr-only">
+                          <div class="option-content p-4 h-full flex flex-col items-center justify-center text-center border-2 rounded-md cursor-pointer bg-white border-gray-300 text-gray-700 peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-checked:text-white hover:border-blue-400 peer-checked:hover:bg-blue-700 transition-colors duration-200">
+                            {% if option.option_emoji %}
+                              <span class="text-3xl mb-2">{{ option.option_emoji }}</span>
+                            {% endif %}
+                            <span class="text-base font-medium">{{ option.option_text }}</span>
+                          </div>
+                        </label>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    <div class="likert-options grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                      {% for option in item_data.translated_options %}
+                        <label class="likert-option relative">
+                          <input type="radio" 
+                                 name="response_{{ qi.id }}" 
+                                 value="{{ option.option_value }}"
+                                 class="peer sr-only">
+                          <div class="option-content p-4 h-full flex flex-col items-center justify-center text-center border-2 rounded-md cursor-pointer bg-white border-gray-300 text-gray-700 peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-checked:text-white hover:border-blue-400 peer-checked:hover:bg-blue-700 transition-colors duration-200">
+                            {% if option.option_emoji %}
+                              <span class="text-3xl mb-2">{{ option.option_emoji }}</span>
+                            {% endif %}
+                            <span class="text-base font-medium">{{ option.option_text }}</span>
+                          </div>
+                        </label>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                {% endwith %}
+
+              {% elif qi.item.response_type == 'Range' %}
+                <div class="range-slider-container">
+                  <input type="range"
+                         name="response_{{ qi.id }}"
+                         min="{{ qi.item.range_response.min_value }}"
+                         max="{{ qi.item.range_response.max_value }}"
+                         step="{{ qi.item.range_response.increment }}"
+                         class="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                         oninput="this.nextElementSibling.value = this.value">
+                  <output class="text-center block mt-4 text-2xl font-medium text-gray-700"></output>
+                </div>
+                <div class="flex justify-between text-base font-medium text-gray-600 mt-2">
+                  <span>
+                    {% if item_data.translated_range_scale.min_value_text %}
+                      {{ item_data.translated_range_scale.min_value_text }}
+                    {% else %}
+                      {{ qi.item.range_response.min_value }}
+                    {% endif %}
+                  </span>
+                  <span>
+                    {% if item_data.translated_range_scale.max_value_text %}
+                      {{ item_data.translated_range_scale.max_value_text }}
+                    {% else %}
+                      {{ qi.item.range_response.max_value }}
+                    {% endif %}
+                  </span>
+                </div>
+
+              {% elif qi.item.response_type == 'Media' %}
+                {% include 'promapp/components/media_recorder.html' with question_id=qi.id %}
+              {% endif %}
+            </div>
+          </div>
+          {% endwith %}
+        {% endfor %}
+      </div>
+
+      <!-- Submit Button -->
+      <div class="mt-8 pt-6 border-t border-gray-200 flex justify-end space-x-4">
+        <a href="{% url 'questionnaire_list' %}" class="px-6 py-3 text-base font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+          {% translate "Cancel" %}
+        </a>
+        <button type="submit" class="px-6 py-3 text-base font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          {% translate "Submit Responses" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+  // Initialize Select2 for patient selection with AJAX
+  $('#patient-select').select2({
+    ajax: {
+      url: '{% url "patient_search_api" %}',
+      dataType: 'json',
+      delay: 250,
+      data: function (params) {
+        return {
+          q: params.term || '', // search term (empty string to load all initially)
+          page: params.page || 1,
+          questionnaire_id: '{{ questionnaire.id }}' // filter by this questionnaire
+        };
+      },
+      processResults: function (data, params) {
+        params.page = params.page || 1;
+        
+        // Check for errors
+        if (data.error) {
+          console.error('Patient search API error:', data.error);
+          return {
+            results: [],
+            pagination: { more: false }
+          };
+        }
+        
+        // Check if results exist
+        if (!data.results) {
+          console.error('No results field in API response:', data);
+          return {
+            results: [],
+            pagination: { more: false }
+          };
+        }
+        
+        return {
+          results: data.results,
+          pagination: {
+            more: data.pagination ? data.pagination.more : false
+          }
+        };
+      },
+      cache: true,
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.error('AJAX error:', textStatus, errorThrown);
+        console.error('Response:', jqXHR.responseText);
+        alert('Error loading patients: ' + (jqXHR.status === 403 ? 'Permission denied' : textStatus));
+      }
+    },
+    placeholder: '{% translate "Search for a patient by name or ID..." %}',
+    minimumInputLength: 0,
+    allowClear: true,
+    width: '100%',
+    language: {
+      searching: function() {
+        return '{% translate "Searching..." %}';
+      },
+      noResults: function() {
+        return '{% translate "No patients found" %}';
+      },
+      loadingMore: function() {
+        return '{% translate "Loading more results..." %}';
+      },
+      errorLoading: function() {
+        return '{% translate "Error loading results" %}';
+      }
+    }
+  });
+  
+  // Update hidden field when patient is selected
+  $('#patient-select').on('select2:select', function (e) {
+    var data = e.params.data;
+    $('#patient-select-hidden').val(data.id);
+  });
+  
+  // Clear hidden field when selection is cleared
+  $('#patient-select').on('select2:clear', function (e) {
+    $('#patient-select-hidden').val('');
+  });
+  
+  // Form validation
+  $('#staff-questionnaire-form').on('submit', function(e) {
+    var patientId = $('#patient-select-hidden').val();
+    if (!patientId) {
+      e.preventDefault();
+      alert('{% translate "Please select a patient before submitting." %}');
+      return false;
+    }
+  });
+});
+</script>
+{% endblock %}

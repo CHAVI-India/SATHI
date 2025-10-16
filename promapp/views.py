@@ -19,7 +19,7 @@ from .forms import (
     LikertScaleForm, LikertScaleResponseOptionFormSet,
     ItemSelectionForm, ConstructScaleForm,
     LikertScaleResponseOptionForm, RangeScaleForm,
-    QuestionnaireResponseForm, QuestionnaireItemRuleForm, QuestionnaireItemRuleGroupForm,
+    QuestionnaireResponseForm, StaffQuestionnaireResponseForm, QuestionnaireItemRuleForm, QuestionnaireItemRuleGroupForm,
     ItemTranslationForm, QuestionnaireTranslationForm, LikertScaleResponseOptionTranslationForm, RangeScaleTranslationForm,
     TranslationSearchForm, ConstructEquationForm, CompositeConstructScaleScoringForm
 )
@@ -1416,10 +1416,11 @@ class ConstructScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListVi
         # Otherwise, return the full page as usual
         return super().get(request, *args, **kwargs)
 
-class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin, DetailView):
     """
     View for handling questionnaire responses.
     This view allows patients to respond to questionnaires assigned to them.
+    Only accessible to users with a Patient profile AND required permissions.
     """
     model = PatientQuestionnaire
     template_name = 'promapp/questionnaire_response.html'
@@ -1429,6 +1430,13 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Det
         'promapp.add_questionnaireitemresponse', 
         'promapp.add_questionnairesubmission'
     ]
+    
+    def test_func(self):
+        """
+        Check if user has a Patient profile.
+        This is checked AFTER permissions are verified.
+        """
+        return hasattr(self.request.user, 'patient') and Patient.objects.filter(user=self.request.user).exists()
 
     def get_queryset(self):
         # Only allow access to questionnaires assigned to the current patient
@@ -3937,3 +3945,279 @@ def get_questionnaire_submission_count():
     Returns an integer count.
     """
     return QuestionnaireSubmission.objects.count()
+
+
+class StaffQuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin, DetailView):
+    """
+    View for staff to submit questionnaire responses on behalf of patients.
+    Displays all questions on a single page with patient selection and custom submission date.
+    Only accessible to users with a Provider profile AND required permissions.
+    """
+    model = Questionnaire
+    template_name = 'promapp/staff_questionnaire_response.html'
+    context_object_name = 'questionnaire'
+    permission_required = [
+        'promapp.view_questionnaire',
+        'promapp.add_questionnaireitemresponse',
+        'promapp.add_questionnairesubmission',
+        'patientapp.view_patient'
+    ]
+    
+    def test_func(self):
+        """
+        Check if user has a Provider profile.
+        This is checked AFTER permissions are verified.
+        """
+        from providerapp.models import Provider
+        return hasattr(self.request.user, 'provider') and Provider.objects.filter(user=self.request.user).exists()
+
+    def get_translated_items(self, questionnaire):
+        """Helper method to get questionnaire items with properly translated Likert options"""
+        current_language = get_language()
+        questionnaire_items = QuestionnaireItem.objects.filter(
+            questionnaire=questionnaire
+        ).select_related(
+            'item',
+            'item__likert_response',
+            'item__range_response'
+        ).prefetch_related(
+            'item__likert_response__likertscaleresponseoption_set'
+        ).order_by('question_number')
+        
+        # Prepare questionnaire items with translated Likert options
+        items_with_translations = []
+        for qi in questionnaire_items:
+            item_data = {
+                'questionnaire_item': qi,
+                'translated_options': [],
+                'translated_range_scale': None
+            }
+            
+            # If this is a Likert type question, get translated options
+            if qi.item.response_type == 'Likert' and qi.item.likert_response:
+                try:
+                    # Try to get options in current language
+                    options = qi.item.likert_response.likertscaleresponseoption_set.language(current_language).order_by('option_order')
+                except:
+                    # Fallback to English or any available language
+                    try:
+                        options = qi.item.likert_response.likertscaleresponseoption_set.language('en-gb').order_by('option_order')
+                    except:
+                        # Last fallback to all options
+                        options = qi.item.likert_response.likertscaleresponseoption_set.all().order_by('option_order')
+                
+                item_data['translated_options'] = options
+            
+            # If this is a Range type question, get translated range scale
+            elif qi.item.response_type == 'Range' and qi.item.range_response:
+                try:
+                    # Try to get range scale in current language
+                    range_scale = qi.item.range_response
+                    range_scale.set_current_language(current_language)
+                    item_data['translated_range_scale'] = range_scale
+                except:
+                    # Fallback to English or default language
+                    try:
+                        range_scale = qi.item.range_response
+                        range_scale.set_current_language('en-gb')
+                        item_data['translated_range_scale'] = range_scale
+                    except:
+                        # Last fallback to original range scale
+                        item_data['translated_range_scale'] = qi.item.range_response
+            
+            items_with_translations.append(item_data)
+        
+        return questionnaire_items, items_with_translations
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        questionnaire = self.object
+        
+        # Get all items for this questionnaire with translations
+        questionnaire_items, items_with_translations = self.get_translated_items(questionnaire)
+        
+        # Create the form with the questionnaire items
+        # Set initial submission_date to current time
+        initial_data = {'submission_date': timezone.now().strftime('%Y-%m-%dT%H:%M')}
+        form = StaffQuestionnaireResponseForm(
+            questionnaire_items=questionnaire_items,
+            initial=initial_data
+        )
+        
+        context.update({
+            'form': form,
+            'questionnaire_items': questionnaire_items,
+            'items_with_translations': items_with_translations,
+        })
+        return context
+
+    def post(self, request, *args, **kwargs):
+        # Set self.object for DetailView compatibility
+        self.object = self.get_object()
+        questionnaire = self.object
+        
+        # Check if user has permission to add responses
+        if not request.user.has_perm('promapp.add_questionnaireitemresponse'):
+            messages.error(request, _('You do not have permission to submit responses.'))
+            return self.render_to_response(self.get_context_data())
+        
+        # Get all items for this questionnaire with translations
+        questionnaire_items, items_with_translations = self.get_translated_items(questionnaire)
+        
+        # Create the form with the questionnaire items and file uploads
+        form = StaffQuestionnaireResponseForm(
+            request.POST, 
+            request.FILES, 
+            questionnaire_items=questionnaire_items
+        )
+        
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    # Get the patient from the form
+                    patient = form.cleaned_data['patient']
+                    submission_date = form.cleaned_data['submission_date']
+                    
+                    # Check institution access - staff can only submit for patients in their institution
+                    from patientapp.utils import check_patient_access
+                    if not check_patient_access(request.user, patient):
+                        messages.error(request, _('You do not have permission to submit questionnaires for this patient.'))
+                        context = self.get_context_data(form=form)
+                        context['items_with_translations'] = items_with_translations
+                        return self.render_to_response(context)
+                    
+                    # Get or create PatientQuestionnaire
+                    patient_questionnaire, created = PatientQuestionnaire.objects.get_or_create(
+                        patient=patient,
+                        questionnaire=questionnaire,
+                        defaults={'display_questionnaire': True}
+                    )
+                    
+                    # Create a new submission record
+                    submission = QuestionnaireSubmission.objects.create(
+                        patient=patient,
+                        patient_questionnaire=patient_questionnaire,
+                        user_submitting_questionnaire=request.user,
+                        submission_date=submission_date
+                    )
+                    
+                    # Create responses for all items, including unanswered ones
+                    for qi in questionnaire_items:
+                        response_value = form.cleaned_data.get(f'response_{qi.id}')
+                        response_media = None
+                        
+                        # Handle media files for Media response type
+                        if qi.item.response_type == 'Media':
+                            # Check if there's a media file for this question
+                            media_field_name = f'response_media_{qi.id}'
+                            if media_field_name in request.FILES:
+                                response_media = request.FILES[media_field_name]
+                        
+                        # Create record for every question, even if unanswered
+                        QuestionnaireItemResponse.objects.create(
+                            questionnaire_submission=submission,
+                            questionnaire_item=qi,
+                            response_value=str(response_value) if response_value is not None else None,
+                            response_media=response_media
+                        )
+                    
+                    # If there are construct scales, calculate and store their scores
+                    self.calculate_construct_scores(submission)
+                    
+                    messages.success(request, _('Questionnaire responses have been saved successfully for patient: %(patient)s') % {'patient': patient.name})
+                    return redirect('questionnaire_list')
+            except Exception as e:
+                # Log detailed error but show generic message
+                logger = logging.getLogger("promapp.staff_questionnaire_responses")
+                logger.error(f"Error saving staff questionnaire responses for patient {form.cleaned_data.get('patient', 'unknown')}: {str(e)}")
+                messages.error(request, _('An error occurred while saving the responses. Please try again or contact support if the problem persists.'))
+                # Pass items_with_translations in the context for error cases
+                context = self.get_context_data(form=form)
+                context['items_with_translations'] = items_with_translations
+                return self.render_to_response(context)
+        else:
+            messages.error(request, _('There was an error with the form. Please check all fields and try again.'))
+            # Pass items_with_translations in the context for error cases
+            context = self.get_context_data(form=form)
+            context['items_with_translations'] = items_with_translations
+            context['form'] = form  # Pass the form with errors
+            return self.render_to_response(context)
+            
+    def calculate_construct_scores(self, submission):
+        """
+        Calculate and store construct scores for a submission.
+        """
+        from .equation_parser import EquationTransformer
+        from .models import calculate_composite_scores_for_submission
+        
+        # Get the questionnaire for this submission
+        questionnaire = submission.patient_questionnaire.questionnaire
+        
+        # Get all construct scales used in this questionnaire
+        construct_scales = ConstructScale.objects.filter(
+            item__questionnaireitem__questionnaire=questionnaire
+        ).distinct()
+        
+        # For each construct scale, calculate the score
+        for construct in construct_scales:
+            # Get all items in this questionnaire that belong to this construct
+            items_in_construct = QuestionnaireItem.objects.filter(
+                questionnaire=questionnaire,
+                item__construct_scale=construct
+            )
+            
+            if not items_in_construct.exists():
+                continue
+            
+            # Get responses for these items
+            responses = QuestionnaireItemResponse.objects.filter(
+                questionnaire_submission=submission,
+                questionnaire_item__in=items_in_construct
+            )
+            
+            # Count answered and unanswered items
+            items_answered = 0
+            items_not_answered = 0
+            
+            # Prepare data for equation processing
+            item_values = {}
+            for response in responses:
+                item_number = response.questionnaire_item.item.item_number
+                if response.response_value is not None and response.response_value != '':
+                    try:
+                        item_values[f'I{item_number}'] = float(response.response_value)
+                        items_answered += 1
+                    except (ValueError, TypeError):
+                        items_not_answered += 1
+                else:
+                    items_not_answered += 1
+            
+            # Calculate score using the construct's equation
+            score = None
+            calculation_log = ""
+            
+            if construct.scale_equation and items_answered >= construct.minimum_number_of_items:
+                try:
+                    from lark import Lark
+                    # Parse the equation
+                    parser = Lark.open('promapp/equation_validation_rules.lark', start='equation')
+                    tree = parser.parse(construct.scale_equation)
+                    # Transform the parsed tree to calculate the score
+                    transformer = EquationTransformer(item_values, construct.minimum_number_of_items)
+                    score = transformer.transform(tree)
+                    calculation_log = f"Equation: {construct.scale_equation}\nVariables: {item_values}\nResult: {score}"
+                except Exception as e:
+                    calculation_log = f"Error calculating score: {str(e)}\nEquation: {construct.scale_equation}\nVariables: {item_values}"
+            
+            # Save the construct score
+            QuestionnaireConstructScore.objects.create(
+                questionnaire_submission=submission,
+                construct=construct,
+                score=score,
+                items_answered=items_answered,
+                items_not_answered=items_not_answered,
+                calculation_log=calculation_log
+            )
+        
+        # Calculate composite scores
+        calculate_composite_scores_for_submission(submission)
