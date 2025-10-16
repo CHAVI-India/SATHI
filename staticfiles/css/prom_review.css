@@ -386,30 +386,22 @@
     height: auto !important;
 }
 
-/* Construct score plot height control */
+/* Construct score plot height control - first plot in grid is construct plot */
 .topline-tab-content > div > div:first-child .plot-container,
 .other-tab-content > div > div:first-child .plot-container {
-    max-height: 280px;
+    max-height: 250px;
     overflow: hidden;
 }
 
-/* Item card styling in vertical stack */
-.topline-tab-content .space-y-4 > div,
-.other-tab-content .space-y-4 > div {
-    width: 100%;
+/* Item cards grid styling */
+.topline-tab-content .grid > div,
+.other-tab-content .grid > div {
+    height: 100%;
 }
 
-/* Item plot containers within cards */
-.topline-tab-content .space-y-4 .plot-container,
-.other-tab-content .space-y-4 .plot-container {
+/* Item plot containers within cards - smaller for grid layout */
+.topline-tab-content .grid .plot-container,
+.other-tab-content .grid .plot-container {
     max-height: 200px;
     overflow: hidden;
-}
-
-/* Two column layout responsiveness */
-@media (max-width: 1024px) {
-    .topline-tab-content > div,
-    .other-tab-content > div {
-        grid-template-columns: 1fr;
-    }
 }
