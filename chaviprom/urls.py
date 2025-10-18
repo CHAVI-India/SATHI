@@ -41,6 +41,7 @@ urlpatterns += i18n_patterns(
     # App URLs
     path('promapp/', include('promapp.urls')),
     path('patientapp/', include('patientapp.urls')),
+    path('', include('pwa.urls')),
     
     # Standard logout is now handled by Django Allauth
     

@@ -67,13 +67,14 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_tailwind',
     'django_cotton',
+    'pwa',
     # 'django_otp',
     # 'django_otp.plugins.otp_totp',
     # 'django_otp.plugins.otp_static',
     # 'django_otp.plugins.otp_email',
     # 'two_factor',
     # 'two_factor.plugins.email',
-    'schema_viewer',
+    # 'schema_viewer',
     'promapp',
     'patientapp',
     'providerapp',
@@ -651,3 +652,37 @@ CSP_UPGRADE_INSECURE_REQUESTS = ENVIRONMENT != 'development'
 CSP_BLOCK_ALL_MIXED_CONTENT = ENVIRONMENT != 'development'
 
 
+# PWA related settings
+
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static/js', 'serviceworker.js')
+PWA_APP_NAME = 'SATHI'
+PWA_APP_DESCRIPTION = "Self Reported Assessment and Tracking for Health Insights"
+PWA_APP_THEME_COLOR = '#000000'
+PWA_APP_BACKGROUND_COLOR = '#ffffff'
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_SCOPE = '/'
+PWA_APP_ORIENTATION = 'any'
+PWA_APP_START_URL = '/'
+PWA_APP_STATUS_BAR_COLOR = 'default'
+PWA_APP_ICONS = [
+    {
+        'src': '/static/images/android_icon.png',
+        'sizes': '160x160',
+        'type': 'image/png',
+    }
+]
+PWA_APP_ICONS_APPLE = [
+    {
+        'src': '/static/images/apple_icon.png',
+        'sizes': '160x160',
+        'type': 'image/png',
+    }
+]
+PWA_APP_SPLASH_SCREEN = [
+    {
+        'src': '/static/images/logo.png',
+        'media': '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)'
+    }
+]
+PWA_APP_DIR = 'ltr'
+PWA_APP_LANG = 'en-gb'
