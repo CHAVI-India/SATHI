@@ -20,6 +20,7 @@ django-htmx==1.26.0
 django-import-export==4.3.10
 django-parler==2.3
 django-phonenumber-field==8.3.0
+django-pwa==2.0.1
 django-ratelimit==4.1.0
 django-recaptcha==4.1.0
 django-schema-viewer==0.5.3
