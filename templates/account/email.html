@@ -54,8 +54,8 @@
                 {% if not emailaddress.verified %}
                   <form method="post" action="{% url 'account_email' %}" class="inline">
                     {% csrf_token %}
-                    <input type="hidden" name="action_send" value="{{ emailaddress.email }}">
-                    <button type="submit" class="text-sm text-blue-600 hover:text-blue-500">
+                    <input type="hidden" name="email" value="{{ emailaddress.email }}">
+                    <button type="submit" name="action_send" class="text-sm text-blue-600 hover:text-blue-500">
                       {% translate "Re-send Verification" %}
                     </button>
                   </form>
