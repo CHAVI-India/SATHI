@@ -567,6 +567,7 @@ def prom_review(request, pk):
     # === OPTIMIZATION: Bulk fetch previous composite construct scores ===
     composite_construct_scores_list = list(composite_construct_scores)
     previous_composite_scores_map = {}
+    historical_composite_scores_map = {}
     
     if composite_construct_scores_list:
         # Get all composite constructs that have scores
@@ -589,7 +590,7 @@ def prom_review(request, pk):
                 composite_scores_by_construct[construct_id] = []
             composite_scores_by_construct[construct_id].append(score)
         
-        # Find previous score for each current score
+        # Find previous score and historical scores for each current score
         for current_score in composite_construct_scores_list:
             construct_id = current_score.composite_construct_scale.id
             composite_scores_list_for_construct = composite_scores_by_construct.get(construct_id, [])
@@ -599,15 +600,63 @@ def prom_review(request, pk):
                 if score.questionnaire_submission.submission_date < current_score.questionnaire_submission.submission_date:
                     previous_composite_scores_map[current_score.id] = score
                     break
+            
+            # Store historical scores for plotting (apply filters)
+            historical_scores_for_composite = composite_scores_list_for_construct.copy()
+            
+            # Apply max time interval filter if specified
+            if max_time_interval_value is not None and patient_start_date:
+                filtered_historical = []
+                for hist_score in historical_scores_for_composite:
+                    interval_value = calculate_time_interval_value(
+                        hist_score.questionnaire_submission.submission_date,
+                        patient_start_date,
+                        time_interval
+                    )
+                    if interval_value <= max_time_interval_value:
+                        filtered_historical.append(hist_score)
+                historical_scores_for_composite = filtered_historical
+            
+            # Take only the submission_count most recent
+            historical_scores_for_composite = historical_scores_for_composite[:submission_count]
+            
+            # Filter out scores with negative time intervals
+            if patient_start_date:
+                from patientapp.utils import filter_positive_intervals_composite
+                historical_scores_for_composite = filter_positive_intervals_composite(
+                    historical_scores_for_composite, patient_start_date, time_interval
+                )
+            
+            historical_composite_scores_map[current_score.id] = historical_scores_for_composite
 
-    # Add historical data to composite construct scores using bulk-fetched data
+    # Create CompositeConstructScoreData objects with plots
+    composite_construct_scores_with_plots = []
+    logger.info("Processing composite construct scores to create plot data...")
+    
     for composite_score in composite_construct_scores_list:
         # Get previous composite score for change calculation using bulk-fetched data
         previous_composite_obj = previous_composite_scores_map.get(composite_score.id)
-        composite_score.previous_score = previous_composite_obj.score if previous_composite_obj else None
-        composite_score.score_change = None
-        if composite_score.score is not None and composite_score.previous_score is not None:
-            composite_score.score_change = composite_score.score - composite_score.previous_score
+        previous_score = previous_composite_obj.score if previous_composite_obj else None
+        
+        # Get historical scores for plotting
+        historical_scores_for_plot = historical_composite_scores_map.get(composite_score.id, [])
+        
+        logger.debug(f"Found {len(historical_scores_for_plot)} historical scores for {composite_score.composite_construct_scale.composite_construct_scale_name} plot")
+        
+        # Create CompositeConstructScoreData object
+        from patientapp.utils import CompositeConstructScoreData
+        composite_score_data = CompositeConstructScoreData(
+            composite_construct_scale=composite_score.composite_construct_scale,
+            current_score=composite_score.score,
+            previous_score=previous_score,
+            historical_scores=historical_scores_for_plot,
+            patient=patient,
+            start_date_reference=start_date_reference,
+            time_interval=time_interval,
+            selected_indicators=selected_indicators
+        )
+        
+        composite_construct_scores_with_plots.append(composite_score_data)
 
     # Get all construct scores with plots (both important and other)
     important_construct_scores = []
@@ -1051,7 +1100,7 @@ def prom_review(request, pk):
         'item_responses': item_response_list,  # Use the list instead of queryset
         'construct_scores': construct_scores_list,  # Use the list instead of queryset
         'other_construct_scores': other_construct_scores_with_plots,  # ConstructScoreData objects with plots
-        'composite_construct_scores': composite_construct_scores_list,  # Use the list instead of queryset
+        'composite_construct_scores': composite_construct_scores_with_plots,  # CompositeConstructScoreData objects with plots
         'questionnaire_submission_counts': questionnaire_submission_counts,
         'important_construct_scores': important_construct_scores,  # ConstructScoreData objects with plots
         'available_items': available_items,

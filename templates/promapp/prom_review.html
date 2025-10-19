@@ -444,9 +444,21 @@
     // Function to switch between vertical tabs
     function switchTab(section, constructId) {
         // Determine which section we're working with
-        const tabBtnClass = section === 'topline' ? 'topline-tab-btn' : 'other-tab-btn';
-        const tabContentClass = section === 'topline' ? 'topline-tab-content' : 'other-tab-content';
-        const activeColor = section === 'topline' ? 'red' : 'green';
+        let tabBtnClass, tabContentClass, activeColor;
+        
+        if (section === 'topline') {
+            tabBtnClass = 'topline-tab-btn';
+            tabContentClass = 'topline-tab-content';
+            activeColor = 'red';
+        } else if (section === 'composite') {
+            tabBtnClass = 'composite-tab-btn';
+            tabContentClass = 'composite-tab-content';
+            activeColor = 'blue';
+        } else {
+            tabBtnClass = 'other-tab-btn';
+            tabContentClass = 'other-tab-content';
+            activeColor = 'green';
+        }
         
         // Hide all tab contents in this section
         const allContents = document.querySelectorAll('.' + tabContentClass);

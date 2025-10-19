@@ -1104,7 +1104,16 @@ class CompositeConstructScaleScoringForm(forms.ModelForm):
 
     class Meta:
         model = CompositeConstructScaleScoring
-        fields = ['composite_construct_scale_name', 'construct_scales', 'scoring_type']
+        fields = [
+            'composite_construct_scale_name', 
+            'construct_scales', 
+            'scoring_type',
+            'composite_construct_score_direction',
+            'composite_construct_scale_threshold_score',
+            'composite_construct_scale_minimum_clinical_important_difference',
+            'composite_construct_scale_normative_score_mean',
+            'composite_construct_scale_normative_score_standard_deviation'
+        ]
         widgets = {
             'composite_construct_scale_name': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
@@ -1112,6 +1121,25 @@ class CompositeConstructScaleScoringForm(forms.ModelForm):
             }),
             'scoring_type': forms.Select(attrs={
                 'class': 'w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500'
+            }),
+            'composite_construct_score_direction': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border rounded'
+            }),
+            'composite_construct_scale_threshold_score': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border rounded',
+                'placeholder': 'Enter threshold score'
+            }),
+            'composite_construct_scale_minimum_clinical_important_difference': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border rounded',
+                'placeholder': 'Enter minimum important difference'
+            }),
+            'composite_construct_scale_normative_score_mean': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border rounded',
+                'placeholder': 'Enter normative score mean'
+            }),
+            'composite_construct_scale_normative_score_standard_deviation': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border rounded',
+                'placeholder': 'Enter normative score standard deviation'
             })
         }
 
@@ -1135,6 +1163,35 @@ class CompositeConstructScaleScoringForm(forms.ModelForm):
                 HTML('Hold Ctrl/Cmd and click to select multiple items. At least 2 construct scales are required.'),
                 HTML('</div>'),
                 css_class='bg-gray-50 p-4 rounded-md mb-6'
+            ),
+            # Advanced Clinical Settings Section (Collapsible)
+            Div(
+                HTML(f'''
+                    <div class="border border-gray-200 rounded-md">
+                        <button type="button" 
+                                class="w-full px-4 py-3 text-left bg-gray-100 hover:bg-gray-200 rounded-t-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                onclick="toggleAdvancedSettings()"
+                                id="advanced-settings-toggle">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800">{_("Advanced Clinical Settings")}</h3>
+                                <svg id="chevron-icon" class="w-5 h-5 text-gray-600 transform transition-transform duration-200 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">{_("Configure scoring direction, thresholds, and normative values for this composite scale")}</p>
+                        </button>
+                        <div id="advanced-settings-content" class="p-4 space-y-4">
+                '''),
+                
+                # Advanced fields with proper spacing
+                Field('composite_construct_score_direction', css_class='w-full px-3 py-2 border rounded mb-4'),
+                Field('composite_construct_scale_threshold_score', css_class='w-full px-3 py-2 border rounded mb-4'),
+                Field('composite_construct_scale_minimum_clinical_important_difference', css_class='w-full px-3 py-2 border rounded mb-4'),
+                Field('composite_construct_scale_normative_score_mean', css_class='w-full px-3 py-2 border rounded mb-4'),
+                Field('composite_construct_scale_normative_score_standard_deviation', css_class='w-full px-3 py-2 border rounded mb-4'),
+                
+                HTML('</div></div>'),
+                css_class='mb-6'
             )
         )
 

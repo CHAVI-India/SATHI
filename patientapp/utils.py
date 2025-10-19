@@ -1131,6 +1131,221 @@ class ConstructScoreData:
         logger.info(f"Construct {construct.name} {'is' if is_significant else 'is not'} important - {explanation if explanation else 'no applicable criteria met'}")
         return is_significant
 
+
+class CompositeConstructScoreData:
+    """Data class for composite construct scores with plotting capabilities."""
+    
+    def __init__(self, composite_construct_scale, current_score: Optional[Decimal],
+                 previous_score: Optional[Decimal], historical_scores: List,
+                 patient=None, start_date_reference='date_of_registration', time_interval='weeks',
+                 selected_indicators=None):
+        self.composite_construct_scale = composite_construct_scale
+        self.score = current_score
+        self.previous_score = previous_score
+        self.score_change = self._calculate_score_change()
+        self.patient = patient
+        self.start_date_reference = start_date_reference
+        self.time_interval = time_interval
+        self.selected_indicators = selected_indicators or []
+        self.bokeh_plot = self._create_bokeh_plot(historical_scores)
+        
+        logger.info(f"Created CompositeConstructScoreData for {composite_construct_scale.composite_construct_scale_name}: score={current_score}, previous={previous_score}")
+
+    def _calculate_score_change(self) -> Optional[float]:
+        if self.score is not None and self.previous_score is not None:
+            change = float(self.score) - float(self.previous_score)
+            logger.debug(f"Calculated score change for {self.composite_construct_scale.composite_construct_scale_name}: {change}")
+            return change
+        logger.debug(f"No score change calculated for {self.composite_construct_scale.composite_construct_scale_name} - missing current or previous score")
+        return None
+
+    def _create_bokeh_plot(self, historical_scores: List) -> str:
+        """Create a Bokeh plot for composite construct scores over time."""
+        from bokeh.plotting import figure
+        from bokeh.models import ColumnDataSource, HoverTool, Span, BoxAnnotation
+        from bokeh.embed import components
+        from django.utils import timezone
+        
+        # Get start date for the patient
+        start_date = None
+        if self.patient:
+            start_date = get_patient_start_date(self.patient, self.start_date_reference)
+        
+        plotting_logger.info("="*80)
+        plotting_logger.info(f"PLOTTING DATA for Composite: {self.composite_construct_scale.composite_construct_scale_name}")
+        plotting_logger.info("="*80)
+        plotting_logger.info(f"Patient: {self.patient.name if self.patient else 'Unknown'}")
+        plotting_logger.info(f"Start Date: {start_date}")
+        plotting_logger.info(f"Time Interval Type: {self.time_interval}")
+        plotting_logger.info(f"Number of Historical Scores: {len(historical_scores)}")
+        
+        # Filter out scores with negative intervals
+        if start_date:
+            filtered_scores = filter_positive_intervals_composite(historical_scores, start_date, self.time_interval)
+        else:
+            filtered_scores = historical_scores
+        
+        plotting_logger.info(f"Filtered Scores (non-negative intervals): {len(filtered_scores)}")
+        
+        # Prepare data with time intervals and submission dates for tooltip
+        time_intervals = []
+        submission_dates = []
+        for score in reversed(filtered_scores):
+            # Convert UTC time to local timezone
+            local_time = timezone.localtime(score.questionnaire_submission.submission_date)
+            submission_dates.append(local_time.strftime('%d/%m/%y'))
+            
+            # Calculate time interval from start date
+            if start_date:
+                interval_value = calculate_time_interval_value(
+                    score.questionnaire_submission.submission_date,
+                    start_date,
+                    self.time_interval
+                )
+                time_intervals.append(interval_value)
+            else:
+                time_intervals.append(0)
+        
+        scores = [float(score.score) if score.score is not None else None for score in reversed(filtered_scores)]
+        
+        # Calculate x-axis range
+        if time_intervals:
+            x_min = max(0, min(time_intervals) - 0.1 * (max(time_intervals) - min(time_intervals)) if max(time_intervals) > min(time_intervals) else 0)
+            x_max = max(time_intervals) + 0.1 * (max(time_intervals) - min(time_intervals)) if max(time_intervals) > min(time_intervals) else max(time_intervals) + 1
+        else:
+            x_min, x_max = 0, 1
+        
+        # Create figure
+        interval_label = get_interval_label(self.time_interval)
+        p = figure(
+            width=400,
+            height=180,
+            tools="pan,box_zoom,reset",
+            toolbar_location=None,
+            sizing_mode="scale_width",
+            x_axis_label=f"Time ({interval_label})",
+            x_range=(x_min, x_max)
+        )
+        
+        # Style the plot
+        p.background_fill_color = "#ffffff"
+        p.border_fill_color = "#ffffff"
+        p.grid.grid_line_color = "#e5e7eb"
+        p.grid.grid_line_width = 1
+        p.axis.axis_line_color = None
+        p.axis.major_tick_line_color = None
+        p.axis.minor_tick_line_color = None
+        
+        # Add main line and points
+        source = ColumnDataSource(data=dict(
+            time_intervals=time_intervals,
+            scores=scores,
+            submission_dates=submission_dates
+        ))
+        
+        # Add threshold line if available
+        if self.composite_construct_scale.composite_construct_scale_threshold_score:
+            try:
+                threshold_val = float(self.composite_construct_scale.composite_construct_scale_threshold_score)
+                threshold = Span(
+                    location=threshold_val,
+                    dimension='width',
+                    line_color='#f97316',
+                    line_dash='solid',
+                    line_width=1
+                )
+                p.add_layout(threshold)
+                plotting_logger.info(f"Added threshold line at: {threshold_val}")
+            except (ValueError, TypeError):
+                pass
+        
+        # Add normative line and band if available
+        if self.composite_construct_scale.composite_construct_scale_normative_score_mean:
+            try:
+                normative_val = float(self.composite_construct_scale.composite_construct_scale_normative_score_mean)
+                normative = Span(
+                    location=normative_val,
+                    dimension='width',
+                    line_color='#1e3a8a',
+                    line_dash='solid',
+                    line_width=1
+                )
+                p.add_layout(normative)
+                plotting_logger.info(f"Added normative line at: {normative_val}")
+                
+                # Add standard deviation band if available
+                if self.composite_construct_scale.composite_construct_scale_normative_score_standard_deviation:
+                    try:
+                        sd = float(self.composite_construct_scale.composite_construct_scale_normative_score_standard_deviation)
+                        band = BoxAnnotation(
+                            bottom=normative_val - sd,
+                            top=normative_val + sd,
+                            fill_color='#1e3a8a',
+                            fill_alpha=0.1,
+                            line_width=0
+                        )
+                        p.add_layout(band)
+                        plotting_logger.info(f"Added normative band: {normative_val - sd:.2f} to {normative_val + sd:.2f}")
+                    except (ValueError, TypeError):
+                        pass
+            except (ValueError, TypeError):
+                pass
+        
+        # Add hover tool first
+        hover = HoverTool(
+            tooltips=[
+                ('Time Interval', f'@time_intervals{{0.1}} {get_interval_label(self.time_interval).lower()}'),
+                ('Score', '@scores{0.1}'),
+                ('Date', '@submission_dates')
+            ]
+        )
+        
+        # Add line and scatter plot
+        p.line(
+            x='time_intervals',
+            y='scores',
+            source=source,
+            line_width=2,
+            line_color='#3b82f6',
+            alpha=0.8
+        )
+        
+        p.scatter(
+            x='time_intervals',
+            y='scores',
+            source=source,
+            size=8,
+            fill_color='#3b82f6',
+            line_color='#1e40af',
+            alpha=0.9
+        )
+        
+        # Add hover tool to the figure's tools
+        p.tools.append(hover)
+        
+        plotting_logger.info("="*80)
+        plotting_logger.info(f"END PLOTTING DATA for Composite: {self.composite_construct_scale.composite_construct_scale_name}")
+        plotting_logger.info("="*80)
+        
+        # Get the plot components
+        script, div = components(p)
+        return script + div
+
+
+def filter_positive_intervals_composite(scores, start_date, time_interval):
+    """Filter composite construct scores to only include those with non-negative time intervals."""
+    filtered = []
+    for score in scores:
+        interval_value = calculate_time_interval_value(
+            score.questionnaire_submission.submission_date,
+            start_date,
+            time_interval
+        )
+        if interval_value >= 0:
+            filtered.append(score)
+    return filtered
+
+
 def create_item_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item',
                              patient=None, start_date_reference='date_of_registration', time_interval='weeks', 
                              selected_indicators=None) -> str:

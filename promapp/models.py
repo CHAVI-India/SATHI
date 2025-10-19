@@ -170,6 +170,11 @@ class CompositeConstructScaleScoring(models.Model):
     composite_construct_scale_name = models.CharField(max_length=255, null=True, blank=True, help_text = "The name of the composite construct scale")
     construct_scales = models.ManyToManyField(ConstructScale, help_text = "The construct scales which will be used to calculate the composite construct scale")
     scoring_type = models.CharField(max_length=255, choices=ScoringTypeChoices.choices, help_text = "The type of scoring to use for the composite construct scale")
+    composite_construct_score_direction = models.CharField(max_length=255, choices=DirectionChoices.choices, null=True, blank=True, verbose_name="Composite Construct Score Direction", help_text = "Indicates whether higher or lower scores are better for this composite construct")
+    composite_construct_scale_threshold_score = models.CharField(max_length=255, null=True, blank=True, help_text = "The threshold score for the composite construct scale")
+    composite_construct_scale_minimum_clinical_important_difference = models.CharField(max_length=255, null=True, blank=True, help_text = "The minimum important difference for the composite construct scale")
+    composite_construct_scale_normative_score_mean = models.CharField(max_length=255, null=True, blank=True, help_text = "The normative score mean for the composite construct scale")
+    composite_construct_scale_normative_score_standard_deviation = models.CharField(max_length=255, null=True, blank=True, help_text = "The normative score standard deviation for the composite construct scale")
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
