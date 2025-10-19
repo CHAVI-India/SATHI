@@ -1646,8 +1646,8 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Use
                             response_media=response_media
                         )
                     
-                    # If there are construct scales, calculate and store their scores
-                    self.calculate_construct_scores(submission)
+                    # Construct scores will be calculated automatically by the post_save signal
+                    # on QuestionnaireItemResponse (see models.py trigger_score_calculation_on_response)
                     
                     messages.success(request, _('Your responses have been saved successfully.'))
                     return redirect('my_questionnaire_list')
@@ -1666,74 +1666,6 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Use
             context = self.get_context_data(form=form)
             context['items_with_translations'] = items_with_translations
             return self.render_to_response(context)
-            
-    def calculate_construct_scores(self, submission):
-        """
-        Calculate and store construct scores for a submission.
-        """
-        from .equation_parser import EquationTransformer
-        
-        # Get all items from this submission
-        # Use prefetch_related for ManyToMany construct_scale relationship
-        responses = QuestionnaireItemResponse.objects.filter(
-            questionnaire_submission=submission
-        ).select_related('questionnaire_item__item').prefetch_related('questionnaire_item__item__construct_scale')
-        
-        # Group responses by construct scale
-        # An item can belong to multiple construct scales
-        responses_by_scale = {}
-        for response in responses:
-            item = response.questionnaire_item.item
-            construct_scales = item.construct_scale.all()
-            
-            # Add this response to all construct scales the item belongs to
-            for construct_scale in construct_scales:
-                if construct_scale.scale_equation:
-                    if construct_scale.id not in responses_by_scale:
-                        responses_by_scale[construct_scale.id] = {
-                            'scale': construct_scale,
-                            'responses': []
-                        }
-                    responses_by_scale[construct_scale.id]['responses'].append(response)
-        
-        # Calculate scores for each construct scale
-        for scale_data in responses_by_scale.values():
-            construct_scale = scale_data['scale']
-            responses = scale_data['responses']
-            
-            # Prepare data for equation evaluation
-            response_data = {}
-            for response in responses:
-                if response.response_value and response.questionnaire_item.item.item_number:
-                    try:
-                        # Only include numeric responses
-                        response_type = response.questionnaire_item.item.response_type
-                        if response_type in ['Number', 'Likert', 'Range']:
-                            response_data[response.questionnaire_item.item.item_number] = float(response.response_value)
-                    except (ValueError, TypeError):
-                        # Skip non-numeric responses
-                        pass
-            
-            # Only calculate if we have enough valid responses
-            if len(response_data) >= construct_scale.minimum_number_of_items:
-                try:
-                    # Use the equation transformer to calculate the score
-                    transformer = EquationTransformer(response_data, construct_scale.minimum_number_of_items)
-                    from lark import Lark
-                    parser = Lark.open('promapp/equation_validation_rules.lark', start='equation')
-                    tree = parser.parse(construct_scale.scale_equation)
-                    score = transformer.transform(tree)
-                    
-                    # Store the score
-                    QuestionnaireConstructScore.objects.create(
-                        questionnaire_submission=submission,
-                        construct=construct_scale,
-                        score=score
-                    )
-                except Exception as e:
-                    # Log the error but continue with other scales
-                    logger = logging.getLogger("promapp.equations")
-                    logger.error(f"Error calculating score for construct {construct_scale.name}: {str(e)}")
 
 class PatientQuestionnaireManagementView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     """
@@ -4180,8 +4112,8 @@ class StaffQuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin
                             response_media=response_media
                         )
                     
-                    # If there are construct scales, calculate and store their scores
-                    self.calculate_construct_scores(submission)
+                    # Construct scores will be calculated automatically by the post_save signal
+                    # on QuestionnaireItemResponse (see models.py trigger_score_calculation_on_response)
                     
                     messages.success(request, _('Questionnaire responses have been saved successfully for patient: %(patient)s') % {'patient': patient.name})
                     return redirect('questionnaire_list')
@@ -4201,82 +4133,3 @@ class StaffQuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin
             context['items_with_translations'] = items_with_translations
             context['form'] = form  # Pass the form with errors
             return self.render_to_response(context)
-            
-    def calculate_construct_scores(self, submission):
-        """
-        Calculate and store construct scores for a submission.
-        """
-        from .equation_parser import EquationTransformer
-        from .models import calculate_composite_scores_for_submission
-        
-        # Get the questionnaire for this submission
-        questionnaire = submission.patient_questionnaire.questionnaire
-        
-        # Get all construct scales used in this questionnaire
-        construct_scales = ConstructScale.objects.filter(
-            item__questionnaireitem__questionnaire=questionnaire
-        ).distinct()
-        
-        # For each construct scale, calculate the score
-        for construct in construct_scales:
-            # Get all items in this questionnaire that belong to this construct
-            items_in_construct = QuestionnaireItem.objects.filter(
-                questionnaire=questionnaire,
-                item__construct_scale=construct
-            )
-            
-            if not items_in_construct.exists():
-                continue
-            
-            # Get responses for these items
-            responses = QuestionnaireItemResponse.objects.filter(
-                questionnaire_submission=submission,
-                questionnaire_item__in=items_in_construct
-            )
-            
-            # Count answered and unanswered items
-            items_answered = 0
-            items_not_answered = 0
-            
-            # Prepare data for equation processing
-            item_values = {}
-            for response in responses:
-                item_number = response.questionnaire_item.item.item_number
-                if response.response_value is not None and response.response_value != '':
-                    try:
-                        item_values[f'I{item_number}'] = float(response.response_value)
-                        items_answered += 1
-                    except (ValueError, TypeError):
-                        items_not_answered += 1
-                else:
-                    items_not_answered += 1
-            
-            # Calculate score using the construct's equation
-            score = None
-            calculation_log = ""
-            
-            if construct.scale_equation and items_answered >= construct.minimum_number_of_items:
-                try:
-                    from lark import Lark
-                    # Parse the equation
-                    parser = Lark.open('promapp/equation_validation_rules.lark', start='equation')
-                    tree = parser.parse(construct.scale_equation)
-                    # Transform the parsed tree to calculate the score
-                    transformer = EquationTransformer(item_values, construct.minimum_number_of_items)
-                    score = transformer.transform(tree)
-                    calculation_log = f"Equation: {construct.scale_equation}\nVariables: {item_values}\nResult: {score}"
-                except Exception as e:
-                    calculation_log = f"Error calculating score: {str(e)}\nEquation: {construct.scale_equation}\nVariables: {item_values}"
-            
-            # Save the construct score
-            QuestionnaireConstructScore.objects.create(
-                questionnaire_submission=submission,
-                construct=construct,
-                score=score,
-                items_answered=items_answered,
-                items_not_answered=items_not_answered,
-                calculation_log=calculation_log
-            )
-        
-        # Calculate composite scores
-        calculate_composite_scores_for_submission(submission)
