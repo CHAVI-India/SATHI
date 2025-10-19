@@ -1195,8 +1195,14 @@ class CompositeConstructScaleScoringForm(forms.ModelForm):
             )
         )
 
-        # Update queryset to show construct scales with their details
-        self.fields['construct_scales'].queryset = ConstructScale.objects.all().order_by('name')
+        # Update queryset to show construct scales ordered by instrument name, then construct name
+        # Use COALESCE to handle NULL instrument_name values (put them at the end)
+        from django.db.models import Value
+        from django.db.models.functions import Coalesce
+        
+        self.fields['construct_scales'].queryset = ConstructScale.objects.annotate(
+            instrument_name_sort=Coalesce('instrument_name', Value('zzz'))  # NULL values sort last
+        ).order_by('instrument_name_sort', 'name')
         
         # Customize the choice labels to include more information
         choices = []
