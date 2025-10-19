@@ -475,6 +475,7 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         # Apply filters based on query parameters
         construct_scale = self.request.GET.get('construct_scale')
         response_type = self.request.GET.get('response_type')
+        instrument_name = self.request.GET.get('instrument_name')
         search = self.request.GET.get('search')
         
         if construct_scale and construct_scale != 'all':
@@ -483,6 +484,10 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         
         if response_type and response_type != 'all':
             queryset = queryset.filter(response_type=response_type)
+        
+        if instrument_name and instrument_name != 'all':
+            # Filter by instrument name through the construct_scale relationship
+            queryset = queryset.filter(construct_scale__instrument_name=instrument_name)
             
         if search:
             queryset = queryset.filter(translations__name__icontains=search)
@@ -499,9 +504,18 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
             {'value': choice[0], 'display': choice[1]} 
             for choice in ResponseTypeChoices.choices
         ]
+        # Get all unique instrument names for the filter dropdown
+        instrument_names = ConstructScale.objects.exclude(
+            instrument_name__isnull=True
+        ).exclude(
+            instrument_name__exact=''
+        ).values_list('instrument_name', flat=True).distinct().order_by('instrument_name')
+        context['instrument_names'] = list(instrument_names)
+        
         # Keep the selected filters in the context
         context['selected_construct_scale'] = self.request.GET.get('construct_scale', 'all')
         context['selected_response_type'] = self.request.GET.get('response_type', 'all')
+        context['selected_instrument_name'] = self.request.GET.get('instrument_name', 'all')
         context['search_query'] = self.request.GET.get('search', '')
         
         # Add available languages to context

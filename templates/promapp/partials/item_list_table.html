@@ -120,8 +120,8 @@
         <!-- Mobile pagination (Previous/Next only) -->
         <div class="flex-1 flex justify-between sm:hidden">
             {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
-               hx-get="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_instrument_name != 'all' %}&instrument_name={{ selected_instrument_name|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
+               hx-get="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_instrument_name != 'all' %}&instrument_name={{ selected_instrument_name|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
                hx-target="#items-container"
                hx-indicator="#loading-indicator"
                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
@@ -134,8 +134,8 @@
             {% endif %}
             
             {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
-               hx-get="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_instrument_name != 'all' %}&instrument_name={{ selected_instrument_name|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
+               hx-get="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_instrument_name != 'all' %}&instrument_name={{ selected_instrument_name|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
                hx-target="#items-container"
                hx-indicator="#loading-indicator"
                class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
@@ -169,8 +169,8 @@
                 <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                     <!-- Previous button with icon -->
                     {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
-                       hx-get="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_instrument_name != 'all' %}&instrument_name={{ selected_instrument_name|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
+                       hx-get="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_instrument_name != 'all' %}&instrument_name={{ selected_instrument_name|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
                        hx-target="#items-container"
                        hx-indicator="#loading-indicator"
                        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
@@ -197,8 +197,8 @@
                         </span>
                         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                         <!-- Visible page numbers within range -->
-                        <a href="?page={{ num }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
-                           hx-get="?page={{ num }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
+                        <a href="?page={{ num }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_instrument_name != 'all' %}&instrument_name={{ selected_instrument_name|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
+                           hx-get="?page={{ num }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_instrument_name != 'all' %}&instrument_name={{ selected_instrument_name|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
                            hx-target="#items-container"
                            hx-indicator="#loading-indicator"
                            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
@@ -209,8 +209,8 @@
 
                     <!-- Next button with icon -->
                     {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
-                       hx-get="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_instrument_name != 'all' %}&instrument_name={{ selected_instrument_name|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}" 
+                       hx-get="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if selected_construct_scale != 'all' %}&construct_scale={{ selected_construct_scale|urlencode }}{% endif %}{% if selected_instrument_name != 'all' %}&instrument_name={{ selected_instrument_name|urlencode }}{% endif %}{% if selected_response_type != 'all' %}&response_type={{ selected_response_type|urlencode }}{% endif %}"
                        hx-target="#items-container"
                        hx-indicator="#loading-indicator"
                        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
