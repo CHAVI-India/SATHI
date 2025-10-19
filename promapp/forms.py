@@ -1,4 +1,5 @@
 from django import forms
+from django.db import models
 from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, LikertScaleResponseOption, ConstructScale, QuestionnaireItemRule, QuestionnaireItemRuleGroup, CompositeConstructScaleScoring
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Div, HTML, Submit, Button
@@ -202,6 +203,11 @@ class ItemForm(TranslatableModelForm):
             'item_normative_score_standard_deviation'
         ]
         widgets = {
+            'construct_scale': forms.SelectMultiple(attrs={
+                'class': 'construct-scale-select2 w-full',
+                'data-placeholder': 'Select one or more construct scales...',
+                'multiple': 'multiple'
+            }),
             'response_type': forms.Select(attrs={'hx-get': '/promapp/get-response-fields/', 
                                                'hx-target': '#response-fields',
                                                'hx-trigger': 'change'}),
@@ -352,7 +358,40 @@ class ItemForm(TranslatableModelForm):
                             translation.save()
     
         if commit:
+            # Store whether this is a new item (before save)
+            is_new = instance.pk is None
+            
             instance.save()
+            # For ManyToMany fields, we need to save them after the instance is saved
+            # This is handled by save_m2m() which is called automatically by ModelForm
+            # But we need to explicitly call it if we're doing commit=False
+            self.save_m2m()
+            
+            # After save_m2m(), trigger auto-numbering if item_number is not set
+            # This is necessary because auto-numbering in the model's save() runs before M2M is saved
+            # This applies to both NEW items and EXISTING items that don't have a number yet
+            if not instance.item_number and instance.construct_scale.exists():
+                # Find the maximum item_number across ALL construct scales this item belongs to
+                # This ensures the new number doesn't conflict with any existing items
+                max_item_number = 0
+                
+                for construct in instance.construct_scale.all():
+                    # Get all items in this construct scale (excluding the current item)
+                    items_in_construct = construct.item_set.exclude(pk=instance.pk).filter(item_number__isnull=False)
+                    
+                    if items_in_construct.exists():
+                        # Get the maximum item_number in this construct scale
+                        construct_max = items_in_construct.aggregate(models.Max('item_number'))['item_number__max']
+                        if construct_max:
+                            max_item_number = max(max_item_number, construct_max)
+                
+                # Assign the next available number (max + 1)
+                instance.item_number = max_item_number + 1
+                
+                # Use update to avoid triggering save() again
+                Item.objects.filter(pk=instance.pk).update(item_number=instance.item_number)
+                # Refresh the instance to get the updated item_number
+                instance.refresh_from_db()
         return instance
 
 class ConstructScaleForm(forms.ModelForm):

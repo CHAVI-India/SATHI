@@ -189,7 +189,7 @@ class ConstructScaleAdmin(ImportExportActionModelAdmin):
 @admin.register(Item)
 class ItemAdmin(ImportExportModelAdmin):
     resource_class = ItemResource
-    list_display = ('name', 'item_number', 'response_type', 'construct_scale')
+    list_display = ('name', 'item_number', 'response_type', 'get_related_constructs')
     list_filter = ('response_type', 'construct_scale')
     search_fields = ('translations__name', 'item_number')
 

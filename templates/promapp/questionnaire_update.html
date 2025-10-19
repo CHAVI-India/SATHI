@@ -127,58 +127,53 @@
                 </div>
               </div>
               
-              {% if available_items %}
+              {% if items_with_constructs %}
                 <div class="item-list border rounded p-2">
                   <h3 class="font-medium text-gray-700 mb-2">{% translate "Available Items (Questions)" %}</h3>
+                  <p class="text-sm text-gray-500 mb-3">{% translate "Each item is shown once. Items belonging to multiple construct scales show all their constructs." %}</p>
                   
-                  {% regroup available_items by construct_scale as items_by_scale %}
-                  
-                  {% for scale_group in items_by_scale %}
-                    <div class="mb-6 scale-group" data-scale-id="{{ scale_group.grouper.id|default:'none' }}" data-instrument-name="{{ scale_group.grouper.instrument_name|default:'' }}">
-                      <div class="construct-scale-header p-2 mb-2 bg-blue-100 rounded">
-                        <h3 class="font-medium">
-                          {{ scale_group.grouper.name|default:"No Construct Scale" }}
-                          {% if scale_group.grouper.instrument_name %}
-                            <span class="text-sm text-gray-600 ml-2">({{ scale_group.grouper.instrument_name }}{% if scale_group.grouper.instrument_version %} v{{ scale_group.grouper.instrument_version }}{% endif %})</span>
-                          {% endif %}
-                        </h3>
-                      </div>
-                      
-                      <div class="pl-4 space-y-2">
-                        {% for item in scale_group.list %}
-                          <div class="flex items-start p-2 hover:bg-gray-50 rounded item-row" 
-                               data-item-name="{{ item.name|default:'Untitled Item'|lower }}" 
-                               data-scale-id="{{ item.construct_scale.id|default:'none' }}"
-                               data-instrument-name="{{ item.construct_scale.instrument_name|default:'' }}"
-                               data-item-id="{{ item.id }}">
-                            <input type="checkbox" 
-                                   name="items" 
-                                   value="{{ item.id }}" 
-                                   id="item_{{ item.id }}" 
-                                   class="item-checkbox mt-1 mr-3"
-                                   {% if item.question_number %}checked{% endif %}>
-                            <!-- Hidden field to store question numbers -->
-                            <input type="hidden" 
-                                   name="question_number_{{ item.id }}" 
-                                   id="question_number_{{ item.id }}" 
-                                   class="question-number-hidden"
-                                   value="{{ item.question_number|default:'' }}">
-                            <label for="item_{{ item.id }}" class="cursor-pointer flex-1">
-                              <div class="font-medium">{{ item.name|default:"Untitled Item" }}</div>
-                              <div class="text-sm text-gray-600">
-                                {% translate "Response type" %}: {{ item.get_response_type_display }}
-                                {% if item.response_type == 'Likert' and item.likert_response %}
-                                  - {{ item.likert_response.likert_scale_name }}
-                                {% elif item.response_type == 'Range' and item.range_response %}
-                                  - {{ item.range_response.range_scale_name }}
-                                {% endif %}
-                              </div>
-                            </label>
+                  <div class="space-y-2">
+                    {% for item_data in items_with_constructs %}
+                      <div class="flex items-start p-3 hover:bg-gray-50 rounded border border-gray-200 item-row" 
+                           data-item-name="{{ item_data.item.name|default:'Untitled Item'|lower }}" 
+                           data-scale-ids="{{ item_data.construct_ids|join:',' }}"
+                           data-instrument-name="{{ item_data.instrument_names }}"
+                           data-item-id="{{ item_data.item.id }}">
+                        <input type="checkbox" 
+                               name="items" 
+                               value="{{ item_data.item.id }}" 
+                               id="item_{{ item_data.item.id }}" 
+                               class="item-checkbox mt-1 mr-3 flex-shrink-0"
+                               {% if item_data.item.question_number %}checked{% endif %}>
+                        <!-- Hidden field to store question numbers -->
+                        <input type="hidden" 
+                               name="question_number_{{ item_data.item.id }}" 
+                               id="question_number_{{ item_data.item.id }}" 
+                               class="question-number-hidden"
+                               value="{{ item_data.item.question_number|default:'' }}">
+                        <label for="item_{{ item_data.item.id }}" class="cursor-pointer flex-1">
+                          <div class="font-medium text-gray-900">{{ item_data.item.name|default:"Untitled Item" }}</div>
+                          <div class="text-sm text-gray-600 mt-1">
+                            <span class="font-medium">{% translate "Construct Scale(s)" %}:</span> 
+                            <span class="text-blue-600">{{ item_data.construct_names }}</span>
                           </div>
-                        {% endfor %}
+                          <div class="text-sm text-gray-600">
+                            <span class="font-medium">{% translate "Response type" %}:</span> {{ item_data.item.get_response_type_display }}
+                            {% if item_data.item.response_type == 'Likert' and item_data.item.likert_response %}
+                              - {{ item_data.item.likert_response.likert_scale_name }}
+                            {% elif item_data.item.response_type == 'Range' and item_data.item.range_response %}
+                              - {{ item_data.item.range_response.range_scale_name }}
+                            {% endif %}
+                          </div>
+                          {% if item_data.instrument_names %}
+                            <div class="text-xs text-gray-500 mt-1">
+                              <span class="font-medium">{% translate "Instrument(s)" %}:</span> {{ item_data.instrument_names }}
+                            </div>
+                          {% endif %}
+                        </label>
                       </div>
-                    </div>
-                  {% endfor %}
+                    {% endfor %}
+                  </div>
                 </div>
               {% else %}
                 <div class="text-center py-8">
@@ -269,13 +264,19 @@
     initializeItemCheckboxes();
     
     // Handle search input
-    searchInput.addEventListener('input', filterItems);
+    if (searchInput) {
+      searchInput.addEventListener('input', filterItems);
+    }
     
     // Handle instrument filter
-    instrumentFilter.addEventListener('change', filterItems);
+    if (instrumentFilter) {
+      instrumentFilter.addEventListener('change', filterItems);
+    }
     
     // Handle construct scale filter
-    constructFilter.addEventListener('change', filterItems);
+    if (constructFilter) {
+      constructFilter.addEventListener('change', filterItems);
+    }
     
     // Handle Clear All button
     clearAllBtn.addEventListener('click', function() {
@@ -468,56 +469,65 @@
     
     // Combined filter function
     function filterItems() {
+      if (!searchInput || !instrumentFilter || !constructFilter) {
+        console.error('Filter elements not found');
+        return;
+      }
+      
       const searchTerm = searchInput.value.toLowerCase().trim();
       const selectedInstrument = instrumentFilter.value;
       const selectedScale = constructFilter.value;
       
+      console.log('Filtering with:', { searchTerm, selectedInstrument, selectedScale });
+      
       // Get all item rows
       const itemRows = document.querySelectorAll('.item-row');
-      const scaleGroups = document.querySelectorAll('.scale-group');
+      console.log('Found item rows:', itemRows.length);
       
-      // Track which scale groups have visible items
-      const scaleVisibility = {};
+      let visibleCount = 0;
       
       // Process each item
-      itemRows.forEach(row => {
-        const itemName = row.getAttribute('data-item-name');
-        const scaleId = row.getAttribute('data-scale-id');
-        const instrumentName = row.getAttribute('data-instrument-name');
-        const scaleVisible = scaleVisibility[scaleId] || false;
+      itemRows.forEach((row, index) => {
+        const itemName = row.getAttribute('data-item-name') || '';
+        const scaleIdsAttr = row.getAttribute('data-scale-ids') || '';
+        const scaleIds = scaleIdsAttr.split(',').map(id => id.trim()); // Multiple scale IDs, trimmed
+        const instrumentName = row.getAttribute('data-instrument-name') || '';
         
-        // Check if item matches search term, instrument filter, and scale filter
-        const matchesSearch = !searchTerm || itemName.includes(searchTerm);
-        const matchesInstrument = selectedInstrument === 'all' || selectedInstrument === instrumentName;
-        const matchesScale = selectedScale === 'all' || selectedScale === scaleId;
+        // Debug first item when filtering by construct
+        if (index === 0 && selectedScale !== 'all') {
+          console.log('First item debug:', {
+            itemName,
+            scaleIdsAttr,
+            scaleIds,
+            selectedScale,
+            includes: scaleIds.includes(selectedScale)
+          });
+        }
+        
+        // Check if item matches search term
+        const matchesSearch = !searchTerm || itemName.toLowerCase().includes(searchTerm);
+        
+        // Check if item matches instrument filter
+        const matchesInstrument = selectedInstrument === 'all' || 
+                                   !selectedInstrument || 
+                                   instrumentName.toLowerCase().includes(selectedInstrument.toLowerCase());
+        
+        // Check if item matches scale filter (item must belong to the selected scale)
+        const matchesScale = selectedScale === 'all' || 
+                            scaleIds.includes(selectedScale);
         
         // Show/hide the item based on filters
         if (matchesSearch && matchesInstrument && matchesScale) {
           row.classList.remove('filtered-out');
-          scaleVisibility[scaleId] = true;
+          row.style.display = '';
+          visibleCount++;
         } else {
           row.classList.add('filtered-out');
-          // Only update if not already visible from another item
-          if (!scaleVisible) {
-            scaleVisibility[scaleId] = false;
-          }
+          row.style.display = 'none';
         }
       });
       
-      // Show/hide scale groups based on whether they have visible items
-      scaleGroups.forEach(group => {
-        const scaleId = group.getAttribute('data-scale-id');
-        const groupInstrumentName = group.getAttribute('data-instrument-name');
-        
-        // Check if group matches instrument filter and has visible items
-        const matchesInstrument = selectedInstrument === 'all' || selectedInstrument === groupInstrumentName;
-        
-        if (scaleVisibility[scaleId] && matchesInstrument) {
-          group.classList.remove('filtered-out');
-        } else {
-          group.classList.add('filtered-out');
-        }
-      });
+      console.log('Visible items:', visibleCount);
     }
     
     // Make the removeItem function available globally

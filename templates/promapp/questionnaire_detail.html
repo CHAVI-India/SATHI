@@ -113,16 +113,18 @@
                           - {{ qi.item.range_response.range_scale_name }}
                         {% endif %}
                       </div>
-                      {% if qi.item.construct_scale %}
-                        <div class="text-xs">
-                          <span class="px-2 py-0.5 bg-blue-50 rounded">
-                            {{ qi.item.construct_scale.name|default:"No Construct Scale" }}
-                            {% if qi.item.construct_scale.instrument_name %}
-                              ({{ qi.item.construct_scale.instrument_name }}{% if qi.item.construct_scale.instrument_version %} v{{ qi.item.construct_scale.instrument_version }}{% endif %})
-                            {% endif %}
-                          </span>
-                        </div>
-                      {% endif %}
+                      {% with first_scale=qi.item.construct_scale.first %}
+                        {% if first_scale %}
+                          <div class="text-xs">
+                            <span class="px-2 py-0.5 bg-blue-50 rounded">
+                              {{ first_scale.name|default:"No Construct Scale" }}
+                              {% if first_scale.instrument_name %}
+                                ({{ first_scale.instrument_name }}{% if first_scale.instrument_version %} v{{ first_scale.instrument_version }}{% endif %})
+                              {% endif %}
+                            </span>
+                          </div>
+                        {% endif %}
+                      {% endwith %}
                     </div>
                     <!-- Item Translation Status -->
                     <div class="mt-2 flex flex-wrap gap-2">

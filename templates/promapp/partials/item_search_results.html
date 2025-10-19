@@ -6,9 +6,11 @@
              data-item-id="{{ item.id }}" 
              data-item-name="{{ item.name|truncatechars:50 }}">
             <div class="text-sm font-medium">{{ item.name|truncatechars:50 }}</div>
-            {% if item.construct_scale %}
-                <div class="text-xs text-gray-500">{{ item.construct_scale.name }}</div>
-            {% endif %}
+            {% with first_scale=item.construct_scale.first %}
+                {% if first_scale %}
+                    <div class="text-xs text-gray-500">{{ first_scale.name }}</div>
+                {% endif %}
+            {% endwith %}
         </div>
     {% endfor %}
 {% else %}

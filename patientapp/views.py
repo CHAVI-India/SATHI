@@ -770,26 +770,33 @@ def prom_review(request, pk):
             construct_order.append(cid)
 
     # Add any constructs that appear in item responses but aren't in the above order
+    # Handle ManyToMany relationship - an item can belong to multiple construct scales
     item_construct_ids = []
     construct_obj_by_id = {}
     for resp in item_response_list:
-        cid = getattr(resp.questionnaire_item.item, 'construct_scale_id', None)
-        if cid:
-            item_construct_ids.append(cid)
+        # Get all construct scales for this item (ManyToMany)
+        item_constructs = resp.questionnaire_item.item.construct_scale.all()
+        for construct in item_constructs:
+            cid = construct.id
+            if cid not in item_construct_ids:
+                item_construct_ids.append(cid)
             # Cache construct object for template header use
-            construct_obj_by_id[cid] = resp.questionnaire_item.item.construct_scale
+            construct_obj_by_id[cid] = construct
+    
     for cid in item_construct_ids:
         if cid not in construct_order:
             construct_order.append(cid)
 
     # Build grouped structure in the specified order
     # Map responses by construct id first for efficiency
+    # An item can belong to multiple constructs, so a response may appear in multiple groups
     responses_by_construct = {}
     for resp in item_response_list:
-        cid = getattr(resp.questionnaire_item.item, 'construct_scale_id', None)
-        if not cid:
-            continue
-        responses_by_construct.setdefault(cid, []).append(resp)
+        # Get all construct scales for this item (ManyToMany)
+        item_constructs = resp.questionnaire_item.item.construct_scale.all()
+        for construct in item_constructs:
+            cid = construct.id
+            responses_by_construct.setdefault(cid, []).append(resp)
 
     item_responses_grouped = []
     for cid in construct_order:
@@ -845,7 +852,8 @@ def prom_review(request, pk):
     important_construct_ids_list = [str(cid) for cid in important_construct_order]
 
     # Get available items for the filter (based on current questionnaire filter)
-    available_items_query = Item.objects.select_related('construct_scale').prefetch_related('translations')
+    # Use prefetch_related for ManyToMany construct_scale relationship
+    available_items_query = Item.objects.prefetch_related('construct_scale', 'translations')
     
     if questionnaire_filter:
         # Get items from the selected questionnaire
@@ -859,7 +867,8 @@ def prom_review(request, pk):
             questionnaireitem__questionnaire_id__in=questionnaire_ids
         ).distinct()
     
-    available_items = available_items_query.order_by('construct_scale__name', 'item_number')
+    # Can't order by ManyToMany field directly, so order by item_number only
+    available_items = available_items_query.order_by('item_number')
     
     # Get selected item details for proper initialization
     selected_items_data = []
@@ -1078,7 +1087,8 @@ def prom_review_item_search(request, pk):
     questionnaire_filter = request.GET.get('questionnaire_filter')
     
     # Get available items based on questionnaire filter
-    items_query = Item.objects.select_related('construct_scale').prefetch_related('translations')
+    # Use prefetch_related for ManyToMany construct_scale relationship
+    items_query = Item.objects.prefetch_related('construct_scale', 'translations')
     
     if questionnaire_filter:
         # Get items from the selected questionnaire
@@ -1101,7 +1111,8 @@ def prom_review_item_search(request, pk):
         ).distinct()
     
     # Limit results to prevent too many options
-    items = items_query.order_by('construct_scale__name', 'item_number')[:20]
+    # Can't order by ManyToMany field directly
+    items = items_query.order_by('item_number')[:20]
     
     context = {
         'items': items,
@@ -1401,7 +1412,8 @@ def patient_portal(request):
                 logger.error(f"Error generating plot for item {item.id}: {e_plot_gen}", exc_info=True)
     
     # Get available items for the filter
-    available_items_query = Item.objects.select_related('construct_scale').prefetch_related('translations')
+    # Use prefetch_related for ManyToMany construct_scale relationship
+    available_items_query = Item.objects.prefetch_related('construct_scale', 'translations')
     
     # Get items from all assigned questionnaires
     questionnaire_ids = assigned_questionnaires.values_list('questionnaire_id', flat=True)
@@ -1409,7 +1421,8 @@ def patient_portal(request):
         questionnaireitem__questionnaire_id__in=questionnaire_ids
     ).distinct()
     
-    available_items = available_items_query.order_by('construct_scale__name', 'item_number')
+    # Can't order by ManyToMany field directly
+    available_items = available_items_query.order_by('item_number')
     
     # Get selected item details for proper initialization
     selected_items_data = []

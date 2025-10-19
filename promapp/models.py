@@ -66,7 +66,7 @@ class ConstructScale(models.Model):
     name = models.CharField(max_length=255,null=True, blank=True,help_text = "Enter the name of the construct scale like physical functioning, pain etc.",verbose_name="Name of the Construct Scale")
     instrument_name = models.CharField(max_length=255,null=True, blank=True,help_text = "The name of the patient reported outcome measurement instrument (Questionnaire) that the construct scale belongs to. For example EORTC QLQ C30", verbose_name="Name of the Instrument (Questionnaire)")
     instrument_version = models.CharField(max_length=255,null=True, blank=True,help_text = "The version of the instrument that the construct scale belongs to", verbose_name="Version of the Instrument (Questionnaire)")
-    scale_equation = models.CharField(max_length=255,null=True,blank=True,help_text = "The equation to calculate the score for the construct scale from the items in the scale", verbose_name="Equation")
+    scale_equation = models.CharField(max_length=1025,null=True,blank=True,help_text = "The equation to calculate the score for the construct scale from the items in the scale", verbose_name="Equation")
     minimum_number_of_items = models.IntegerField(default=0,help_text = "The minimum number of items that must be answered to calculate the score for the construct scale", verbose_name="Minimum Number of Items")
     scale_better_score_direction = models.CharField(max_length=255, choices=DirectionChoices.choices, null=True, blank=True, verbose_name="Construct Score Direction", help_text = "Indicates whether higher or lower scores are better for this construct")
     scale_threshold_score = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,  help_text = "The score which is considered clinically important. Scores above or below this threshold (depending on direction) will be considered clinically actionable.", verbose_name="Construct Threshold Score")
@@ -180,9 +180,6 @@ class CompositeConstructScaleScoring(models.Model):
 
     def __str__(self):
         return self.composite_construct_scale_name or f"Composite Scale {self.id}"
-
-
-
 
 
 class LikertScale(models.Model):
@@ -428,8 +425,6 @@ class RangeScale(TranslatableModel):
         """Return a list of language codes for which translations exist."""
         return list(self.translations.values_list('language_code', flat=True))
 
-
-
 class ResponseTypeChoices(models.TextChoices):
     TEXT = 'Text', 'Text Response'
     NUMBER = 'Number', 'Numeric Response'
@@ -440,11 +435,11 @@ class ResponseTypeChoices(models.TextChoices):
 
 class Item(TranslatableModel):
     '''
-    Item model. Ensure full_clean() is called before saving in views and forms.
+    Item model for storing questions in an instrument. Ensure full_clean() is called before saving in views and forms.
     Translatable field is name.
     '''
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    construct_scale = models.ForeignKey(ConstructScale, on_delete=models.CASCADE, db_index=True, help_text = "Each item can belong to a construct scale which is designed to measure a construct or domain related to the Patient Reported Outcome.")
+    construct_scale = models.ManyToManyField(ConstructScale, help_text = "Each item can belong to a construct scale which is designed to measure a construct or domain related to the Patient Reported Outcome.")
     translations = TranslatedFields(
         name = models.CharField(max_length=255,null=True, blank=True, help_text = "The name of the item which will be displayed to the patient", db_index=True, verbose_name= "Item (Question) Text"),
         media = models.FileField(upload_to='item_media/', 
@@ -476,9 +471,12 @@ class Item(TranslatableModel):
         verbose_name = 'Item'
         verbose_name_plural = 'Items'
         indexes = [
-            models.Index(fields=['construct_scale', 'response_type'], name='item_construct_resptype_idx'),
-            models.Index(fields=['construct_scale', 'item_number'], name='item_construct_number_idx'),
+            models.Index(fields=['response_type'], name='item_resptype_idx'),
+            models.Index(fields=['item_number'], name='item_number_idx'),
         ]
+
+    def get_related_constructs(self):
+        return "\n".join([construct.name for construct in self.construct_scale.all()])
 
     def save(self, *args, **kwargs):
         # Check if we're updating an existing item 
@@ -493,29 +491,42 @@ class Item(TranslatableModel):
                     ref_check = old_item.is_referenced_in_equation()
                     if ref_check['is_referenced']:
                         raise ValidationError(
-                            f'Cannot change item number for "{old_item.name}" as it is referenced in the construct scale equation '
-                            f'"{ref_check["equation"]}" for scale "{ref_check["construct_name"]}". '
-                            f'Please update the equation first.'
+                            f'Cannot change item number for "{old_item.name}" as it is referenced in construct scale equations: '
+                            f'{ref_check["construct_names"]}. '
+                            f'Please update the equations first.'
                         )
                 
-                # Check if the construct_scale is changing
-                if old_item.construct_scale != self.construct_scale and old_item.item_number:
-                    # Check if this item is referenced in the OLD construct scale's equation
+                # Check if the construct_scale is changing (compare sets of IDs)
+                old_construct_ids = set(old_item.construct_scale.values_list('id', flat=True))
+                new_construct_ids = set(self.construct_scale.values_list('id', flat=True))
+                
+                if old_construct_ids != new_construct_ids and old_item.item_number:
+                    # Check if this item is referenced in the OLD construct scale's equations
                     ref_check = old_item.is_referenced_in_equation()
                     if ref_check['is_referenced']:
                         raise ValidationError(
-                            f'Cannot move item "{old_item.name}" to a different construct scale as it is referenced in the equation '
-                            f'"{ref_check["equation"]}" for scale "{ref_check["construct_name"]}". '
-                            f'Please update the equation first or remove the reference to {{q{old_item.item_number}}}.'
+                            f'Cannot change construct scales for item "{old_item.name}" as it is referenced in equations '
+                            f'for scales: {ref_check["construct_names"]}. '
+                            f'Please update the equations first or remove the reference to {{q{old_item.item_number}}}.'
                         )
             except Item.DoesNotExist:
                 pass
         
-        if not self.item_number and self.construct_scale:
-            # Get the highest item number for this construct scale
-            last_item = Item.objects.filter(construct_scale=self.construct_scale).order_by('-item_number').first()
-            self.item_number = (last_item.item_number + 1) if last_item and last_item.item_number else 1
         super().save(*args, **kwargs)
+        
+        # Auto-assign item_number if not set and construct scales exist
+        # This happens after save because ManyToMany relationships require the object to exist first
+        if not self.item_number and self.construct_scale.exists():
+            # Get the highest item number across all items in any of the construct scales this item belongs to
+            max_item_number = 0
+            for construct in self.construct_scale.all():
+                last_item = construct.item_set.order_by('-item_number').first()
+                if last_item and last_item.item_number:
+                    max_item_number = max(max_item_number, last_item.item_number)
+            
+            self.item_number = max_item_number + 1 if max_item_number > 0 else 1
+            # Use update to avoid triggering save() again and causing recursion
+            Item.objects.filter(pk=self.pk).update(item_number=self.item_number)
 
     def clean(self):
         # Check if media validation should be skipped (for clearing invalid files)
@@ -612,9 +623,9 @@ class Item(TranslatableModel):
         ref_check = self.is_referenced_in_equation()
         if ref_check['is_referenced']:
             raise ValidationError(
-                f'Cannot delete item "{self.name}" as it is referenced in the construct scale equation '
-                f'"{ref_check["equation"]}" for scale "{ref_check["construct_name"]}". '
-                f'Please update the equation first.'
+                f'Cannot delete item "{self.name}" as it is referenced in construct scale equations '
+                f'for scales: {ref_check["construct_names"]}. '
+                f'Please update the equations first.'
             )
         super().delete(*args, **kwargs)
 
@@ -632,29 +643,36 @@ class Item(TranslatableModel):
     
     def is_referenced_in_equation(self, check_item_number=None):
         """
-        Check if this item (or a specific item number) is referenced in its construct scale equation.
+        Check if this item (or a specific item number) is referenced in any of its construct scale equations.
         
         Args:
             check_item_number: If provided, check this specific item number instead of self.item_number
         
         Returns:
-            dict with 'is_referenced': bool and 'equation': str if referenced
+            dict with 'is_referenced': bool, 'equations': list of equations, and 'construct_names': str
         """
-        if not self.construct_scale or not self.construct_scale.scale_equation:
-            return {'is_referenced': False, 'equation': None}
-        
         item_number_to_check = check_item_number if check_item_number is not None else self.item_number
         if not item_number_to_check:
-            return {'is_referenced': False, 'equation': None}
+            return {'is_referenced': False, 'equations': [], 'construct_names': ''}
         
-        # Extract question references from the equation
-        question_refs = re.findall(r'\{q(\d+)\}', self.construct_scale.scale_equation)
-        is_referenced = str(item_number_to_check) in question_refs
+        # Check all construct scales this item belongs to
+        referenced_constructs = []
+        referenced_equations = []
+        
+        for construct in self.construct_scale.all():
+            if construct.scale_equation:
+                # Extract question references from the equation
+                question_refs = re.findall(r'\{q(\d+)\}', construct.scale_equation)
+                if str(item_number_to_check) in question_refs:
+                    referenced_constructs.append(construct.name)
+                    referenced_equations.append(construct.scale_equation)
+        
+        is_referenced = len(referenced_constructs) > 0
         
         return {
             'is_referenced': is_referenced,
-            'equation': self.construct_scale.scale_equation if is_referenced else None,
-            'construct_name': self.construct_scale.name if is_referenced else None
+            'equations': referenced_equations,
+            'construct_names': ', '.join(referenced_constructs) if is_referenced else ''
         }
     
     def get_media_type(self, media_file=None):
@@ -1136,13 +1154,18 @@ def calculate_scores_for_submission(submission):
     
     # Find all construct scales used in this questionnaire
     construct_scales = set()
-    item_to_construct_map = {}  # Map of item_id to construct_scale
+    item_to_constructs_map = {}  # Map of item_id to list of construct_scales
     
     # Map items to their constructs and build set of unique constructs
-    for qi in questionnaire_items.select_related('item', 'item__construct_scale'):
-        if qi.item.construct_scale:
-            construct_scales.add(qi.item.construct_scale)
-            item_to_construct_map[qi.item.id] = qi.item.construct_scale
+    # Use prefetch_related for ManyToMany relationship
+    for qi in questionnaire_items.select_related('item').prefetch_related('item__construct_scale'):
+        item_constructs = qi.item.construct_scale.all()
+        if item_constructs:
+            for construct in item_constructs:
+                construct_scales.add(construct)
+                if qi.item.id not in item_to_constructs_map:
+                    item_to_constructs_map[qi.item.id] = []
+                item_to_constructs_map[qi.item.id].append(construct)
     
     logger.debug(f"Found {len(construct_scales)} construct scales")
     
@@ -1171,13 +1194,15 @@ def calculate_scores_for_submission(submission):
         all_construct_items = Item.objects.filter(
             construct_scale=construct,
             response_type__in=['Number', 'Likert', 'Range']
-        ).select_related('construct_scale')
+        ).prefetch_related('construct_scale')
         
         # Create a mapping of item_id to response for quick lookup
+        # An item can belong to multiple constructs, so check if construct is in the item's construct list
         response_map = {}
         for response in responses:
             qi = response.questionnaire_item
-            if qi.item.construct_scale == construct:
+            # Check if this item belongs to the current construct
+            if qi.item.id in item_to_constructs_map and construct in item_to_constructs_map[qi.item.id]:
                 response_map[qi.item.id] = response
         
         # Process all items that belong to this construct

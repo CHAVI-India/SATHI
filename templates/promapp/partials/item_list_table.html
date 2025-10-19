@@ -32,13 +32,25 @@
 
         <!-- Item Details -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-500 mb-4">
-          <!-- Construct Scale -->
+          <!-- Construct Scale(s) -->
           <div>
-            <span class="font-medium text-gray-700">{% translate "Construct Scale:" %}</span>
-            <div class="text-gray-900">{{ item.construct_scale.name|default:"—" }}</div>
-            {% if item.construct_scale.instrument_name %}
-              <div class="text-xs text-gray-500">{{ item.construct_scale.instrument_name }}{% if item.construct_scale.instrument_version %} v{{ item.construct_scale.instrument_version }}{% endif %}</div>
-            {% endif %}
+            <span class="font-medium text-gray-700">{% translate "Construct Scale(s):" %}</span>
+            {% with scales=item.construct_scale.all %}
+              {% if scales %}
+                <div class="space-y-1">
+                  {% for scale in scales %}
+                    <div class="text-gray-900">
+                      {{ scale.name }}
+                      {% if scale.instrument_name %}
+                        <span class="text-xs text-gray-500">({{ scale.instrument_name }}{% if scale.instrument_version %} v{{ scale.instrument_version }}{% endif %})</span>
+                      {% endif %}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="text-gray-900">—</div>
+              {% endif %}
+            {% endwith %}
           </div>
 
           <!-- Response Type -->

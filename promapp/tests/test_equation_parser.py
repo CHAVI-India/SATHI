@@ -595,4 +595,67 @@ class EquationParserTest(TestCase):
                 if isinstance(expected, (int, float)) and result is not None:
                     self.assertAlmostEqual(result, expected)
                 else:
-                    self.assertEqual(result, expected) 
+                    self.assertEqual(result, expected)
+    
+    def test_complex_variable_reassignment_with_ranges(self):
+        """Test complex equation with variable reassignment based on ranges and final conditional scoring"""
+        # This tests a pattern where:
+        # 1. Variables are assigned from questions
+        # 2. Variables are reassigned based on range conditions
+        # 3. Final score is calculated from sum of variables with another conditional
+        
+        test_cases = [
+            # Test case 1: q1 = 10 (<=15), q2 = 5
+            # q2score = 0, q5score = 5, sum = 5, final = 3 (sum >= 5)
+            ({1: 10, 2: 5}, 3),
+            
+            # Test case 2: q1 = 20 (>15 and <=30), q2 = 3
+            # q2score = 1, q5score = 3, sum = 4, final = 2 (2 < sum < 5)
+            ({1: 20, 2: 3}, 2),
+            
+            # Test case 3: q1 = 45 (>30 and <=60), q2 = 2
+            # q2score = 2, q5score = 2, sum = 4, final = 2 (2 < sum < 5)
+            ({1: 45, 2: 2}, 2),
+            
+            # Test case 4: q1 = 70 (>60), q2 = 1
+            # q2score = 3, q5score = 1, sum = 4, final = 2 (2 < sum < 5)
+            ({1: 70, 2: 1}, 2),
+            
+            # Test case 5: q1 = 15 (<=15), q2 = 0
+            # q2score = 0, q5score = 0, sum = 0, final = 0 (sum == 0)
+            ({1: 15, 2: 0}, 0),
+            
+            # Test case 6: q1 = 50 (>30 and <=60), q2 = 3
+            # q2score = 2, q5score = 3, sum = 5, final = 3 (sum >= 5)
+            ({1: 50, 2: 3}, 3),
+            
+            # Test case 7: q1 = 100 (>60), q2 = 5
+            # q2score = 3, q5score = 5, sum = 8, final = 3 (sum >= 5)
+            ({1: 100, 2: 5}, 3),
+            
+            # Test case 8: q1 = 25 (>15 and <=30), q2 = 1
+            # q2score = 1, q5score = 1, sum = 2, final = 1 (0 < sum < 3)
+            ({1: 25, 2: 1}, 1),
+        ]
+        
+        # The equation pattern from the user's request
+        # Using workaround: assign the if-then-else result to the variable
+        # instead of putting assignments inside if-then-else clauses
+        equation = """
+        q5score = {q2}
+        q2score = if {q1} <= 15 then 0
+                  elif {q1} > 15 and {q1} <= 30 then 1
+                  elif {q1} > 30 and {q1} <= 60 then 2
+                  else 3
+        sum_score = q2score + q5score
+        if sum_score == 0 then 0
+        elif sum_score > 0 and sum_score < 3 then 1
+        elif sum_score > 2 and sum_score < 5 then 2
+        else 3
+        """
+        
+        for question_values, expected in test_cases:
+            with self.subTest(q1=question_values[1], q2=question_values[2], expected=expected):
+                tree = self.parser.parse(equation)
+                result = EquationTransformer(question_values).transform(tree)
+                self.assertEqual(result, expected) 

@@ -5,7 +5,7 @@ for handling translations.
 """
 
 from import_export import resources, fields
-from import_export.widgets import ForeignKeyWidget, CharWidget
+from import_export.widgets import ForeignKeyWidget, CharWidget, ManyToManyWidget
 from .models import Item, ConstructScale, LikertScale, RangeScale, ResponseTypeChoices
 from parler.models import TranslatableModel
 from django.utils.translation import get_language
@@ -84,8 +84,9 @@ class ItemResource(resources.ModelResource):
     
     This resource handles:
     1. Main Item model fields
-    2. Foreign key relationships (construct_scale, likert_response, range_response)
-    3. Translations through the before_import_row and after_save_instance methods
+    2. ManyToMany relationship (construct_scale) - supports comma-separated UUIDs
+    3. Foreign key relationships (likert_response, range_response)
+    4. Translations through the before_import_row and after_save_instance methods
     
     The import process:
     1. Reads the CSV/Excel file
@@ -93,15 +94,20 @@ class ItemResource(resources.ModelResource):
        a. Creates/updates the main Item record
        b. Stores translation data temporarily
        c. After saving the Item, creates/updates the translation
+    
+    CSV Format for construct_scale (ManyToMany):
+    - Single construct: "uuid1"
+    - Multiple constructs: "uuid1,uuid2,uuid3" (comma-separated, no spaces)
     """
 
-    # Foreign key fields with their widgets
-    # These fields handle the relationships between Item and other models
-    # The ForeignKeyWidget converts the ID from the CSV into the actual model instance
+    # ManyToMany field for construct scales
+    # An item can belong to multiple construct scales
+    # The ManyToManyWidget handles comma-separated IDs in the CSV
+    # Example CSV value: "uuid1,uuid2,uuid3" or single value: "uuid1"
     construct_scale = fields.Field(
         column_name='construct_scale',  # Name in the CSV/Excel file
         attribute='construct_scale',    # Field name in the Item model
-        widget=ForeignKeyWidget(ConstructScale, 'id')  # Widget to handle the foreign key relationship
+        widget=ManyToManyWidget(ConstructScale, field='id', separator=',')  # Widget to handle ManyToMany relationship
     )
     
     # Response type field with custom widget

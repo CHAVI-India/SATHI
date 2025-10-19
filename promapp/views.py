@@ -198,11 +198,11 @@ class QuestionnaireCreateView(LoginRequiredMixin, PermissionRequiredMixin, Creat
         current_language = get_language()
         
         # Get items with translations, but don't rely on distinct() due to django-parler issues
-        all_items = Item.objects.language(current_language).select_related(
+        all_items = Item.objects.language(current_language).prefetch_related(
             'construct_scale',
             'likert_response', 
             'range_response'
-        ).order_by('construct_scale__name', 'translations__name')
+        ).order_by('translations__name')
         
         # Manual deduplication by ID to ensure no duplicates
         seen_ids = set()
@@ -212,10 +212,22 @@ class QuestionnaireCreateView(LoginRequiredMixin, PermissionRequiredMixin, Creat
                 seen_ids.add(item.id)
                 unique_items.append(item)
         
-        # Sort the unique items by construct scale name for consistent grouping
-        unique_items.sort(key=lambda x: (x.construct_scale.name if x.construct_scale else '', x.name or ''))
+        # Create a list of items with their construct scales for display
+        # Each item appears only once with all its construct scales listed
+        items_with_constructs = []
+        for item in unique_items:
+            construct_scales = list(item.construct_scale.all())
+            items_with_constructs.append({
+                'item': item,
+                'constructs': construct_scales,
+                'construct_names': ', '.join([c.name for c in construct_scales]) if construct_scales else 'No Construct Scale',
+                'instrument_names': ', '.join(set([c.instrument_name for c in construct_scales if c.instrument_name])) if construct_scales else '',
+                'construct_ids': [str(c.id) for c in construct_scales] if construct_scales else ['none']
+            })
         
-        context['available_items'] = unique_items
+        context['items_with_constructs'] = items_with_constructs
+        context['grouped_items'] = None  # Deprecated, keeping for backward compatibility
+        context['available_items'] = unique_items  # Keep for backward compatibility
         context['construct_scales'] = ConstructScale.objects.all().order_by('name')
         
         # Get unique instrument names for filtering
@@ -310,11 +322,12 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
         current_language = get_language()
         
         # Get all items with translations, but don't rely on distinct() due to django-parler issues
-        all_items = Item.objects.language(current_language).select_related(
+        all_items = Item.objects.language(current_language).prefetch_related(
             'construct_scale',
+        ).select_related(
             'likert_response',
             'range_response'
-        ).order_by('construct_scale__name', 'translations__name')
+        ).order_by('translations__name')
         
         # Manual deduplication by ID to ensure no duplicates
         seen_ids = set()
@@ -338,8 +351,23 @@ class QuestionnaireUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Updat
         # Sort items by question number (None values go to the end)
         items_with_numbers.sort(key=lambda x: (x.question_number is None, x.question_number))
         
+        # Create a list of items with their construct scales for display
+        # Each item appears only once with all its construct scales listed
+        items_with_constructs = []
+        for item in items_with_numbers:
+            construct_scales = list(item.construct_scale.all())
+            items_with_constructs.append({
+                'item': item,
+                'constructs': construct_scales,
+                'construct_names': ', '.join([c.name for c in construct_scales]) if construct_scales else 'No Construct Scale',
+                'instrument_names': ', '.join(set([c.instrument_name for c in construct_scales if c.instrument_name])) if construct_scales else '',
+                'construct_ids': [str(c.id) for c in construct_scales] if construct_scales else ['none']
+            })
+        
+        context['items_with_constructs'] = items_with_constructs
+        context['grouped_items'] = None  # Deprecated, keeping for backward compatibility
         context['item_selection_form'] = ItemSelectionForm(initial={'items': current_items})
-        context['available_items'] = items_with_numbers
+        context['available_items'] = items_with_numbers  # Keep for backward compatibility
         context['construct_scales'] = ConstructScale.objects.all().order_by('name')
         
         # Get unique instrument names for filtering
@@ -436,9 +464,10 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     
     def get_queryset(self):
         current_language = get_language()
-        # Start with base queryset and select related fields
-        queryset = Item.objects.language(current_language).select_related(
+        # Start with base queryset and prefetch related fields (ManyToMany requires prefetch)
+        queryset = Item.objects.language(current_language).prefetch_related(
             'construct_scale',
+        ).select_related(
             'likert_response',
             'range_response'
         )
@@ -449,7 +478,8 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         search = self.request.GET.get('search')
         
         if construct_scale and construct_scale != 'all':
-            queryset = queryset.filter(construct_scale_id=construct_scale)
+            # Filter by construct_scale for ManyToMany relationship
+            queryset = queryset.filter(construct_scale__id=construct_scale)
         
         if response_type and response_type != 'all':
             queryset = queryset.filter(response_type=response_type)
@@ -458,7 +488,7 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
             queryset = queryset.filter(translations__name__icontains=search)
             
         # Use distinct() with id to prevent duplicates while keeping all fields
-        return queryset.distinct('id').order_by('id', 'construct_scale__name', 'translations__name')
+        return queryset.distinct('id').order_by('id', 'translations__name')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -520,12 +550,14 @@ class ItemCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     def get_initial(self):
         initial = super().get_initial()
         # Pre-populate construct_scale if passed as URL parameter
+        # For ManyToMany field, this should be a list
         construct_scale_id = self.request.GET.get('construct_scale')
         if construct_scale_id:
             try:
                 # Validate that the construct scale exists
                 ConstructScale.objects.get(id=construct_scale_id)
-                initial['construct_scale'] = construct_scale_id
+                # For ManyToMany, initial value should be a list
+                initial['construct_scale'] = [construct_scale_id]
             except ConstructScale.DoesNotExist:
                 pass  # Invalid ID, ignore
         return initial
@@ -1628,21 +1660,27 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Use
         from .equation_parser import EquationTransformer
         
         # Get all items from this submission
+        # Use prefetch_related for ManyToMany construct_scale relationship
         responses = QuestionnaireItemResponse.objects.filter(
             questionnaire_submission=submission
-        ).select_related('questionnaire_item__item__construct_scale')
+        ).select_related('questionnaire_item__item').prefetch_related('questionnaire_item__item__construct_scale')
         
         # Group responses by construct scale
+        # An item can belong to multiple construct scales
         responses_by_scale = {}
         for response in responses:
-            construct_scale = response.questionnaire_item.item.construct_scale
-            if construct_scale and construct_scale.scale_equation:
-                if construct_scale.id not in responses_by_scale:
-                    responses_by_scale[construct_scale.id] = {
-                        'scale': construct_scale,
-                        'responses': []
-                    }
-                responses_by_scale[construct_scale.id]['responses'].append(response)
+            item = response.questionnaire_item.item
+            construct_scales = item.construct_scale.all()
+            
+            # Add this response to all construct scales the item belongs to
+            for construct_scale in construct_scales:
+                if construct_scale.scale_equation:
+                    if construct_scale.id not in responses_by_scale:
+                        responses_by_scale[construct_scale.id] = {
+                            'scale': construct_scale,
+                            'responses': []
+                        }
+                    responses_by_scale[construct_scale.id]['responses'].append(response)
         
         # Calculate scores for each construct scale
         for scale_data in responses_by_scale.values():
@@ -3719,19 +3757,26 @@ def validate_equation(request):
         equation = equation.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ')
         equation = ' '.join(equation.split())  # Normalize whitespace
         
-        # Create a temporary ConstructScale instance
-        temp_scale = ConstructScale(scale_equation=equation)
-        
-        # If we have a scale_id, get the actual scale to validate against its items
+        # If we have a scale_id, use the actual scale for validation
+        # Otherwise create a temporary one (which won't have items to validate against)
         if scale_id:
             try:
                 actual_scale = ConstructScale.objects.get(id=scale_id)
-                # Copy the items from the actual scale to our temp scale
-                temp_scale.item_set = actual_scale.item_set
+                # Temporarily set the equation on the actual scale for validation
+                # Save the original equation to restore it after validation
+                original_equation = actual_scale.scale_equation
+                actual_scale.scale_equation = equation
+                actual_scale.validate_scale_equation()
+                # Restore original equation (we're not saving, just validating)
+                actual_scale.scale_equation = original_equation
             except ConstructScale.DoesNotExist:
-                pass
-        
-        temp_scale.validate_scale_equation()
+                # If scale doesn't exist, just validate syntax without item references
+                temp_scale = ConstructScale(scale_equation=equation)
+                temp_scale.validate_scale_equation()
+        else:
+            # No scale_id provided, create temporary scale for basic validation
+            temp_scale = ConstructScale(scale_equation=equation)
+            temp_scale.validate_scale_equation()
         return HttpResponse('<div class="text-green-600">✓ Valid equation</div>')
     except ValidationError as e:
         # Log the detailed error for debugging but return sanitized message
