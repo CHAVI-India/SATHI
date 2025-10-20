@@ -21,13 +21,15 @@ from django.conf.urls.i18n import i18n_patterns
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
-from chaviprom.views import IndexView
+from chaviprom.views import IndexView, service_worker_view
 #from two_factor.urls import urlpatterns as tf_urls
 
 #from chaviprom.secure_otp_views import RateLimitedLoginView, RateLimitedPasswordResetView
 
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
+    # Custom service worker with Service-Worker-Allowed header
+    path('serviceworker.js', service_worker_view, name='serviceworker'),
 ]
 
 urlpatterns += i18n_patterns(
