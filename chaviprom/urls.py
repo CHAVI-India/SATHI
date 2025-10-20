@@ -22,17 +22,12 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from chaviprom.views import IndexView
-from pwa.views import manifest, service_worker, offline
 #from two_factor.urls import urlpatterns as tf_urls
 
 #from chaviprom.secure_otp_views import RateLimitedLoginView, RateLimitedPasswordResetView
 
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
-    # PWA specific URLs (not the catch-all include)
-    path('serviceworker.js', service_worker, name='serviceworker'),
-    path('manifest.json', manifest, name='manifest'),
-    path('offline/', offline, name='offline'),
 ]
 
 urlpatterns += i18n_patterns(
@@ -46,6 +41,7 @@ urlpatterns += i18n_patterns(
     # App URLs
     path('promapp/', include('promapp.urls')),
     path('patientapp/', include('patientapp.urls')),
+    path('', include('pwa.urls')),
     
     # Standard logout is now handled by Django Allauth
     
