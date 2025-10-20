@@ -9,71 +9,16 @@ django-pwa: ServiceWorker registration failed: DOMException: The operation is in
 
 ## Root Cause
 
-The error occurs due to **missing `Service-Worker-Allowed` HTTP header** when serving the service worker file. This is the primary issue. Additionally, CSP headers need proper configuration.
+The error occurs because the **Content Security Policy (CSP)** headers were missing the `worker-src` and `manifest-src` directives. Even though the site was served over HTTPS, the CSP was blocking the Service Worker registration.
 
 Service Workers require:
 1. **Secure context** (HTTPS or localhost) ✓ Already configured
-2. **`Service-Worker-Allowed` HTTP header** ✗ Was missing (CRITICAL)
-3. **CSP permissions** for `worker-src` ✗ Was missing
-4. **CSP permissions** for `manifest-src` ✗ Was missing
-
-### Why `Service-Worker-Allowed` is Critical
-
-When a service worker is registered with a scope (e.g., `/`), the browser checks:
-1. Is the origin secure (HTTPS)?
-2. Does the `Service-Worker-Allowed` header permit this scope?
-
-Without this header, the browser restricts the service worker to only control URLs in the same directory as the service worker file itself. Since we want it to control the entire site (`scope: '/'`), we **must** include this header.
+2. **CSP permissions** for `worker-src` ✗ Was missing
+3. **CSP permissions** for `manifest-src` ✗ Was missing
 
 ## Solution Applied
 
-### 1. **Added Custom Service Worker View with Required Header** (CRITICAL FIX)
-
-Created custom view in `/chaviprom/views.py`:
-
-```python
-def service_worker_view(request):
-    """
-    Custom service worker view that adds the Service-Worker-Allowed header.
-    This header is required to allow the service worker to control the root scope.
-    """
-    sw_path = settings.PWA_SERVICE_WORKER_PATH
-    
-    try:
-        with open(sw_path, 'r') as f:
-            content = f.read()
-        
-        response = HttpResponse(content, content_type='application/javascript')
-        # Allow service worker to control the entire site (root scope)
-        response['Service-Worker-Allowed'] = '/'
-        # Cache control for service worker updates
-        response['Cache-Control'] = 'max-age=0, no-cache, no-store, must-revalidate'
-        return response
-    except FileNotFoundError:
-        return HttpResponse('Service Worker not found', status=404)
-```
-
-**Key headers added:**
-- **`Service-Worker-Allowed: /`** - Allows service worker to control entire site
-- **`Cache-Control: max-age=0, no-cache`** - Ensures service worker updates are fetched immediately
-
-### 2. **Updated URL Configuration**
-
-Modified `/chaviprom/urls.py` to use custom view:
-
-```python
-from chaviprom.views import IndexView, service_worker_view
-
-urlpatterns = [
-    path('i18n/', include('django.conf.urls.i18n')),
-    # Custom service worker with Service-Worker-Allowed header
-    path('serviceworker.js', service_worker_view, name='serviceworker'),
-]
-```
-
-This overrides the default django-pwa service worker URL to add the required header.
-
-### 3. **Added CSP Directives for Service Workers**
+### 1. Added CSP Directives for Service Workers
 
 Updated `/chaviprom/settings.py` to include:
 
@@ -87,7 +32,7 @@ These directives tell the browser's Content Security Policy to allow:
 - Service Workers to be loaded from the same origin (`worker-src`)
 - The PWA manifest file to be loaded (`manifest-src`)
 
-### 4. **Fixed Manifest URL in Base Template**
+### 2. Fixed Manifest URL in Base Template
 
 Updated `/templates/base.html`:
 
@@ -105,15 +50,9 @@ This ensures the manifest URL is properly resolved through Django's URL routing.
 
 After deploying these changes:
 
-1. **Check Service-Worker-Allowed Header** (MOST IMPORTANT):
-   ```bash
-   curl -I https://your-domain.com/serviceworker.js
+1. **Check CSP Headers**: Open browser DevTools → Network tab → Select any page load → Check Response Headers for:
    ```
-   Should include:
-   ```
-   Service-Worker-Allowed: /
-   Content-Type: application/javascript
-   Cache-Control: max-age=0, no-cache, no-store, must-revalidate
+   Content-Security-Policy: ... worker-src 'self'; manifest-src 'self'; ...
    ```
 
 2. **Check Service Worker Registration**: Open browser DevTools → Console → Should see:
@@ -125,14 +64,8 @@ After deploying these changes:
 3. **Check Application Tab**: DevTools → Application → Service Workers → Should show:
    - Status: Activated and running
    - Source: /serviceworker.js
-   - Scope: / (entire site)
 
-4. **Check CSP Headers**: DevTools → Network tab → Select any page load → Check Response Headers for:
-   ```
-   Content-Security-Policy: ... worker-src 'self'; manifest-src 'self'; ...
-   ```
-
-5. **Check Manifest**: DevTools → Application → Manifest → Should display PWA configuration without errors
+4. **Check Manifest**: DevTools → Application → Manifest → Should display PWA configuration without errors
 
 ## Technical Details
 
@@ -212,21 +145,16 @@ if ENVIRONMENT != 'development':
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
-| "Insecure operation" | Missing `Service-Worker-Allowed` header | Use custom view with header (see solution above) |
-| "Insecure operation" (secondary) | Missing CSP directives | Add `CSP_WORKER_SRC` and `CSP_MANIFEST_SRC` |
-| Scope restriction error | Service worker can't control root | Add `Service-Worker-Allowed: /` header |
-| 404 on serviceworker.js | URL not configured | Add custom URL pattern before pwa.urls |
-| Service worker file not found | Wrong path in settings | Verify `PWA_SERVICE_WORKER_PATH` points to correct file |
+| "Insecure operation" | Missing CSP directives | Add `CSP_WORKER_SRC` and `CSP_MANIFEST_SRC` |
+| 404 on serviceworker.js | Static files not collected | Run `python manage.py collectstatic` |
 | Manifest not loading | Wrong URL format | Use `{% url 'manifest' %}` |
 | Mixed content errors | HTTP resources on HTTPS page | Ensure all resources use HTTPS |
 
 ## Files Modified
 
-1. **`/chaviprom/views.py`** - Added custom `service_worker_view()` with `Service-Worker-Allowed` header (CRITICAL)
-2. **`/chaviprom/urls.py`** - Added custom service worker URL pattern to override django-pwa default
-3. **`/chaviprom/settings.py`** - Added CSP directives (`CSP_WORKER_SRC`, `CSP_MANIFEST_SRC`)
-4. **`/templates/base.html`** - Fixed manifest URL reference
-5. **`/documentation/PWA_SERVICE_WORKER_FIX.md`** - This documentation
+1. `/chaviprom/settings.py` - Added CSP directives for Service Workers
+2. `/templates/base.html` - Fixed manifest URL reference
+3. `/documentation/PWA_SERVICE_WORKER_FIX.md` - This documentation
 
 ## References
 
