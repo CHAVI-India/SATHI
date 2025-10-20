@@ -10,6 +10,7 @@ Props:
 - show_page_numbers: Whether to show individual page numbers (default: true)
 - page_range: Number of pages to show around current page (default: 3)
 - preserve_params: Whether to preserve URL parameters (default: true)
+- hx_target: HTMX target selector (default: "#patientsTable")
 
 Features:
 - Responsive design (mobile/desktop layouts)
@@ -23,21 +24,23 @@ Usage:
     :page_obj="page_obj" 
     :is_paginated="is_paginated" 
     show_info="true"
-    show_page_numbers="true" />
+    show_page_numbers="true"
+    hx_target="#my-container" />
 
 HTMX Usage:
-The component automatically adds hx-get and hx-target="#patientsTable" attributes
+The component automatically adds hx-get and hx-target attributes
 to all pagination links for seamless partial page updates.
 {% endcomment %}
 
 {% if is_paginated %}
+{% with target=hx_target|default:"#patientsTable" %}
 <div class="mt-6 bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-b-lg {{ class }}">
     <!-- Mobile pagination (Previous/Next only) -->
     <div class="flex-1 flex justify-between sm:hidden">
         {% if page_obj.has_previous %}
         <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
            hx-get="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
-           hx-target="#patientsTable"
+           hx-target="{{ target }}"
            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
             {% load i18n %}{% translate "Previous" %}
         </a>
@@ -50,7 +53,7 @@ to all pagination links for seamless partial page updates.
         {% if page_obj.has_next %}
         <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
            hx-get="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
-           hx-target="#patientsTable"
+           hx-target="{{ target }}"
            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
             {% load i18n %}{% translate "Next" %}
         </a>
@@ -87,7 +90,7 @@ to all pagination links for seamless partial page updates.
                 {% if page_obj.has_previous %}
                 <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                    hx-get="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
-                   hx-target="#patientsTable"
+                   hx-target="{{ target }}"
                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
                     <span class="sr-only">{% translate "Previous" %}</span>
                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -114,7 +117,7 @@ to all pagination links for seamless partial page updates.
                     <!-- Visible page numbers within range -->
                     <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                        hx-get="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
-                       hx-target="#patientsTable"
+                       hx-target="{{ target }}"
                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
                         {{ num }}
                     </a>
@@ -125,7 +128,7 @@ to all pagination links for seamless partial page updates.
                 {% if page_obj.has_next %}
                 <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
                    hx-get="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
-                   hx-target="#patientsTable"
+                   hx-target="{{ target }}"
                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
                     <span class="sr-only">{% translate "Next" %}</span>
                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -145,4 +148,5 @@ to all pagination links for seamless partial page updates.
         {% endif %}
     </div>
 </div>
+{% endwith %}
 {% endif %} 
