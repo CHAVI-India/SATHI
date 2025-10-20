@@ -638,6 +638,9 @@ CSP_CONNECT_SRC = (
     "'self'",
     # Add your API endpoints here if needed
 )
+# Service Worker and Web Worker support
+CSP_WORKER_SRC = ("'self'",)  # Allow service workers from same origin
+CSP_MANIFEST_SRC = ("'self'",)  # Allow manifest.json from same origin
 
 # Additional security headers
 CSP_INCLUDE_NONCE_IN = ['script-src']  # Generate nonces for inline scripts
@@ -653,7 +656,6 @@ CSP_BLOCK_ALL_MIXED_CONTENT = ENVIRONMENT != 'development'
 
 
 # PWA related settings
-
 PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static/js', 'serviceworker.js')
 PWA_APP_NAME = 'SATHI'
 PWA_APP_DESCRIPTION = "Self Reported Assessment and Tracking for Health Insights"
