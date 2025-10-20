@@ -446,7 +446,7 @@ class Item(TranslatableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     construct_scale = models.ManyToManyField(ConstructScale, help_text = "Each item can belong to a construct scale which is designed to measure a construct or domain related to the Patient Reported Outcome.")
     translations = TranslatedFields(
-        name = models.CharField(max_length=255,null=True, blank=True, help_text = "The name of the item which will be displayed to the patient", db_index=True, verbose_name= "Item (Question) Text"),
+        name = models.CharField(max_length=500,null=True, blank=True, help_text = "The name of the item which will be displayed to the patient", db_index=True, verbose_name= "Item (Question) Text"),
         media = models.FileField(upload_to='item_media/', 
         null=True, 
         blank=True, 
