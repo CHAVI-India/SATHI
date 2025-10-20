@@ -1,0 +1,18 @@
+{
+  "name": "chavi-prom",
+  "version": "1.0.0",
+  "description": "![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/CHAVI-India/chavi-prom?utm_source=oss&utm_medium=github&utm_campaign=CHAVI-India%2Fchavi-prom&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tailwind:build": "npx @tailwindcss/cli -i ./static/src/input.css -o ./static/src/output.css",
+    "tailwind:watch": "npx @tailwindcss/cli -i ./static/src/input.css -o ./static/src/output.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.14",
+    "tailwindcss": "^4.1.14"
+  }
+}

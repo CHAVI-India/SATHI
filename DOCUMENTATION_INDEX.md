@@ -63,6 +63,13 @@ Welcome to the CHAVI-PROM (Patient Reported Outcomes Measurement) system documen
 
 ## 🎨 **UI Components & Templates**
 
+### [Tailwind CSS Setup](./TAILWIND_CSS_SETUP.md)
+**Tailwind CSS v4 integration and build process**
+- NPM setup and configuration
+- Development and production workflows
+- Custom styling and theming
+- Troubleshooting guide
+
 ### Cotton Template Components
 **Reusable UI component library documentation**
 
@@ -139,7 +146,7 @@ Welcome to the CHAVI-PROM (Patient Reported Outcomes Measurement) system documen
 | **Getting Started** | [README.md](./README.md), [system_features.md](./system_features.md) |
 | **Security** | [SECURITY_REMEDIATION.md](./SECURITY_REMEDIATION.md), [RATE_LIMITING_DOCUMENTATION.md](./RATE_LIMITING_DOCUMENTATION.md) |
 | **User Management** | [permission_setup.md](./permission_setup.md), [patientapp/README_INSTITUTION_SECURITY.md](./patientapp/README_INSTITUTION_SECURITY.md) |
-| **UI Components** | [templates/cotton/README_CARDS.md](./templates/cotton/README_CARDS.md), [templates/cotton/README_BUTTONS.md](./templates/cotton/README_BUTTONS.md) |
+| **UI Components** | [TAILWIND_CSS_SETUP.md](./TAILWIND_CSS_SETUP.md), [templates/cotton/README_CARDS.md](./templates/cotton/README_CARDS.md), [templates/cotton/README_BUTTONS.md](./templates/cotton/README_BUTTONS.md) |
 | **Patient Features** | [patient_portal.md](./patient_portal.md), [Result UI for HCP.md](./Result%20UI%20for%20HCP.md) |
 | **Development** | [features_to_be_implemented.md](./features_to_be_implemented.md), [DATE_INTEGRATION_GUIDE.md](./DATE_INTEGRATION_GUIDE.md) |
 

@@ -140,3 +140,10 @@ GitHub.sublime-settings
 !.vscode/extensions.json 
 .history
 logs/django.log.1
+
+# Node / NPM #
+node_modules/
+package-lock.json
+
+# Tailwind CSS compiled output #
+static/src/output.css

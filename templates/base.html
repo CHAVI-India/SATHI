@@ -20,19 +20,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="{{ GOOGLE_FONTS_URL }}" rel="stylesheet">
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // Configure Tailwind to use the dynamic font
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'primary': ['{{ CURRENT_FONT_DISPLAY }}', 'system-ui', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Tailwind CSS v4 - Compiled -->
+    <link rel="stylesheet" href="{% static 'src/output.css' %}">
+    
     <script src="{% static 'django_htmx/htmx.min.js' %}"></script>
     
     <style>
