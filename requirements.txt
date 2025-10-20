@@ -17,7 +17,7 @@ django-debug-toolbar==6.0.0
 django-formtools==2.5.1
 django-google-fonts==0.0.3
 django-htmx==1.26.0
-django-import-export==4.3.10
+django-import-export==4.3.12
 django-parler==2.3
 django-phonenumber-field==8.3.0
 django-pwa==2.0.1
