@@ -35,18 +35,6 @@
         <div id="questionnaires-container" class="w-full overflow-hidden">
           {% include "promapp/partials/questionnaire_list_table.html" %}
         </div>
-        
-        <!-- Pagination -->
-        {% if is_paginated %}
-        <div class="mt-6">
-          <c-paginator 
-            :page_obj="page_obj" 
-            :is_paginated="is_paginated" 
-            show_info="true"
-            show_page_numbers="true"
-            preserve_params="true" />
-        </div>
-        {% endif %}
       {% else %}
         <div class="text-center py-8">
           <p class="text-gray-600 mb-4">{% translate "No questionnaires available yet." %}</p>
