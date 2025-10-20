@@ -127,8 +127,18 @@ Welcome to the CHAVI-PROM (Patient Reported Outcomes Measurement) system documen
 
 ## 🔧 **Development & Maintenance**
 
+### [Deployment Guide](./DEPLOYMENT_GUIDE.md)
+**Complete production deployment documentation**
+- Ubuntu server setup and configuration
+- PostgreSQL database installation
+- Nginx, Gunicorn, and Supervisor setup
+- Tailwind CSS build integration
+- SSL/TLS certificate installation
+- Maintenance and troubleshooting procedures
+
 ### Environment Setup
 - See main [README.md](./README.md) for installation instructions
+- Production deployment: [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
 - Security configuration in [SECURITY_REMEDIATION.md](./SECURITY_REMEDIATION.md)
 - Permission setup in [permission_setup.md](./permission_setup.md)
 
