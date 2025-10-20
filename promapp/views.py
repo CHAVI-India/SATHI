@@ -148,10 +148,19 @@ class QuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
     def get(self, request, *args, **kwargs):
         # Check if this is an HTMX request
         if request.META.get('HTTP_HX_REQUEST'):
-            # If it is an HTMX request, only return the table part
-            self.object_list = self.get_queryset()
-            context = self.get_context_data()
-            html = render_to_string('promapp/partials/questionnaire_list_table.html', context)
+            # For HTMX requests, let Django handle pagination normally
+            # but just return the partial template
+            response = super().get(request, *args, **kwargs)
+            
+            # If the superclass call resulted in a successful response
+            if hasattr(response, 'context_data'):
+                context = response.context_data
+            else:
+                # Fallback to getting context manually
+                context = self.get_context_data()
+            
+            # Render only the table part for HTMX
+            html = render_to_string('promapp/partials/questionnaire_list_table.html', context, request=request)
             return HttpResponse(html)
         
         # Otherwise, return the full page as usual
