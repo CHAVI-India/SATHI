@@ -81,9 +81,10 @@
 
     <!-- Toast Notifications -->
     {% if messages %}
-        <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-3">
+        <div class="fixed top-4 left-0 right-0 z-50 flex flex-col items-center space-y-3 pointer-events-none">
+            <div id="toast-container" class="space-y-3 pointer-events-auto">
             {% for message in messages %}
-                <div class="toast-message bg-white rounded-lg shadow-lg border-l-4 p-4 max-w-sm transform translate-x-full opacity-0 transition-all duration-300 ease-in-out
+                <div class="toast-message bg-white rounded-lg shadow-lg border-l-4 p-4 w-80 sm:w-96 opacity-0 transition-all duration-300 ease-in-out pointer-events-auto
                     {% if message.tags == 'error' %}
                         border-red-500
                     {% elif message.tags == 'warning' %}
@@ -141,14 +142,10 @@
                             </p>
                             <p class="text-sm text-gray-600 mt-1">{{ message }}</p>
                         </div>
-                        <button onclick="dismissToast(this)" class="ml-3 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                            </svg>
-                        </button>
                     </div>
                 </div>
             {% endfor %}
+            </div>
         </div>
     {% endif %}
 
@@ -184,16 +181,18 @@
     {% block extra_js %}{% endblock %}
     <script>
         // Toast notification functionality
-        function dismissToast(button) {
-            const toast = button.closest('.toast-message');
-            toast.style.transform = 'translateX(100%)';
+        function dismissToast(toast) {
+            toast.style.transform = 'scale(0.95)';
             toast.style.opacity = '0';
             setTimeout(() => {
                 toast.remove();
-                // Remove container if no toasts left
+                // Remove containers if no toasts left
                 const container = document.getElementById('toast-container');
                 if (container && container.children.length === 0) {
-                    container.remove();
+                    const wrapper = container.parentElement;
+                    if (wrapper) {
+                        wrapper.remove();
+                    }
                 }
             }, 300);
         }
@@ -201,21 +200,22 @@
         // Auto-show and auto-dismiss toasts
         document.addEventListener('DOMContentLoaded', function() {
             const toasts = document.querySelectorAll('.toast-message');
+            
             toasts.forEach((toast, index) => {
+                // Set initial state
+                toast.style.transform = 'scale(0.95)';
+                
                 // Stagger the appearance of multiple toasts
                 setTimeout(() => {
-                    toast.style.transform = 'translateX(0)';
+                    toast.style.transform = 'scale(1)';
                     toast.style.opacity = '1';
                     
-                    // Auto-dismiss after 5 seconds (except for errors)
-                    const messageType = toast.getAttribute('data-message-type');
-                    if (messageType !== 'error') {
-                        setTimeout(() => {
-                            if (toast.parentNode) { // Check if still exists
-                                dismissToast(toast.querySelector('button'));
-                            }
-                        }, 5000);
-                    }
+                    // Auto-dismiss after 2 seconds
+                    setTimeout(() => {
+                        if (toast.parentNode) { // Check if still exists
+                            dismissToast(toast);
+                        }
+                    }, 2000);
                 }, index * 200); // 200ms delay between each toast
             });
         });

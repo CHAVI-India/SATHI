@@ -816,6 +816,8 @@ class QuestionnaireItem(models.Model):
         item_name = self.item.safe_translation_getter('name', any_language=True) if hasattr(self.item, 'safe_translation_getter') else str(self.item)
         return f"Q{self.question_number}: {item_name}"
 
+
+
 class PatientQuestionnaire(models.Model):
     '''
     Patient Questionnaire model. This is used to store the questionnaire available for a patient.
