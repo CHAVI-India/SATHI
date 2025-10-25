@@ -48,7 +48,7 @@
                         {% translate "Manage Questionnaires" %}
                     </c-link_button>
                     {% endif %}
-                    <c-link_button href="{% url 'prom_review' patient.id %}" variant="info" size="sm">
+                    <c-link_button href="{% url 'prom_review' patient.id %}" variant="info" size="sm" onclick="showPromReviewLoader(event)">
                         {% translate "View Responses" %}
                     </c-link_button>
                     {% else %}

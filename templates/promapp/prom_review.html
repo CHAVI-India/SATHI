@@ -12,6 +12,19 @@
 {% endblock %}
 
 {% block content %}
+<!-- Full-page loading overlay -->
+<div id="page-loader" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-8 max-w-sm mx-4">
+        <div class="flex flex-col items-center">
+            <!-- Spinner -->
+            <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-4"></div>
+            <!-- Loading text -->
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{% translate "Loading PRO Review" %}</h3>
+            <p class="text-sm text-gray-600 text-center">{% translate "Calculating patient responses and aggregated data..." %}</p>
+        </div>
+    </div>
+</div>
+
 <div class="max-w-7xl mx-auto">
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
         <div class="p-6">
@@ -41,7 +54,20 @@
 {{ bokeh_js|safe }}
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
+    // Hide the page loader once the page is fully loaded
     document.addEventListener('DOMContentLoaded', function() {
+        // Hide loader after a short delay to ensure all content is rendered
+        setTimeout(function() {
+            const loader = document.getElementById('page-loader');
+            if (loader) {
+                loader.style.opacity = '0';
+                loader.style.transition = 'opacity 0.3s ease-out';
+                setTimeout(function() {
+                    loader.style.display = 'none';
+                }, 300);
+            }
+        }, 100);
+        
         flatpickr("#submission-date", {
             dateFormat: "Y-m-d",
             altInput: true,
@@ -113,23 +139,7 @@
                 
                 updateSelectedItemsSummary();
                 
-                // Trigger HTMX update using the form elements
-                const inputs = document.querySelectorAll('#item-filter-inputs input, [name="questionnaire_filter"], [name="time_range"], [name="submission_date"], [name="start_date_reference"], [name="time_interval"], [name="aggregation_type"], [name="patient_filter_gender"], [name="patient_filter_diagnosis"], [name="patient_filter_treatment"], [name="patient_filter_min_age"], [name="patient_filter_max_age"], [name="max_time_interval"]');
-                
-                // Create URLSearchParams for the GET request
-                const params = new URLSearchParams();
-                inputs.forEach(input => {
-                    if (input.value && input.value.trim() !== '') {
-                        params.append(input.name, input.value);
-                    }
-                });
-                
-                const url = "{% url 'prom_review' patient.id %}" + '?' + params.toString();
-                
-                htmx.ajax('GET', url, {
-                    target: '#filterable-content',
-                    indicator: '#filters-loading'
-                });
+                // Note: No longer auto-submitting - user must click "Apply Filters" button
             }
         });
 
@@ -391,7 +401,13 @@
             indicatorsInput.type = 'hidden';
             indicatorsInput.id = 'selected-indicators-input';
             indicatorsInput.name = 'selected_indicators';
-            document.body.appendChild(indicatorsInput);
+            // Append to filters form instead of body
+            const filtersForm = document.getElementById('filters-form');
+            if (filtersForm) {
+                filtersForm.appendChild(indicatorsInput);
+            } else {
+                document.body.appendChild(indicatorsInput);
+            }
         }
         
         indicatorsInput.value = JSON.stringify(selectedIndicators);
@@ -399,23 +415,7 @@
         // Store selected indicators in localStorage for persistence
         localStorage.setItem('selected_plot_indicators', JSON.stringify(selectedIndicators));
         
-        // Trigger HTMX update to refresh plots with indicators
-        const inputs = document.querySelectorAll('#item-filter-inputs input, [name="questionnaire_filter"], [name="time_range"], [name="submission_date"], [name="start_date_reference"], [name="time_interval"], [name="aggregation_type"], [name="patient_filter_gender"], [name="patient_filter_diagnosis"], [name="patient_filter_treatment"], [name="patient_filter_min_age"], [name="patient_filter_max_age"], [name="max_time_interval"], [name="selected_indicators"]');
-        
-        // Create URLSearchParams for the GET request
-        const params = new URLSearchParams();
-        inputs.forEach(input => {
-            if (input.value && input.value.trim() !== '') {
-                params.append(input.name, input.value);
-            }
-        });
-        
-        const url = "{% url 'prom_review' patient.id %}" + '?' + params.toString();
-        
-        htmx.ajax('GET', url, {
-            target: '#filterable-content',
-            indicator: '#filters-loading'
-        });
+        // Note: No longer auto-submitting - user must click "Apply Filters" button
     }
 
     // Function to open image in modal (optional enhancement)

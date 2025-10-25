@@ -6,6 +6,19 @@
 {% block title %}{% translate "Patient Details" %}{% endblock %}
 
 {% block content %}
+<!-- Full-page loading overlay for PROM Review navigation -->
+<div id="prom-review-loader" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+    <div class="bg-white rounded-lg shadow-xl p-8 max-w-sm mx-4">
+        <div class="flex flex-col items-center">
+            <!-- Spinner -->
+            <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-4"></div>
+            <!-- Loading text -->
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{% translate "Loading PRO Review" %}</h3>
+            <p class="text-sm text-gray-600 text-center">{% translate "Calculating patient responses and aggregated data..." %}</p>
+        </div>
+    </div>
+</div>
+
 <div class="max-w-6xl mx-auto">
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
     <div class="p-6">
@@ -18,7 +31,7 @@
           </c-link_button>
           {% endif %}
           {# Add View PRO Review button #}
-          <c-view_results_button href="{% url 'prom_review' patient.id %}">
+          <c-view_results_button href="{% url 'prom_review' patient.id %}" onclick="showPromReviewLoader(event)">
             {% translate "View PRO Review" %}
           </c-view_results_button>
           {% if perms.patientapp.change_patient %}
@@ -206,4 +219,17 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Function to show loader when navigating to PROM review
+    function showPromReviewLoader(event) {
+        const loader = document.getElementById('prom-review-loader');
+        if (loader) {
+            loader.style.display = 'flex';
+        }
+        // Allow the default link navigation to proceed
+    }
+</script>
 {% endblock %}
