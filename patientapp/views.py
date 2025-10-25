@@ -435,27 +435,9 @@ def prom_review(request, pk):
                 except (ValueError, TypeError):
                     logger.warning(f"Could not parse previous value for item {response.questionnaire_item.item.id} (Response ID {response.id})")
 
-        # Get historical responses for plotting using the bulk-fetched data
-        try:
-            historical_responses_for_plot = historical_responses_map.get(response.id, [])
-            
-            logger.debug(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): Found {len(historical_responses_for_plot)} historical responses for plot after filtering (submission_count: {submission_count}, max_time_interval: {max_time_interval_value}).")
-
-            if historical_responses_for_plot:
-                response.bokeh_plot = create_item_response_plot(
-                    historical_responses_for_plot, # Pass the filtered and sliced list
-                    response.questionnaire_item.item,
-                    patient,
-                    start_date_reference,
-                    time_interval,
-                    selected_indicators
-                )
-                if not response.bokeh_plot:
-                    logger.warning(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): create_item_response_plot returned None or empty string.")
-            else:
-                logger.info(f"Item {response.questionnaire_item.item.id} (Response ID {response.id}): No historical responses to plot after filtering, setting bokeh_plot to None.")
-        except Exception as e_plot_gen:
-            logger.error(f"Error generating plot for item {response.questionnaire_item.item.id} (Response ID {response.id}): {e_plot_gen}", exc_info=True)
+        # LAZY LOADING: Skip plot generation in main view - plots will be loaded via HTMX
+        # Plots are now generated on-demand by prom_review_item_plot endpoint
+        response.bokeh_plot = None  # Set to None, will be lazy-loaded
     
     logger.info(f"Found {len(item_response_list)} item responses")
     
@@ -644,6 +626,7 @@ def prom_review(request, pk):
         logger.debug(f"Found {len(historical_scores_for_plot)} historical scores for {composite_score.composite_construct_scale.composite_construct_scale_name} plot")
         
         # Create CompositeConstructScoreData object
+        # LAZY LOADING: Skip plot generation in main view
         from patientapp.utils import CompositeConstructScoreData
         composite_score_data = CompositeConstructScoreData(
             composite_construct_scale=composite_score.composite_construct_scale,
@@ -653,7 +636,8 @@ def prom_review(request, pk):
             patient=patient,
             start_date_reference=start_date_reference,
             time_interval=time_interval,
-            selected_indicators=selected_indicators
+            selected_indicators=selected_indicators,
+            generate_plot=False  # Skip plot generation - will be lazy-loaded via HTMX
         )
         
         composite_construct_scores_with_plots.append(composite_score_data)
@@ -777,6 +761,7 @@ def prom_review(request, pk):
                 logger.error(f"Error calculating aggregated data for construct {construct.name}: {e}")
 
         # Create construct score data object
+        # LAZY LOADING: Skip plot generation in main view
         score_data = ConstructScoreData(
             construct=construct, # construct_score.construct
             current_score=construct_score.score, # This is from the main construct_scores list, respecting filters for card display
@@ -788,7 +773,8 @@ def prom_review(request, pk):
             aggregated_statistics=aggregated_statistics,  # Pass aggregated statistics
             aggregation_metadata=aggregation_metadata,  # Pass aggregation metadata
             aggregation_type=aggregation_type,  # Pass aggregation type for tooltips
-            selected_indicators=selected_indicators  # Pass selected indicators for plot display
+            selected_indicators=selected_indicators,  # Pass selected indicators for plot display
+            generate_plot=False  # Skip plot generation - will be lazy-loaded via HTMX
         )
 
         # Categorize as important or other construct
@@ -1125,6 +1111,448 @@ def prom_review(request, pk):
         return render(request, 'promapp/components/main_content.html', context)
     
     return render(request, 'promapp/prom_review.html', context)
+
+
+@login_required
+@permission_required('patientapp.view_patient', raise_exception=True)
+def prom_review_construct_plot(request, pk, construct_id):
+    """HTMX endpoint for lazy-loading a single construct plot with current filters."""
+    logger.info(f"Lazy-loading construct plot for patient {pk}, construct {construct_id}")
+    
+    # Get patient with institution access check
+    patient = get_accessible_patient_or_404(request.user, pk)
+    
+    # Get ALL filter parameters (same as main view)
+    questionnaire_filter = request.GET.get('questionnaire_filter')
+    max_time_interval = request.GET.get('max_time_interval')
+    time_range = request.GET.get('time_range', '5')
+    start_date_reference = request.GET.get('start_date_reference', 'date_of_registration')
+    time_interval = request.GET.get('time_interval', 'weeks')
+    aggregation_type = request.GET.get('aggregation_type', 'median_iqr')
+    patient_filter_gender = request.GET.get('patient_filter_gender')
+    patient_filter_diagnosis = request.GET.get('patient_filter_diagnosis')
+    patient_filter_treatment = request.GET.get('patient_filter_treatment')
+    patient_filter_min_age = request.GET.get('patient_filter_min_age')
+    patient_filter_max_age = request.GET.get('patient_filter_max_age')
+    
+    # Get selected indicators for plot display
+    selected_indicators_param = request.GET.get('selected_indicators')
+    selected_indicators = []
+    if selected_indicators_param:
+        try:
+            import json
+            selected_indicators = json.loads(selected_indicators_param)
+        except (json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Failed to parse selected_indicators parameter: {e}")
+            selected_indicators = []
+    
+    # Convert filters to proper types
+    max_time_interval_value = None
+    if max_time_interval:
+        try:
+            max_time_interval_value = float(max_time_interval)
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid max_time_interval value: {max_time_interval}")
+    
+    min_age_value = None
+    max_age_value = None
+    if patient_filter_min_age:
+        try:
+            min_age_value = int(patient_filter_min_age)
+        except (ValueError, TypeError):
+            pass
+    if patient_filter_max_age:
+        try:
+            max_age_value = int(patient_filter_max_age)
+        except (ValueError, TypeError):
+            pass
+    
+    # Get construct
+    from promapp.models import ConstructScale
+    construct = get_object_or_404(ConstructScale, id=construct_id)
+    
+    # Get patient start date
+    patient_start_date = get_patient_start_date(patient, start_date_reference)
+    
+    # Get submission count
+    from promapp.models import QuestionnaireSubmission
+    submission_count_base_query = QuestionnaireSubmission.objects.filter(patient=patient)
+    
+    if max_time_interval_value is not None and patient_start_date:
+        filtered_submission_ids = []
+        for submission in submission_count_base_query.select_related():
+            interval_value = calculate_time_interval_value(
+                submission.submission_date,
+                patient_start_date,
+                time_interval
+            )
+            if interval_value <= max_time_interval_value:
+                filtered_submission_ids.append(submission.id)
+        submission_count_base_query = submission_count_base_query.filter(id__in=filtered_submission_ids)
+    
+    if time_range == 'all':
+        submission_count = submission_count_base_query.count()
+    else:
+        submission_count = int(time_range)
+        actual_available_count = submission_count_base_query.count()
+        submission_count = min(submission_count, actual_available_count)
+    
+    # Get construct scores for this construct
+    from promapp.models import QuestionnaireConstructScore
+    construct_scores = QuestionnaireConstructScore.objects.filter(
+        construct=construct,
+        questionnaire_submission__patient=patient
+    ).select_related(
+        'questionnaire_submission',
+        'construct'
+    ).order_by('-questionnaire_submission__submission_date')
+    
+    # Apply questionnaire filter if specified
+    if questionnaire_filter:
+        construct_scores = construct_scores.filter(
+            questionnaire_submission__patient_questionnaire__questionnaire_id=questionnaire_filter
+        )
+    
+    # Apply max time interval filter if specified
+    if max_time_interval_value is not None and patient_start_date:
+        filtered_score_ids = []
+        for score in construct_scores:
+            interval_value = calculate_time_interval_value(
+                score.questionnaire_submission.submission_date,
+                patient_start_date,
+                time_interval
+            )
+            if interval_value <= max_time_interval_value:
+                filtered_score_ids.append(score.id)
+        construct_scores = construct_scores.filter(id__in=filtered_score_ids)
+    
+    # Take only submission_count most recent
+    historical_scores = list(construct_scores[:submission_count])
+    
+    # Filter out scores with negative time intervals
+    if patient_start_date:
+        historical_scores = filter_positive_intervals_construct(
+            historical_scores, patient_start_date, time_interval
+        )
+    
+    # Get aggregated patients
+    aggregated_patients = get_filtered_patients_for_aggregation(
+        exclude_patient=patient,
+        patient_filter_gender=patient_filter_gender,
+        patient_filter_diagnosis=patient_filter_diagnosis,
+        patient_filter_treatment=patient_filter_treatment,
+        patient_filter_min_age=min_age_value,
+        patient_filter_max_age=max_age_value
+    )
+    
+    # Calculate aggregated statistics
+    aggregated_statistics = None
+    aggregation_metadata = None
+    if aggregated_patients and historical_scores:
+        try:
+            from patientapp.utils import (
+                aggregate_construct_scores_by_time_interval,
+                calculate_aggregation_statistics,
+                get_patient_start_date_for_aggregation
+            )
+            
+            # Get reference time intervals
+            reference_intervals = []
+            for score_obj in historical_scores:
+                interval_value = calculate_time_interval_value(
+                    score_obj.questionnaire_submission.submission_date,
+                    patient_start_date,
+                    time_interval
+                )
+                if interval_value not in reference_intervals:
+                    reference_intervals.append(interval_value)
+            reference_intervals.sort()
+            
+            # Check patients with requested start date type
+            patients_with_requested_start_date = 0
+            for agg_patient in aggregated_patients:
+                patient_start_date_agg = get_patient_start_date_for_aggregation(agg_patient, start_date_reference)
+                if patient_start_date_agg:
+                    patients_with_requested_start_date += 1
+            
+            if patients_with_requested_start_date > 0:
+                aggregated_data, aggregation_metadata = aggregate_construct_scores_by_time_interval(
+                    construct=construct,
+                    patients_queryset=aggregated_patients,
+                    start_date_reference=start_date_reference,
+                    time_interval=time_interval,
+                    max_time_interval_filter=max_time_interval_value,
+                    reference_time_intervals=reference_intervals
+                )
+                
+                if aggregated_data:
+                    aggregated_statistics = calculate_aggregation_statistics(
+                        aggregated_data, aggregation_type
+                    )
+        except Exception as e:
+            logger.error(f"Error calculating aggregated data for construct {construct.name}: {e}")
+    
+    # Get current and previous scores
+    current_score = historical_scores[0].score if historical_scores else None
+    previous_score = historical_scores[1].score if len(historical_scores) > 1 else None
+    
+    # Create construct score data object
+    score_data = ConstructScoreData(
+        construct=construct,
+        current_score=current_score,
+        previous_score=previous_score,
+        historical_scores=historical_scores,
+        patient=patient,
+        start_date_reference=start_date_reference,
+        time_interval=time_interval,
+        aggregated_statistics=aggregated_statistics,
+        aggregation_metadata=aggregation_metadata,
+        aggregation_type=aggregation_type,
+        selected_indicators=selected_indicators
+    )
+    
+    context = {
+        'score_data': score_data,
+    }
+    
+    return render(request, 'promapp/partials/construct_plot.html', context)
+
+
+@login_required
+@permission_required('patientapp.view_patient', raise_exception=True)
+def prom_review_composite_plot(request, pk, composite_id):
+    """HTMX endpoint for lazy-loading a single composite construct plot with current filters."""
+    logger.info(f"Lazy-loading composite plot for patient {pk}, composite {composite_id}")
+    
+    # Get patient with institution access check
+    patient = get_accessible_patient_or_404(request.user, pk)
+    
+    # Get filter parameters
+    max_time_interval = request.GET.get('max_time_interval')
+    time_range = request.GET.get('time_range', '5')
+    start_date_reference = request.GET.get('start_date_reference', 'date_of_registration')
+    time_interval = request.GET.get('time_interval', 'weeks')
+    
+    # Get selected indicators for plot display
+    selected_indicators_param = request.GET.get('selected_indicators')
+    selected_indicators = []
+    if selected_indicators_param:
+        try:
+            import json
+            selected_indicators = json.loads(selected_indicators_param)
+        except (json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Failed to parse selected_indicators parameter: {e}")
+            selected_indicators = []
+    
+    # Convert filters
+    max_time_interval_value = None
+    if max_time_interval:
+        try:
+            max_time_interval_value = float(max_time_interval)
+        except (ValueError, TypeError):
+            pass
+    
+    # Get composite construct scale
+    from promapp.models import CompositeConstructScaleScoring
+    composite_scale = get_object_or_404(CompositeConstructScaleScoring, id=composite_id)
+    
+    # Get patient start date
+    patient_start_date = get_patient_start_date(patient, start_date_reference)
+    
+    # Get submission count
+    from promapp.models import QuestionnaireSubmission
+    submission_count_base_query = QuestionnaireSubmission.objects.filter(patient=patient)
+    
+    if max_time_interval_value is not None and patient_start_date:
+        filtered_submission_ids = []
+        for submission in submission_count_base_query.select_related():
+            interval_value = calculate_time_interval_value(
+                submission.submission_date,
+                patient_start_date,
+                time_interval
+            )
+            if interval_value <= max_time_interval_value:
+                filtered_submission_ids.append(submission.id)
+        submission_count_base_query = submission_count_base_query.filter(id__in=filtered_submission_ids)
+    
+    if time_range == 'all':
+        submission_count = submission_count_base_query.count()
+    else:
+        submission_count = int(time_range)
+        actual_available_count = submission_count_base_query.count()
+        submission_count = min(submission_count, actual_available_count)
+    
+    # Get composite construct scores
+    from promapp.models import QuestionnaireConstructScoreComposite
+    composite_scores = QuestionnaireConstructScoreComposite.objects.filter(
+        composite_construct_scale=composite_scale,
+        questionnaire_submission__patient=patient
+    ).select_related(
+        'questionnaire_submission',
+        'composite_construct_scale'
+    ).order_by('-questionnaire_submission__submission_date')
+    
+    # Apply max time interval filter if specified
+    if max_time_interval_value is not None and patient_start_date:
+        filtered_score_ids = []
+        for score in composite_scores:
+            interval_value = calculate_time_interval_value(
+                score.questionnaire_submission.submission_date,
+                patient_start_date,
+                time_interval
+            )
+            if interval_value <= max_time_interval_value:
+                filtered_score_ids.append(score.id)
+        composite_scores = composite_scores.filter(id__in=filtered_score_ids)
+    
+    # Take only submission_count most recent
+    historical_scores = list(composite_scores[:submission_count])
+    
+    # Filter out scores with negative time intervals
+    if patient_start_date:
+        from patientapp.utils import filter_positive_intervals_composite
+        historical_scores = filter_positive_intervals_composite(
+            historical_scores, patient_start_date, time_interval
+        )
+    
+    # Get current and previous scores
+    current_score = historical_scores[0].score if historical_scores else None
+    previous_score = historical_scores[1].score if len(historical_scores) > 1 else None
+    
+    # Create composite score data object
+    from patientapp.utils import CompositeConstructScoreData
+    score_data = CompositeConstructScoreData(
+        composite_construct_scale=composite_scale,
+        current_score=current_score,
+        previous_score=previous_score,
+        historical_scores=historical_scores,
+        patient=patient,
+        start_date_reference=start_date_reference,
+        time_interval=time_interval,
+        selected_indicators=selected_indicators
+    )
+    
+    context = {
+        'score_data': score_data,
+    }
+    
+    return render(request, 'promapp/partials/construct_plot.html', context)
+
+
+@login_required
+@permission_required('patientapp.view_patient', raise_exception=True)
+def prom_review_item_plot(request, pk, item_id):
+    """HTMX endpoint for lazy-loading a single item plot with current filters."""
+    logger.info(f"Lazy-loading item plot for patient {pk}, item {item_id}")
+    
+    # Get patient with institution access check
+    patient = get_accessible_patient_or_404(request.user, pk)
+    
+    # Get filter parameters
+    max_time_interval = request.GET.get('max_time_interval')
+    time_range = request.GET.get('time_range', '5')
+    start_date_reference = request.GET.get('start_date_reference', 'date_of_registration')
+    time_interval = request.GET.get('time_interval', 'weeks')
+    
+    # Get selected indicators for plot display
+    selected_indicators_param = request.GET.get('selected_indicators')
+    selected_indicators = []
+    if selected_indicators_param:
+        try:
+            import json
+            selected_indicators = json.loads(selected_indicators_param)
+        except (json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Failed to parse selected_indicators parameter: {e}")
+            selected_indicators = []
+    
+    # Convert filters
+    max_time_interval_value = None
+    if max_time_interval:
+        try:
+            max_time_interval_value = float(max_time_interval)
+        except (ValueError, TypeError):
+            pass
+    
+    # Get item
+    from promapp.models import Item
+    item = get_object_or_404(Item, id=item_id)
+    
+    # Get patient start date
+    patient_start_date = get_patient_start_date(patient, start_date_reference)
+    
+    # Get submission count
+    from promapp.models import QuestionnaireSubmission
+    submission_count_base_query = QuestionnaireSubmission.objects.filter(patient=patient)
+    
+    if max_time_interval_value is not None and patient_start_date:
+        filtered_submission_ids = []
+        for submission in submission_count_base_query.select_related():
+            interval_value = calculate_time_interval_value(
+                submission.submission_date,
+                patient_start_date,
+                time_interval
+            )
+            if interval_value <= max_time_interval_value:
+                filtered_submission_ids.append(submission.id)
+        submission_count_base_query = submission_count_base_query.filter(id__in=filtered_submission_ids)
+    
+    if time_range == 'all':
+        submission_count = submission_count_base_query.count()
+    else:
+        submission_count = int(time_range)
+        actual_available_count = submission_count_base_query.count()
+        submission_count = min(submission_count, actual_available_count)
+    
+    # Get item responses for this item
+    from promapp.models import QuestionnaireItemResponse
+    item_responses = QuestionnaireItemResponse.objects.filter(
+        questionnaire_item__item=item,
+        questionnaire_submission__patient=patient
+    ).select_related(
+        'questionnaire_submission',
+        'questionnaire_item'
+    ).order_by('-questionnaire_submission__submission_date')
+    
+    # Apply max time interval filter if specified
+    if max_time_interval_value is not None and patient_start_date:
+        filtered_response_ids = []
+        for response in item_responses:
+            interval_value = calculate_time_interval_value(
+                response.questionnaire_submission.submission_date,
+                patient_start_date,
+                time_interval
+            )
+            if interval_value <= max_time_interval_value:
+                filtered_response_ids.append(response.id)
+        item_responses = item_responses.filter(id__in=filtered_response_ids)
+    
+    # Take only submission_count most recent
+    historical_responses = list(item_responses[:submission_count])
+    
+    # Filter out responses with negative time intervals
+    if patient_start_date:
+        historical_responses = filter_positive_intervals(
+            historical_responses, patient_start_date, time_interval
+        )
+    
+    # Generate plot
+    bokeh_plot = None
+    if historical_responses:
+        bokeh_plot = create_item_response_plot(
+            historical_responses,
+            item,
+            patient,
+            start_date_reference,
+            time_interval,
+            selected_indicators
+        )
+    
+    context = {
+        'bokeh_plot': bokeh_plot,
+        'item': item,
+    }
+    
+    return render(request, 'promapp/partials/item_plot.html', context)
 
 
 @login_required

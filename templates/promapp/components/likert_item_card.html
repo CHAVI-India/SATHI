@@ -35,7 +35,16 @@
 {% endblock %}
 
 {% block item_plot %}
-<div class="mt-4 plot-container" id="plot-item-{{ item_response.questionnaire_item.item.id }}" style="min-height: 280px;">
-    {{ item_response.bokeh_plot|safe }}
+<div class="mt-4 plot-container" 
+     id="plot-item-{{ item_response.questionnaire_item.item.id }}" 
+     style="min-height: 280px;"
+     hx-get="{% url 'prom_review_item_plot' patient.id item_response.questionnaire_item.item.id %}?{{ request.GET.urlencode }}"
+     hx-trigger="revealed"
+     hx-swap="innerHTML">
+    <!-- Loading placeholder -->
+    <div class="flex items-center justify-center h-64">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
+        <span class="ml-2 text-sm text-gray-600">{% translate "Loading item plot..." %}</span>
+    </div>
 </div>
 {% endblock %} 

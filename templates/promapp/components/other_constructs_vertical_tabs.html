@@ -99,9 +99,18 @@
                         {% endif %}
                     </div>
                     
-                    <!-- Plot -->
-                    <div class="plot-container mb-3 bg-white rounded p-2" id="plot-{{ construct_score.construct.id }}" style="max-height: 280px; overflow: hidden;">
-                        {{ construct_score.bokeh_plot|safe }}
+                    <!-- Plot - Lazy Loaded -->
+                    <div class="plot-container mb-3 bg-white rounded p-2" 
+                         id="plot-{{ construct_score.construct.id }}" 
+                         style="max-height: 280px; overflow: hidden;"
+                         hx-get="{% url 'prom_review_construct_plot' patient.id construct_score.construct.id %}?{{ request.GET.urlencode }}"
+                         hx-trigger="revealed"
+                         hx-swap="innerHTML">
+                        <!-- Loading placeholder -->
+                        <div class="flex items-center justify-center h-64">
+                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+                            <span class="ml-3 text-gray-600">{% translate "Loading plot..." %}</span>
+                        </div>
                     </div>
                     
                     <!-- Threshold and Normative Information -->

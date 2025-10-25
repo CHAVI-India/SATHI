@@ -403,7 +403,7 @@ class ConstructScoreData:
                  previous_score: Optional[Decimal], historical_scores: List[QuestionnaireConstructScore],
                  patient=None, start_date_reference='date_of_registration', time_interval='weeks',
                  aggregated_statistics=None, aggregation_metadata=None, aggregation_type='median_iqr',
-                 selected_indicators=None):
+                 selected_indicators=None, generate_plot=True):
         self.construct = construct
         self.score = current_score
         self.previous_score = previous_score
@@ -415,7 +415,8 @@ class ConstructScoreData:
         self.aggregation_metadata = aggregation_metadata or {}
         self.aggregation_type = aggregation_type
         self.selected_indicators = selected_indicators or []
-        self.bokeh_plot = self._create_bokeh_plot(historical_scores)
+        # LAZY LOADING: Only generate plot if explicitly requested
+        self.bokeh_plot = self._create_bokeh_plot(historical_scores) if generate_plot else None
         
         # Generate clinical significance explanations
         self.current_score_explanation = self._generate_current_score_explanation()
@@ -1138,7 +1139,7 @@ class CompositeConstructScoreData:
     def __init__(self, composite_construct_scale, current_score: Optional[Decimal],
                  previous_score: Optional[Decimal], historical_scores: List,
                  patient=None, start_date_reference='date_of_registration', time_interval='weeks',
-                 selected_indicators=None):
+                 selected_indicators=None, generate_plot=True):
         self.composite_construct_scale = composite_construct_scale
         self.score = current_score
         self.previous_score = previous_score
@@ -1147,7 +1148,8 @@ class CompositeConstructScoreData:
         self.start_date_reference = start_date_reference
         self.time_interval = time_interval
         self.selected_indicators = selected_indicators or []
-        self.bokeh_plot = self._create_bokeh_plot(historical_scores)
+        # LAZY LOADING: Only generate plot if explicitly requested
+        self.bokeh_plot = self._create_bokeh_plot(historical_scores) if generate_plot else None
         
         logger.info(f"Created CompositeConstructScoreData for {composite_construct_scale.composite_construct_scale_name}: score={current_score}, previous={previous_score}")
 

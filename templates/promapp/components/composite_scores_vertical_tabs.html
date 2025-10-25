@@ -104,9 +104,18 @@
                         </span>
                     </div>
                     
-                    <!-- Plot -->
-                    <div class="plot-container mb-3 bg-white rounded p-2" id="composite-plot-{{ score_data.composite_construct_scale.id }}" style="max-height: 280px; overflow: hidden;">
-                        {{ score_data.bokeh_plot|safe }}
+                    <!-- Plot - Lazy Loaded -->
+                    <div class="plot-container mb-3 bg-white rounded p-2" 
+                         id="composite-plot-{{ score_data.composite_construct_scale.id }}" 
+                         style="max-height: 280px; overflow: hidden;"
+                         hx-get="{% url 'prom_review_composite_plot' patient.id score_data.composite_construct_scale.id %}?{{ request.GET.urlencode }}"
+                         hx-trigger="revealed"
+                         hx-swap="innerHTML">
+                        <!-- Loading placeholder -->
+                        <div class="flex items-center justify-center h-64">
+                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                            <span class="ml-3 text-gray-600">{% translate "Loading plot..." %}</span>
+                        </div>
                     </div>
                     
                     <!-- Threshold and Normative Information -->
