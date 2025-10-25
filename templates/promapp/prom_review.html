@@ -33,7 +33,17 @@
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">{% translate "PRO Review" %}</h1>
                 </div>
+                <a href="{% url 'patient_list' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    {% translate "Back to Patient List" %}
+                </a>
             </div>
+
+            <!-- Help Card -->
+            {% include 'promapp/components/help_card.html' %}
 
             <!-- Filters Section (outside of main-content to prevent replacement) -->
             {% include "promapp/components/filters_section.html" %}
@@ -415,7 +425,172 @@
         // Store selected indicators in localStorage for persistence
         localStorage.setItem('selected_plot_indicators', JSON.stringify(selectedIndicators));
         
-        // Note: No longer auto-submitting - user must click "Apply Filters" button
+        // Note: No longer auto-submitting - user must click "Apply Plot Indicators" button
+    }
+
+    // Function to filter by questionnaire from questionnaire overview
+    function filterByQuestionnaire(questionnaireId) {
+        const loader = document.getElementById('filter-loader');
+        
+        // Show loader
+        if (loader) {
+            loader.style.display = 'flex';
+        }
+        
+        // Get current filter values from the form
+        const form = document.getElementById('filters-form');
+        const formData = form ? new FormData(form) : new FormData();
+        const params = new URLSearchParams();
+        
+        // Add all form fields to params
+        for (let [key, value] of formData.entries()) {
+            if (value && value.trim() !== '') {
+                params.append(key, value);
+            }
+        }
+        
+        // Add or update questionnaire filter
+        params.set('questionnaire_filter', questionnaireId);
+        
+        // Build URL with parameters
+        const url = "{% url 'prom_review' patient.id %}" + '?' + params.toString();
+        
+        // Make HTMX request
+        htmx.ajax('GET', url, {
+            target: '#filterable-content',
+            swap: 'innerHTML'
+        }).then(function() {
+            // Hide loader after content is loaded
+            if (loader) {
+                setTimeout(function() {
+                    loader.style.opacity = '0';
+                    loader.style.transition = 'opacity 0.3s ease-out';
+                    setTimeout(function() {
+                        loader.style.display = 'none';
+                        loader.style.opacity = '1';
+                    }, 300);
+                }, 100);
+            }
+        }).catch(function() {
+            // Hide loader on error
+            if (loader) {
+                loader.style.display = 'none';
+            }
+        });
+    }
+
+    // Function to clear questionnaire filter
+    function clearQuestionnaireFilter() {
+        const loader = document.getElementById('filter-loader');
+        
+        // Show loader
+        if (loader) {
+            loader.style.display = 'flex';
+        }
+        
+        // Get current filter values from the form
+        const form = document.getElementById('filters-form');
+        const formData = form ? new FormData(form) : new FormData();
+        const params = new URLSearchParams();
+        
+        // Add all form fields to params except questionnaire_filter
+        for (let [key, value] of formData.entries()) {
+            if (key !== 'questionnaire_filter' && value && value.trim() !== '') {
+                params.append(key, value);
+            }
+        }
+        
+        // Build URL with parameters
+        const url = "{% url 'prom_review' patient.id %}" + '?' + params.toString();
+        
+        // Make HTMX request
+        htmx.ajax('GET', url, {
+            target: '#filterable-content',
+            swap: 'innerHTML'
+        }).then(function() {
+            // Hide loader after content is loaded
+            if (loader) {
+                setTimeout(function() {
+                    loader.style.opacity = '0';
+                    loader.style.transition = 'opacity 0.3s ease-out';
+                    setTimeout(function() {
+                        loader.style.display = 'none';
+                        loader.style.opacity = '1';
+                    }, 300);
+                }, 100);
+            }
+        }).catch(function() {
+            // Hide loader on error
+            if (loader) {
+                loader.style.display = 'none';
+            }
+        });
+    }
+
+    // Function to apply plot indicators manually
+    function applyPlotIndicators() {
+        const loader = document.getElementById('filter-loader');
+        
+        // Show loader
+        if (loader) {
+            loader.style.display = 'flex';
+        }
+        
+        // Collect all selected indicators
+        const selectedIndicators = [];
+        const checkboxes = document.querySelectorAll('.plot-indicator-checkbox:checked');
+        
+        checkboxes.forEach(checkbox => {
+            selectedIndicators.push({
+                type: checkbox.dataset.type,
+                id: checkbox.dataset.id,
+                date: checkbox.dataset.date,
+                label: checkbox.dataset.label
+            });
+        });
+        
+        // Get current filter values from the form
+        const form = document.getElementById('filters-form');
+        const formData = form ? new FormData(form) : new FormData();
+        const params = new URLSearchParams();
+        
+        // Add all form fields to params
+        for (let [key, value] of formData.entries()) {
+            if (value && value.trim() !== '') {
+                params.append(key, value);
+            }
+        }
+        
+        // Add selected indicators
+        if (selectedIndicators.length > 0) {
+            params.append('selected_indicators', JSON.stringify(selectedIndicators));
+        }
+        
+        // Build URL with parameters
+        const url = "{% url 'prom_review' patient.id %}" + '?' + params.toString();
+        
+        // Make HTMX request
+        htmx.ajax('GET', url, {
+            target: '#filterable-content',
+            swap: 'innerHTML'
+        }).then(function() {
+            // Hide loader after content is loaded
+            if (loader) {
+                setTimeout(function() {
+                    loader.style.opacity = '0';
+                    loader.style.transition = 'opacity 0.3s ease-out';
+                    setTimeout(function() {
+                        loader.style.display = 'none';
+                        loader.style.opacity = '1';
+                    }, 300);
+                }, 100);
+            }
+        }).catch(function() {
+            // Hide loader on error
+            if (loader) {
+                loader.style.display = 'none';
+            }
+        });
     }
 
     // Function to open image in modal (optional enhancement)

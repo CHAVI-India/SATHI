@@ -171,92 +171,6 @@
                     {% translate " dotted lines with error bars on plots" %}
                 </span>
             </div>
-            
-            <!-- Patient Contribution Details (Collapsible) -->
-            {% if aggregation_metadata.patient_details %}
-            <div class="pt-4 border-t border-gray-200">
-                <button 
-                    id="toggle-patient-details"
-                    class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-800 transition-colors duration-200 w-full justify-between p-2 rounded-lg hover:bg-gray-50"
-                    onclick="togglePatientDetails()"
-                >
-                    <div class="flex items-center gap-2">
-                        <svg id="chevron-icon" class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                        {% translate "Patient Contribution Details" %}
-                    </div>
-                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                        {{ aggregation_metadata.contributing_patients }} of {{ aggregation_metadata.total_eligible_patients }} contributing
-                    </span>
-                </button>
-                
-                <div id="patient-details" class="hidden mt-3 space-y-3">
-                    <!-- Contributing Patients -->
-                    {% if aggregation_metadata.patient_details.contributing %}
-                    <div class="bg-green-50 rounded-lg p-3 border border-green-100">
-                        <h5 class="text-sm font-semibold text-green-800 mb-2 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            {% translate "Contributing Patients" %}
-                            <span class="text-xs bg-green-200 text-green-700 px-2 py-1 rounded-full">
-                                {{ aggregation_metadata.patient_details.contributing|length }}
-                            </span>
-                        </h5>
-                        <div class="space-y-2">
-                            {% for patient_detail in aggregation_metadata.patient_details.contributing %}
-                            <div class="flex items-center justify-between p-2 bg-white rounded border border-green-200">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span class="text-sm font-medium">{{ patient_detail.patient_name }}</span>
-                                    <span class="text-xs text-gray-500">({{ patient_detail.patient_id }})</span>
-                                </div>
-                                <div class="text-xs text-gray-600">
-                                    <span class="font-medium">{{ patient_detail.responses_count }}</span> response{{ patient_detail.responses_count|pluralize }}
-                                    {% if patient_detail.time_range %}
-                                        <span class="ml-1 text-gray-500">
-                                            ({{ patient_detail.time_range }} {{ aggregation_metadata.time_interval_unit }})
-                                        </span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Non-Contributing Patients -->
-                    {% if aggregation_metadata.patient_details.non_contributing %}
-                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                        <h5 class="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L5.636 5.636"></path>
-                            </svg>
-                            {% translate "Non-Contributing Patients" %}
-                            <span class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
-                                {{ aggregation_metadata.patient_details.non_contributing|length }}
-                            </span>
-                        </h5>
-                        <div class="space-y-2">
-                            {% for patient_detail in aggregation_metadata.patient_details.non_contributing %}
-                            <div class="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
-                                    <span class="text-sm font-medium text-gray-600">{{ patient_detail.patient_name }}</span>
-                                    <span class="text-xs text-gray-500">({{ patient_detail.patient_id }})</span>
-                                </div>
-                                <div class="text-xs text-gray-500">
-                                    {{ patient_detail.exclusion_reason }}
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
         </div>
         {% endif %}
     </div>
@@ -273,19 +187,6 @@ function togglePopulationComparison() {
         chevron.classList.add('rotate-90');
     } else {
         content.classList.add('hidden');
-        chevron.classList.remove('rotate-90');
-    }
-}
-
-function togglePatientDetails() {
-    const details = document.getElementById('patient-details');
-    const chevron = document.getElementById('chevron-icon');
-    
-    if (details.classList.contains('hidden')) {
-        details.classList.remove('hidden');
-        chevron.classList.add('rotate-90');
-    } else {
-        details.classList.add('hidden');
         chevron.classList.remove('rotate-90');
     }
 }
