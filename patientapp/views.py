@@ -25,9 +25,13 @@ from .utils import (
 import logging
 from bokeh.resources import CDN
 from patientapp.utils import get_filtered_patients_for_aggregation
+from django.core.cache import cache
+import hashlib
+import json
 
 
 logger = logging.getLogger(__name__)
+cache_logger = logging.getLogger('cache_performance')
 
 # Create your views here.
 
@@ -1197,43 +1201,58 @@ def prom_review_construct_plot(request, pk, construct_id):
         actual_available_count = submission_count_base_query.count()
         submission_count = min(submission_count, actual_available_count)
     
-    # Get construct scores for this construct
+    # Get construct scores for this construct with caching
     from promapp.models import QuestionnaireConstructScore
-    construct_scores = QuestionnaireConstructScore.objects.filter(
-        construct=construct,
-        questionnaire_submission__patient=patient
-    ).select_related(
-        'questionnaire_submission',
-        'construct'
-    ).order_by('-questionnaire_submission__submission_date')
     
-    # Apply questionnaire filter if specified
-    if questionnaire_filter:
-        construct_scores = construct_scores.filter(
-            questionnaire_submission__patient_questionnaire__questionnaire_id=questionnaire_filter
-        )
+    # Generate cache key for historical scores (patient-specific)
+    scores_cache_key = f"scores_{str(pk)}_{str(construct_id)}_{questionnaire_filter or 'all'}_{time_range}_{str(max_time_interval_value) if max_time_interval_value else 'none'}"
     
-    # Apply max time interval filter if specified
-    if max_time_interval_value is not None and patient_start_date:
-        filtered_score_ids = []
-        for score in construct_scores:
-            interval_value = calculate_time_interval_value(
-                score.questionnaire_submission.submission_date,
-                patient_start_date,
-                time_interval
+    # Try to get from cache
+    historical_scores = cache.get(scores_cache_key)
+    if historical_scores:
+        cache_logger.info(f"Cache HIT for construct scores: {scores_cache_key}")
+    else:
+        cache_logger.info(f"Cache MISS for construct scores: {scores_cache_key}")
+        
+        construct_scores = QuestionnaireConstructScore.objects.filter(
+            construct=construct,
+            questionnaire_submission__patient=patient
+        ).select_related(
+            'questionnaire_submission',
+            'construct'
+        ).order_by('-questionnaire_submission__submission_date')
+        
+        # Apply questionnaire filter if specified
+        if questionnaire_filter:
+            construct_scores = construct_scores.filter(
+                questionnaire_submission__patient_questionnaire__questionnaire_id=questionnaire_filter
             )
-            if interval_value <= max_time_interval_value:
-                filtered_score_ids.append(score.id)
-        construct_scores = construct_scores.filter(id__in=filtered_score_ids)
-    
-    # Take only submission_count most recent
-    historical_scores = list(construct_scores[:submission_count])
-    
-    # Filter out scores with negative time intervals
-    if patient_start_date:
-        historical_scores = filter_positive_intervals_construct(
-            historical_scores, patient_start_date, time_interval
-        )
+        
+        # Apply max time interval filter if specified
+        if max_time_interval_value is not None and patient_start_date:
+            filtered_score_ids = []
+            for score in construct_scores:
+                interval_value = calculate_time_interval_value(
+                    score.questionnaire_submission.submission_date,
+                    patient_start_date,
+                    time_interval
+                )
+                if interval_value <= max_time_interval_value:
+                    filtered_score_ids.append(score.id)
+            construct_scores = construct_scores.filter(id__in=filtered_score_ids)
+        
+        # Take only submission_count most recent
+        historical_scores = list(construct_scores[:submission_count])
+        
+        # Filter out scores with negative time intervals
+        if patient_start_date:
+            historical_scores = filter_positive_intervals_construct(
+                historical_scores, patient_start_date, time_interval
+            )
+        
+        # Cache the result for 5 minutes (300 seconds)
+        cache.set(scores_cache_key, historical_scores, 300)
+        cache_logger.info(f"Cached construct scores: {scores_cache_key} (TTL: 5 min)")
     
     # Get aggregated patients
     aggregated_patients = get_filtered_patients_for_aggregation(
@@ -1245,7 +1264,7 @@ def prom_review_construct_plot(request, pk, construct_id):
         patient_filter_max_age=max_age_value
     )
     
-    # Calculate aggregated statistics
+    # Calculate aggregated statistics with caching
     aggregated_statistics = None
     aggregation_metadata = None
     if aggregated_patients and historical_scores:
@@ -1256,39 +1275,72 @@ def prom_review_construct_plot(request, pk, construct_id):
                 get_patient_start_date_for_aggregation
             )
             
-            # Get reference time intervals
-            reference_intervals = []
-            for score_obj in historical_scores:
-                interval_value = calculate_time_interval_value(
-                    score_obj.questionnaire_submission.submission_date,
-                    patient_start_date,
-                    time_interval
-                )
-                if interval_value not in reference_intervals:
-                    reference_intervals.append(interval_value)
-            reference_intervals.sort()
+            # Generate cache key for aggregation (population-level, not patient-specific)
+            cache_key_params = {
+                'construct_id': str(construct_id),
+                'start_date_ref': start_date_reference,
+                'time_interval': time_interval,
+                'agg_type': aggregation_type,
+                'gender': patient_filter_gender or 'all',
+                'diagnosis': patient_filter_diagnosis or 'all',
+                'treatment': patient_filter_treatment or 'all',
+                'min_age': str(min_age_value) if min_age_value else 'none',
+                'max_age': str(max_age_value) if max_age_value else 'none',
+                'max_time_int': str(max_time_interval_value) if max_time_interval_value else 'none',
+            }
+            cache_key_base = json.dumps(cache_key_params, sort_keys=True)
+            cache_key_hash = hashlib.md5(cache_key_base.encode()).hexdigest()
+            cache_key = f"agg_{cache_key_hash}"
             
-            # Check patients with requested start date type
-            patients_with_requested_start_date = 0
-            for agg_patient in aggregated_patients:
-                patient_start_date_agg = get_patient_start_date_for_aggregation(agg_patient, start_date_reference)
-                if patient_start_date_agg:
-                    patients_with_requested_start_date += 1
-            
-            if patients_with_requested_start_date > 0:
-                aggregated_data, aggregation_metadata = aggregate_construct_scores_by_time_interval(
-                    construct=construct,
-                    patients_queryset=aggregated_patients,
-                    start_date_reference=start_date_reference,
-                    time_interval=time_interval,
-                    max_time_interval_filter=max_time_interval_value,
-                    reference_time_intervals=reference_intervals
-                )
+            # Try to get from cache
+            cached_result = cache.get(cache_key)
+            if cached_result:
+                cache_logger.info(f"Cache HIT for aggregation: {cache_key} (construct: {construct.name})")
+                aggregated_statistics = cached_result.get('statistics')
+                aggregation_metadata = cached_result.get('metadata')
+            else:
+                cache_logger.info(f"Cache MISS for aggregation: {cache_key} (construct: {construct.name})")
                 
-                if aggregated_data:
-                    aggregated_statistics = calculate_aggregation_statistics(
-                        aggregated_data, aggregation_type
+                # Get reference time intervals
+                reference_intervals = []
+                for score_obj in historical_scores:
+                    interval_value = calculate_time_interval_value(
+                        score_obj.questionnaire_submission.submission_date,
+                        patient_start_date,
+                        time_interval
                     )
+                    if interval_value not in reference_intervals:
+                        reference_intervals.append(interval_value)
+                reference_intervals.sort()
+                
+                # Check patients with requested start date type
+                patients_with_requested_start_date = 0
+                for agg_patient in aggregated_patients:
+                    patient_start_date_agg = get_patient_start_date_for_aggregation(agg_patient, start_date_reference)
+                    if patient_start_date_agg:
+                        patients_with_requested_start_date += 1
+                
+                if patients_with_requested_start_date > 0:
+                    aggregated_data, aggregation_metadata = aggregate_construct_scores_by_time_interval(
+                        construct=construct,
+                        patients_queryset=aggregated_patients,
+                        start_date_reference=start_date_reference,
+                        time_interval=time_interval,
+                        max_time_interval_filter=max_time_interval_value,
+                        reference_time_intervals=reference_intervals
+                    )
+                    
+                    if aggregated_data:
+                        aggregated_statistics = calculate_aggregation_statistics(
+                            aggregated_data, aggregation_type
+                        )
+                        
+                        # Cache the result for 1 hour (3600 seconds)
+                        cache.set(cache_key, {
+                            'statistics': aggregated_statistics,
+                            'metadata': aggregation_metadata
+                        }, 3600)
+                        cache_logger.info(f"Cached aggregation result: {cache_key} (TTL: 1 hour)")
         except Exception as e:
             logger.error(f"Error calculating aggregated data for construct {construct.name}: {e}")
     
@@ -1382,38 +1434,53 @@ def prom_review_composite_plot(request, pk, composite_id):
         actual_available_count = submission_count_base_query.count()
         submission_count = min(submission_count, actual_available_count)
     
-    # Get composite construct scores
+    # Get composite construct scores with caching
     from promapp.models import QuestionnaireConstructScoreComposite
-    composite_scores = QuestionnaireConstructScoreComposite.objects.filter(
-        composite_construct_scale=composite_scale,
-        questionnaire_submission__patient=patient
-    ).select_related(
-        'questionnaire_submission',
-        'composite_construct_scale'
-    ).order_by('-questionnaire_submission__submission_date')
     
-    # Apply max time interval filter if specified
-    if max_time_interval_value is not None and patient_start_date:
-        filtered_score_ids = []
-        for score in composite_scores:
-            interval_value = calculate_time_interval_value(
-                score.questionnaire_submission.submission_date,
-                patient_start_date,
-                time_interval
+    # Generate cache key for composite scores (patient-specific)
+    comp_cache_key = f"comp_scores_{str(pk)}_{str(composite_id)}_{time_range}_{str(max_time_interval_value) if max_time_interval_value else 'none'}"
+    
+    # Try to get from cache
+    historical_scores = cache.get(comp_cache_key)
+    if historical_scores:
+        cache_logger.info(f"Cache HIT for composite scores: {comp_cache_key}")
+    else:
+        cache_logger.info(f"Cache MISS for composite scores: {comp_cache_key}")
+        
+        composite_scores = QuestionnaireConstructScoreComposite.objects.filter(
+            composite_construct_scale=composite_scale,
+            questionnaire_submission__patient=patient
+        ).select_related(
+            'questionnaire_submission',
+            'composite_construct_scale'
+        ).order_by('-questionnaire_submission__submission_date')
+        
+        # Apply max time interval filter if specified
+        if max_time_interval_value is not None and patient_start_date:
+            filtered_score_ids = []
+            for score in composite_scores:
+                interval_value = calculate_time_interval_value(
+                    score.questionnaire_submission.submission_date,
+                    patient_start_date,
+                    time_interval
+                )
+                if interval_value <= max_time_interval_value:
+                    filtered_score_ids.append(score.id)
+            composite_scores = composite_scores.filter(id__in=filtered_score_ids)
+        
+        # Take only submission_count most recent
+        historical_scores = list(composite_scores[:submission_count])
+        
+        # Filter out scores with negative time intervals
+        if patient_start_date:
+            from patientapp.utils import filter_positive_intervals_composite
+            historical_scores = filter_positive_intervals_composite(
+                historical_scores, patient_start_date, time_interval
             )
-            if interval_value <= max_time_interval_value:
-                filtered_score_ids.append(score.id)
-        composite_scores = composite_scores.filter(id__in=filtered_score_ids)
-    
-    # Take only submission_count most recent
-    historical_scores = list(composite_scores[:submission_count])
-    
-    # Filter out scores with negative time intervals
-    if patient_start_date:
-        from patientapp.utils import filter_positive_intervals_composite
-        historical_scores = filter_positive_intervals_composite(
-            historical_scores, patient_start_date, time_interval
-        )
+        
+        # Cache the result for 5 minutes (300 seconds)
+        cache.set(comp_cache_key, historical_scores, 300)
+        cache_logger.info(f"Cached composite scores: {comp_cache_key} (TTL: 5 min)")
     
     # Get current and previous scores
     current_score = historical_scores[0].score if historical_scores else None
@@ -1503,37 +1570,52 @@ def prom_review_item_plot(request, pk, item_id):
         actual_available_count = submission_count_base_query.count()
         submission_count = min(submission_count, actual_available_count)
     
-    # Get item responses for this item
+    # Get item responses for this item with caching
     from promapp.models import QuestionnaireItemResponse
-    item_responses = QuestionnaireItemResponse.objects.filter(
-        questionnaire_item__item=item,
-        questionnaire_submission__patient=patient
-    ).select_related(
-        'questionnaire_submission',
-        'questionnaire_item'
-    ).order_by('-questionnaire_submission__submission_date')
     
-    # Apply max time interval filter if specified
-    if max_time_interval_value is not None and patient_start_date:
-        filtered_response_ids = []
-        for response in item_responses:
-            interval_value = calculate_time_interval_value(
-                response.questionnaire_submission.submission_date,
-                patient_start_date,
-                time_interval
+    # Generate cache key for item responses (patient-specific)
+    item_cache_key = f"item_resp_{str(pk)}_{str(item_id)}_{time_range}_{str(max_time_interval_value) if max_time_interval_value else 'none'}"
+    
+    # Try to get from cache
+    historical_responses = cache.get(item_cache_key)
+    if historical_responses:
+        cache_logger.info(f"Cache HIT for item responses: {item_cache_key}")
+    else:
+        cache_logger.info(f"Cache MISS for item responses: {item_cache_key}")
+        
+        item_responses = QuestionnaireItemResponse.objects.filter(
+            questionnaire_item__item=item,
+            questionnaire_submission__patient=patient
+        ).select_related(
+            'questionnaire_submission',
+            'questionnaire_item'
+        ).order_by('-questionnaire_submission__submission_date')
+        
+        # Apply max time interval filter if specified
+        if max_time_interval_value is not None and patient_start_date:
+            filtered_response_ids = []
+            for response in item_responses:
+                interval_value = calculate_time_interval_value(
+                    response.questionnaire_submission.submission_date,
+                    patient_start_date,
+                    time_interval
+                )
+                if interval_value <= max_time_interval_value:
+                    filtered_response_ids.append(response.id)
+            item_responses = item_responses.filter(id__in=filtered_response_ids)
+        
+        # Take only submission_count most recent
+        historical_responses = list(item_responses[:submission_count])
+        
+        # Filter out responses with negative time intervals
+        if patient_start_date:
+            historical_responses = filter_positive_intervals(
+                historical_responses, patient_start_date, time_interval
             )
-            if interval_value <= max_time_interval_value:
-                filtered_response_ids.append(response.id)
-        item_responses = item_responses.filter(id__in=filtered_response_ids)
-    
-    # Take only submission_count most recent
-    historical_responses = list(item_responses[:submission_count])
-    
-    # Filter out responses with negative time intervals
-    if patient_start_date:
-        historical_responses = filter_positive_intervals(
-            historical_responses, patient_start_date, time_interval
-        )
+        
+        # Cache the result for 5 minutes (300 seconds)
+        cache.set(item_cache_key, historical_responses, 300)
+        cache_logger.info(f"Cached item responses: {item_cache_key} (TTL: 5 min)")
     
     # Generate plot
     bokeh_plot = None

@@ -609,6 +609,11 @@ if ENVIRONMENT == 'development':
     ]
     STATIC_URL = 'static/'
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+    }
+}
 
 # Content Security Policy (CSP) settings
 CSP_DEFAULT_SRC = ("'self'",)
