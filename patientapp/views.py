@@ -23,7 +23,7 @@ from .utils import (
     check_patient_access, get_accessible_patient_or_404, InstitutionFilterMixin
 )
 import logging
-from bokeh.resources import CDN
+from bokeh.resources import Resources  # Serve Bokeh from local static files
 from patientapp.utils import get_filtered_patients_for_aggregation
 from django.core.cache import cache
 import hashlib
@@ -32,6 +32,9 @@ import json
 
 logger = logging.getLogger(__name__)
 cache_logger = logging.getLogger('cache_performance')
+
+# Configure Bokeh to use local static files
+bokeh_resources = Resources(mode='server', root_url='/static/bokeh/')
 
 # Create your views here.
 
@@ -792,9 +795,9 @@ def prom_review(request, pk):
     logger.info(f"Found {len(important_construct_scores)} important construct scores")
     logger.info(f"Found {len(other_construct_scores_with_plots)} other construct scores with plots")
     
-    # Get Bokeh resources
-    bokeh_css = CDN.render_css()
-    bokeh_js = CDN.render_js()
+    # Get Bokeh resources (served from local static files)
+    bokeh_css = bokeh_resources.render_css()
+    bokeh_js = bokeh_resources.render_js()
     
     # =========================
     # Group items by construct
@@ -1989,9 +1992,9 @@ def patient_portal(request):
         selected_items = Item.objects.filter(id__in=item_filter).prefetch_related('translations')
         selected_items_data = [{'id': str(item.id), 'name': item.name} for item in selected_items]
 
-    # Get Bokeh resources
-    bokeh_css = CDN.render_css()
-    bokeh_js = CDN.render_js()
+    # Get Bokeh resources (served from local static files)
+    bokeh_css = bokeh_resources.render_css()
+    bokeh_js = bokeh_resources.render_js()
     
     # Get patient's diagnoses and treatments for display (chronological order - earliest first)
     diagnoses = patient.diagnosis_set.all().order_by('date_of_diagnosis')

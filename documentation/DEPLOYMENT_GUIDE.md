@@ -314,17 +314,47 @@ ls -lh static/src/output.css
 
 **Important**: The `static/src/output.css` file must be built before collecting static files!
 
-### 5.3 Collect Static Files
+### 5.3 Bokeh Static Files Setup
+
+The application uses Bokeh for data visualization. Bokeh resources must be served from local static files instead of CDN for better performance and reliability.
 
 ```bash
-# Collect all static files
+# Create Bokeh static directory with correct structure
+mkdir -p static/bokeh/static
+
+# Copy Bokeh static files from virtual environment
+# IMPORTANT: Preserve the /static/ subdirectory structure
+cp -r venv/lib/python3.*/site-packages/bokeh/server/static/* static/bokeh/static/
+
+# Verify the structure is correct
+ls -la static/bokeh/static/js/
+# Should show: bokeh.min.js, bokeh-gl.min.js, bokeh-widgets.min.js, etc.
+```
+
+**Important Notes:**
+- Bokeh's `Resources` class automatically adds `/static/` to the path
+- Files must be in `static/bokeh/static/js/` NOT `static/bokeh/js/`
+- Wrong structure will cause plots to fail with 404 errors
+
+**Verification:**
+```bash
+# Test that Bokeh generates correct URLs
+python -c "from bokeh.resources import Resources; r = Resources(mode='server', root_url='/static/bokeh/'); print(r.render_js()[:200])"
+# Should output: /static/bokeh/static/js/bokeh.min.js
+```
+
+### 5.4 Collect Static Files
+
+```bash
+# Collect all static files (including Bokeh)
 python manage.py collectstatic --noinput
 
 # Verify static files
 ls -lh staticfiles/
+ls -lh staticfiles/bokeh/static/js/
 ```
 
-### 5.4 Set Permissions
+### 5.5 Set Permissions
 
 ```bash
 # Exit from chaviprom user if logged in
@@ -622,6 +652,15 @@ git pull origin main
 # Install/update dependencies
 pip install -r requirements.txt --upgrade
 
+# Update Bokeh static files if Bokeh version changed
+# Check if Bokeh was updated in requirements.txt
+pip show bokeh | grep Version
+
+# If Bokeh version changed, re-copy static files
+rm -rf static/bokeh/*
+mkdir -p static/bokeh/static
+cp -r venv/lib/python3.*/site-packages/bokeh/server/static/* static/bokeh/static/
+
 # Rebuild Tailwind CSS
 npm install
 npm run tailwind:build
@@ -681,6 +720,46 @@ python manage.py collectstatic --noinput
 sudo chmod -R 755 /var/www/chavi-prom/app/staticfiles
 ```
 
+#### Issue: Bokeh plots not rendering
+
+**Symptoms:**
+- Plots show as empty boxes or don't appear
+- Browser console shows 404 errors for `/static/bokeh/js/...`
+
+**Solution:**
+
+```bash
+cd /var/www/chavi-prom/app
+source venv/bin/activate
+
+# Check if Bokeh static files exist
+ls -la static/bokeh/static/js/
+
+# If directory doesn't exist or is empty, copy files with correct structure
+rm -rf static/bokeh/*
+mkdir -p static/bokeh/static
+cp -r venv/lib/python3.*/site-packages/bokeh/server/static/* static/bokeh/static/
+
+# Verify structure
+ls -la static/bokeh/static/js/
+# Should show: bokeh.min.js, bokeh-gl.min.js, etc.
+
+# Collect static files
+python manage.py collectstatic --noinput
+
+# Verify in staticfiles
+ls -la staticfiles/bokeh/static/js/
+
+# Restart application
+exit
+sudo supervisorctl restart chavi-prom
+```
+
+**Common mistake:** Files in `static/bokeh/js/` instead of `static/bokeh/static/js/`
+- Bokeh's Resources class adds `/static/` to the path automatically
+- Wrong structure: `static/bokeh/js/` → URLs: `/static/bokeh/static/js/` → 404 ❌
+- Correct structure: `static/bokeh/static/js/` → URLs: `/static/bokeh/static/js/` → Works ✅
+
 ### 10.5 Deployment Checklist
 
 - [ ] Server updated and secured
@@ -691,6 +770,8 @@ sudo chmod -R 755 /var/www/chavi-prom/app/staticfiles
 - [ ] Secret keys generated
 - [ ] Database migrations completed
 - [ ] Tailwind CSS built successfully
+- [ ] **Bokeh static files copied with correct structure**
+- [ ] **Bokeh files verified in `static/bokeh/static/js/`**
 - [ ] Static files collected
 - [ ] Gunicorn tested
 - [ ] Supervisor configured and running
@@ -698,6 +779,7 @@ sudo chmod -R 755 /var/www/chavi-prom/app/staticfiles
 - [ ] SSL certificate installed
 - [ ] Firewall enabled
 - [ ] Log rotation configured
+- [ ] **Bokeh plots rendering correctly in browser**
 
 ---
 
