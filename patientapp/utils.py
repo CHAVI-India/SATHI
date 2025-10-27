@@ -2018,15 +2018,23 @@ def get_filtered_patients_for_aggregation(exclude_patient, patient_filter_gender
     if patient_filter_treatment:
         if patient_filter_treatment == 'match':
             # Get all treatment type IDs for the current patient in a single optimized query
-            patient_treatment_type_ids = exclude_patient.diagnosis_set.values_list(
+            patient_treatment_type_ids = list(exclude_patient.diagnosis_set.values_list(
                 'treatment__treatment_type__id', 
                 flat=True
-            ).distinct()
+            ).distinct())
             
             if patient_treatment_type_ids:
-                patients = patients.filter(
-                    diagnosis__treatment__treatment_type__id__in=patient_treatment_type_ids
-                ).distinct()
+                # AND filter: patients must have ALL treatment types the current patient has
+                # Start with all patients
+                filtered_patients = patients
+                
+                # For each treatment type, filter to patients who have that treatment type
+                for treatment_type_id in patient_treatment_type_ids:
+                    filtered_patients = filtered_patients.filter(
+                        diagnosis__treatment__treatment_type__id=treatment_type_id
+                    )
+                
+                patients = filtered_patients.distinct()
         else:
             patients = patients.filter(
                 diagnosis__treatment__treatment_type__id=patient_filter_treatment
