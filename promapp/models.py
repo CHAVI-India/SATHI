@@ -160,8 +160,6 @@ class ScoringTypeChoices(models.TextChoices):
     MIN = 'Min', 'Minimum'
     MAX = 'Max', 'Maximum'
 
-
-
 class CompositeConstructScaleScoring(models.Model):
     '''
     Composite Construct Scale Scoring model. This is used when construct scales are combined to form a score.
@@ -185,7 +183,6 @@ class CompositeConstructScaleScoring(models.Model):
 
     def __str__(self):
         return self.composite_construct_scale_name or f"Composite Scale {self.id}"
-
 
 class LikertScale(models.Model):
     '''
@@ -436,7 +433,6 @@ class ResponseTypeChoices(models.TextChoices):
     LIKERT = 'Likert', 'Likert Scale'
     RANGE = 'Range', 'Range Response'
     MEDIA = 'Media', 'Media Response'
-
 
 class Item(TranslatableModel):
     '''
@@ -815,8 +811,6 @@ class QuestionnaireItem(models.Model):
         # Use Parler's safe_translation_getter to get the translated name
         item_name = self.item.safe_translation_getter('name', any_language=True) if hasattr(self.item, 'safe_translation_getter') else str(self.item)
         return f"Q{self.question_number}: {item_name}"
-
-
 
 class PatientQuestionnaire(models.Model):
     '''
