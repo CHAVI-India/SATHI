@@ -825,18 +825,18 @@
         body: formData,
       }).then(response => {
         if (response.redirected) {
-          // Handle redirects from Django
+          // Handle redirects from Django (to next questionnaire or list page)
           window.location.href = response.url;
         } else if (response.ok) {
-          // Handle successful submission without redirect
+          // Handle successful submission without redirect (shouldn't normally happen)
           return response.text().then(html => {
             // If the response contains HTML, it might be a form with errors
             if (html.includes('class="alert') || html.includes('error')) {
               // Reload the page to show errors
               window.location.reload();
             } else {
-              // Success - redirect to questionnaire list
-              window.location.href = '/questionnaires/my/';
+              // Fallback: redirect to questionnaire list
+              window.location.href = "{% url 'my_questionnaire_list' %}";
             }
           });
         } else if (response.status === 413) {

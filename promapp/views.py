@@ -1610,6 +1610,51 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Use
         })
         return context
 
+    def get_next_available_questionnaire(self, current_patient_questionnaire):
+        """
+        Find the next available questionnaire that can be answered.
+        Returns the PatientQuestionnaire object or None if no more questionnaires are available.
+        """
+        # Get all questionnaires for this patient, ordered by questionnaire_order
+        patient_questionnaires = PatientQuestionnaire.objects.filter(
+            patient=self.request.user.patient,
+            display_questionnaire=True
+        ).select_related('questionnaire').order_by('questionnaire__questionnaire_order')
+        
+        # Find questionnaires that come after the current one in the sequence
+        current_order = current_patient_questionnaire.questionnaire.questionnaire_order
+        next_questionnaires = patient_questionnaires.filter(
+            questionnaire__questionnaire_order__gt=current_order
+        )
+        
+        # Check each subsequent questionnaire to see if it can be answered
+        for pq in next_questionnaires:
+            # Get the last submission for this questionnaire
+            last_submission = QuestionnaireSubmission.objects.filter(
+                patient_questionnaire=pq
+            ).order_by('-submission_date').first()
+            
+            if last_submission:
+                # Calculate when the questionnaire can be answered next
+                interval_seconds = pq.questionnaire.questionnaire_answer_interval
+                
+                # Handle special case: if interval is 0, allow immediate re-answering
+                if interval_seconds == 0:
+                    return pq
+                # Handle edge case: if interval is negative, treat as 0
+                elif interval_seconds < 0:
+                    return pq
+                else:
+                    next_available = last_submission.submission_date + timezone.timedelta(seconds=interval_seconds)
+                    if timezone.now() >= next_available:
+                        return pq
+            else:
+                # If no previous submission, can answer immediately
+                return pq
+        
+        # No more available questionnaires
+        return None
+
     def post(self, request, *args, **kwargs):
         # Check if user has permission to add responses
         if not request.user.has_perm('promapp.add_questionnaireitemresponse'):
@@ -1658,8 +1703,17 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Use
                     # Construct scores will be calculated automatically by the post_save signal
                     # on QuestionnaireItemResponse (see models.py trigger_score_calculation_on_response)
                     
-                    messages.success(request, _('Your responses have been saved successfully.'))
-                    return redirect('my_questionnaire_list')
+                    # Find the next available questionnaire in sequence
+                    next_questionnaire = self.get_next_available_questionnaire(patient_questionnaire)
+                    
+                    if next_questionnaire:
+                        # Redirect to the next available questionnaire
+                        messages.success(request, _('Your responses have been saved successfully. Please continue with the next questionnaire.'))
+                        return redirect('questionnaire_response', pk=next_questionnaire.id)
+                    else:
+                        # No more questionnaires available, redirect to list
+                        messages.success(request, _('Your responses have been saved successfully. You have completed all available questionnaires.'))
+                        return redirect('my_questionnaire_list')
             except Exception as e:
                 # Log detailed error but show generic message
                 logger = logging.getLogger("promapp.questionnaire_responses")
