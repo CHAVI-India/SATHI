@@ -1284,6 +1284,7 @@ def prom_review_construct_plot(request, pk, construct_id):
                 'start_date_ref': start_date_reference,
                 'time_interval': time_interval,
                 'agg_type': aggregation_type,
+                'questionnaire_filter': questionnaire_filter or 'all',
                 'gender': patient_filter_gender or 'all',
                 'diagnosis': patient_filter_diagnosis or 'all',
                 'treatment': patient_filter_treatment or 'all',
@@ -1301,7 +1302,12 @@ def prom_review_construct_plot(request, pk, construct_id):
                 cache_logger.info(f"Cache HIT for aggregation: {cache_key} (construct: {construct.name})")
                 aggregated_statistics = cached_result.get('statistics')
                 aggregation_metadata = cached_result.get('metadata')
-            else:
+                # Safety check: if cached statistics is None or empty, treat as cache miss
+                if not aggregated_statistics:
+                    cache_logger.warning(f"Cache HIT but statistics is empty/None for {cache_key}, treating as cache miss")
+                    cached_result = None  # Force recalculation
+            
+            if not cached_result:
                 cache_logger.info(f"Cache MISS for aggregation: {cache_key} (construct: {construct.name})")
                 
                 # Get reference time intervals
@@ -1345,11 +1351,23 @@ def prom_review_construct_plot(request, pk, construct_id):
                         }, 3600)
                         cache_logger.info(f"Cached aggregation result: {cache_key} (TTL: 1 hour)")
         except Exception as e:
+            import traceback
             logger.error(f"Error calculating aggregated data for construct {construct.name}: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
     
     # Get current and previous scores
     current_score = historical_scores[0].score if historical_scores else None
     previous_score = historical_scores[1].score if len(historical_scores) > 1 else None
+    
+    # Debug: Log aggregated_statistics before passing to ConstructScoreData
+    logger.info(f"LAZY-LOAD FINAL CHECK for {construct.name}:")
+    logger.info(f"  aggregated_statistics is None: {aggregated_statistics is None}")
+    logger.info(f"  aggregated_statistics type: {type(aggregated_statistics)}")
+    if aggregated_statistics:
+        logger.info(f"  aggregated_statistics keys: {list(aggregated_statistics.keys())}")
+        logger.info(f"  aggregated_statistics sample: {dict(list(aggregated_statistics.items())[:2])}")
+    else:
+        logger.info(f"  aggregated_statistics is empty or None")
     
     # Create construct score data object
     score_data = ConstructScoreData(
