@@ -64,7 +64,6 @@ def prom_review(request, pk):
     selected_indicators = []
     if selected_indicators_param:
         try:
-            import json
             selected_indicators = json.loads(selected_indicators_param)
             logger.info(f"Selected indicators: {len(selected_indicators)} indicators")
         except (json.JSONDecodeError, TypeError) as e:
@@ -1147,7 +1146,6 @@ def prom_review_construct_plot(request, pk, construct_id):
     selected_indicators = []
     if selected_indicators_param:
         try:
-            import json
             selected_indicators = json.loads(selected_indicators_param)
         except (json.JSONDecodeError, TypeError) as e:
             logger.warning(f"Failed to parse selected_indicators parameter: {e}")
@@ -1393,7 +1391,6 @@ def prom_review_composite_plot(request, pk, composite_id):
     selected_indicators = []
     if selected_indicators_param:
         try:
-            import json
             selected_indicators = json.loads(selected_indicators_param)
         except (json.JSONDecodeError, TypeError) as e:
             logger.warning(f"Failed to parse selected_indicators parameter: {e}")
@@ -1529,7 +1526,6 @@ def prom_review_item_plot(request, pk, item_id):
     selected_indicators = []
     if selected_indicators_param:
         try:
-            import json
             selected_indicators = json.loads(selected_indicators_param)
         except (json.JSONDecodeError, TypeError) as e:
             logger.warning(f"Failed to parse selected_indicators parameter: {e}")
@@ -1715,7 +1711,6 @@ def patient_portal(request):
     selected_indicators = []
     if selected_indicators_param:
         try:
-            import json
             selected_indicators = json.loads(selected_indicators_param)
             logger.info(f"Selected indicators: {len(selected_indicators)} indicators")
         except (json.JSONDecodeError, TypeError) as e:
