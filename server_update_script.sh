@@ -4,7 +4,7 @@
 
 cd /var/www/chavi-prom
 
-echo "Changed to Taret Directory"
+echo "Changed to Target Directory"
 
 # Pull from repository
 

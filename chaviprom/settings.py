@@ -303,7 +303,8 @@ ACCOUNT_LOGIN_BY_CODE_ENABLED = True
 ACCOUNT_LOGIN_BY_CODE_MAX_ATTEMPTS = 3
 ACCOUNT_LOGIN_BY_CODE_TIMEOUT = 300  # 5 minutes
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
-
+# Custom adapter for IP detection (required for v65.14.2+ to handle both dev and production)
+ACCOUNT_ADAPTER = 'chaviprom.adapter.CustomAccountAdapter'
 # Django Allauth user sessions to allow users to check their sessions
 USERSESSIONS_TRACK_ACTIVITY=True
 
@@ -596,13 +597,15 @@ if ENVIRONMENT != 'development':
         }
     }
     USE_X_FORWARDED_HOST = True
-    ALLAUTH_TRUSTED_CLIENT_IP_HEADER = "X-Real-IP" # Will extract the client IP from the header instead of X-Forwarded-For
     # RATELIMIT_IP_META_KEY = 'HTTP_X_FORWARDED_FOR' # As per Django Allauth 65.1.14 they have dropped support for this key
     # TWO_FACTOR_REMEMBER_COOKIE_SECURE = True  # Only send over HTTPS
     # TWO_FACTOR_REMEMBER_COOKIE_HTTPONLY = True  # Prevent JavaScript access
     # TWO_FACTOR_REMEMBER_COOKIE_SAMESITE = 'Lax'  # CSRF protection    
     STATIC_URL = 'static/'
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+    # Ensure all auth settings in the production allow the nginx real IP
+    ALLAUTH_TRUSTED_CLIENT_IP_HEADER = "X-Real-IP"
+    ALLAUTH_TRUSTED_PROXY_COUNT = 1
 
 if ENVIRONMENT == 'development':
     STATICFILES_DIRS = [
