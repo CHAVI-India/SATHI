@@ -596,7 +596,8 @@ if ENVIRONMENT != 'development':
         }
     }
     USE_X_FORWARDED_HOST = True
-    RATELIMIT_IP_META_KEY = 'HTTP_X_FORWARDED_FOR'
+    ALLAUTH_TRUSTED_CLIENT_IP_HEADER = "X-Real-IP" # Will extract the client IP from the header instead of X-Forwarded-For
+    # RATELIMIT_IP_META_KEY = 'HTTP_X_FORWARDED_FOR' # As per Django Allauth 65.1.14 they have dropped support for this key
     # TWO_FACTOR_REMEMBER_COOKIE_SECURE = True  # Only send over HTTPS
     # TWO_FACTOR_REMEMBER_COOKIE_HTTPONLY = True  # Prevent JavaScript access
     # TWO_FACTOR_REMEMBER_COOKIE_SAMESITE = 'Lax'  # CSRF protection    
