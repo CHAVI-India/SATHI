@@ -173,16 +173,16 @@ class QuestionnaireScheduleForm(forms.Form):
             pq = PatientQuestionnaire.objects.get(id=pq_id)
             
             for scheduled_datetime in self.cleaned_dates:
-                # Check if schedule already exists for this date
+                # Check if schedule already exists for this datetime
                 existing = QuestionnairePatientSchedule.objects.filter(
                     patient_questionnaire=pq,
-                    date_assessment=scheduled_datetime.date()
+                    date_assessment=scheduled_datetime
                 ).exists()
                 
                 if not existing:
                     QuestionnairePatientSchedule.objects.create(
                         patient_questionnaire=pq,
-                        date_assessment=scheduled_datetime.date()
+                        date_assessment=scheduled_datetime
                     )
                     schedules_created += 1
         

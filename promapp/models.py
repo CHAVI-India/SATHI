@@ -844,7 +844,7 @@ class QuestionnairePatientSchedule(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4,editable=False)
     patient_questionnaire=models.ForeignKey(PatientQuestionnaire,on_delete=models.CASCADE,help_text="Scheduled Date of Assesement for the Patient")
-    date_assessment = models.DateField(null=True,blank=True)
+    date_assessment = models.DateTimeField(null=True,blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 

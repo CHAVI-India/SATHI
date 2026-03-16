@@ -1994,6 +1994,9 @@ class MyQuestionnaireListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['patient'] = getattr(self.request.user, 'patient', None)
         
+        # Consolidated schedule data for all questionnaires
+        all_schedules_consolidated = []
+        
         # Add information about when each questionnaire can be answered next
         for pq in context['patient_questionnaires']:
             # Get the last submission for this questionnaire
@@ -2025,13 +2028,65 @@ class MyQuestionnaireListView(LoginRequiredMixin, ListView):
                 pq.next_available = None
                 pq.can_answer = True
             
-            # Get scheduled assessments for this questionnaire
-            scheduled_assessments = QuestionnairePatientSchedule.objects.filter(
-                patient_questionnaire=pq,
-                date_assessment__gte=timezone.now().date()
+            # Get all scheduled assessments for this questionnaire (past and future)
+            all_schedules = QuestionnairePatientSchedule.objects.filter(
+                patient_questionnaire=pq
             ).order_by('date_assessment')
             
-            pq.scheduled_assessments = scheduled_assessments
+            # Get all submissions for this questionnaire
+            all_submissions = QuestionnaireSubmission.objects.filter(
+                patient_questionnaire=pq
+            ).order_by('submission_date')
+            
+            # Process each schedule to determine if it was completed
+            today = timezone.now().date()
+            scheduled_assessments_data = []
+            
+            for schedule in all_schedules:
+                schedule_datetime = schedule.date_assessment
+                schedule_date = schedule_datetime.date() if schedule_datetime else None
+                
+                if not schedule_date:
+                    continue
+                
+                # Check if there's a submission on or after this scheduled date
+                # but before the next scheduled date (or within a reasonable window)
+                submission_found = all_submissions.filter(
+                    submission_date__date=schedule_date
+                ).exists()
+                
+                # Determine if this is a past, present, or future assessment
+                is_past = schedule_date < today
+                is_today = schedule_date == today
+                is_future = schedule_date > today
+                
+                # Past assessments without submissions are "missed" and should be available
+                # Future assessments should be grayed out
+                is_available = (is_past or is_today) and not submission_found
+                
+                schedule_data = {
+                    'schedule': schedule,
+                    'date': schedule_date,
+                    'datetime': schedule_datetime,
+                    'is_past': is_past,
+                    'is_today': is_today,
+                    'is_future': is_future,
+                    'is_completed': submission_found,
+                    'is_available': is_available,
+                    'questionnaire_name': pq.questionnaire.safe_translation_getter('name', any_language=True) or str(pq.questionnaire),
+                    'questionnaire_id': str(pq.id)
+                }
+                
+                scheduled_assessments_data.append(schedule_data)
+                all_schedules_consolidated.append(schedule_data)
+            
+            pq.scheduled_assessments_data = scheduled_assessments_data
+            
+            # Keep the original for backward compatibility
+            pq.scheduled_assessments = [s['schedule'] for s in scheduled_assessments_data if s['is_future'] or s['is_today']]
+        
+        # Add consolidated schedule data to context
+        context['all_schedules_consolidated'] = all_schedules_consolidated
         
         return context
 
