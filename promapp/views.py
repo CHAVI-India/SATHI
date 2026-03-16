@@ -13,7 +13,7 @@ from django.conf import settings
 from django.utils import translation
 from django.utils.html import escape
 from django.utils.http import url_has_allowed_host_and_scheme
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption, PatientQuestionnaire, QuestionnaireItemResponse, Patient, QuestionnaireItemRule, QuestionnaireItemRuleGroup, QuestionnaireSubmission, QuestionnaireConstructScore, CompositeConstructScaleScoring
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption, PatientQuestionnaire, QuestionnaireItemResponse, Patient, QuestionnaireItemRule, QuestionnaireItemRuleGroup, QuestionnaireSubmission, QuestionnaireConstructScore, CompositeConstructScaleScoring, QuestionnairePatientSchedule
 from .forms import (
     QuestionnaireForm, ItemForm, QuestionnaireItemForm, 
     LikertScaleForm, LikertScaleResponseOptionFormSet,
@@ -23,6 +23,7 @@ from .forms import (
     ItemTranslationForm, QuestionnaireTranslationForm, LikertScaleResponseOptionTranslationForm, RangeScaleTranslationForm,
     TranslationSearchForm, ConstructEquationForm, CompositeConstructScaleScoringForm
 )
+from .schedule_forms import QuestionnaireScheduleForm
 from django.utils.translation import get_language
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -1773,11 +1774,62 @@ class PatientQuestionnaireManagementView(LoginRequiredMixin, PermissionRequiredM
             })
         
         context['questionnaires_with_status'] = questionnaires_with_status
+        
+        # Add schedule form
+        context['schedule_form'] = QuestionnaireScheduleForm(patient=patient)
+        
+        # Get existing schedules for this patient
+        existing_schedules = QuestionnairePatientSchedule.objects.filter(
+            patient_questionnaire__patient=patient
+        ).select_related('patient_questionnaire__questionnaire').order_by('date_assessment')
+        
+        context['existing_schedules'] = existing_schedules
+        
         return context
     
     def post(self, request, *args, **kwargs):
         patient = self.get_object()
         action = request.POST.get('action')
+        
+        # Handle schedule creation
+        if action == 'create_schedule':
+            schedule_form = QuestionnaireScheduleForm(patient=patient, data=request.POST)
+            
+            if schedule_form.is_valid():
+                try:
+                    schedules_created = schedule_form.save()
+                    messages.success(
+                        request, 
+                        _(f'Successfully created {schedules_created} schedule(s).')
+                    )
+                except Exception as e:
+                    messages.error(request, _(f'Error creating schedules: {str(e)}'))
+            else:
+                # Display form errors
+                for field, errors in schedule_form.errors.items():
+                    for error in errors:
+                        messages.error(request, error)
+            
+            return redirect('patient_questionnaire_management', pk=patient.id)
+        
+        # Handle schedule deletion
+        if action == 'delete_schedule':
+            schedule_id = request.POST.get('schedule_id')
+            try:
+                schedule = QuestionnairePatientSchedule.objects.get(
+                    id=schedule_id,
+                    patient_questionnaire__patient=patient
+                )
+                schedule.delete()
+                messages.success(request, _('Schedule deleted successfully.'))
+            except QuestionnairePatientSchedule.DoesNotExist:
+                messages.error(request, _('Schedule not found.'))
+            except Exception as e:
+                messages.error(request, _('An error occurred while deleting the schedule.'))
+            
+            return redirect('patient_questionnaire_management', pk=patient.id)
+        
+        # Handle existing questionnaire assignment actions
         questionnaire_id = request.POST.get('questionnaire_id')
         
         try:
@@ -1972,6 +2024,14 @@ class MyQuestionnaireListView(LoginRequiredMixin, ListView):
                 # If no previous submission, can answer immediately
                 pq.next_available = None
                 pq.can_answer = True
+            
+            # Get scheduled assessments for this questionnaire
+            scheduled_assessments = QuestionnairePatientSchedule.objects.filter(
+                patient_questionnaire=pq,
+                date_assessment__gte=timezone.now().date()
+            ).order_by('date_assessment')
+            
+            pq.scheduled_assessments = scheduled_assessments
         
         return context
 

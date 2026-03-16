@@ -835,6 +835,26 @@ class PatientQuestionnaire(models.Model):
     def __str__(self):
         return f"{self.patient.name} - {self.questionnaire.name}"
 
+
+class QuestionnairePatientSchedule(models.Model):
+    '''
+    This is a model to store information about the schedule of the assessment for a give questionnaire for a pateint. 
+    '''
+
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4,editable=False)
+    patient_questionnaire=models.ForeignKey(PatientQuestionnaire,on_delete=models.CASCADE,help_text="Scheduled Date of Assesement for the Patient")
+    date_assessment = models.DateField(null=True,blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta: 
+        verbose_name = "Schedule for Patient Questionnaire"
+        verbose_name_plural = "Schedules for Patient Questionnaire"
+
+
+
+
 class QuestionnaireSubmission(models.Model):
     '''
     Questionnaire Submission model. This is used to store the submission of the questionnaire.
