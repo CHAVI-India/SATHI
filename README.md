@@ -1,5 +1,7 @@
 ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/CHAVI-India/chavi-prom?utm_source=oss&utm_medium=github&utm_campaign=CHAVI-India%2Fchavi-prom&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
+[![DOI](https://zenodo.org/badge/1056386905.svg)](https://doi.org/10.5281/zenodo.19044373)
+
 # SATHI - Self Reported Assessment and Tracking for Health Insights
 
 Welcome to **SATHI** (Self Reported Assessment and Tracking for Health Insights). This is a comprehensive Django-based application for collecting, managing, and analyzing patient-reported outcomes with advanced features for patients, healthcare providers, and questionnaire designers.
