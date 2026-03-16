@@ -1,6 +1,6 @@
 ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/CHAVI-India/chavi-prom?utm_source=oss&utm_medium=github&utm_campaign=CHAVI-India%2Fchavi-prom&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
-[![DOI](https://zenodo.org/badge/1056386905.svg)](https://doi.org/10.5281/zenodo.19044373)
+[![DOI](https://zenodo.org/badge/981641906.svg)](https://doi.org/10.5281/zenodo.19044354)
 
 # SATHI - Self Reported Assessment and Tracking for Health Insights
 
