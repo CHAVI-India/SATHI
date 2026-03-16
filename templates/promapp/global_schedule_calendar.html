@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% translate "Global Schedule Calendar" %}{% endblock %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+<style>
+  /* FullCalendar custom styling */
+  .fc {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+  
+  /* Event color classes */
+  .fc-event-available {
+    background-color: #3B82F6 !important;
+    border-color: #2563EB !important;
+    color: white !important;
+    cursor: pointer !important;
+  }
+  
+  .fc-event-not-available {
+    background-color: #9CA3AF !important;
+    border-color: #6B7280 !important;
+    color: white !important;
+    cursor: not-allowed !important;
+    opacity: 0.8;
+  }
+  
+  .calendar-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .legend-box {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid;
+  }
+  
+  /* Calendar container styling */
+  .calendar-container {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Event title display - prevent truncation */
+  .fc-event-title {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.2 !important;
+    padding: 2px 4px !important;
+    font-size: 0.875rem !important;
+  }
+  
+  .fc-event {
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+  
+  .fc-timegrid-event {
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+  
+  .fc-daygrid-event {
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-900">{% translate "Global Schedule Calendar" %}</h1>
+    <a href="{% url 'patient_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+      </svg>
+      {% translate "Back to Patient List" %}
+    </a>
+  </div>
+  
+  <div class="bg-white shadow rounded-lg p-6">
+    <div class="mb-4">
+      <h2 class="text-lg font-semibold text-gray-900 mb-3">
+        <svg class="inline-block w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        {% translate "All Scheduled Assessments" %}
+      </h2>
+      
+      <!-- Calendar Legend -->
+      <div class="calendar-legend text-gray-600">
+        <div class="legend-item">
+          <div class="legend-box" style="background-color: #3B82F6; border-color: #2563EB;"></div>
+          <span>{% translate "Available (Can Answer)" %}</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box" style="background-color: #9CA3AF; border-color: #6B7280;"></div>
+          <span>{% translate "Not Available (Completed/Future)" %}</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- FullCalendar Container -->
+    <div class="calendar-container">
+      <div id="global-calendar"></div>
+    </div>
+    
+    <!-- Schedule Data for JavaScript -->
+    <script type="application/json" id="schedule-data">
+      [
+        {% for event in schedule_events %}
+        {
+          "datetime": "{{ event.datetime|date:'c' }}",
+          "patient_id": "{{ event.patient_id|escapejs }}",
+          "patient_name": "{{ event.patient_name|escapejs }}",
+          "patient_uuid": "{{ event.patient_uuid }}",
+          "questionnaire_count": {{ event.questionnaire_count }},
+          "questionnaire_name": "{{ event.questionnaire_name|escapejs }}",
+          "is_completed": {{ event.is_completed|yesno:"true,false" }},
+          "is_available": {{ event.is_available|yesno:"true,false" }},
+          "is_today": {{ event.is_today|yesno:"true,false" }},
+          "is_future": {{ event.is_future|yesno:"true,false" }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]
+    </script>
+  </div>
+  
+  <!-- Modal for Event Details -->
+  <div id="eventModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+      <div class="flex justify-between items-center pb-3 border-b">
+        <h3 class="text-xl font-semibold text-gray-900" id="modalTitle">{% translate "Assessment Details" %}</h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="mt-4" id="modalContent">
+        <!-- Content will be populated by JavaScript -->
+      </div>
+      
+      <div class="flex justify-end mt-6 pt-4 border-t space-x-3">
+        <button onclick="closeModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+          {% translate "Close" %}
+        </button>
+        <a id="viewPatientBtn" href="#" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          {% translate "View Patient Details" %}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('global-calendar');
+    if (!calendarEl) return;
+    
+    // Get schedule data from JSON script tag
+    const scheduleDataElement = document.getElementById('schedule-data');
+    if (!scheduleDataElement) return;
+    
+    const scheduleData = JSON.parse(scheduleDataElement.textContent);
+    
+    // Group events by patient and date to show summary
+    const eventsByPatientDate = {};
+    scheduleData.forEach(item => {
+        const dateKey = item.datetime.split('T')[0]; // Get date part
+        const key = `${item.patient_uuid}_${dateKey}`;
+        
+        if (!eventsByPatientDate[key]) {
+            eventsByPatientDate[key] = {
+                datetime: item.datetime,
+                patient_id: item.patient_id,
+                patient_name: item.patient_name,
+                patient_uuid: item.patient_uuid,
+                questionnaires: [],
+                total_count: 0,
+                available_count: 0,
+                completed_count: 0
+            };
+        }
+        
+        eventsByPatientDate[key].questionnaires.push(item);
+        eventsByPatientDate[key].total_count++;
+        if (item.is_available) eventsByPatientDate[key].available_count++;
+        if (item.is_completed) eventsByPatientDate[key].completed_count++;
+    });
+    
+    // Convert to FullCalendar events
+    const events = Object.values(eventsByPatientDate).map(group => {
+        const hasAvailable = group.available_count > 0;
+        const allCompleted = group.completed_count === group.total_count;
+        
+        let title = `${group.patient_id} (${group.total_count})`;
+        let className = hasAvailable ? 'fc-event-available' : 'fc-event-not-available';
+        
+        return {
+            title: title,
+            start: group.datetime,
+            allDay: false,
+            className: className,
+            extendedProps: {
+                patient_id: group.patient_id,
+                patient_name: group.patient_name,
+                patient_uuid: group.patient_uuid,
+                questionnaire_count: group.total_count,
+                available_count: group.available_count,
+                completed_count: group.completed_count,
+                questionnaires: group.questionnaires,
+                interactive: hasAvailable
+            }
+        };
+    });
+    
+    // Initialize FullCalendar
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'timeGridDay',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'timeGridDay,timeGridWeek,dayGridMonth'
+        },
+        height: 700,
+        slotMinTime: '00:00:00',
+        slotMaxTime: '24:00:00',
+        allDaySlot: false,
+        expandRows: true,
+        events: events,
+        eventClick: function(info) {
+            const props = info.event.extendedProps;
+            showEventModal(props);
+            info.jsEvent.preventDefault();
+        },
+        eventMouseEnter: function(info) {
+            const props = info.event.extendedProps;
+            if (props.interactive) {
+                info.el.style.cursor = 'pointer';
+                info.el.title = `${props.patient_name}: ${props.available_count} available, ${props.completed_count} completed`;
+            } else {
+                info.el.style.cursor = 'default';
+                info.el.title = `${props.patient_name}: All completed or future`;
+            }
+        },
+        displayEventTime: true,
+        eventTextColor: '#ffffff',
+        eventMaxStack: 5
+    });
+    
+    calendar.render();
+});
+
+// Modal functions
+function showEventModal(props) {
+    const modal = document.getElementById('eventModal');
+    const modalContent = document.getElementById('modalContent');
+    const viewPatientBtn = document.getElementById('viewPatientBtn');
+    
+    // Build modal content
+    let content = `
+        <div class="space-y-4">
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-gray-900 mb-2">{% translate "Patient Information" %}</h4>
+                <p class="text-sm text-gray-700"><strong>{% translate "Name" %}:</strong> ${props.patient_name}</p>
+                <p class="text-sm text-gray-700"><strong>{% translate "Patient ID" %}:</strong> ${props.patient_id}</p>
+            </div>
+            
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-gray-900 mb-2">{% translate "Assessment Summary" %}</h4>
+                <div class="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <p class="text-gray-600">{% translate "Total" %}</p>
+                        <p class="text-2xl font-bold text-gray-900">${props.questionnaire_count}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">{% translate "Completed" %}</p>
+                        <p class="text-2xl font-bold text-green-600">${props.completed_count}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">{% translate "Available" %}</p>
+                        <p class="text-2xl font-bold text-blue-600">${props.available_count}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-gray-900 mb-3">{% translate "Questionnaires" %}</h4>
+                <div class="space-y-2 max-h-64 overflow-y-auto">
+    `;
+    
+    props.questionnaires.forEach((q, index) => {
+        let statusBadge = '';
+        if (q.is_completed) {
+            statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✓ {% translate "Completed" %}</span>';
+        } else if (q.is_available) {
+            statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">⚠ {% translate "Available" %}</span>';
+        } else if (q.is_future) {
+            statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">📅 {% translate "Future" %}</span>';
+        }
+        
+        content += `
+            <div class="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-lg">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-900">${index + 1}. ${q.questionnaire_name}</p>
+                </div>
+                <div>
+                    ${statusBadge}
+                </div>
+            </div>
+        `;
+    });
+    
+    content += `
+                </div>
+            </div>
+        </div>
+    `;
+    
+    modalContent.innerHTML = content;
+    
+    // Set patient detail URL - use Django URL pattern
+    viewPatientBtn.href = `{% url 'patient_detail' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', props.patient_uuid);
+    
+    // Show modal
+    modal.classList.remove('hidden');
+}
+
+function closeModal() {
+    const modal = document.getElementById('eventModal');
+    modal.classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.getElementById('eventModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeModal();
+    }
+});
+</script>
+{% endblock %}

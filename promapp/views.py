@@ -2090,6 +2090,87 @@ class MyQuestionnaireListView(LoginRequiredMixin, ListView):
         
         return context
 
+
+@login_required
+@permission_required('patientapp.view_patient', raise_exception=True)
+def global_schedule_calendar(request):
+    """
+    Global view of all scheduled assessments across all patients.
+    Uses same permission structure as patient_list.
+    Respects institution-based access control.
+    """
+    from patientapp.models import Patient
+    from patientapp.utils import filter_patients_by_institution
+    
+    # Get all patients accessible to this user (respects institution filtering)
+    patients = Patient.objects.select_related('institution').all()
+    patients = filter_patients_by_institution(patients, request.user)
+    
+    # Get all schedules for accessible patients
+    all_schedules = QuestionnairePatientSchedule.objects.filter(
+        patient_questionnaire__patient__in=patients
+    ).select_related(
+        'patient_questionnaire__patient',
+        'patient_questionnaire__questionnaire'
+    ).order_by('date_assessment')
+    
+    # Get all submissions for accessible patients
+    all_submissions = QuestionnaireSubmission.objects.filter(
+        patient_questionnaire__patient__in=patients
+    ).select_related('patient_questionnaire')
+    
+    # Process schedules to determine status
+    today = timezone.now().date()
+    schedule_events = []
+    
+    for schedule in all_schedules:
+        schedule_datetime = schedule.date_assessment
+        schedule_date = schedule_datetime.date() if schedule_datetime else None
+        
+        if not schedule_date:
+            continue
+        
+        patient = schedule.patient_questionnaire.patient
+        questionnaire = schedule.patient_questionnaire.questionnaire
+        
+        # Check if this schedule was completed
+        submission_found = all_submissions.filter(
+            patient_questionnaire=schedule.patient_questionnaire,
+            submission_date__date=schedule_date
+        ).exists()
+        
+        # Determine status
+        is_past = schedule_date < today
+        is_today = schedule_date == today
+        is_future = schedule_date > today
+        is_available = (is_past or is_today) and not submission_found
+        
+        # Count total questionnaires for this patient on this date
+        questionnaires_on_date = QuestionnairePatientSchedule.objects.filter(
+            patient_questionnaire__patient=patient,
+            date_assessment__date=schedule_date
+        ).count()
+        
+        schedule_events.append({
+            'datetime': schedule_datetime,
+            'patient_id': patient.patient_id,
+            'patient_name': patient.name,
+            'patient_uuid': str(patient.id),
+            'questionnaire_count': questionnaires_on_date,
+            'questionnaire_name': questionnaire.safe_translation_getter('name', any_language=True) or str(questionnaire),
+            'is_completed': submission_found,
+            'is_available': is_available,
+            'is_today': is_today,
+            'is_future': is_future,
+        })
+    
+    context = {
+        'schedule_events': schedule_events,
+    }
+    
+    return render(request, 'promapp/global_schedule_calendar.html', context)
+
+
 class QuestionnaireItemRuleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     """
     View for listing rules associated with a questionnaire item.

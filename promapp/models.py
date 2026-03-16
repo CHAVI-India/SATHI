@@ -855,6 +855,7 @@ class QuestionnairePatientSchedule(models.Model):
 
 
 
+
 class QuestionnaireSubmission(models.Model):
     '''
     Questionnaire Submission model. This is used to store the submission of the questionnaire.

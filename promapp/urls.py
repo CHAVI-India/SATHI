@@ -51,6 +51,7 @@ urlpatterns = [
     path('patients/<uuid:pk>/questionnaires/', views.PatientQuestionnaireManagementView.as_view(), name='patient_questionnaire_management'),
     path('patient-questionnaires/', views.PatientQuestionnaireListView.as_view(), name='patient_questionnaire_list'),
     path('my-questionnaires/', views.MyQuestionnaireListView.as_view(), name='my_questionnaire_list'),
+    path('schedule-calendar/', views.global_schedule_calendar, name='global_schedule_calendar'),
 
     # Questionnaire Item Rule URLs
     path('questionnaire-items/<uuid:questionnaire_item_id>/rules/', 
