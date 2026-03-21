@@ -8,14 +8,14 @@
  "screenshots": [
   {
    "src": "\/static\/home.png",
-   "sizes": "1884x725",
+   "sizes": "1917x1003",
    "type": "image\/png",
    "form_factor": "wide",
    "label": "Home screen showing main navigation links"
   },
   {
    "src": "\/static\/home_narrow.png",
-   "sizes": "713x1600",
+   "sizes": "720x1600",
    "type": "image\/png",
    "form_factor": "narrow",
    "label": "Home screen optimized for mobile devices"
