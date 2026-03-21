@@ -1,10 +1,26 @@
 {
  "name": "Self Reported Assessment and Tracking for Health Insights ",
- "shortname": "SATHI",
+ "short_name": "SATHI",
  "start_url": "/",
  "display": "standalone",
  "categories": ["health", "fitness", "medical"],
  "description": "An application to track your health through standardized questionnaires and measures",
+ "screenshots": [
+  {
+   "src": "\/static\/home.png",
+   "sizes": "1280x720",
+   "type": "image\/png",
+   "form_factor": "wide",
+   "label": "Home screen showing main navigation links"
+  },
+  {
+   "src": "\/static\/home_narrow.png",
+   "sizes": "720x1280",
+   "type": "image\/png",
+   "form_factor": "narrow",
+   "label": "Home screen optimized for mobile devices"
+  }
+ ],
  "icons": [
   {
    "src": "\/static\/android-icon-36x36.png",
