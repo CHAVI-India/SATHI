@@ -3041,11 +3041,20 @@ class ItemTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
     permission_required = 'promapp.add_item'
 
     def get_context_data(self, **kwargs):
+        import logging
+        logger = logging.getLogger(__name__)
+        
         context = super().get_context_data(**kwargs)
         context['available_languages'] = settings.LANGUAGES
         current_language = self.request.GET.get('language', settings.LANGUAGE_CODE)
         context['current_language'] = current_language
         item = self.get_object()
+        
+        logger.info(f"ItemTranslationView.get_context_data - Item ID: {item.id}, Current Language: {current_language}")
+        
+        # Log all available translations for this item
+        all_translations = item.translations.all()
+        logger.info(f"Available translations: {[(t.language_code, bool(t.media)) for t in all_translations]}")
         
         # Normalize language code - handle both 'en-gb' and 'en' formats
         # Extract base language code (e.g., 'en' from 'en-gb')
@@ -3053,20 +3062,34 @@ class ItemTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
         
         # Get the translated media for the current language
         # Try the exact language code first, then fall back to base language
+        media_found = False
         try:
             item.set_current_language(current_language)
             context['original_name'] = item.name
             context['original_media'] = item.media
-        except:
+            if item.media:
+                logger.info(f"Found media for exact language '{current_language}': {item.media.name if item.media else None}")
+                media_found = True
+        except Exception as e:
+            logger.warning(f"Failed to get media for exact language '{current_language}': {e}")
+        
+        if not media_found and base_lang != current_language:
             # If exact language doesn't exist, try base language
             try:
                 item.set_current_language(base_lang)
                 context['original_name'] = item.name
                 context['original_media'] = item.media
-            except:
-                # Fall back to default
-                context['original_name'] = item.name
-                context['original_media'] = item.media
+                if item.media:
+                    logger.info(f"Found media for base language '{base_lang}': {item.media.name if item.media else None}")
+                    media_found = True
+            except Exception as e:
+                logger.warning(f"Failed to get media for base language '{base_lang}': {e}")
+        
+        if not media_found:
+            # Fall back to default
+            context['original_name'] = item.name
+            context['original_media'] = item.media
+            logger.info(f"Using default language media: {item.media.name if item.media else None}")
         
         return context
 
@@ -4507,13 +4530,19 @@ def save_tts_to_item(request, item_id):
         # Get the Django language code
         django_lang = language_map.get(language_code, language_code.split('-')[0])
         
+        logger.info(f"Sarvam language code: {language_code}, Django language code: {django_lang}")
         logger.info(f"Setting item language to: {django_lang}")
+        
+        # Log all translations before save
+        logger.info(f"Translations before save: {[(t.language_code, bool(t.media)) for t in item.translations.all()]}")
         
         # Save to item's media field - need to handle translations
         item.set_current_language(django_lang)
         item.media.save(filename, ContentFile(result['audio_data']), save=True)
         
-        logger.info(f"TTS audio saved successfully")
+        # Log all translations after save
+        logger.info(f"Translations after save: {[(t.language_code, bool(t.media)) for t in item.translations.all()]}")
+        logger.info(f"TTS audio saved successfully to language '{django_lang}', file: {item.media.name if item.media else None}")
         
         return JsonResponse({
             'success': True,
