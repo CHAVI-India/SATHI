@@ -1,8 +1,8 @@
 from django.db import models
-from django.utils import timezone
+from django.utils import choices, timezone
 import uuid
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, URLValidator
 from patientapp.models import Patient,Diagnosis,Treatment
 from django.contrib.auth.models import User
 from parler.models import TranslatableModel, TranslatedFields
@@ -18,6 +18,9 @@ import logging
 import numpy as np
 import magic
 import mimetypes
+import os
+from importlib import import_module
+
 
 # Allowed extensions and their MIME types fore the media field.
 allowed_types = {
@@ -50,6 +53,7 @@ all_mimes = sum([v['mimetypes'] for v in allowed_types.values()], [])
 
 # Setup logger for construct score calculations
 logger = logging.getLogger('promapp.construct_scores')
+
 
 
 class DirectionChoices(models.TextChoices):
@@ -183,6 +187,96 @@ class CompositeConstructScaleScoring(models.Model):
 
     def __str__(self):
         return self.composite_construct_scale_name or f"Composite Scale {self.id}"
+
+
+class AICapabilitiesChoices(models.TextChoices):
+    TTS = "Text To Speech", "Text To Speech"
+    STT = "Speech To Text", "Speech To Text"
+    IMAGE_GENERATION = "Image Generation", "Image Generation"
+    VIDEO_GENERATION = "Video Generation", "Video Generation"
+    TEXT_GENERATION = "Text Generation", "Text Generation"
+
+class AIAPIConfiguration(models.Model):
+    '''
+    AI API configuration model. This is used to store the AI API configuration for providing AI augmented services using a REST API. 
+    '''
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ai_provider = models.CharField(max_length=255, help_text = "The AI provider")
+    ai_capability = models.CharField(max_length=255, null=True, blank=True, help_text = "The AI capability which will be used for this task",choices=AICapabilitiesChoices.choices)
+    utility_function_path = models.CharField(max_length=512, help_text="Python import path to the utility function (e.g., 'promapp.ai_utils.sarvamai_tts.sarvam_tts')",null=True)
+    api_url = models.CharField(max_length=512, null=True, blank=True, help_text = "The AI API URL. Can be left blank if using a library")
+    api_key_environment_variable_name = models.CharField(max_length=255, help_text="The name of the environment variable which will be used to store the API Key for the AI model. Note that this field is for the name of the variable where the KEY is being stored in the environment not the key itself",null=True,blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_date']
+        verbose_name = 'AI API Configuration'
+        verbose_name_plural = 'AI API Configurations'
+
+    def __str__(self):
+        return self.ai_provider or f"AI API Configuration {self.id}"
+    
+    def clean(self):
+
+        
+        errors = {}
+        
+        if self.api_url:
+            url_validator = URLValidator(schemes=['http', 'https'])
+            try:
+                url_validator(self.api_url)
+            except ValidationError:
+                errors['api_url'] = 'Please enter a valid URL (must start with http:// or https://)'
+        
+        if self.api_key_environment_variable_name:
+            if self.api_key_environment_variable_name not in os.environ:
+                errors['api_key_environment_variable_name'] = f'Environment variable "{self.api_key_environment_variable_name}" is not defined in the system environment'
+        
+        if self.utility_function_path:
+            try:
+                module_path, function_name = self.utility_function_path.rsplit('.', 1)
+                module = import_module(module_path)
+                func = getattr(module, function_name)
+                if not callable(func):
+                    errors['utility_function_path'] = f'The specified path "{self.utility_function_path}" exists but is not callable'
+            except ValueError:
+                errors['utility_function_path'] = f'Invalid function path format. Expected "module.path.function_name" (e.g., "promapp.ai_utils.sarvamai_tts.sarvam_tts")'
+            except ImportError as e:
+                errors['utility_function_path'] = f'Cannot import module from path "{self.utility_function_path}": {str(e)}'
+            except AttributeError:
+                errors['utility_function_path'] = f'Function "{function_name}" not found in module "{module_path}"'
+        
+        if errors:
+            raise ValidationError(errors)
+    
+    def get_utility_function(self):
+        """
+        Retrieve and return the utility function specified by utility_function_path.
+        
+        Returns:
+            callable: The utility function for making API calls
+            
+        Raises:
+            ValueError: If the utility function cannot be loaded
+        """
+        from importlib import import_module
+        
+        if not self.utility_function_path:
+            raise ValueError("utility_function_path is not set")
+        
+        try:
+            module_path, function_name = self.utility_function_path.rsplit('.', 1)
+            module = import_module(module_path)
+            func = getattr(module, function_name)
+            
+            if not callable(func):
+                raise ValueError(f"The object at {self.utility_function_path} is not callable")
+            
+            return func
+        except (ValueError, ImportError, AttributeError) as e:
+            raise ValueError(f"Cannot load utility function from {self.utility_function_path}: {str(e)}")
+
 
 class LikertScale(models.Model):
     '''

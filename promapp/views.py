@@ -3043,10 +3043,15 @@ class ItemTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['available_languages'] = settings.LANGUAGES
-        context['current_language'] = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        current_language = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        context['current_language'] = current_language
         item = self.get_object()
+        
+        # Get the translated media for the current language
+        item.set_current_language(current_language)
         context['original_name'] = item.name
         context['original_media'] = item.media
+        
         return context
 
     def get_form_kwargs(self):
@@ -4395,3 +4400,96 @@ class StaffQuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin
             context['items_with_translations'] = items_with_translations
             context['form'] = form  # Pass the form with errors
             return self.render_to_response(context)
+
+
+@login_required
+@permission_required('promapp.change_item', raise_exception=True)
+def generate_tts_preview(request):
+    """
+    AJAX view to generate TTS preview using Sarvam AI.
+    Returns base64 encoded audio for preview playback.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        import base64
+        from .ai_utils.sarvamai_tts import sarvam_tts
+        
+        text = request.POST.get('text', '').strip()
+        language_code = request.POST.get('language_code', 'en-IN')
+        
+        if not text:
+            return JsonResponse({'error': 'Text is required'}, status=400)
+        
+        # Generate TTS
+        result = sarvam_tts(text, language_code=language_code)
+        
+        # Encode audio data as base64 for preview
+        audio_base64 = base64.b64encode(result['audio_data']).decode('utf-8')
+        
+        return JsonResponse({
+            'success': True,
+            'audio_base64': audio_base64,
+            'request_id': result['request_id'],
+            'format': result['format']
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@permission_required('promapp.change_item', raise_exception=True)
+def save_tts_to_item(request, item_id):
+    """
+    AJAX view to generate TTS and save it to Item media field.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        from django.core.files.base import ContentFile
+        from .ai_utils.sarvamai_tts import sarvam_tts
+        import uuid as uuid_lib
+        import logging
+        
+        logger = logging.getLogger(__name__)
+        
+        item = get_object_or_404(Item, id=item_id)
+        text = request.POST.get('text', '').strip()
+        language_code = request.POST.get('language_code', 'en-IN')
+        
+        if not text:
+            return JsonResponse({'error': 'Text is required'}, status=400)
+        
+        logger.info(f"Generating TTS for item {item_id}, language: {language_code}")
+        
+        # Generate TTS
+        result = sarvam_tts(text, language_code=language_code)
+        
+        # Create filename
+        filename = f"tts_{item.abbreviated_item_id or item.id}_{language_code}_{uuid_lib.uuid4().hex[:8]}.wav"
+        
+        logger.info(f"Saving TTS audio to {filename}")
+        
+        # Save to item's media field - need to handle translations
+        item.set_current_language(language_code.split('-')[0])  # Extract language code (e.g., 'en' from 'en-IN')
+        item.media.save(filename, ContentFile(result['audio_data']), save=True)
+        
+        logger.info(f"TTS audio saved successfully")
+        
+        return JsonResponse({
+            'success': True,
+            'media_url': item.media.url if item.media else None,
+            'filename': filename,
+            'request_id': result.get('request_id')
+        })
+        
+    except Exception as e:
+        import logging
+        import traceback
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in save_tts_to_item: {str(e)}")
+        logger.error(traceback.format_exc())
+        return JsonResponse({'error': str(e)}, status=500)

@@ -1,6 +1,6 @@
 from django import forms
 from django.db import models
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, LikertScaleResponseOption, ConstructScale, QuestionnaireItemRule, QuestionnaireItemRuleGroup, CompositeConstructScaleScoring
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, LikertScaleResponseOption, ConstructScale, QuestionnaireItemRule, QuestionnaireItemRuleGroup, CompositeConstructScaleScoring, AIAPIConfiguration
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Div, HTML, Submit, Button
 from django.forms import inlineformset_factory
@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 import magic
 import mimetypes
 import os
+from .ai_utils.utils import get_utility_function_choices
 
 # Allowed extensions and their MIME types fore the media field.
 allowed_types = {
@@ -1331,3 +1332,27 @@ class StaffQuestionnaireResponseForm(forms.Form):
                 cleaned_data[field_name] = None
         return cleaned_data
 
+
+class AIAPIConfigurationForm(forms.ModelForm):
+    """
+    Form for AIAPIConfiguration with dynamic utility function choices.
+    """
+    utility_function_path = forms.ChoiceField(
+        label='Utility Function',
+        help_text='Select the utility function to use for this AI capability',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    class Meta:
+        model = AIAPIConfiguration
+        fields = ['ai_provider', 'ai_capability', 'utility_function_path', 'api_url', 'api_key_environment_variable_name']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Dynamically populate utility function choices
+        choices = get_utility_function_choices()
+        if not choices:
+            choices = [('', 'No utility functions available')]
+        else:
+            choices = [('', 'Select a utility function')] + list(choices)
+        self.fields['utility_function_path'].choices = choices

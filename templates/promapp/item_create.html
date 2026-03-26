@@ -174,6 +174,31 @@
                 <div class="text-red-500 text-sm mt-1">{{ form.media.errors }}</div>
               {% endif %}
               <p class="text-sm text-gray-500 mt-1">{% translate "Upload an image, video, or audio file to display with this item (Question)" %}</p>
+              
+              <!-- TTS Generation Option -->
+              <div class="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <p class="text-sm font-medium text-purple-900 mb-2">
+                  <i class="fas fa-magic mr-1"></i>
+                  {% translate "Or generate audio from question text:" %}
+                </p>
+                <p class="text-xs text-gray-600 mb-3">
+                  <i class="fas fa-info-circle mr-1"></i>
+                  {% translate "Preview the generated audio below. You can upload it manually or generate it after creating the item." %}
+                </p>
+                <button type="button" id="preview-tts-btn" class="px-3 py-2 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition-colors">
+                  <i class="fas fa-volume-up mr-1"></i>
+                  {% translate "Generate & Preview Audio" %}
+                </button>
+                <div id="audio-preview-container" class="hidden mt-3">
+                  <p class="text-xs font-medium text-gray-700 mb-1">{% translate "Audio Preview:" %}</p>
+                  <audio id="audio-preview" controls class="w-full"></audio>
+                  <p class="text-xs text-gray-600 mt-1">
+                    <i class="fas fa-lightbulb mr-1"></i>
+                    {% translate "Tip: Create the item first, then use the translation form to generate and save audio for each language." %}
+                  </p>
+                </div>
+                <div id="tts-status" class="hidden mt-2"></div>
+              </div>
             </div>
 
             <div>
@@ -354,6 +379,64 @@
       width: '100%',
       closeOnSelect: false
     });
+    
+    // TTS Functionality
+    const previewTtsBtn = document.getElementById('preview-tts-btn');
+    const audioPreviewContainer = document.getElementById('audio-preview-container');
+    const audioPreview = document.getElementById('audio-preview');
+    const ttsStatus = document.getElementById('tts-status');
+    
+    function showStatus(message, type = 'info') {
+      ttsStatus.className = `mt-2 p-2 text-sm rounded ${type === 'error' ? 'bg-red-100 text-red-700' : type === 'success' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`;
+      ttsStatus.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'} mr-1"></i>${message}`;
+      ttsStatus.classList.remove('hidden');
+    }
+    
+    if (previewTtsBtn) {
+      previewTtsBtn.addEventListener('click', async function() {
+        const nameField = document.getElementById('id_name');
+        const text = nameField ? nameField.value.trim() : '';
+        
+        if (!text) {
+          showStatus('{% translate "Please enter question text before generating audio." %}', 'error');
+          return;
+        }
+        
+        previewTtsBtn.disabled = true;
+        previewTtsBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>{% translate "Generating..." %}';
+        
+        try {
+          const formData = new FormData();
+          formData.append('text', text);
+          formData.append('language_code', 'en-IN');
+          formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+          
+          const response = await fetch('{% url "generate_tts_preview" %}', {
+            method: 'POST',
+            body: formData
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            const audioBlob = await fetch(`data:audio/wav;base64,${data.audio_base64}`).then(r => r.blob());
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            audioPreview.src = audioUrl;
+            audioPreviewContainer.classList.remove('hidden');
+            showStatus('{% translate "Audio preview ready! Save the item to use this audio, or upload a different file." %}', 'success');
+            audioPreview.play();
+          } else {
+            showStatus(data.error || '{% translate "Failed to generate audio" %}', 'error');
+          }
+        } catch (error) {
+          showStatus('{% translate "Error: " %}' + error.message, 'error');
+        } finally {
+          previewTtsBtn.disabled = false;
+          previewTtsBtn.innerHTML = '<i class="fas fa-volume-up mr-1"></i>{% translate "Generate & Preview Audio" %}';
+        }
+      });
+    }
     
     const responseTypeSelect = document.getElementById('id_response_type');
     const missingValueField = document.getElementById('id_item_missing_value').closest('div');

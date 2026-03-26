@@ -241,3 +241,25 @@ class QuestionnaireConstructScoreCompositeAdmin(admin.ModelAdmin):
     search_fields = ('questionnaire_submission', 'composite_construct_scale', 'score')
     list_filter = ('questionnaire_submission', 'composite_construct_scale', 'score')
     ordering = ('-created_date',)
+
+@admin.register(AIAPIConfiguration)    
+class AIAPIConfigurationAdmin(admin.ModelAdmin):
+    from promapp.forms import AIAPIConfigurationForm
+    form = AIAPIConfigurationForm
+    list_display = ('ai_provider', 'ai_capability', 'utility_function_path', 'created_date')
+    list_filter = ('ai_provider', 'ai_capability', 'created_date')
+    search_fields = ('ai_provider', 'ai_capability', 'utility_function_path')
+    ordering = ('-created_date',)
+    fieldsets = (
+        ('Provider Information', {
+            'fields': ('ai_provider', 'ai_capability')
+        }),
+        ('Utility Function', {
+            'fields': ('utility_function_path',),
+            'description': 'Select the utility function from available options'
+        }),
+        ('API Configuration', {
+            'fields': ('api_url', 'api_key_environment_variable_name'),
+            'description': 'API URL and environment variable name for the API key'
+        }),
+    )

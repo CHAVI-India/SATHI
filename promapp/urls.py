@@ -124,6 +124,10 @@ urlpatterns = [
     # Item Translation URLs
     path('translations/items/', views.ItemTranslationListView.as_view(), name='item_translation_list'),
     path('translations/item/<uuid:pk>/', views.ItemTranslationView.as_view(), name='item_translation'),
+    
+    # TTS URLs
+    path('tts/preview/', views.generate_tts_preview, name='generate_tts_preview'),
+    path('tts/save/<uuid:item_id>/', views.save_tts_to_item, name='save_tts_to_item'),
 
     # Likert Scale Response Option Translation URLs
     path('translations/likert-options/', views.LikertScaleResponseOptionTranslationListView.as_view(), name='likert_scale_response_option_translation_list'),
