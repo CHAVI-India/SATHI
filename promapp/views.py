@@ -3047,10 +3047,26 @@ class ItemTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
         context['current_language'] = current_language
         item = self.get_object()
         
+        # Normalize language code - handle both 'en-gb' and 'en' formats
+        # Extract base language code (e.g., 'en' from 'en-gb')
+        base_lang = current_language.split('-')[0]
+        
         # Get the translated media for the current language
-        item.set_current_language(current_language)
-        context['original_name'] = item.name
-        context['original_media'] = item.media
+        # Try the exact language code first, then fall back to base language
+        try:
+            item.set_current_language(current_language)
+            context['original_name'] = item.name
+            context['original_media'] = item.media
+        except:
+            # If exact language doesn't exist, try base language
+            try:
+                item.set_current_language(base_lang)
+                context['original_name'] = item.name
+                context['original_media'] = item.media
+            except:
+                # Fall back to default
+                context['original_name'] = item.name
+                context['original_media'] = item.media
         
         return context
 
@@ -4473,8 +4489,28 @@ def save_tts_to_item(request, item_id):
         
         logger.info(f"Saving TTS audio to {filename}")
         
+        # Map Sarvam AI language codes to Django Parler language codes
+        # Sarvam uses 'en-IN', 'hi-IN', etc., but Parler might use 'en', 'en-gb', 'hi', etc.
+        language_map = {
+            'en-IN': 'en',
+            'hi-IN': 'hi',
+            'ta-IN': 'ta',
+            'te-IN': 'te',
+            'kn-IN': 'kn',
+            'ml-IN': 'ml',
+            'mr-IN': 'mr',
+            'gu-IN': 'gu',
+            'bn-IN': 'bn',
+            'pa-IN': 'pa',
+        }
+        
+        # Get the Django language code
+        django_lang = language_map.get(language_code, language_code.split('-')[0])
+        
+        logger.info(f"Setting item language to: {django_lang}")
+        
         # Save to item's media field - need to handle translations
-        item.set_current_language(language_code.split('-')[0])  # Extract language code (e.g., 'en' from 'en-IN')
+        item.set_current_language(django_lang)
         item.media.save(filename, ContentFile(result['audio_data']), save=True)
         
         logger.info(f"TTS audio saved successfully")
