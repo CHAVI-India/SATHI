@@ -105,6 +105,34 @@
               {% endwith %}
             {% endfor %}
           </div>
+          
+          <!-- Media files indicator -->
+          <div class="text-xs text-gray-900 mt-2">
+            <strong>{% translate "Media files:" %}</strong>
+            {% for trans in item.translations.all %}
+              {% if trans.media %}
+                <span class="inline-block mr-3">
+                  {% with file_ext=trans.media.name|lower %}
+                    {% if '.mp3' in file_ext or '.wav' in file_ext or '.m4a' in file_ext or '.ogg' in file_ext or '.flac' in file_ext or '.aac' in file_ext %}
+                      {% translate "Audio" %}
+                    {% elif '.mp4' in file_ext or '.mov' in file_ext or '.avi' in file_ext or '.wmv' in file_ext or '.flv' in file_ext or '.mkv' in file_ext %}
+                      {% translate "Video" %}
+                    {% elif '.jpg' in file_ext or '.jpeg' in file_ext or '.png' in file_ext or '.gif' in file_ext or '.bmp' in file_ext or '.tiff' in file_ext or '.webp' in file_ext %}
+                      {% translate "Image" %}
+                    {% else %}
+                      {% translate "Media" %}
+                    {% endif %}
+                  {% endwith %}
+                  {% translate "in" %}
+                  {% for lang_code, lang_name in available_languages %}
+                    {% if lang_code == trans.language_code %}{{ lang_name }}{% endif %}
+                  {% endfor %}
+                </span>
+              {% endif %}
+            {% empty %}
+              <span class="text-gray-500">{% translate "None" %}</span>
+            {% endfor %}
+          </div>
         </div>
       </c-card>
     {% empty %}
