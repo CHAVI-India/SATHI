@@ -11,4 +11,4 @@ This section provides guidance for patients using SATHI to complete PROMs and PR
    two-factor
    answering_questions
    patient_portal
-   faq
+
