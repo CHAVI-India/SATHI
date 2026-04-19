@@ -627,14 +627,12 @@ CSP_SCRIPT_SRC = (
     "'unsafe-inline'",  # Needed for inline scripts in templates
     "'unsafe-eval'",    # Needed for Tailwind CDN runtime compilation
     "https://cdn.tailwindcss.com",  # Tailwind CSS CDN script (temporarily restored)
-    "https://cdn.jsdelivr.net",  # For FullCalendar and other CDN libraries
 )
 CSP_STYLE_SRC = (
     "'self'",
     "'unsafe-inline'",  # Needed for inline styles and Tailwind CSS
     "https://fonts.googleapis.com",  # For Google Fonts CSS
     "https://cdn.tailwindcss.com",  # Tailwind CSS CDN styles (temporarily restored)
-    "https://cdn.jsdelivr.net",  # For FullCalendar and other CDN libraries
 )
 CSP_FONT_SRC = (
     "'self'",
