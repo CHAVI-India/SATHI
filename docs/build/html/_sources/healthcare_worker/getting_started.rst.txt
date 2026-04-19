@@ -6,14 +6,13 @@ This guide will help you get started with using SATHI as a healthcare worker.
 Overview
 --------
 
-SATHI enables healthcare workers to manage patients, assign questionnaires, and review patient-reported outcomes.
+SATHI enables healthcare workers to manage patients, assign questionnaires, and review patient-reported outcomes. Healthcare worker accounts need to be created by the administrator who needs to assign the user to the healthcare worker group and also create a provider from the user account. 
+
+
+
+
 
 Accessing SATHI
 ---------------
 
-*To be documented: How healthcare workers access the system, login procedures, etc.*
-
-User Interface Overview
------------------------
-
-*To be documented: Overview of the main interface and navigation*
+Please navigate to the website at https://sathi.chavi.ai. 

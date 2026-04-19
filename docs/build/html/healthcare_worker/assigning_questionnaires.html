@@ -35,18 +35,119 @@
             
   <section id="assigning-questionnaires">
 <h1>Assigning Questionnaires<a class="headerlink" href="#assigning-questionnaires" title="Link to this heading">¶</a></h1>
-<p>Learn how to assign questionnaires to patients.</p>
-<section id="selecting-questionnaires">
-<h2>Selecting Questionnaires<a class="headerlink" href="#selecting-questionnaires" title="Link to this heading">¶</a></h2>
-<p><em>To be documented: How to choose appropriate questionnaires</em></p>
+<p>This page explains how to assign questionnaires to a patient, control their visibility, and schedule them for specific dates and times. All of these actions are done from the <strong>Manage Questionnaires</strong> page for a patient.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You need the appropriate permissions to manage questionnaires. If you do not see the <strong>Manage Questionnaires</strong> button, please contact your system administrator.</p>
+</div>
+<p>—</p>
+<section id="opening-the-manage-questionnaires-page">
+<h2>Opening the Manage Questionnaires Page<a class="headerlink" href="#opening-the-manage-questionnaires-page" title="Link to this heading">¶</a></h2>
+<p>There are two ways to reach the Manage Questionnaires page:</p>
+<ol class="arabic simple">
+<li><p><strong>From the Patient List</strong> — Find the patient in the patient list and click the green <strong>Manage Questionnaires</strong> button next to their name.</p></li>
+<li><p><strong>From the Patient Details page</strong> — Open a patient’s record and click the <strong>Manage Questionnaires</strong> button at the top of the page.</p></li>
+</ol>
+<p>Both options take you to the same page, which is titled <strong>“Manage Questionnaires for [Patient Name]”</strong>.</p>
+<p>To return to the patient list at any time, click the <strong>Back to Patient List</strong> button in the top-right corner of the page.</p>
+<p>—</p>
 </section>
-<section id="assigning-to-patients">
-<h2>Assigning to Patients<a class="headerlink" href="#assigning-to-patients" title="Link to this heading">¶</a></h2>
-<p><em>To be documented: How to assign questionnaires to individual or multiple patients</em></p>
+<section id="understanding-the-questionnaire-status-table">
+<h2>Understanding the Questionnaire Status Table<a class="headerlink" href="#understanding-the-questionnaire-status-table" title="Link to this heading">¶</a></h2>
+<p>The lower section of the page shows a table of all questionnaires available in the system. Each row includes:</p>
+<ul class="simple">
+<li><p><strong>Questionnaire</strong> — The name and a short description of the questionnaire.</p></li>
+<li><p><strong>Status</strong> — Shows one of three states:</p>
+<ul>
+<li><p><strong>Not Assigned</strong> (grey) — The questionnaire has not been given to this patient.</p></li>
+<li><p><strong>Hidden</strong> (yellow) — The questionnaire is assigned to the patient, but the patient cannot currently see it.</p></li>
+<li><p><strong>Displayed</strong> (green) — The questionnaire is assigned and visible to the patient in their account.</p></li>
+</ul>
+</li>
+<li><p><strong>Assigned Date</strong> — The date the questionnaire was first assigned to this patient.</p></li>
+<li><p><strong>Actions</strong> — Buttons to assign, unassign, or change the visibility of the questionnaire.</p></li>
+</ul>
+<p>—</p>
 </section>
-<section id="scheduling">
-<h2>Scheduling<a class="headerlink" href="#scheduling" title="Link to this heading">¶</a></h2>
-<p><em>To be documented: How to schedule recurring questionnaires</em></p>
+<section id="assigning-a-questionnaire-to-a-patient">
+<h2>Assigning a Questionnaire to a Patient<a class="headerlink" href="#assigning-a-questionnaire-to-a-patient" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Find the questionnaire you want to assign in the table.</p></li>
+<li><p>If its status shows <strong>Not Assigned</strong>, click the green <strong>Assign</strong> button in the Actions column.</p></li>
+<li><p>The page will refresh and the questionnaire status will change to <strong>Hidden</strong>.</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A newly assigned questionnaire is set to <strong>Hidden</strong> by default. The patient will not see it in their account until you set it to <strong>Displayed</strong> (see below).</p>
+</div>
+<p>—</p>
+</section>
+<section id="making-a-questionnaire-visible-to-the-patient">
+<h2>Making a Questionnaire Visible to the Patient<a class="headerlink" href="#making-a-questionnaire-visible-to-the-patient" title="Link to this heading">¶</a></h2>
+<p>Once a questionnaire is assigned, you can control whether the patient sees it.</p>
+<ul class="simple">
+<li><p>If the status is <strong>Hidden</strong>, click the <strong>Show</strong> button to make it visible. The status will change to <strong>Displayed</strong>.</p></li>
+<li><p>If the status is <strong>Displayed</strong>, click the <strong>Hide</strong> button to hide it from the patient. The status will change to <strong>Hidden</strong>.</p></li>
+</ul>
+<p>This is useful when you want to temporarily stop a patient from seeing a questionnaire without fully removing the assignment.</p>
+<p>—</p>
+</section>
+<section id="unassigning-a-questionnaire">
+<h2>Unassigning a Questionnaire<a class="headerlink" href="#unassigning-a-questionnaire" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Find the assigned questionnaire in the table (it will show a <strong>Hidden</strong> or <strong>Displayed</strong> status).</p></li>
+<li><p>Click the red <strong>Unassign</strong> button.</p></li>
+<li><p>A confirmation prompt will appear asking: <em>“Are you sure you want to unassign this questionnaire?”</em></p></li>
+<li><p>Click <strong>OK</strong> to confirm. The questionnaire will be removed from the patient’s account and its status will return to <strong>Not Assigned</strong>.</p></li>
+</ol>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Unassigning a questionnaire removes it from the patient’s account. Any previously created schedules for that questionnaire will also be removed. This action cannot be undone from this page.</p>
+</div>
+<p>—</p>
+</section>
+<section id="scheduling-questionnaires">
+<h2>Scheduling Questionnaires<a class="headerlink" href="#scheduling-questionnaires" title="Link to this heading">¶</a></h2>
+<p>The <strong>Schedule Questionnaires</strong> section at the top of the page lets you set specific dates and times when a questionnaire should be made available to the patient.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can only schedule questionnaires that have already been <strong>assigned</strong> to the patient. If no questionnaires appear in the scheduling section, assign at least one questionnaire first (see above).</p>
+</div>
+<p><strong>Step 1: Select Questionnaires to Schedule</strong></p>
+<p>Tick the checkbox next to one or more questionnaires you want to schedule. Each questionnaire label also shows its <strong>interval restriction</strong> — the minimum required time between two scheduled dates for that questionnaire (e.g., <em>“Interval: 7 day(s)”</em>). If there is no restriction, it will say <em>“No interval restriction”</em>.</p>
+<p><strong>Step 2: Select Dates and Times</strong></p>
+<p>Click the <strong>“Click to select dates”</strong> field to open the calendar picker. You can:</p>
+<ul class="simple">
+<li><p>Select <strong>multiple dates</strong> by clicking each date you want.</p></li>
+<li><p>Set a <strong>time</strong> for each date using the time selector within the calendar.</p></li>
+</ul>
+<p>Selected dates will appear as blue tags below the calendar. To remove a date, click the <strong>✕</strong> button on its tag.</p>
+<p><strong>Step 3: Check for Interval Warnings</strong></p>
+<p>If you select multiple dates for a questionnaire that has an interval restriction, the system will automatically warn you if any two consecutive dates are too close together. A yellow warning box will appear listing the problematic questionnaires and the required minimum gap.</p>
+<p>You must resolve all interval warnings before the schedule can be saved.</p>
+<p><strong>Step 4: Create the Schedule</strong></p>
+<p>Click the <strong>Create Schedule</strong> button. The system will create one schedule entry for each combination of selected questionnaire and selected date. If a schedule for an exact questionnaire-and-datetime combination already exists, it will not be duplicated.</p>
+<p>A green success message will appear confirming how many schedule entries were created.</p>
+<p>—</p>
+</section>
+<section id="viewing-and-deleting-existing-schedules">
+<h2>Viewing and Deleting Existing Schedules<a class="headerlink" href="#viewing-and-deleting-existing-schedules" title="Link to this heading">¶</a></h2>
+<p>If any schedules have already been set up for the patient, an <strong>Existing Schedules</strong> table will appear between the scheduling form and the questionnaire status table. This table shows:</p>
+<ul class="simple">
+<li><p><strong>Questionnaire</strong> — The name of the scheduled questionnaire.</p></li>
+<li><p><strong>Scheduled Date</strong> — The date and time the questionnaire is scheduled.</p></li>
+<li><p><strong>Actions</strong> — A <strong>Delete</strong> button to remove that specific schedule entry.</p></li>
+</ul>
+<p>To delete a schedule:</p>
+<ol class="arabic simple">
+<li><p>Click the red <strong>Delete</strong> button next to the schedule entry you want to remove.</p></li>
+<li><p>A confirmation prompt will appear asking: <em>“Are you sure you want to delete this schedule?”</em></p></li>
+<li><p>Click <strong>OK</strong> to confirm. The schedule entry will be permanently removed.</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Deleting a schedule only removes the specific date-and-time entry. The questionnaire remains assigned to the patient and can be rescheduled at any time.</p>
+</div>
 </section>
 </section>
 
@@ -76,11 +177,9 @@
     </div>
 </search>
 <script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Patient Documentation:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../patient/index.html">Patient Documentation</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Healthcare Worker Documentation:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Healthcare Worker Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="getting_started.html">Getting Started (Healthcare Worker)</a></li>
@@ -88,11 +187,9 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Assigning Questionnaires</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reviewing_results.html">Reviewing Results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reports_and_analytics.html">Reports and Analytics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="faq.html">Frequently Asked Questions (Healthcare Worker)</a></li>
 </ul>
 </li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer Documentation</a></li>
 </ul>

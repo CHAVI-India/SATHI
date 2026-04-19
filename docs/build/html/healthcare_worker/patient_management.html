@@ -35,18 +35,164 @@
             
   <section id="patient-management">
 <h1>Patient Management<a class="headerlink" href="#patient-management" title="Link to this heading">¶</a></h1>
-<p>Learn how to manage patient records in SATHI.</p>
-<section id="adding-patients">
-<h2>Adding Patients<a class="headerlink" href="#adding-patients" title="Link to this heading">¶</a></h2>
-<p><em>To be documented: How to add new patients to the system</em></p>
+<p>This page explains how to find patients, add new patients, view and update their details, and manage diagnoses and treatments.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The actions available to you depend on your permissions. If a button described here is not visible, contact your administrator.</p>
+</div>
+<p>—</p>
+<section id="the-patient-list">
+<h2>The Patient List<a class="headerlink" href="#the-patient-list" title="Link to this heading">¶</a></h2>
+<p>The <strong>Patients</strong> page is your main starting point. Click <strong>Patients</strong> in the navigation menu to open it.</p>
+<section id="searching-and-filtering">
+<h3>Searching and Filtering<a class="headerlink" href="#searching-and-filtering" title="Link to this heading">¶</a></h3>
+<p>Use the <strong>Search Patient by Name or ID</strong> box to find a specific patient — start typing and select from the dropdown. The list updates immediately.</p>
+<p>You can also narrow the list using these filters:</p>
+<ul class="simple">
+<li><p><strong>Institution</strong> — Show only patients from a specific institution.</p></li>
+<li><p><strong>Gender</strong> — Filter by gender.</p></li>
+<li><p><strong>Questionnaires</strong> — Filter by how many questionnaires a patient has assigned (None, 1–5, 6–10, 10+).</p></li>
+<li><p><strong>Diagnosis</strong> — Filter by a diagnosis name.</p></li>
+<li><p><strong>Treatment Type</strong> — Filter by a type of treatment.</p></li>
+<li><p><strong>Sort By</strong> — Sort the list by name (A–Z or Z–A) or by number of questionnaires assigned.</p></li>
+</ul>
+<p>Any combination of filters can be applied at once. The list shows 25 patients per page with pagination controls at the bottom.</p>
 </section>
-<section id="viewing-patient-information">
-<h2>Viewing Patient Information<a class="headerlink" href="#viewing-patient-information" title="Link to this heading">¶</a></h2>
-<p><em>To be documented: How to view and update patient information</em></p>
+<section id="actions-from-the-patient-list">
+<h3>Actions from the Patient List<a class="headerlink" href="#actions-from-the-patient-list" title="Link to this heading">¶</a></h3>
+<p>Each row in the patient table has two action buttons:</p>
+<ul class="simple">
+<li><p><strong>View Patient</strong> — Opens the patient’s detail page.</p></li>
+<li><p><strong>Manage Questionnaires</strong> — Opens the questionnaire management page for that patient directly (only shown if you have the required permission).</p></li>
+</ul>
+<p>The top of the page also has:</p>
+<ul class="simple">
+<li><p><strong>Schedule Calendar</strong> — A calendar view showing all scheduled questionnaire dates across all patients.</p></li>
+<li><p><strong>Add Patient</strong> — Opens the form to register a new patient (requires permission).</p></li>
+</ul>
+<p>—</p>
 </section>
-<section id="patient-search">
-<h2>Patient Search<a class="headerlink" href="#patient-search" title="Link to this heading">¶</a></h2>
-<p><em>To be documented: How to search and filter patients</em></p>
+</section>
+<section id="adding-a-new-patient">
+<h2>Adding a New Patient<a class="headerlink" href="#adding-a-new-patient" title="Link to this heading">¶</a></h2>
+<p>Click the <strong>Add Patient</strong> button on the Patients page. You will need to fill in:</p>
+<p><strong>User Account Information</strong></p>
+<ul class="simple">
+<li><p><strong>Username</strong> — A unique login username for the patient. Must not already exist in the system.</p></li>
+<li><p><strong>Email</strong> — The patient’s email address. Must not already be registered.</p></li>
+<li><p><strong>Password / Repeat Password</strong> — Set the patient’s initial login password.</p></li>
+</ul>
+<p><strong>Patient Information</strong></p>
+<ul class="simple">
+<li><p><strong>Name</strong> — Full name of the patient.</p></li>
+<li><p><strong>Patient ID</strong> — Your institution’s internal identifier for the patient.</p></li>
+<li><p><strong>Age</strong> — Patient’s age (0–150).</p></li>
+<li><p><strong>Gender</strong> — Select from: Male, Female, Transgender, Non-binary, Prefer not to say, Other.</p></li>
+<li><p><strong>Institution</strong> — The institution this patient belongs to. If you are a provider, this will be pre-set to your institution.</p></li>
+<li><p><strong>Date of Registration</strong> — Select from the date picker.</p></li>
+<li><p><strong>Preferred Language</strong> — The language the patient’s questionnaires will be displayed in.</p></li>
+</ul>
+<p><strong>User Groups</strong></p>
+<p>Tick the appropriate groups to control what the patient can access in the system.</p>
+<p>Once all fields are filled in correctly, submit the form. You will be returned to the patient list with a success message.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The patient’s <strong>name</strong> and <strong>patient ID</strong> cannot be changed after creation. Only age, gender, institution, registration date, and preferred language can be updated later.</p>
+</div>
+<p>—</p>
+</section>
+<section id="viewing-a-patient-s-details">
+<h2>Viewing a Patient’s Details<a class="headerlink" href="#viewing-a-patient-s-details" title="Link to this heading">¶</a></h2>
+<p>Click <strong>View Patient</strong> on any row in the patient list, or click a patient’s name, to open their detail page.</p>
+<p>The detail page shows:</p>
+<ul class="simple">
+<li><p><strong>Patient Information</strong> card — Patient ID, name, age, gender, institution, date of registration, and preferred language.</p></li>
+<li><p><strong>Diagnoses</strong> section — All diagnoses recorded for the patient, each with its associated treatments.</p></li>
+</ul>
+<p>From the top of the detail page you can also:</p>
+<ul class="simple">
+<li><p>Click <strong>Manage Questionnaires</strong> to assign or schedule questionnaires.</p></li>
+<li><p>Click <strong>View PRO Review</strong> to see the patient’s questionnaire responses and outcome scores.</p></li>
+<li><p>Click <strong>Edit Patient Details</strong> to update basic demographic information.</p></li>
+</ul>
+<p>—</p>
+</section>
+<section id="editing-patient-details">
+<h2>Editing Patient Details<a class="headerlink" href="#editing-patient-details" title="Link to this heading">¶</a></h2>
+<p>Click <strong>Edit Patient Details</strong> on the patient detail page. You can update:</p>
+<ul class="simple">
+<li><p>Age</p></li>
+<li><p>Gender</p></li>
+<li><p>Institution</p></li>
+<li><p>Date of Registration</p></li>
+<li><p>Preferred Language</p></li>
+</ul>
+<p>Click <strong>Save</strong> to confirm. You will be returned to the patient detail page with a confirmation message.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The patient’s name and patient ID are not editable from this screen. Contact your administrator if these need to be corrected.</p>
+</div>
+<p>—</p>
+</section>
+<section id="managing-diagnoses">
+<h2>Managing Diagnoses<a class="headerlink" href="#managing-diagnoses" title="Link to this heading">¶</a></h2>
+<p>Diagnoses are shown on the patient detail page. Each diagnosis card displays the diagnosis name, date of diagnosis, and any treatments linked to it.</p>
+<p><strong>Adding a Diagnosis</strong></p>
+<ol class="arabic simple">
+<li><p>On the patient detail page, click the <strong>Add Diagnosis</strong> button (opens in a new tab).</p></li>
+<li><p>Select the diagnosis from the <strong>Diagnosis</strong> dropdown (this is a list of pre-configured diagnoses in the system).</p></li>
+<li><p>Enter the <strong>Date of Diagnosis</strong> using the date picker.</p></li>
+<li><p>Click <strong>Save</strong>. The diagnosis will appear on the patient detail page.</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the diagnosis you need is not in the dropdown, ask your administrator to add it to the diagnosis list.</p>
+</div>
+<p><strong>Editing a Diagnosis</strong></p>
+<p>Click the <strong>Edit Diagnosis</strong> button on the relevant diagnosis card. Update the fields and save. You will be returned to the patient detail page.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Diagnoses cannot be deleted from this interface. Contact your administrator if a diagnosis needs to be removed.</p>
+</div>
+<p>—</p>
+</section>
+<section id="managing-treatments">
+<h2>Managing Treatments<a class="headerlink" href="#managing-treatments" title="Link to this heading">¶</a></h2>
+<p>Treatments are linked to individual diagnoses and appear inside each diagnosis card on the patient detail page.</p>
+<p><strong>Adding a Treatment</strong></p>
+<ol class="arabic simple">
+<li><p>On the diagnosis card, click <strong>Add Treatment</strong> (opens in a new tab).</p></li>
+<li><p>Fill in the treatment details:</p>
+<ul class="simple">
+<li><p><strong>Treatment Type</strong> — Select one or more treatment types from the list (e.g. Surgery, Chemotherapy). You can select multiple types if treatments were delivered at the same time.</p></li>
+<li><p><strong>Treatment Intent</strong> — Select Preventive, Curative, Palliative, or Other.</p></li>
+<li><p><strong>Date of Start of Treatment</strong> — Use the date picker. Cannot be a future date.</p></li>
+<li><p><strong>Currently Ongoing Treatment</strong> — Tick this if the treatment is still in progress. If ticked, do not enter an end date.</p></li>
+<li><p><strong>Date of End of Treatment</strong> — Required if the treatment is not ongoing. Cannot be before the start date or in the future.</p></li>
+</ul>
+</li>
+<li><p>Click <strong>Save</strong>. The treatment will appear inside the diagnosis card.</p></li>
+</ol>
+<p><strong>Editing a Treatment</strong></p>
+<p>Click the <strong>Edit</strong> button on the treatment entry. Update the fields and save. You will be returned to the patient detail page.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Treatments cannot be deleted from this interface. Contact your administrator if a treatment entry needs to be removed.</p>
+</div>
+<p>—</p>
+</section>
+<section id="managing-treatment-types">
+<h2>Managing Treatment Types<a class="headerlink" href="#managing-treatment-types" title="Link to this heading">¶</a></h2>
+<p>Treatment types are the options available in the <strong>Treatment Type</strong> dropdown when adding a treatment. This list is managed separately.</p>
+<p>To view all treatment types, navigate to the <strong>Treatment Types</strong> page from the admin or navigation menu.</p>
+<p><strong>Adding a Treatment Type</strong></p>
+<p>Click <strong>Add Treatment Type</strong> on the Treatment Types page. Enter the treatment type name and save. The new type will immediately be available in treatment forms.</p>
+<p><strong>Editing a Treatment Type</strong></p>
+<p>Click the <strong>Edit</strong> button next to a treatment type, update the name, and save.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Treatment types cannot be deleted from this interface. Contact your administrator if a type needs to be removed.</p>
+</div>
 </section>
 </section>
 
@@ -76,11 +222,9 @@
     </div>
 </search>
 <script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Patient Documentation:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../patient/index.html">Patient Documentation</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Healthcare Worker Documentation:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Healthcare Worker Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="getting_started.html">Getting Started (Healthcare Worker)</a></li>
@@ -88,11 +232,9 @@
 <li class="toctree-l2"><a class="reference internal" href="assigning_questionnaires.html">Assigning Questionnaires</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reviewing_results.html">Reviewing Results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reports_and_analytics.html">Reports and Analytics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="faq.html">Frequently Asked Questions (Healthcare Worker)</a></li>
 </ul>
 </li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Developer Documentation:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer Documentation</a></li>
 </ul>

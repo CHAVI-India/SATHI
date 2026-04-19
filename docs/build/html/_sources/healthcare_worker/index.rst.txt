@@ -12,4 +12,3 @@ This section provides guidance for healthcare workers using SATHI to manage pati
    assigning_questionnaires
    reviewing_results
    reports_and_analytics
-   faq
