@@ -37,7 +37,7 @@ urlpatterns += i18n_patterns(
     path('', IndexView.as_view(), name='index'),
     path('admin/', admin.site.urls),
     path('schema-viewer/', include('schema_viewer.urls')),
-    
+    path('docs/', include('docs.urls')),
     # App URLs
     path('promapp/', include('promapp.urls')),
     path('patientapp/', include('patientapp.urls')),

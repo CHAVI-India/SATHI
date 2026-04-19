@@ -98,6 +98,7 @@
             {% if user.is_staff %}
             <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% translate "Admin" %}</a>
             {% endif %}
+            <a href="/docs/" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium" target="_blank">{% translate "Documentation" %}</a>
             {% if user.is_authenticated and user.patient %}
             <a href="{% url 'my_questionnaire_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
               {% translate "Complete a Questionnaire" %}
@@ -292,6 +293,7 @@
       {% if user.is_staff %}
       <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% translate "Admin" %}</a>
       {% endif %}
+      <a href="/docs/" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium" target="_blank">{% translate "Documentation" %}</a>
       {% if user.is_authenticated and user.patient %}
       <a href="{% url 'my_questionnaire_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
         {% translate "Complete a Questionnaire" %}

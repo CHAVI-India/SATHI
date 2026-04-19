@@ -1,0 +1,19 @@
+Completing Questionnaires
+==========================
+
+This guide explains how to complete questionnaires in SATHI.
+
+Finding Your Questionnaires
+----------------------------
+
+*To be documented: How to find assigned questionnaires*
+
+Answering Questions
+-------------------
+
+*To be documented: How to answer different types of questions*
+
+Saving and Submitting
+----------------------
+
+*To be documented: How to save progress and submit completed questionnaires*
