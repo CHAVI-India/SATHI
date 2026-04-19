@@ -271,11 +271,8 @@ def process_key(key_str):
         logger.error(f"Error processing key: {e}")
         return None
 
-# Get the key from environment
-key = os.getenv('DJANGO_SECURED_FIELDS_KEY','WZpOFCbhA7sV8FQZPnEAwEZWxSu4g0c44JJxw6gxRpA=')
-if not key:
-    logger.error("No DJANGO_SECURED_FIELDS_KEY found in environment")
-    raise ValueError("DJANGO_SECURED_FIELDS_KEY must be set in environment")
+# Get the key from environment (with dummy default for documentation builds)
+key = os.getenv('DJANGO_SECURED_FIELDS_KEY', 'WZpOFCbhA7sV8FQZPnEAwEZWxSu4g0c44JJxw6gxRpA=')
 
 # Process the key
 processed_key = process_key(key)
