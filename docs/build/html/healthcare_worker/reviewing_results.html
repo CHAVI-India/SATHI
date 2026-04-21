@@ -14,7 +14,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Reports and Analytics" href="reports_and_analytics.html" />
+    <link rel="next" title="Developer Documentation" href="../developer/index.html" />
     <link rel="prev" title="Assigning Questionnaires" href="assigning_questionnaires.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -35,18 +35,358 @@
             
   <section id="reviewing-results">
 <h1>Reviewing Results<a class="headerlink" href="#reviewing-results" title="Link to this heading">¶</a></h1>
-<p>Learn how to review patient questionnaire responses and outcomes.</p>
-<section id="viewing-patient-responses">
-<h2>Viewing Patient Responses<a class="headerlink" href="#viewing-patient-responses" title="Link to this heading">¶</a></h2>
-<p><em>To be documented: How to view individual patient responses</em></p>
+<p>The PRO Review page is your central dashboard for viewing and analyzing patient questionnaire responses over time. This page helps you track patient outcomes, identify concerning trends, and compare individual patient scores against population data.</p>
+<section id="accessing-the-pro-review-page">
+<h2>Accessing the PRO Review Page<a class="headerlink" href="#accessing-the-pro-review-page" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Navigate to the <strong>Patient List</strong> from the main menu</p></li>
+<li><p>Click on a patient’s name to view their details</p></li>
+<li><p>Click the <strong>“PRO Review”</strong> button to access their results dashboard</p></li>
+</ol>
 </section>
-<section id="prom-review-dashboard">
-<h2>PROM Review Dashboard<a class="headerlink" href="#prom-review-dashboard" title="Link to this heading">¶</a></h2>
-<p><em>To be documented: How to use the PROM review dashboard with filters and visualizations</em></p>
+<section id="understanding-the-page-layout">
+<h2>Understanding the Page Layout<a class="headerlink" href="#understanding-the-page-layout" title="Link to this heading">¶</a></h2>
+<p>The PRO Review page is organized into several key sections:</p>
+<dl class="simple">
+<dt><strong>Help Card (Collapsible)</strong></dt><dd><p>Click the blue information banner at the top to expand a comprehensive guide explaining all plot elements, change indicators, and status symbols used throughout the page.</p>
+</dd>
+<dt><strong>Filters Section (Collapsible)</strong></dt><dd><p>Control which data is displayed and how it’s analyzed. Click to expand the filters panel.</p>
+</dd>
+<dt><strong>Patient Information Card</strong></dt><dd><p>Shows patient demographics, diagnoses, treatments, and allows you to mark important dates on plots.</p>
+</dd>
+<dt><strong>Questionnaire Overview</strong></dt><dd><p>Displays all questionnaires the patient has completed with submission counts and dates.</p>
+</dd>
+<dt><strong>Results Sections</strong></dt><dd><ul class="simple">
+<li><p><strong>Topline Results</strong>: Constructs requiring attention (worsened scores or below threshold)</p></li>
+<li><p><strong>Other Construct Scores</strong>: All other construct measurements</p></li>
+<li><p><strong>Composite Construct Scores</strong>: Combined scores from multiple related constructs</p></li>
+</ul>
+</dd>
+</dl>
 </section>
-<section id="interpreting-scores">
-<h2>Interpreting Scores<a class="headerlink" href="#interpreting-scores" title="Link to this heading">¶</a></h2>
-<p><em>To be documented: How to interpret construct scores and trends</em></p>
+<section id="using-filters">
+<h2>Using Filters<a class="headerlink" href="#using-filters" title="Link to this heading">¶</a></h2>
+<p>The filters section allows you to customize your view of the patient’s data. Click the <strong>“Filters”</strong> header to expand the panel.</p>
+<section id="time-analysis-filters">
+<h3>Time Analysis Filters<a class="headerlink" href="#time-analysis-filters" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><strong>Start Date Reference</strong></dt><dd><p>Choose which date to use as the starting point for time calculations:</p>
+<ul class="simple">
+<li><p>Date of Registration</p></li>
+<li><p>Date of Diagnosis</p></li>
+<li><p>Date of Treatment Start</p></li>
+<li><p>Other clinical milestones</p></li>
+</ul>
+<p>This helps align data to clinically meaningful timepoints.</p>
+</dd>
+<dt><strong>Up to [X] [weeks/months/years] after start date</strong></dt><dd><p>Limit data to a specific time window from the start date. Leave empty to show all data.</p>
+</dd>
+<dt><strong>Time Range</strong></dt><dd><p>Select how many recent submissions to display:</p>
+<ul class="simple">
+<li><p>3, 5, 10, or 15 submissions</p></li>
+<li><p>All submissions</p></li>
+</ul>
+<p>Default is 5 submissions.</p>
+</dd>
+<dt><strong>Time Interval</strong></dt><dd><p>Choose the unit for time calculations:</p>
+<ul class="simple">
+<li><p>Days</p></li>
+<li><p>Weeks (default)</p></li>
+<li><p>Months</p></li>
+<li><p>Years</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="population-comparison-filters">
+<h3>Population Comparison Filters<a class="headerlink" href="#population-comparison-filters" title="Link to this heading">¶</a></h3>
+<p>These filters control which other patients are included when calculating population comparison data (the gray dashed lines and error bars on plots).</p>
+<dl class="simple">
+<dt><strong>Aggregation Type</strong></dt><dd><p>Choose how population data is summarized:</p>
+<ul class="simple">
+<li><p><strong>Median with IQR</strong>: Shows the middle value with 25th-75th percentile range (default, most robust)</p></li>
+<li><p><strong>Mean with 95% Confidence Interval</strong>: Shows average with statistical confidence range</p></li>
+<li><p><strong>Mean ± 0.5/1/2 Standard Deviations</strong>: Shows average with spread indicators</p></li>
+</ul>
+</dd>
+<dt><strong>Gender Filter</strong></dt><dd><ul class="simple">
+<li><p>All Genders</p></li>
+<li><p>Match Patient (compare only to same gender)</p></li>
+<li><p>Specific gender (Male, Female, Other)</p></li>
+</ul>
+</dd>
+<dt><strong>Diagnosis Filter</strong></dt><dd><ul class="simple">
+<li><p>All Diagnoses</p></li>
+<li><p>Match Patient (compare only to patients with same diagnosis)</p></li>
+<li><p>Specific diagnosis</p></li>
+</ul>
+</dd>
+<dt><strong>Treatment Filter</strong></dt><dd><ul class="simple">
+<li><p>All Treatments</p></li>
+<li><p>Match Patient (compare only to patients with same treatment)</p></li>
+<li><p>Specific treatment type</p></li>
+</ul>
+</dd>
+<dt><strong>Age Range</strong></dt><dd><p>Set minimum and maximum age to narrow the comparison population.</p>
+</dd>
+</dl>
+</section>
+<section id="applying-filters">
+<h3>Applying Filters<a class="headerlink" href="#applying-filters" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Adjust the filter settings as needed</p></li>
+<li><p>Click the blue <strong>“Apply Filters”</strong> button at the bottom of the filters section</p></li>
+<li><p>The page will reload with a loading indicator while recalculating</p></li>
+<li><p>Click <strong>“Reset Filters”</strong> to return to default settings</p></li>
+</ol>
+</section>
+</section>
+<section id="patient-information-card">
+<h2>Patient Information Card<a class="headerlink" href="#patient-information-card" title="Link to this heading">¶</a></h2>
+<p>This card displays:</p>
+<ul class="simple">
+<li><p><strong>Patient Name and ID</strong>: At the top with an avatar</p></li>
+<li><p><strong>Demographics</strong>: Age, gender, and registration date</p></li>
+<li><p><strong>Clinical Information</strong>: Diagnoses and associated treatments</p></li>
+</ul>
+<section id="marking-important-dates-on-plots">
+<h3>Marking Important Dates on Plots<a class="headerlink" href="#marking-important-dates-on-plots" title="Link to this heading">¶</a></h3>
+<p>You can add vertical lines to plots to mark important clinical events:</p>
+<ol class="arabic simple">
+<li><p>Find the diagnosis or treatment in the patient information card</p></li>
+<li><p>Check the box next to dates you want to display:</p>
+<ul class="simple">
+<li><p>Diagnosis dates (checkbox next to diagnosis name)</p></li>
+<li><p>Treatment start dates (green checkbox)</p></li>
+<li><p>Treatment end dates (red checkbox)</p></li>
+</ul>
+</li>
+<li><p>Click the blue <strong>“Apply Plot Indicators”</strong> button at the bottom of the card</p></li>
+<li><p>Vertical dashed lines will appear on all plots at those dates</p></li>
+</ol>
+</section>
+</section>
+<section id="questionnaire-overview">
+<h2>Questionnaire Overview<a class="headerlink" href="#questionnaire-overview" title="Link to this heading">¶</a></h2>
+<p>This section shows cards for each questionnaire the patient has completed:</p>
+<ul class="simple">
+<li><p><strong>Badge number</strong>: Shows how many times the questionnaire was submitted</p></li>
+<li><p><strong>Questionnaire name</strong>: The name of the questionnaire</p></li>
+<li><p><strong>Latest submission date</strong>: When it was last completed</p></li>
+</ul>
+<p><strong>Filtering by Questionnaire</strong></p>
+<p>Click on any questionnaire card to filter the entire page to show only results from that questionnaire. A blue highlight indicates the active filter. Click <strong>“Clear Filter”</strong> to show all questionnaires again.</p>
+</section>
+<section id="understanding-the-results-sections">
+<h2>Understanding the Results Sections<a class="headerlink" href="#understanding-the-results-sections" title="Link to this heading">¶</a></h2>
+<p>Results are organized into three sections with vertical tabs for easy navigation:</p>
+<section id="topline-results-red-section">
+<h3>Topline Results (Red Section)<a class="headerlink" href="#topline-results-red-section" title="Link to this heading">¶</a></h3>
+<p>This section highlights constructs that require clinical attention because:</p>
+<ul class="simple">
+<li><p>The score has significantly worsened compared to the previous assessment</p></li>
+<li><p>The score is below the clinical threshold</p></li>
+<li><p>The score is worse than the normative (population average) value</p></li>
+</ul>
+<p><strong>When to check Topline Results</strong>: Review this section first during patient consultations to identify areas needing intervention.</p>
+</section>
+<section id="other-construct-scores-green-section">
+<h3>Other Construct Scores (Green Section)<a class="headerlink" href="#other-construct-scores-green-section" title="Link to this heading">¶</a></h3>
+<p>Shows all other construct measurements that don’t meet the criteria for Topline Results. These are generally stable or improving scores.</p>
+</section>
+<section id="composite-construct-scores-blue-section">
+<h3>Composite Construct Scores (Blue Section)<a class="headerlink" href="#composite-construct-scores-blue-section" title="Link to this heading">¶</a></h3>
+<p>Displays combined scores calculated from multiple related constructs. These provide a broader view of patient functioning in specific domains.</p>
+</section>
+</section>
+<section id="reading-construct-score-cards">
+<h2>Reading Construct Score Cards<a class="headerlink" href="#reading-construct-score-cards" title="Link to this heading">¶</a></h2>
+<p>Each construct is displayed in a card showing:</p>
+<dl class="simple">
+<dt><strong>Score Display</strong></dt><dd><ul class="simple">
+<li><p>Large number showing the current score</p></li>
+<li><p>Change indicator (arrow or equal sign):</p>
+<ul>
+<li><p>Green up arrow: Beneficial improvement</p></li>
+<li><p>Orange up arrow: Detrimental increase</p></li>
+<li><p>Green down arrow: Beneficial decrease</p></li>
+<li><p>Orange down arrow: Detrimental decrease</p></li>
+<li><p>Blue equal sign: No change</p></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt><strong>Direction Badge</strong></dt><dd><ul class="simple">
+<li><p><strong>Green “Higher is Better”</strong>: Higher scores indicate better outcomes (e.g., quality of life)</p></li>
+<li><p><strong>Blue “Lower is Better”</strong>: Lower scores indicate better outcomes (e.g., symptom severity)</p></li>
+<li><p><strong>Purple “Middle is Better”</strong>: Mid-range scores are optimal</p></li>
+</ul>
+</dd>
+<dt><strong>Status Indicators</strong></dt><dd><ul class="simple">
+<li><p>Green checkmark (✓): Score meets clinical threshold</p></li>
+<li><p>Red warning (⚠): Score below threshold, needs attention</p></li>
+<li><p>Blue circle (◯): Population mean score value</p></li>
+</ul>
+</dd>
+<dt><strong>Completion Information</strong></dt><dd><p>Shows “X/Y items answered” - how many questions were completed out of the total.</p>
+</dd>
+</dl>
+</section>
+<section id="understanding-the-plots">
+<h2>Understanding the Plots<a class="headerlink" href="#understanding-the-plots" title="Link to this heading">¶</a></h2>
+<p>Each construct card includes an interactive plot showing scores over time.</p>
+<section id="plot-elements">
+<h3>Plot Elements<a class="headerlink" href="#plot-elements" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><strong>Black Line and Circles</strong></dt><dd><ul class="simple">
+<li><p>The patient’s actual scores over time</p></li>
+<li><p>Hover over circles to see exact values and dates</p></li>
+</ul>
+</dd>
+<dt><strong>Orange Horizontal Line</strong></dt><dd><ul class="simple">
+<li><p>Clinical significance threshold</p></li>
+<li><p>Scores above/below this line (depending on direction) indicate clinical concern</p></li>
+</ul>
+</dd>
+<dt><strong>Gray Horizontal Line</strong></dt><dd><ul class="simple">
+<li><p>Normative score (population average)</p></li>
+<li><p>Reference point for typical scores</p></li>
+</ul>
+</dd>
+<dt><strong>Gray Shaded Bands</strong></dt><dd><ul class="simple">
+<li><p>Standard deviation bands around the normative score</p></li>
+<li><p>Shows typical population variation</p></li>
+</ul>
+</dd>
+<dt><strong>Gray Dashed Line with Error Bars</strong></dt><dd><ul class="simple">
+<li><p>Aggregated scores from similar patients</p></li>
+<li><p>Error bars show population spread (IQR, confidence interval, or standard deviation)</p></li>
+<li><p>Helps you see if this patient’s trajectory is typical</p></li>
+</ul>
+</dd>
+<dt><strong>Colored Vertical Dashed Lines</strong></dt><dd><ul class="simple">
+<li><p>Important clinical dates you marked (diagnosis, treatment start/end)</p></li>
+<li><p>Color matches the checkbox color in the patient information card</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="interpreting-trends">
+<h3>Interpreting Trends<a class="headerlink" href="#interpreting-trends" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><strong>Improving Trend</strong></dt><dd><ul class="simple">
+<li><p>For “Higher is Better” constructs: Line moving upward</p></li>
+<li><p>For “Lower is Better” constructs: Line moving downward</p></li>
+<li><p>Patient is responding well to treatment</p></li>
+</ul>
+</dd>
+<dt><strong>Worsening Trend</strong></dt><dd><ul class="simple">
+<li><p>For “Higher is Better” constructs: Line moving downward</p></li>
+<li><p>For “Lower is Better” constructs: Line moving upward</p></li>
+<li><p>May indicate need for intervention or treatment adjustment</p></li>
+</ul>
+</dd>
+<dt><strong>Stable Trend</strong></dt><dd><ul class="simple">
+<li><p>Line remains relatively flat</p></li>
+<li><p>Patient maintaining current status</p></li>
+</ul>
+</dd>
+<dt><strong>Comparison to Population</strong></dt><dd><ul class="simple">
+<li><p>Patient line above gray dashed line: Doing better than similar patients</p></li>
+<li><p>Patient line below gray dashed line: Doing worse than similar patients</p></li>
+<li><p>Patient line within error bars: Typical for this population</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+<section id="viewing-individual-item-responses">
+<h2>Viewing Individual Item Responses<a class="headerlink" href="#viewing-individual-item-responses" title="Link to this heading">¶</a></h2>
+<p>Below each construct plot, you’ll find detailed responses to individual questionnaire items.</p>
+<dl class="simple">
+<dt><strong>For Likert Scale Items</strong> (e.g., “Not at all” to “Very much”)</dt><dd><ul class="simple">
+<li><p>Shows the selected response option</p></li>
+<li><p>Displays the submission date</p></li>
+</ul>
+</dd>
+<dt><strong>For Range Scale Items</strong> (e.g., 0-10 scale)</dt><dd><ul class="simple">
+<li><p>Shows the numeric value selected</p></li>
+<li><p>Displays the submission date</p></li>
+</ul>
+</dd>
+<dt><strong>For Text Responses</strong></dt><dd><ul class="simple">
+<li><p>Shows the patient’s written response</p></li>
+<li><p>Long responses are truncated with a “Show more” button</p></li>
+</ul>
+</dd>
+<dt><strong>For Image/Media Responses</strong></dt><dd><ul class="simple">
+<li><p>Displays uploaded images</p></li>
+<li><p>Click to view full size</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="practical-workflow-tips">
+<h2>Practical Workflow Tips<a class="headerlink" href="#practical-workflow-tips" title="Link to this heading">¶</a></h2>
+<p><strong>During Patient Consultations</strong></p>
+<ol class="arabic simple">
+<li><p>Start with <strong>Topline Results</strong> to identify urgent concerns</p></li>
+<li><p>Review the <strong>plots</strong> to understand trends over time</p></li>
+<li><p>Use <strong>population comparison</strong> to contextualize the patient’s scores</p></li>
+<li><p>Check <strong>individual item responses</strong> for specific symptoms or concerns</p></li>
+<li><p>Mark <strong>treatment dates</strong> on plots to correlate interventions with outcomes</p></li>
+</ol>
+<p><strong>For Longitudinal Monitoring</strong></p>
+<ol class="arabic simple">
+<li><p>Set <strong>Time Range</strong> to “All submissions” to see the complete history</p></li>
+<li><p>Use <strong>Start Date Reference</strong> to align data to treatment start</p></li>
+<li><p>Apply <strong>Population Filters</strong> to compare against similar patients</p></li>
+<li><p>Look for patterns around treatment changes</p></li>
+</ol>
+<p><strong>For Research or Quality Improvement</strong></p>
+<ol class="arabic simple">
+<li><p>Use <strong>Aggregation Type</strong> filters to analyze population-level data</p></li>
+<li><p>Apply <strong>demographic filters</strong> to study specific patient subgroups</p></li>
+<li><p>Filter by <strong>specific questionnaires</strong> to focus on particular outcomes</p></li>
+<li><p>Export or document trends for reporting</p></li>
+</ol>
+</section>
+<section id="troubleshooting-common-issues">
+<h2>Troubleshooting Common Issues<a class="headerlink" href="#troubleshooting-common-issues" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><strong>No data appears after applying filters</strong></dt><dd><ul class="simple">
+<li><p>Check if your time interval filter is too restrictive</p></li>
+<li><p>Verify the patient has submissions within the selected timeframe</p></li>
+<li><p>Try clicking “Reset Filters” to start over</p></li>
+</ul>
+</dd>
+<dt><strong>Plots are loading slowly</strong></dt><dd><ul class="simple">
+<li><p>The system is calculating population comparisons</p></li>
+<li><p>Wait for the loading indicator to complete</p></li>
+<li><p>Consider narrowing your filters to reduce calculation time</p></li>
+</ul>
+</dd>
+<dt><strong>Can’t see all constructs</strong></dt><dd><ul class="simple">
+<li><p>Some constructs may be in different sections (Topline vs. Other)</p></li>
+<li><p>Check if a questionnaire filter is active (clear it to see all)</p></li>
+<li><p>Scroll down to see all vertical tabs</p></li>
+</ul>
+</dd>
+<dt><strong>Population comparison line is missing</strong></dt><dd><ul class="simple">
+<li><p>There may not be enough similar patients in the system</p></li>
+<li><p>Try broadening your population filters</p></li>
+<li><p>Check the aggregation metadata card for patient count</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Review <a class="reference internal" href="getting_started.html"><span class="doc">Getting Started</span></a> for general navigation tips</p></li>
+<li><p>Explore the patient list to view multiple patients’ results</p></li>
+<li><p>Use the filters to compare different patient populations</p></li>
+</ul>
 </section>
 </section>
 
@@ -81,11 +421,10 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Healthcare Worker Documentation</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="getting_started.html">Getting Started (Healthcare Worker)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l2"><a class="reference internal" href="patient_management.html">Patient Management</a></li>
 <li class="toctree-l2"><a class="reference internal" href="assigning_questionnaires.html">Assigning Questionnaires</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Reviewing Results</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reports_and_analytics.html">Reports and Analytics</a></li>
 </ul>
 </li>
 </ul>
@@ -99,7 +438,7 @@
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html">Healthcare Worker Documentation</a><ul>
       <li>Previous: <a href="assigning_questionnaires.html" title="previous chapter">Assigning Questionnaires</a></li>
-      <li>Next: <a href="reports_and_analytics.html" title="next chapter">Reports and Analytics</a></li>
+      <li>Next: <a href="../developer/index.html" title="next chapter">Developer Documentation</a></li>
   </ul></li>
   </ul></li>
 </ul>
