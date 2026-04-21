@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>patientapp.middleware &#8212; SATHI: Self Reported Assessment and Tracking for Health Insights Version 2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=44449404"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for patientapp.middleware</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">translation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.conf</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="n">redirect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patient</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># Django&#39;s session key for language preference</span>
+<span class="n">LANGUAGE_SESSION_KEY</span> <span class="o">=</span> <span class="s1">&#39;_language&#39;</span>
+
+
+<div class="viewcode-block" id="PatientLanguageMiddleware">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.middleware.PatientLanguageMiddleware">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PatientLanguageMiddleware</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Middleware to automatically switch the website language based on the patient&#39;s preferred language.</span>
+<span class="sd">    This middleware checks if the logged-in user is a patient and if they have a preferred language set.</span>
+<span class="sd">    If so, it activates that language and redirects to the appropriate language URL if necessary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="PatientLanguageMiddleware.__init__">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.middleware.PatientLanguageMiddleware.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">get_response</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_response</span> <span class="o">=</span> <span class="n">get_response</span></div>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="c1"># Only process for authenticated users</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Check if the user has an associated patient profile</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="s1">&#39;patient&#39;</span><span class="p">):</span>
+                    <span class="n">patient</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">patient</span>
+                    <span class="n">preferred_language</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">preferred_language</span>
+                    
+                    <span class="c1"># If patient has a preferred language set</span>
+                    <span class="k">if</span> <span class="n">preferred_language</span><span class="p">:</span>
+                        <span class="n">current_language</span> <span class="o">=</span> <span class="n">translation</span><span class="o">.</span><span class="n">get_language</span><span class="p">()</span>
+                        <span class="n">session_language</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">LANGUAGE_SESSION_KEY</span><span class="p">)</span>
+                        
+                        <span class="c1"># Check if user is accessing a language-prefixed URL</span>
+                        <span class="c1"># If they are, it means they&#39;re manually choosing that language</span>
+                        <span class="n">current_path</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">path</span>
+                        <span class="n">user_chosen_language</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="k">for</span> <span class="n">lang_code</span><span class="p">,</span> <span class="n">lang_name</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">LANGUAGES</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">current_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="n">lang_code</span><span class="si">}</span><span class="s1">/&#39;</span><span class="p">):</span>
+                                <span class="n">user_chosen_language</span> <span class="o">=</span> <span class="n">lang_code</span>
+                                <span class="k">break</span>
+                        
+                        <span class="c1"># If user is accessing a language-prefixed URL that differs from their preferred language,</span>
+                        <span class="c1"># update the session to remember their choice</span>
+                        <span class="k">if</span> <span class="n">user_chosen_language</span> <span class="ow">and</span> <span class="n">user_chosen_language</span> <span class="o">!=</span> <span class="n">preferred_language</span><span class="p">:</span>
+                            <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="n">LANGUAGE_SESSION_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">user_chosen_language</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Patient </span><span class="si">{</span><span class="n">patient</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> manually chose language </span><span class="si">{</span><span class="n">user_chosen_language</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        
+                        <span class="c1"># Only auto-switch if:</span>
+                        <span class="c1"># 1. Current language doesn&#39;t match preferred language</span>
+                        <span class="c1"># 2. AND user hasn&#39;t manually chosen a different language (not in URL and not in session)</span>
+                        <span class="n">should_auto_switch</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">current_language</span> <span class="o">!=</span> <span class="n">preferred_language</span> <span class="ow">and</span>
+                            <span class="n">user_chosen_language</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span>
+                            <span class="p">(</span><span class="n">session_language</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">session_language</span> <span class="o">==</span> <span class="n">preferred_language</span><span class="p">)</span>
+                        <span class="p">)</span>
+                        
+                        <span class="k">if</span> <span class="n">should_auto_switch</span><span class="p">:</span>
+                            <span class="c1"># Activate the preferred language</span>
+                            <span class="n">translation</span><span class="o">.</span><span class="n">activate</span><span class="p">(</span><span class="n">preferred_language</span><span class="p">)</span>
+                            <span class="n">request</span><span class="o">.</span><span class="n">LANGUAGE_CODE</span> <span class="o">=</span> <span class="n">preferred_language</span>
+                            
+                            <span class="c1"># Set the language in the session for persistence</span>
+                            <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="n">LANGUAGE_SESSION_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">preferred_language</span>
+                            
+                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Language auto-switched to </span><span class="si">{</span><span class="n">preferred_language</span><span class="si">}</span><span class="s2"> for patient </span><span class="si">{</span><span class="n">patient</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (ID: </span><span class="si">{</span><span class="n">patient</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                            
+                            <span class="c1"># Skip redirects for special paths that shouldn&#39;t be language-prefixed</span>
+                            <span class="n">skip_paths</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;/i18n/&#39;</span><span class="p">,</span> <span class="s1">&#39;/media/&#39;</span><span class="p">,</span> <span class="s1">&#39;/static/&#39;</span><span class="p">,</span> <span class="s1">&#39;/__debug__/&#39;</span><span class="p">,</span> <span class="s1">&#39;/admin/&#39;</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">current_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">skip_paths</span><span class="p">):</span>
+                                <span class="c1"># Don&#39;t redirect these special URLs</span>
+                                <span class="k">pass</span>
+                            <span class="c1"># Skip favicon and other common non-page requests</span>
+                            <span class="k">elif</span> <span class="n">current_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.ico&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">current_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.txt&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">current_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.xml&#39;</span><span class="p">):</span>
+                                <span class="c1"># Don&#39;t redirect static file requests</span>
+                                <span class="k">pass</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Check if we&#39;re already on a language-prefixed URL</span>
+                                <span class="c1"># If the current path starts with a language code, we need to redirect</span>
+                                <span class="k">for</span> <span class="n">lang_code</span><span class="p">,</span> <span class="n">lang_name</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">LANGUAGES</span><span class="p">:</span>
+                                    <span class="k">if</span> <span class="n">current_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="n">lang_code</span><span class="si">}</span><span class="s1">/&#39;</span><span class="p">):</span>
+                                        <span class="c1"># Extract the path without language prefix</span>
+                                        <span class="n">path_without_lang</span> <span class="o">=</span> <span class="n">current_path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="n">lang_code</span><span class="si">}</span><span class="s1">/&#39;</span><span class="p">):]</span>
+                                        <span class="c1"># Build new URL with preferred language</span>
+                                        <span class="n">new_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="n">preferred_language</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">path_without_lang</span><span class="si">}</span><span class="s1">&#39;</span>
+                                        
+                                        <span class="c1"># Preserve query string</span>
+                                        <span class="n">query_string</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;QUERY_STRING&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                                        <span class="k">if</span> <span class="n">query_string</span><span class="p">:</span>
+                                            <span class="n">new_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">new_path</span><span class="si">}</span><span class="s1">?</span><span class="si">{</span><span class="n">query_string</span><span class="si">}</span><span class="s1">&#39;</span>
+                                        
+                                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Redirecting from </span><span class="si">{</span><span class="n">current_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">new_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">new_path</span><span class="p">)</span>
+                                
+                                <span class="c1"># If no language prefix found, check if we&#39;re on a non-prefixed URL</span>
+                                <span class="c1"># and redirect to the language-prefixed version</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">current_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="n">lang_code</span><span class="si">}</span><span class="s1">/&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">lang_code</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">LANGUAGES</span><span class="p">):</span>
+                                    <span class="n">new_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="n">preferred_language</span><span class="si">}{</span><span class="n">current_path</span><span class="si">}</span><span class="s1">&#39;</span>
+                                    <span class="n">query_string</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;QUERY_STRING&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                                    <span class="k">if</span> <span class="n">query_string</span><span class="p">:</span>
+                                        <span class="n">new_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">new_path</span><span class="si">}</span><span class="s1">?</span><span class="si">{</span><span class="n">query_string</span><span class="si">}</span><span class="s1">&#39;</span>
+                                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Redirecting from </span><span class="si">{</span><span class="n">current_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">new_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">new_path</span><span class="p">)</span>
+                        
+            <span class="k">except</span> <span class="n">Patient</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+                <span class="c1"># User is not a patient, continue normally</span>
+                <span class="k">pass</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1"># Log any unexpected errors but don&#39;t break the request</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error in PatientLanguageMiddleware: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_response</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">SATHI: Self Reported Assessment and Tracking for Health Insights</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../patient/index.html">Patient Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, CHAVI Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

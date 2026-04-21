@@ -1923,75 +1923,28 @@ def get_filtered_patients_for_aggregation(exclude_patient, patient_filter_gender
     Returns:
         QuerySet: Filtered patients excluding the current patient
         
-    Adding New Filter Fields:
-    -----------------------
-    To add a new filtering criterion, follow this pattern:
-    
-    1. **Add Parameter**: Add the new filter parameter to the function signature:
-       ```python
-       def get_filtered_patients_for_aggregation(..., patient_filter_new_field=None):
-       ```
-    
-    2. **Add Documentation**: Update this docstring with the new parameter description.
-    
-    3. **Implement Filter Logic**: Add the filtering logic following existing patterns:
-       
-       For **simple field filters** (like gender):
-       ```python
-       # Apply new_field filter
-       if patient_filter_new_field:
-           if patient_filter_new_field == 'match':
-               patients = patients.filter(new_field=exclude_patient.new_field)
-           else:
-               patients = patients.filter(new_field=patient_filter_new_field)
-       ```
-       
-       For **relationship-based filters** (like diagnosis/treatment):
-       ```python
-       # Apply new_field filter
-       if patient_filter_new_field:
-           if patient_filter_new_field == 'match':
-               # Get related IDs for current patient in single optimized query
-               patient_related_ids = exclude_patient.related_set.values_list(
-                   'related_field__id', flat=True
-               ).distinct()
-               if patient_related_ids:
-                   patients = patients.filter(
-                       related_field__id__in=patient_related_ids
-                   ).distinct()
-           else:
-               patients = patients.filter(related_field__id=patient_filter_new_field).distinct()
-       ```
-       
-       For **range filters** (like age):
-       ```python
-       # Apply new_field range filter
-       if patient_filter_min_new_field is not None:
-           patients = patients.filter(new_field__gte=patient_filter_min_new_field)
-       if patient_filter_max_new_field is not None:
-           patients = patients.filter(new_field__lte=patient_filter_max_new_field)
-       ```
-    
-    4. **Update Callers**: Update all places that call this function to pass the new parameter:
-       - `prom_review()` view in patientapp/views.py
-       - Any other functions that use patient aggregation
-    
-    5. **Update UI**: Add the new filter to the frontend:
-       - Update the filter form in the template
-       - Add the parameter to HTMX requests
-       - Update the filter dropdown/input options
-    
-    **Filter Types Supported**:
-    - **'match'**: Match the exclude_patient's value for this field
-    - **Specific value**: Filter to patients with this exact value
-    - **None/empty**: No filtering applied for this field
-    - **Range values**: For numeric fields (min/max parameters)
-    
-    **Important Notes**:
-    - All filters use AND logic (cumulative narrowing)
-    - Use `.distinct()` for relationship-based filters to avoid duplicates
-    - Optimize relationship queries using `values_list()` instead of loops
-    - Consider database indexes for new filterable fields
+    Note:
+        Adding New Filter Fields - To add a new filtering criterion, follow this pattern:
+        
+        1. Add Parameter: Add the new filter parameter to the function signature
+        2. Add Documentation: Update this docstring with the new parameter description
+        3. Implement Filter Logic: Add the filtering logic following existing patterns
+        4. Update Callers: Update all places that call this function
+        5. Update UI: Add the new filter to the frontend
+        
+        Filter Types Supported:
+        
+        - 'match': Match the exclude_patient's value for this field
+        - Specific value: Filter to patients with this exact value
+        - None/empty: No filtering applied for this field
+        - Range values: For numeric fields (min/max parameters)
+        
+        Important Notes:
+        
+        - All filters use AND logic (cumulative narrowing)
+        - Use .distinct() for relationship-based filters to avoid duplicates
+        - Optimize relationship queries using values_list() instead of loops
+        - Consider database indexes for new filterable fields
     """
     
     # Start with all patients except the current one

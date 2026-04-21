@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>promapp.ai_utils.sarvamai_tts &#8212; SATHI: Self Reported Assessment and Tracking for Health Insights Version 2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=44449404"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for promapp.ai_utils.sarvamai_tts</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Text-to-Speech utility using Sarvam AI</span>
+
+<span class="sd">This module provides the utility function for converting text to speech</span>
+<span class="sd">using the Sarvam AI SDK.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
+
+
+<div class="viewcode-block" id="sarvam_tts">
+<a class="viewcode-back" href="../../../developer/api_reference.html#promapp.ai_utils.sarvamai_tts.sarvam_tts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sarvam_tts</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">language_code</span><span class="o">=</span><span class="s1">&#39;en-IN&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert text to speech using Sarvam AI SDK.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        text (str): The text to convert to speech</span>
+<span class="sd">        language_code (str): Language code (e.g., &#39;en-IN&#39;, &#39;hi-IN&#39;, &#39;ta-IN&#39;)</span>
+<span class="sd">        config (AIAPIConfiguration, optional): The configuration object containing API details</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: Dictionary containing:</span>
+<span class="sd">            - &#39;audio_data&#39;: bytes - Decoded WAV audio data</span>
+<span class="sd">            - &#39;request_id&#39;: str - Request ID from Sarvam API (if available)</span>
+<span class="sd">            - &#39;format&#39;: str - Audio format (always &#39;wav&#39;)</span>
+<span class="sd">        </span>
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If configuration is invalid or text is empty</span>
+<span class="sd">        Exception: If API call fails</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Text cannot be empty&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Import Sarvam AI SDK</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">sarvamai</span><span class="w"> </span><span class="kn">import</span> <span class="n">SarvamAI</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Sarvam AI SDK not installed. Please install it with: pip install sarvamai&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Get API key from configuration or environment</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">api_key_environment_variable_name</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;API key environment variable name is required&quot;</span><span class="p">)</span>
+        
+        <span class="n">api_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">api_key_environment_variable_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">api_key</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;API key not found in environment variable: </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">api_key_environment_variable_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Fallback to environment variables</span>
+        <span class="n">api_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;SARVAM_API_KEY&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">api_key</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;SARVAM_API_KEY environment variable not set&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Initialize Sarvam AI client</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">SarvamAI</span><span class="p">(</span><span class="n">api_subscription_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">)</span>
+    
+    <span class="c1"># Map language codes to appropriate speakers</span>
+    <span class="n">speaker_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;en-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;ritu&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;hi-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;ritu&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ta-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;ritu&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;te-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;ritu&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;kn-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;ritu&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ml-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;ritu&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;mr-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;ritu&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;gu-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;ritu&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;bn-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;ritu&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pa-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;ritu&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    
+    <span class="n">speaker</span> <span class="o">=</span> <span class="n">speaker_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">language_code</span><span class="p">,</span> <span class="s1">&#39;ritu&#39;</span><span class="p">)</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Call Sarvam AI TTS API using SDK</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">text_to_speech</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span>
+            <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
+            <span class="n">target_language_code</span><span class="o">=</span><span class="n">language_code</span><span class="p">,</span>
+            <span class="n">speaker</span><span class="o">=</span><span class="n">speaker</span><span class="p">,</span>
+            <span class="n">pace</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+            <span class="n">enable_preprocessing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">model</span><span class="o">=</span><span class="s2">&quot;bulbul:v3&quot;</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># The SDK response contains base64 encoded audio in &#39;audios&#39; field</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s1">&#39;audios&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">response</span><span class="o">.</span><span class="n">audios</span><span class="p">:</span>
+            <span class="c1"># Decode base64 audio data (first audio in list)</span>
+            <span class="n">base64_audio</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">audios</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">audio_bytes</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">base64_audio</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;audio_data&#39;</span><span class="p">:</span> <span class="n">audio_bytes</span><span class="p">,</span>
+                <span class="s1">&#39;request_id&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s1">&#39;request_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;wav&#39;</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No audio data in response from Sarvam AI&quot;</span><span class="p">)</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sarvam AI TTS failed: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">SATHI: Self Reported Assessment and Tracking for Health Insights</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../patient/index.html">Patient Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/index.html">Developer Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, CHAVI Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
