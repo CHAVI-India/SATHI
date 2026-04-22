@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Data Integration Guide &#8212; SATHI: Self Reported Assessment and Tracking for Health Insights Version 2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=44449404"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Progressive Web App (PWA) Setup" href="pwa_setup.html" />
+    <link rel="prev" title="UI Components Reference" href="ui_components.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="data-integration-guide">
+<h1>Data Integration Guide<a class="headerlink" href="#data-integration-guide" title="Link to this heading">¶</a></h1>
+<p>Guide for integrating and extending SATHI’s data models, particularly the date reference system.</p>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p></li>
+<li><p><a class="reference internal" href="#date-reference-system" id="id2">Date Reference System</a></p>
+<ul>
+<li><p><a class="reference internal" href="#current-date-types" id="id3">Current Date Types</a></p></li>
+<li><p><a class="reference internal" href="#key-functions" id="id4">Key Functions</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#adding-new-date-fields" id="id5">Adding New Date Fields</a></p>
+<ul>
+<li><p><a class="reference internal" href="#step-1-add-date-field-to-model" id="id6">Step 1: Add Date Field to Model</a></p></li>
+<li><p><a class="reference internal" href="#step-2-update-get-patient-available-start-dates" id="id7">Step 2: Update get_patient_available_start_dates()</a></p></li>
+<li><p><a class="reference internal" href="#step-3-update-get-patient-start-date" id="id8">Step 3: Update get_patient_start_date()</a></p></li>
+<li><p><a class="reference internal" href="#step-4-update-forms" id="id9">Step 4: Update Forms</a></p></li>
+<li><p><a class="reference internal" href="#step-5-update-templates" id="id10">Step 5: Update Templates</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#adding-new-models-with-dates" id="id11">Adding New Models with Dates</a></p>
+<ul>
+<li><p><a class="reference internal" href="#step-1-create-the-model" id="id12">Step 1: Create the Model</a></p></li>
+<li><p><a class="reference internal" href="#step-2-integrate-into-date-reference-system" id="id13">Step 2: Integrate into Date Reference System</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#time-interval-calculations" id="id14">Time Interval Calculations</a></p>
+<ul>
+<li><p><a class="reference internal" href="#how-time-intervals-work" id="id15">How Time Intervals Work</a></p></li>
+<li><p><a class="reference internal" href="#using-time-intervals-in-views" id="id16">Using Time Intervals in Views</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#data-import-export" id="id17">Data Import/Export</a></p>
+<ul>
+<li><p><a class="reference internal" href="#csv-import-for-items" id="id18">CSV Import for Items</a></p></li>
+<li><p><a class="reference internal" href="#csv-export-for-responses" id="id19">CSV Export for Responses</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#best-practices" id="id20">Best Practices</a></p>
+<ul>
+<li><p><a class="reference internal" href="#date-field-naming" id="id21">Date Field Naming</a></p></li>
+<li><p><a class="reference internal" href="#data-validation" id="id22">Data Validation</a></p></li>
+<li><p><a class="reference internal" href="#error-handling" id="id23">Error Handling</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#testing" id="id24">Testing</a></p>
+<ul>
+<li><p><a class="reference internal" href="#test-date-reference-system" id="id25">Test Date Reference System</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#troubleshooting" id="id26">Troubleshooting</a></p>
+<ul>
+<li><p><a class="reference internal" href="#common-issues" id="id27">Common Issues</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#resources" id="id28">Resources</a></p></li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>SATHI uses a flexible date reference system that allows users to select different starting points for calculating time intervals in PROM data visualization. This system is crucial for:</p>
+<ul class="simple">
+<li><p>Time-based analysis of patient outcomes</p></li>
+<li><p>Calculating intervals from significant clinical events</p></li>
+<li><p>Flexible reporting relative to different milestones</p></li>
+</ul>
+</section>
+<section id="date-reference-system">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Date Reference System</a><a class="headerlink" href="#date-reference-system" title="Link to this heading">¶</a></h2>
+<section id="current-date-types">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Current Date Types</a><a class="headerlink" href="#current-date-types" title="Link to this heading">¶</a></h3>
+<p>The system supports three types of date references:</p>
+<ol class="arabic simple">
+<li><p><strong>Patient Registration Date</strong> (<code class="docutils literal notranslate"><span class="pre">date_of_registration</span></code>)</p>
+<ul class="simple">
+<li><p>Field: <code class="docutils literal notranslate"><span class="pre">Patient.date_of_registration</span></code></p></li>
+<li><p>Reference key: <code class="docutils literal notranslate"><span class="pre">'date_of_registration'</span></code></p></li>
+<li><p>When patient was registered in the system</p></li>
+</ul>
+</li>
+<li><p><strong>Diagnosis Dates</strong> (<code class="docutils literal notranslate"><span class="pre">date_of_diagnosis_&lt;id&gt;</span></code>)</p>
+<ul class="simple">
+<li><p>Field: <code class="docutils literal notranslate"><span class="pre">Diagnosis.date_of_diagnosis</span></code></p></li>
+<li><p>Reference key pattern: <code class="docutils literal notranslate"><span class="pre">'date_of_diagnosis_{diagnosis.id}'</span></code></p></li>
+<li><p>When specific diagnosis was made</p></li>
+</ul>
+</li>
+<li><p><strong>Treatment Start Dates</strong> (<code class="docutils literal notranslate"><span class="pre">date_of_start_of_treatment_&lt;id&gt;</span></code>)</p>
+<ul class="simple">
+<li><p>Field: <code class="docutils literal notranslate"><span class="pre">Treatment.date_of_start_of_treatment</span></code></p></li>
+<li><p>Reference key pattern: <code class="docutils literal notranslate"><span class="pre">'date_of_start_of_treatment_{treatment.id}'</span></code></p></li>
+<li><p>When specific treatment began</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="key-functions">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Key Functions</a><a class="headerlink" href="#key-functions" title="Link to this heading">¶</a></h3>
+<p>Located in <code class="docutils literal notranslate"><span class="pre">patientapp/utils.py</span></code>:</p>
+<p><strong>get_patient_available_start_dates(patient)</strong></p>
+<p>Collects all available date references for a patient.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_patient_available_start_dates</span>
+
+<span class="n">available_dates</span> <span class="o">=</span> <span class="n">get_patient_available_start_dates</span><span class="p">(</span><span class="n">patient</span><span class="p">)</span>
+<span class="c1"># Returns: [(reference_key, display_name, date_value), ...]</span>
+
+<span class="c1"># Example output:</span>
+<span class="c1"># [</span>
+<span class="c1">#     (&#39;date_of_registration&#39;, &#39;Date of Registration&#39;, datetime.date(2024, 1, 15)),</span>
+<span class="c1">#     (&#39;date_of_diagnosis_123&#39;, &#39;Diagnosis: Cancer&#39;, datetime.date(2024, 2, 1)),</span>
+<span class="c1">#     (&#39;date_of_start_of_treatment_456&#39;, &#39;Start of Treatment: Chemotherapy&#39;, datetime.date(2024, 2, 15))</span>
+<span class="c1"># ]</span>
+</pre></div>
+</div>
+<p><strong>get_patient_start_date(patient, start_date_reference)</strong></p>
+<p>Retrieves the actual date value for a given reference key.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_patient_start_date</span>
+
+<span class="n">start_date</span> <span class="o">=</span> <span class="n">get_patient_start_date</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="s1">&#39;date_of_diagnosis_123&#39;</span><span class="p">)</span>
+<span class="c1"># Returns: datetime.date(2024, 2, 1)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="adding-new-date-fields">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Adding New Date Fields</a><a class="headerlink" href="#adding-new-date-fields" title="Link to this heading">¶</a></h2>
+<p>This section explains how to add new date fields to existing models and integrate them into the date reference system.</p>
+<section id="step-1-add-date-field-to-model">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Step 1: Add Date Field to Model</a><a class="headerlink" href="#step-1-add-date-field-to-model" title="Link to this heading">¶</a></h3>
+<p>Add your new date field to the model:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In patientapp/models.py</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Treatment</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="c1"># ... existing fields ...</span>
+    <span class="n">date_of_start_of_treatment</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateField</span><span class="p">(</span>
+        <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">verbose_name</span><span class="o">=</span><span class="s2">&quot;Date of Start of Treatment&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># NEW: Add your new date field</span>
+    <span class="n">date_of_follow_up</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateField</span><span class="p">(</span>
+        <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">verbose_name</span><span class="o">=</span><span class="s2">&quot;Date of Follow-up&quot;</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Create Migration:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>makemigrations
+python<span class="w"> </span>manage.py<span class="w"> </span>migrate
+</pre></div>
+</div>
+</section>
+<section id="step-2-update-get-patient-available-start-dates">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Step 2: Update get_patient_available_start_dates()</a><a class="headerlink" href="#step-2-update-get-patient-available-start-dates" title="Link to this heading">¶</a></h3>
+<p>Add logic to collect your new date field:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_patient_available_start_dates</span><span class="p">(</span><span class="n">patient</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get all available start dates for a patient.&quot;&quot;&quot;</span>
+    <span class="n">available_dates</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Registration date</span>
+        <span class="k">if</span> <span class="n">patient</span><span class="o">.</span><span class="n">date_of_registration</span><span class="p">:</span>
+            <span class="n">available_dates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span>
+                <span class="s1">&#39;date_of_registration&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Date of Registration&#39;</span><span class="p">,</span>
+                <span class="n">patient</span><span class="o">.</span><span class="n">date_of_registration</span>
+            <span class="p">))</span>
+
+        <span class="c1"># Diagnosis dates</span>
+        <span class="k">for</span> <span class="n">diagnosis</span> <span class="ow">in</span> <span class="n">patient</span><span class="o">.</span><span class="n">diagnosis_set</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">diagnosis</span><span class="o">.</span><span class="n">date_of_diagnosis</span><span class="p">:</span>
+                <span class="n">diagnosis_name</span> <span class="o">=</span> <span class="n">diagnosis</span><span class="o">.</span><span class="n">diagnosis</span><span class="o">.</span><span class="n">diagnosis</span> <span class="k">if</span> <span class="n">diagnosis</span><span class="o">.</span><span class="n">diagnosis</span> <span class="k">else</span> <span class="s2">&quot;Unknown&quot;</span>
+                <span class="n">available_dates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span>
+                    <span class="sa">f</span><span class="s1">&#39;date_of_diagnosis_</span><span class="si">{</span><span class="n">diagnosis</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s1">&#39;Diagnosis: </span><span class="si">{</span><span class="n">diagnosis_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">diagnosis</span><span class="o">.</span><span class="n">date_of_diagnosis</span>
+                <span class="p">))</span>
+
+        <span class="c1"># Treatment dates (existing + new)</span>
+        <span class="k">for</span> <span class="n">diagnosis</span> <span class="ow">in</span> <span class="n">patient</span><span class="o">.</span><span class="n">diagnosis_set</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="n">diagnosis_name</span> <span class="o">=</span> <span class="n">diagnosis</span><span class="o">.</span><span class="n">diagnosis</span><span class="o">.</span><span class="n">diagnosis</span> <span class="k">if</span> <span class="n">diagnosis</span><span class="o">.</span><span class="n">diagnosis</span> <span class="k">else</span> <span class="s2">&quot;Unknown&quot;</span>
+            <span class="n">treatments</span> <span class="o">=</span> <span class="n">diagnosis</span><span class="o">.</span><span class="n">treatment_set</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">models</span><span class="o">.</span><span class="n">Q</span><span class="p">(</span><span class="n">date_of_start_of_treatment__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">|</span>
+                <span class="n">models</span><span class="o">.</span><span class="n">Q</span><span class="p">(</span><span class="n">date_of_follow_up__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># NEW: Include follow-up dates</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;date_of_start_of_treatment&#39;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">treatment</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">treatments</span><span class="p">):</span>
+                <span class="n">treatment_types</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+                    <span class="n">tt</span><span class="o">.</span><span class="n">treatment_type</span>
+                    <span class="k">for</span> <span class="n">tt</span> <span class="ow">in</span> <span class="n">treatment</span><span class="o">.</span><span class="n">treatment_type</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+                <span class="p">])</span> <span class="k">if</span> <span class="n">treatment</span><span class="o">.</span><span class="n">treatment_type</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;Treatment </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span>
+
+                <span class="c1"># Existing start date</span>
+                <span class="k">if</span> <span class="n">treatment</span><span class="o">.</span><span class="n">date_of_start_of_treatment</span><span class="p">:</span>
+                    <span class="n">available_dates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span>
+                        <span class="sa">f</span><span class="s1">&#39;date_of_start_of_treatment_</span><span class="si">{</span><span class="n">treatment</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s1">&#39;Start of Treatment: </span><span class="si">{</span><span class="n">treatment_types</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">diagnosis_name</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">,</span>
+                        <span class="n">treatment</span><span class="o">.</span><span class="n">date_of_start_of_treatment</span>
+                    <span class="p">))</span>
+
+                <span class="c1"># NEW: Add follow-up date</span>
+                <span class="k">if</span> <span class="n">treatment</span><span class="o">.</span><span class="n">date_of_follow_up</span><span class="p">:</span>
+                    <span class="n">available_dates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span>
+                        <span class="sa">f</span><span class="s1">&#39;date_of_follow_up_</span><span class="si">{</span><span class="n">treatment</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s1">&#39;Follow-up: </span><span class="si">{</span><span class="n">treatment_types</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">diagnosis_name</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">,</span>
+                        <span class="n">treatment</span><span class="o">.</span><span class="n">date_of_follow_up</span>
+                    <span class="p">))</span>
+
+        <span class="c1"># Sort by date</span>
+        <span class="n">available_dates</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error getting dates for patient </span><span class="si">{</span><span class="n">patient</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">available_dates</span>
+</pre></div>
+</div>
+</section>
+<section id="step-3-update-get-patient-start-date">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Step 3: Update get_patient_start_date()</a><a class="headerlink" href="#step-3-update-get-patient-start-date" title="Link to this heading">¶</a></h3>
+<p>Add parsing logic for your new date field:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_patient_start_date</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">start_date_reference</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve the actual date value for a given reference key.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">start_date_reference</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">date_of_registration</span>
+
+    <span class="c1"># Registration date</span>
+    <span class="k">if</span> <span class="n">start_date_reference</span> <span class="o">==</span> <span class="s1">&#39;date_of_registration&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">date_of_registration</span>
+
+    <span class="c1"># Diagnosis date</span>
+    <span class="k">if</span> <span class="n">start_date_reference</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;date_of_diagnosis_&#39;</span><span class="p">):</span>
+        <span class="n">diagnosis_id</span> <span class="o">=</span> <span class="n">start_date_reference</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;date_of_diagnosis_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">diagnosis</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">diagnosis_set</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">diagnosis_id</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">diagnosis</span><span class="o">.</span><span class="n">date_of_diagnosis</span>
+        <span class="k">except</span> <span class="n">Diagnosis</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">date_of_registration</span>
+
+    <span class="c1"># Treatment start date</span>
+    <span class="k">if</span> <span class="n">start_date_reference</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;date_of_start_of_treatment_&#39;</span><span class="p">):</span>
+        <span class="n">treatment_id</span> <span class="o">=</span> <span class="n">start_date_reference</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;date_of_start_of_treatment_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">treatment</span> <span class="o">=</span> <span class="n">Treatment</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">treatment_id</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">treatment</span><span class="o">.</span><span class="n">date_of_start_of_treatment</span>
+        <span class="k">except</span> <span class="n">Treatment</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">date_of_registration</span>
+
+    <span class="c1"># NEW: Follow-up date</span>
+    <span class="k">if</span> <span class="n">start_date_reference</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;date_of_follow_up_&#39;</span><span class="p">):</span>
+        <span class="n">treatment_id</span> <span class="o">=</span> <span class="n">start_date_reference</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;date_of_follow_up_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">treatment</span> <span class="o">=</span> <span class="n">Treatment</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">treatment_id</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">treatment</span><span class="o">.</span><span class="n">date_of_follow_up</span>
+        <span class="k">except</span> <span class="n">Treatment</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">date_of_registration</span>
+
+    <span class="c1"># Default fallback</span>
+    <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">date_of_registration</span>
+</pre></div>
+</div>
+</section>
+<section id="step-4-update-forms">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Step 4: Update Forms</a><a class="headerlink" href="#step-4-update-forms" title="Link to this heading">¶</a></h3>
+<p>If your new date field should be editable, add it to the relevant forms:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In patientapp/forms.py</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TreatmentForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Treatment</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;treatment_type&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;date_of_start_of_treatment&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;date_of_follow_up&#39;</span><span class="p">,</span>  <span class="c1"># NEW</span>
+            <span class="c1"># ... other fields</span>
+        <span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="step-5-update-templates">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Step 5: Update Templates</a><a class="headerlink" href="#step-5-update-templates" title="Link to this heading">¶</a></h3>
+<p>Add the new field to display templates:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- In templates/patientapp/treatment_detail.html --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-field_display</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Start Date&quot;</span>
+    <span class="na">value</span><span class="o">=</span><span class="s">&quot;{{ treatment.date_of_start_of_treatment }}&quot;</span> <span class="p">/&gt;</span>
+
+<span class="cm">&lt;!-- NEW --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-field_display</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Follow-up Date&quot;</span>
+    <span class="na">value</span><span class="o">=</span><span class="s">&quot;{{ treatment.date_of_follow_up }}&quot;</span> <span class="p">/&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="adding-new-models-with-dates">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Adding New Models with Dates</a><a class="headerlink" href="#adding-new-models-with-dates" title="Link to this heading">¶</a></h2>
+<p>If you’re adding a completely new model with date fields:</p>
+<section id="step-1-create-the-model">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Step 1: Create the Model</a><a class="headerlink" href="#step-1-create-the-model" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In patientapp/models.py</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Procedure</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;New model for tracking medical procedures.&quot;&quot;&quot;</span>
+    <span class="n">patient</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">Patient</span><span class="p">,</span>
+        <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span>
+        <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;procedures&#39;</span>
+    <span class="p">)</span>
+    <span class="n">procedure_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+    <span class="n">date_of_procedure</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateField</span><span class="p">(</span>
+        <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">verbose_name</span><span class="o">=</span><span class="s2">&quot;Date of Procedure&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">ordering</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;-date_of_procedure&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">procedure_type</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">date_of_procedure</span><span class="si">}</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="step-2-integrate-into-date-reference-system">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Step 2: Integrate into Date Reference System</a><a class="headerlink" href="#step-2-integrate-into-date-reference-system" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_patient_available_start_dates</span><span class="p">(</span><span class="n">patient</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get all available start dates for a patient.&quot;&quot;&quot;</span>
+    <span class="n">available_dates</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># ... existing code ...</span>
+
+    <span class="c1"># NEW: Add procedure dates</span>
+    <span class="k">for</span> <span class="n">procedure</span> <span class="ow">in</span> <span class="n">patient</span><span class="o">.</span><span class="n">procedures</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">date_of_procedure__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">available_dates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span>
+            <span class="sa">f</span><span class="s1">&#39;date_of_procedure_</span><span class="si">{</span><span class="n">procedure</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s1">&#39;Procedure: </span><span class="si">{</span><span class="n">procedure</span><span class="o">.</span><span class="n">procedure_type</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">procedure</span><span class="o">.</span><span class="n">date_of_procedure</span>
+        <span class="p">))</span>
+
+    <span class="n">available_dates</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">available_dates</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_patient_start_date</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">start_date_reference</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve the actual date value for a given reference key.&quot;&quot;&quot;</span>
+
+    <span class="c1"># ... existing code ...</span>
+
+    <span class="c1"># NEW: Procedure date</span>
+    <span class="k">if</span> <span class="n">start_date_reference</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;date_of_procedure_&#39;</span><span class="p">):</span>
+        <span class="n">procedure_id</span> <span class="o">=</span> <span class="n">start_date_reference</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;date_of_procedure_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">procedure</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">procedures</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">procedure_id</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">procedure</span><span class="o">.</span><span class="n">date_of_procedure</span>
+        <span class="k">except</span> <span class="n">Procedure</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">date_of_registration</span>
+
+    <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">date_of_registration</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="time-interval-calculations">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink">Time Interval Calculations</a><a class="headerlink" href="#time-interval-calculations" title="Link to this heading">¶</a></h2>
+<section id="how-time-intervals-work">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">How Time Intervals Work</a><a class="headerlink" href="#how-time-intervals-work" title="Link to this heading">¶</a></h3>
+<p>The system calculates time intervals between:</p>
+<ol class="arabic simple">
+<li><p><strong>Start Date</strong>: Selected reference date (e.g., diagnosis date)</p></li>
+<li><p><strong>Submission Date</strong>: When questionnaire was completed</p></li>
+</ol>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="n">start_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>  <span class="c1"># Diagnosis date</span>
+<span class="n">submission_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>  <span class="c1"># Questionnaire date</span>
+
+<span class="c1"># Calculate weeks</span>
+<span class="n">days_diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">submission_date</span> <span class="o">-</span> <span class="n">start_date</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
+<span class="n">weeks</span> <span class="o">=</span> <span class="n">days_diff</span> <span class="o">/</span> <span class="mi">7</span>
+<span class="c1"># Result: 13 weeks</span>
+</pre></div>
+</div>
+</section>
+<section id="using-time-intervals-in-views">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Using Time Intervals in Views</a><a class="headerlink" href="#using-time-intervals-in-views" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_patient_start_date</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">prom_review</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+    <span class="n">patient</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Patient</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+
+    <span class="c1"># Get selected start date reference</span>
+    <span class="n">start_date_ref</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;start_date_reference&#39;</span><span class="p">,</span> <span class="s1">&#39;date_of_registration&#39;</span><span class="p">)</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="n">get_patient_start_date</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">start_date_ref</span><span class="p">)</span>
+
+    <span class="c1"># Filter submissions by time interval</span>
+    <span class="n">max_weeks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_time_interval&#39;</span><span class="p">,</span> <span class="mi">52</span><span class="p">))</span>
+    <span class="n">cutoff_date</span> <span class="o">=</span> <span class="n">start_date</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">weeks</span><span class="o">=</span><span class="n">max_weeks</span><span class="p">)</span>
+
+    <span class="n">submissions</span> <span class="o">=</span> <span class="n">QuestionnaireSubmission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">patient_questionnaire__patient</span><span class="o">=</span><span class="n">patient</span><span class="p">,</span>
+        <span class="n">submission_date__gte</span><span class="o">=</span><span class="n">start_date</span><span class="p">,</span>
+        <span class="n">submission_date__lte</span><span class="o">=</span><span class="n">cutoff_date</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="data-import-export">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Data Import/Export</a><a class="headerlink" href="#data-import-export" title="Link to this heading">¶</a></h2>
+<section id="csv-import-for-items">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">CSV Import for Items</a><a class="headerlink" href="#csv-import-for-items" title="Link to this heading">¶</a></h3>
+<p>SATHI supports bulk import of questionnaire items with translations.</p>
+<p><strong>CSV Format:</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>id,construct_scale,item_number,response_type,language_code,name,likert_response,range_response,is_required,item_missing_value,item_better_score_direction,item_threshold_score,item_minimum_clinical_important_difference,item_normative_score_mean,item_normative_score_standard_deviation,discrimination_parameter,difficulty_parameter,pseudo_guessing_parameter
+550e8400-e29b-41d4-a716-446655440000,123e4567-e89b-12d3-a456-426614174000,1,Likert,en,&quot;How are you feeling?&quot;,789e4567-e89b-12d3-a456-426614174000,,true,0,&quot;Higher is Better&quot;,5,2,10,2,1.5,0.5,0.1
+</pre></div>
+</div>
+<p><strong>Import Process:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.core.management</span><span class="w"> </span><span class="kn">import</span> <span class="n">call_command</span>
+
+<span class="c1"># Import items from CSV</span>
+<span class="n">call_command</span><span class="p">(</span><span class="s1">&#39;import_items&#39;</span><span class="p">,</span> <span class="s1">&#39;path/to/items.csv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Field Descriptions:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id</span></code>: UUID for the item</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">construct_scale</span></code>: UUID of the construct scale</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">item_number</span></code>: Order in questionnaire</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">response_type</span></code>: Likert, Range, Number, or Text</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">language_code</span></code>: Language for this translation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: Question text</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">likert_response</span></code>: UUID of Likert scale (if applicable)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">range_response</span></code>: UUID of Range scale (if applicable)</p></li>
+</ul>
+</section>
+<section id="csv-export-for-responses">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">CSV Export for Responses</a><a class="headerlink" href="#csv-export-for-responses" title="Link to this heading">¶</a></h3>
+<p>Export patient questionnaire responses:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">promapp.views</span><span class="w"> </span><span class="kn">import</span> <span class="n">export_questionnaire_responses</span>
+
+<span class="c1"># Export all responses for a questionnaire</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">export_questionnaire_responses</span><span class="p">(</span>
+    <span class="n">request</span><span class="p">,</span>
+    <span class="n">questionnaire_id</span><span class="o">=</span><span class="n">questionnaire</span><span class="o">.</span><span class="n">id</span>
+<span class="p">)</span>
+<span class="c1"># Returns CSV file download</span>
+</pre></div>
+</div>
+<p><strong>Export Includes:</strong></p>
+<ul class="simple">
+<li><p>Patient ID (encrypted)</p></li>
+<li><p>Institution name</p></li>
+<li><p>Submission date and time</p></li>
+<li><p>All item responses</p></li>
+<li><p>Response values for each question type</p></li>
+</ul>
+</section>
+</section>
+<section id="best-practices">
+<h2><a class="toc-backref" href="#id20" role="doc-backlink">Best Practices</a><a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<section id="date-field-naming">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Date Field Naming</a><a class="headerlink" href="#date-field-naming" title="Link to this heading">¶</a></h3>
+<p><strong>DO:</strong></p>
+<ul class="simple">
+<li><p>Use descriptive names: <code class="docutils literal notranslate"><span class="pre">date_of_diagnosis</span></code>, <code class="docutils literal notranslate"><span class="pre">date_of_follow_up</span></code></p></li>
+<li><p>Include <code class="docutils literal notranslate"><span class="pre">date_of_</span></code> prefix for consistency</p></li>
+<li><p>Use snake_case naming convention</p></li>
+</ul>
+<p><strong>DON’T:</strong></p>
+<ul class="simple">
+<li><p>Use ambiguous names: <code class="docutils literal notranslate"><span class="pre">date</span></code>, <code class="docutils literal notranslate"><span class="pre">when</span></code></p></li>
+<li><p>Mix naming conventions</p></li>
+<li><p>Omit the <code class="docutils literal notranslate"><span class="pre">date_of_</span></code> prefix</p></li>
+</ul>
+</section>
+<section id="data-validation">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">Data Validation</a><a class="headerlink" href="#data-validation" title="Link to this heading">¶</a></h3>
+<p><strong>Always validate dates:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">clean_date_of_follow_up</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">follow_up_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;date_of_follow_up&#39;</span><span class="p">)</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;date_of_start_of_treatment&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">follow_up_date</span> <span class="ow">and</span> <span class="n">start_date</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">follow_up_date</span> <span class="o">&lt;</span> <span class="n">start_date</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span>
+                <span class="s2">&quot;Follow-up date cannot be before treatment start date&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">follow_up_date</span> <span class="ow">and</span> <span class="n">follow_up_date</span> <span class="o">&gt;</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span>
+            <span class="s2">&quot;Follow-up date cannot be in the future&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">follow_up_date</span>
+</pre></div>
+</div>
+</section>
+<section id="error-handling">
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">Error Handling</a><a class="headerlink" href="#error-handling" title="Link to this heading">¶</a></h3>
+<p><strong>Graceful fallbacks:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_patient_start_date</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">start_date_reference</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Always return a valid date, even if reference is invalid.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Attempt to parse reference</span>
+        <span class="k">if</span> <span class="n">start_date_reference</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;date_of_diagnosis_&#39;</span><span class="p">):</span>
+            <span class="n">diagnosis_id</span> <span class="o">=</span> <span class="n">start_date_reference</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;date_of_diagnosis_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">diagnosis</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">diagnosis_set</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">diagnosis_id</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">diagnosis</span><span class="o">.</span><span class="n">date_of_diagnosis</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">Diagnosis</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid date reference: </span><span class="si">{</span><span class="n">start_date_reference</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Always fall back to registration date</span>
+    <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">date_of_registration</span> <span class="ow">or</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="testing">
+<h2><a class="toc-backref" href="#id24" role="doc-backlink">Testing</a><a class="headerlink" href="#testing" title="Link to this heading">¶</a></h2>
+<section id="test-date-reference-system">
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">Test Date Reference System</a><a class="headerlink" href="#test-date-reference-system" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestCase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patient</span><span class="p">,</span> <span class="n">Diagnosis</span><span class="p">,</span> <span class="n">Treatment</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_patient_available_start_dates</span><span class="p">,</span> <span class="n">get_patient_start_date</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DateReferenceTestCase</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patient</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Test Patient&quot;</span><span class="p">,</span>
+            <span class="n">date_of_registration</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">diagnosis</span> <span class="o">=</span> <span class="n">Diagnosis</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">patient</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">patient</span><span class="p">,</span>
+            <span class="n">date_of_diagnosis</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">treatment</span> <span class="o">=</span> <span class="n">Treatment</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">diagnosis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">diagnosis</span><span class="p">,</span>
+            <span class="n">date_of_start_of_treatment</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_available_dates_includes_all_types</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test that all date types are included.&quot;&quot;&quot;</span>
+        <span class="n">dates</span> <span class="o">=</span> <span class="n">get_patient_available_start_dates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patient</span><span class="p">)</span>
+
+        <span class="c1"># Should have registration, diagnosis, and treatment dates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dates</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="c1"># Check reference keys</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dates</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s1">&#39;date_of_registration&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;date_of_diagnosis_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">diagnosis</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;date_of_start_of_treatment_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">treatment</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_get_start_date_returns_correct_date</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test that correct date is returned for each reference.&quot;&quot;&quot;</span>
+        <span class="c1"># Registration date</span>
+        <span class="n">date_val</span> <span class="o">=</span> <span class="n">get_patient_start_date</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patient</span><span class="p">,</span> <span class="s1">&#39;date_of_registration&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">date_val</span><span class="p">,</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># Diagnosis date</span>
+        <span class="n">date_val</span> <span class="o">=</span> <span class="n">get_patient_start_date</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">patient</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s1">&#39;date_of_diagnosis_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">diagnosis</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">date_val</span><span class="p">,</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># Treatment date</span>
+        <span class="n">date_val</span> <span class="o">=</span> <span class="n">get_patient_start_date</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">patient</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s1">&#39;date_of_start_of_treatment_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">treatment</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">date_val</span><span class="p">,</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_invalid_reference_returns_fallback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test that invalid references fall back to registration date.&quot;&quot;&quot;</span>
+        <span class="n">date_val</span> <span class="o">=</span> <span class="n">get_patient_start_date</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patient</span><span class="p">,</span> <span class="s1">&#39;invalid_reference&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">date_val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">patient</span><span class="o">.</span><span class="n">date_of_registration</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="troubleshooting">
+<h2><a class="toc-backref" href="#id26" role="doc-backlink">Troubleshooting</a><a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h2>
+<section id="common-issues">
+<h3><a class="toc-backref" href="#id27" role="doc-backlink">Common Issues</a><a class="headerlink" href="#common-issues" title="Link to this heading">¶</a></h3>
+<p><strong>Date Not Appearing in Dropdown:</strong></p>
+<ol class="arabic simple">
+<li><p>Check date field is not null in database</p></li>
+<li><p>Verify <code class="docutils literal notranslate"><span class="pre">get_patient_available_start_dates()</span></code> includes the field</p></li>
+<li><p>Check filter query in the function</p></li>
+<li><p>Ensure date is properly formatted</p></li>
+</ol>
+<p><strong>Wrong Date Being Used:</strong></p>
+<ol class="arabic simple">
+<li><p>Verify reference key format matches pattern</p></li>
+<li><p>Check <code class="docutils literal notranslate"><span class="pre">get_patient_start_date()</span></code> parsing logic</p></li>
+<li><p>Ensure model relationships are correct</p></li>
+<li><p>Check for typos in reference key</p></li>
+</ol>
+<p><strong>Time Interval Calculations Incorrect:</strong></p>
+<ol class="arabic simple">
+<li><p>Verify start date is correct</p></li>
+<li><p>Check submission dates are valid</p></li>
+<li><p>Ensure timezone handling is consistent</p></li>
+<li><p>Validate date arithmetic logic</p></li>
+</ol>
+</section>
+</section>
+<section id="resources">
+<h2><a class="toc-backref" href="#id28" role="doc-backlink">Resources</a><a class="headerlink" href="#resources" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.djangoproject.com/en/stable/ref/models/fields/">Django Model Fields</a></p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/datetime.html">Python datetime</a></p></li>
+<li><p><a class="reference external" href="https://docs.djangoproject.com/en/stable/topics/migrations/">Django Migrations</a></p></li>
+<li><p><a class="reference external" href="https://django-import-export.readthedocs.io/">Django CSV Import/Export</a></p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SATHI: Self Reported Assessment and Tracking for Health Insights</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../patient/index.html">Patient Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html">Security &amp; Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frontend_development.html">Frontend Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_components.html">UI Components Reference</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Data Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pwa_setup.html">Progressive Web App (PWA) Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="docstring_guide.html">Writing Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="extending_sathi.html">Extending SATHI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Developer Documentation</a><ul>
+      <li>Previous: <a href="ui_components.html" title="previous chapter">UI Components Reference</a></li>
+      <li>Next: <a href="pwa_setup.html" title="next chapter">Progressive Web App (PWA) Setup</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, CHAVI Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/developer/data_integration.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

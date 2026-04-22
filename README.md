@@ -13,7 +13,7 @@ Welcome to **SATHI** (Self Reported Assessment and Tracking for Health Insights)
 ### **Comprehensive Documentation Site**
 For complete documentation including installation guides, user manuals, and API references, visit:
 
-**[📖 SATHI Documentation](./docs/build/html/index.html)** *(Build with `cd docs && make html`)*
+**[📖 SATHI Documentation](https://sathi.readthedocs.io/en/latest/#)** 
 
 The documentation is organized into three main sections:
 
