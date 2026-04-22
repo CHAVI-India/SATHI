@@ -15,6 +15,8 @@ This section provides technical documentation for developers installing, configu
    ui_components
    data_integration
    pwa_setup
+   performance
+   testing
    api_reference
    docstring_guide
    extending_sathi

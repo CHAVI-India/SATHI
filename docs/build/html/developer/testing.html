@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Testing Guide &#8212; SATHI: Self Reported Assessment and Tracking for Health Insights Version 2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=44449404"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Reference" href="api_reference.html" />
+    <link rel="prev" title="Performance Optimization" href="performance.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="testing-guide">
+<h1>Testing Guide<a class="headerlink" href="#testing-guide" title="Link to this heading">¶</a></h1>
+<p>Comprehensive guide to testing SATHI application components, features, and integrations.</p>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p></li>
+<li><p><a class="reference internal" href="#testing-stack" id="id2">Testing Stack</a></p>
+<ul>
+<li><p><a class="reference internal" href="#tools-frameworks" id="id3">Tools &amp; Frameworks</a></p></li>
+<li><p><a class="reference internal" href="#installation" id="id4">Installation</a></p></li>
+<li><p><a class="reference internal" href="#configuration" id="id5">Configuration</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#unit-testing" id="id6">Unit Testing</a></p>
+<ul>
+<li><p><a class="reference internal" href="#model-tests" id="id7">Model Tests</a></p></li>
+<li><p><a class="reference internal" href="#view-tests" id="id8">View Tests</a></p></li>
+<li><p><a class="reference internal" href="#form-tests" id="id9">Form Tests</a></p></li>
+<li><p><a class="reference internal" href="#utility-function-tests" id="id10">Utility Function Tests</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#integration-testing" id="id11">Integration Testing</a></p>
+<ul>
+<li><p><a class="reference internal" href="#institution-based-access-control" id="id12">Institution-Based Access Control</a></p></li>
+<li><p><a class="reference internal" href="#questionnaire-workflow" id="id13">Questionnaire Workflow</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#ui-ux-testing" id="id14">UI/UX Testing</a></p>
+<ul>
+<li><p><a class="reference internal" href="#vertical-tabs-testing" id="id15">Vertical Tabs Testing</a></p></li>
+<li><p><a class="reference internal" href="#selenium-ui-tests" id="id16">Selenium UI Tests</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#performance-testing" id="id17">Performance Testing</a></p>
+<ul>
+<li><p><a class="reference internal" href="#load-testing-with-locust" id="id18">Load Testing with Locust</a></p></li>
+<li><p><a class="reference internal" href="#database-query-testing" id="id19">Database Query Testing</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#security-testing" id="id20">Security Testing</a></p>
+<ul>
+<li><p><a class="reference internal" href="#permission-tests" id="id21">Permission Tests</a></p></li>
+<li><p><a class="reference internal" href="#csrf-protection-tests" id="id22">CSRF Protection Tests</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#test-data-factories" id="id23">Test Data Factories</a></p>
+<ul>
+<li><p><a class="reference internal" href="#using-factory-boy" id="id24">Using factory_boy</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#running-tests" id="id25">Running Tests</a></p>
+<ul>
+<li><p><a class="reference internal" href="#run-all-tests" id="id26">Run All Tests</a></p></li>
+<li><p><a class="reference internal" href="#run-tests-by-marker" id="id27">Run Tests by Marker</a></p></li>
+<li><p><a class="reference internal" href="#parallel-testing" id="id28">Parallel Testing</a></p></li>
+<li><p><a class="reference internal" href="#coverage-reports" id="id29">Coverage Reports</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#continuous-integration" id="id30">Continuous Integration</a></p>
+<ul>
+<li><p><a class="reference internal" href="#github-actions" id="id31">GitHub Actions</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#best-practices" id="id32">Best Practices</a></p>
+<ul>
+<li><p><a class="reference internal" href="#test-organization" id="id33">Test Organization</a></p></li>
+<li><p><a class="reference internal" href="#test-coverage-goals" id="id34">Test Coverage Goals</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#resources" id="id35">Resources</a></p></li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>SATHI uses multiple testing approaches:</p>
+<ul class="simple">
+<li><p><strong>Unit Tests</strong>: Test individual functions and methods</p></li>
+<li><p><strong>Integration Tests</strong>: Test component interactions</p></li>
+<li><p><strong>UI/UX Tests</strong>: Test user interface and experience</p></li>
+<li><p><strong>Performance Tests</strong>: Test load and response times</p></li>
+<li><p><strong>Security Tests</strong>: Test authentication and authorization</p></li>
+</ul>
+</section>
+<section id="testing-stack">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Testing Stack</a><a class="headerlink" href="#testing-stack" title="Link to this heading">¶</a></h2>
+<section id="tools-frameworks">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Tools &amp; Frameworks</a><a class="headerlink" href="#tools-frameworks" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tool</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>pytest</strong></p></td>
+<td><p>Test runner and framework</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>pytest-django</strong></p></td>
+<td><p>Django-specific test utilities</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>factory_boy</strong></p></td>
+<td><p>Test data generation</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>coverage.py</strong></p></td>
+<td><p>Code coverage measurement</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Selenium</strong></p></td>
+<td><p>Browser automation for UI tests</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Locust</strong></p></td>
+<td><p>Load and performance testing</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="installation">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Installation</a><a class="headerlink" href="#installation" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>pytest<span class="w"> </span>pytest-django<span class="w"> </span>pytest-cov
+pip<span class="w"> </span>install<span class="w"> </span>factory-boy<span class="w"> </span>faker
+pip<span class="w"> </span>install<span class="w"> </span>selenium<span class="w"> </span>webdriver-manager
+pip<span class="w"> </span>install<span class="w"> </span>locust
+</pre></div>
+</div>
+</section>
+<section id="configuration">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Configuration</a><a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h3>
+<p><strong>pytest.ini:</strong></p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[pytest]</span>
+<span class="na">DJANGO_SETTINGS_MODULE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">chaviprom.settings</span>
+<span class="na">python_files</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">tests.py test_*.py *_tests.py</span>
+<span class="na">python_classes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">Test*</span>
+<span class="na">python_functions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">test_*</span>
+<span class="na">addopts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">--reuse-db --nomigrations --cov=. --cov-report=html</span>
+</pre></div>
+</div>
+<p><strong>conftest.py:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Group</span><span class="p">,</span> <span class="n">Permission</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patient</span><span class="p">,</span> <span class="n">Institution</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_user</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a test user.&quot;&quot;&quot;</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
+        <span class="n">username</span><span class="o">=</span><span class="s1">&#39;testuser&#39;</span><span class="p">,</span>
+        <span class="n">email</span><span class="o">=</span><span class="s1">&#39;test@example.com&#39;</span><span class="p">,</span>
+        <span class="n">password</span><span class="o">=</span><span class="s1">&#39;testpass123&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">user</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_institution</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a test institution.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Institution</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Test Hospital&#39;</span><span class="p">,</span>
+        <span class="n">address</span><span class="o">=</span><span class="s1">&#39;123 Test St&#39;</span>
+    <span class="p">)</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_patient</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">test_institution</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a test patient.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Test Patient&#39;</span><span class="p">,</span>
+        <span class="n">patient_id</span><span class="o">=</span><span class="s1">&#39;P001&#39;</span><span class="p">,</span>
+        <span class="n">institution</span><span class="o">=</span><span class="n">test_institution</span><span class="p">,</span>
+        <span class="n">date_of_registration</span><span class="o">=</span><span class="s1">&#39;2024-01-01&#39;</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="unit-testing">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Unit Testing</a><a class="headerlink" href="#unit-testing" title="Link to this heading">¶</a></h2>
+<section id="model-tests">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Model Tests</a><a class="headerlink" href="#model-tests" title="Link to this heading">¶</a></h3>
+<p><strong>Test Patient Model:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># patientapp/tests/test_models.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patient</span><span class="p">,</span> <span class="n">Institution</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TestPatientModel</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_patient_creation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_institution</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test creating a patient.&quot;&quot;&quot;</span>
+        <span class="n">patient</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;John Doe&#39;</span><span class="p">,</span>
+            <span class="n">patient_id</span><span class="o">=</span><span class="s1">&#39;P12345&#39;</span><span class="p">,</span>
+            <span class="n">institution</span><span class="o">=</span><span class="n">test_institution</span><span class="p">,</span>
+            <span class="n">date_of_registration</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">patient</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;John Doe&#39;</span>
+        <span class="k">assert</span> <span class="n">patient</span><span class="o">.</span><span class="n">patient_id</span> <span class="o">==</span> <span class="s1">&#39;P12345&#39;</span>
+        <span class="k">assert</span> <span class="n">patient</span><span class="o">.</span><span class="n">institution</span> <span class="o">==</span> <span class="n">test_institution</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_patient_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test patient string representation.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">test_patient</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Test Patient (P001)&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_patient_age_calculation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test age calculation.&quot;&quot;&quot;</span>
+        <span class="n">test_patient</span><span class="o">.</span><span class="n">date_of_birth</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="mi">1990</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">test_patient</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="c1"># Age should be calculated correctly</span>
+        <span class="k">assert</span> <span class="n">test_patient</span><span class="o">.</span><span class="n">age</span> <span class="o">&gt;=</span> <span class="mi">34</span>
+</pre></div>
+</div>
+</section>
+<section id="view-tests">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">View Tests</a><a class="headerlink" href="#view-tests" title="Link to this heading">¶</a></h3>
+<p><strong>Test Patient List View:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># patientapp/tests/test_views.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.urls</span><span class="w"> </span><span class="kn">import</span> <span class="n">reverse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Permission</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TestPatientListView</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_patient_list_requires_login</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test that patient list requires authentication.&quot;&quot;&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;patient_list&#39;</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="c1"># Should redirect to login</span>
+        <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">302</span>
+        <span class="k">assert</span> <span class="s1">&#39;/account/login/&#39;</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">url</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_patient_list_requires_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">test_user</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test that patient list requires view permission.&quot;&quot;&quot;</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">force_login</span><span class="p">(</span><span class="n">test_user</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;patient_list&#39;</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="c1"># Should return 403 without permission</span>
+        <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_patient_list_with_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">test_user</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test patient list with proper permission.&quot;&quot;&quot;</span>
+        <span class="c1"># Add permission</span>
+        <span class="n">permission</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_patient&#39;</span><span class="p">)</span>
+        <span class="n">test_user</span><span class="o">.</span><span class="n">user_permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">permission</span><span class="p">)</span>
+
+        <span class="n">client</span><span class="o">.</span><span class="n">force_login</span><span class="p">(</span><span class="n">test_user</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;patient_list&#39;</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+        <span class="k">assert</span> <span class="s1">&#39;patients&#39;</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">context</span>
+</pre></div>
+</div>
+</section>
+<section id="form-tests">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Form Tests</a><a class="headerlink" href="#form-tests" title="Link to this heading">¶</a></h3>
+<p><strong>Test Patient Form:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># patientapp/tests/test_forms.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.forms</span><span class="w"> </span><span class="kn">import</span> <span class="n">PatientForm</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TestPatientForm</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_valid_patient_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_institution</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test form with valid data.&quot;&quot;&quot;</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Jane Doe&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;patient_id&#39;</span><span class="p">:</span> <span class="s1">&#39;P67890&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;institution&#39;</span><span class="p">:</span> <span class="n">test_institution</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s1">&#39;date_of_registration&#39;</span><span class="p">:</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span>
+            <span class="s1">&#39;gender&#39;</span><span class="p">:</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">form</span> <span class="o">=</span> <span class="n">PatientForm</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_invalid_patient_form_missing_required</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test form with missing required fields.&quot;&quot;&quot;</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Jane Doe&#39;</span><span class="p">,</span>
+            <span class="c1"># Missing patient_id</span>
+        <span class="p">}</span>
+
+        <span class="n">form</span> <span class="o">=</span> <span class="n">PatientForm</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="s1">&#39;patient_id&#39;</span> <span class="ow">in</span> <span class="n">form</span><span class="o">.</span><span class="n">errors</span>
+</pre></div>
+</div>
+</section>
+<section id="utility-function-tests">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Utility Function Tests</a><a class="headerlink" href="#utility-function-tests" title="Link to this heading">¶</a></h3>
+<p><strong>Test Date Reference Functions:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># patientapp/tests/test_utils.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_patient_available_start_dates</span><span class="p">,</span>
+    <span class="n">get_patient_start_date</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Diagnosis</span><span class="p">,</span> <span class="n">Treatment</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TestDateReferenceFunctions</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_get_available_start_dates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test getting all available start dates.&quot;&quot;&quot;</span>
+        <span class="n">dates</span> <span class="o">=</span> <span class="n">get_patient_available_start_dates</span><span class="p">(</span><span class="n">test_patient</span><span class="p">)</span>
+
+        <span class="c1"># Should include registration date</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">dates</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span>
+        <span class="k">assert</span> <span class="n">dates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;date_of_registration&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_get_start_date_registration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test getting registration date.&quot;&quot;&quot;</span>
+        <span class="n">start_date</span> <span class="o">=</span> <span class="n">get_patient_start_date</span><span class="p">(</span>
+            <span class="n">test_patient</span><span class="p">,</span>
+            <span class="s1">&#39;date_of_registration&#39;</span>
+        <span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">start_date</span> <span class="o">==</span> <span class="n">test_patient</span><span class="o">.</span><span class="n">date_of_registration</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_get_start_date_invalid_reference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test invalid reference falls back to registration.&quot;&quot;&quot;</span>
+        <span class="n">start_date</span> <span class="o">=</span> <span class="n">get_patient_start_date</span><span class="p">(</span>
+            <span class="n">test_patient</span><span class="p">,</span>
+            <span class="s1">&#39;invalid_reference&#39;</span>
+        <span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">start_date</span> <span class="o">==</span> <span class="n">test_patient</span><span class="o">.</span><span class="n">date_of_registration</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="integration-testing">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Integration Testing</a><a class="headerlink" href="#integration-testing" title="Link to this heading">¶</a></h2>
+<section id="institution-based-access-control">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Institution-Based Access Control</a><a class="headerlink" href="#institution-based-access-control" title="Link to this heading">¶</a></h3>
+<p><strong>Test Provider Access:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># patientapp/tests/test_institution_access.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Permission</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">providerapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Provider</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patient</span><span class="p">,</span> <span class="n">Institution</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">filter_patients_by_institution</span><span class="p">,</span>
+    <span class="n">check_patient_access</span>
+<span class="p">)</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TestInstitutionAccess</span><span class="p">:</span>
+
+    <span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">institution_a</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Institution</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Hospital A&#39;</span><span class="p">)</span>
+
+    <span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">institution_b</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Institution</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Hospital B&#39;</span><span class="p">)</span>
+
+    <span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">provider_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">institution_a</span><span class="p">):</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
+            <span class="n">username</span><span class="o">=</span><span class="s1">&#39;provider&#39;</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="s1">&#39;test123&#39;</span>
+        <span class="p">)</span>
+        <span class="n">Provider</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span>
+            <span class="n">institution</span><span class="o">=</span><span class="n">institution_a</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">user</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_provider_sees_only_own_institution_patients</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">provider_user</span><span class="p">,</span> <span class="n">institution_a</span><span class="p">,</span> <span class="n">institution_b</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test provider can only see their institution&#39;s patients.&quot;&quot;&quot;</span>
+        <span class="c1"># Create patients in both institutions</span>
+        <span class="n">patient_a</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Patient A&#39;</span><span class="p">,</span>
+            <span class="n">patient_id</span><span class="o">=</span><span class="s1">&#39;PA001&#39;</span><span class="p">,</span>
+            <span class="n">institution</span><span class="o">=</span><span class="n">institution_a</span>
+        <span class="p">)</span>
+        <span class="n">patient_b</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Patient B&#39;</span><span class="p">,</span>
+            <span class="n">patient_id</span><span class="o">=</span><span class="s1">&#39;PB001&#39;</span><span class="p">,</span>
+            <span class="n">institution</span><span class="o">=</span><span class="n">institution_b</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Filter patients</span>
+        <span class="n">all_patients</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="n">filtered</span> <span class="o">=</span> <span class="n">filter_patients_by_institution</span><span class="p">(</span>
+            <span class="n">all_patients</span><span class="p">,</span>
+            <span class="n">provider_user</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Should only see institution A patients</span>
+        <span class="k">assert</span> <span class="n">patient_a</span> <span class="ow">in</span> <span class="n">filtered</span>
+        <span class="k">assert</span> <span class="n">patient_b</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">filtered</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_provider_cannot_access_other_institution_patient</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">provider_user</span><span class="p">,</span> <span class="n">institution_b</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test provider cannot access other institution&#39;s patient.&quot;&quot;&quot;</span>
+        <span class="n">patient_b</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Patient B&#39;</span><span class="p">,</span>
+            <span class="n">patient_id</span><span class="o">=</span><span class="s1">&#39;PB001&#39;</span><span class="p">,</span>
+            <span class="n">institution</span><span class="o">=</span><span class="n">institution_b</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Should not have access</span>
+        <span class="n">has_access</span> <span class="o">=</span> <span class="n">check_patient_access</span><span class="p">(</span><span class="n">provider_user</span><span class="p">,</span> <span class="n">patient_b</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">has_access</span>
+</pre></div>
+</div>
+</section>
+<section id="questionnaire-workflow">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Questionnaire Workflow</a><a class="headerlink" href="#questionnaire-workflow" title="Link to this heading">¶</a></h3>
+<p><strong>Test Complete Questionnaire Flow:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># promapp/tests/test_questionnaire_workflow.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">promapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Questionnaire</span><span class="p">,</span>
+    <span class="n">Item</span><span class="p">,</span>
+    <span class="n">QuestionnaireItem</span><span class="p">,</span>
+    <span class="n">PatientQuestionnaire</span><span class="p">,</span>
+    <span class="n">QuestionnaireSubmission</span><span class="p">,</span>
+    <span class="n">QuestionnaireItemResponse</span>
+<span class="p">)</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TestQuestionnaireWorkflow</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_complete_questionnaire_submission</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">,</span> <span class="n">test_user</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test complete questionnaire submission workflow.&quot;&quot;&quot;</span>
+        <span class="c1"># Create questionnaire</span>
+        <span class="n">questionnaire</span> <span class="o">=</span> <span class="n">Questionnaire</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Test Questionnaire&#39;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Create item</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">Item</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;How are you feeling?&#39;</span><span class="p">,</span>
+            <span class="n">response_type</span><span class="o">=</span><span class="s1">&#39;Text&#39;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Add item to questionnaire</span>
+        <span class="n">QuestionnaireItem</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">questionnaire</span><span class="o">=</span><span class="n">questionnaire</span><span class="p">,</span>
+            <span class="n">item</span><span class="o">=</span><span class="n">item</span><span class="p">,</span>
+            <span class="n">item_number</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Assign to patient</span>
+        <span class="n">pq</span> <span class="o">=</span> <span class="n">PatientQuestionnaire</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">patient</span><span class="o">=</span><span class="n">test_patient</span><span class="p">,</span>
+            <span class="n">questionnaire</span><span class="o">=</span><span class="n">questionnaire</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Create submission</span>
+        <span class="n">submission</span> <span class="o">=</span> <span class="n">QuestionnaireSubmission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">patient_questionnaire</span><span class="o">=</span><span class="n">pq</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Add response</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">QuestionnaireItemResponse</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">questionnaire_submission</span><span class="o">=</span><span class="n">submission</span><span class="p">,</span>
+            <span class="n">item</span><span class="o">=</span><span class="n">item</span><span class="p">,</span>
+            <span class="n">response_value</span><span class="o">=</span><span class="s1">&#39;Feeling good&#39;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Verify workflow</span>
+        <span class="k">assert</span> <span class="n">submission</span><span class="o">.</span><span class="n">patient_questionnaire</span> <span class="o">==</span> <span class="n">pq</span>
+        <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">questionnaire_submission</span> <span class="o">==</span> <span class="n">submission</span>
+        <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">response_value</span> <span class="o">==</span> <span class="s1">&#39;Feeling good&#39;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="ui-ux-testing">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink">UI/UX Testing</a><a class="headerlink" href="#ui-ux-testing" title="Link to this heading">¶</a></h2>
+<section id="vertical-tabs-testing">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">Vertical Tabs Testing</a><a class="headerlink" href="#vertical-tabs-testing" title="Link to this heading">¶</a></h3>
+<p><strong>Manual Test Checklist:</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>PROM Review Page - Vertical Tabs
+
+✓ Visual Verification:
+  □ Topline Results section appears with red circles
+  □ Other Construct Scores section appears with green circles
+  □ Composite Construct Scores section appears (if applicable)
+  □ First tab is active by default
+
+✓ Tab Interaction:
+  □ Clicking tab switches content
+  □ Active tab has colored background and left border
+  □ Only one tab content visible at a time
+  □ Tab switching is instant (no delay)
+
+✓ Content Display:
+  □ Construct name displayed
+  □ Current score displayed
+  □ Trend indicator (arrow) displayed
+  □ Bokeh plot renders correctly
+  □ Related items section appears
+  □ Item plots render correctly
+
+✓ Filter Integration:
+  □ Questionnaire filter updates tabs
+  □ Time range filter updates plots
+  □ Active tab remains selected after filter
+  □ All filters work with tabs
+
+✓ Responsive Design:
+  □ Desktop (1920px+): 3-column item grid
+  □ Tablet (768px-1024px): 2-column item grid
+  □ Mobile (320px-767px): 1-column item grid
+  □ Sidebar adapts to screen size
+
+✓ Accessibility:
+  □ Keyboard navigation works (Tab key)
+  □ Enter/Space activates tabs
+  □ Screen reader announces tab roles
+  □ ARIA attributes present
+
+✓ Performance:
+  □ Page loads in &lt; 2 seconds
+  □ Plots load progressively
+  □ No JavaScript errors in console
+  □ No layout shift when switching tabs
+</pre></div>
+</div>
+</section>
+<section id="selenium-ui-tests">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Selenium UI Tests</a><a class="headerlink" href="#selenium-ui-tests" title="Link to this heading">¶</a></h3>
+<p><strong>Automated UI Test:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># tests/test_ui.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">selenium</span><span class="w"> </span><span class="kn">import</span> <span class="n">webdriver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">selenium.webdriver.common.by</span><span class="w"> </span><span class="kn">import</span> <span class="n">By</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">selenium.webdriver.support.ui</span><span class="w"> </span><span class="kn">import</span> <span class="n">WebDriverWait</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">selenium.webdriver.support</span><span class="w"> </span><span class="kn">import</span> <span class="n">expected_conditions</span> <span class="k">as</span> <span class="n">EC</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">browser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create browser instance.&quot;&quot;&quot;</span>
+    <span class="n">driver</span> <span class="o">=</span> <span class="n">webdriver</span><span class="o">.</span><span class="n">Chrome</span><span class="p">()</span>
+    <span class="k">yield</span> <span class="n">driver</span>
+    <span class="n">driver</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">ui</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_vertical_tabs_switching</span><span class="p">(</span><span class="n">browser</span><span class="p">,</span> <span class="n">live_server</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test vertical tabs switch correctly.&quot;&quot;&quot;</span>
+    <span class="c1"># Login</span>
+    <span class="n">browser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">live_server</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s1">/account/login/&#39;</span><span class="p">)</span>
+    <span class="n">browser</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">NAME</span><span class="p">,</span> <span class="s1">&#39;login&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s1">&#39;testuser&#39;</span><span class="p">)</span>
+    <span class="n">browser</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">NAME</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s1">&#39;testpass123&#39;</span><span class="p">)</span>
+    <span class="n">browser</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">CSS_SELECTOR</span><span class="p">,</span> <span class="s1">&#39;button[type=&quot;submit&quot;]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+    <span class="c1"># Navigate to PROM review</span>
+    <span class="n">browser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">live_server</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s1">/patients/</span><span class="si">{</span><span class="n">test_patient</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">/prom-review/&#39;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Wait for page load</span>
+    <span class="n">WebDriverWait</span><span class="p">(</span><span class="n">browser</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">until</span><span class="p">(</span>
+        <span class="n">EC</span><span class="o">.</span><span class="n">presence_of_element_located</span><span class="p">((</span><span class="n">By</span><span class="o">.</span><span class="n">CLASS_NAME</span><span class="p">,</span> <span class="s1">&#39;vertical-tabs&#39;</span><span class="p">))</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Find tab buttons</span>
+    <span class="n">tabs</span> <span class="o">=</span> <span class="n">browser</span><span class="o">.</span><span class="n">find_elements</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">CSS_SELECTOR</span><span class="p">,</span> <span class="s1">&#39;[role=&quot;tab&quot;]&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tabs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="c1"># Click second tab</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tabs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">tabs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="c1"># Wait for content to switch</span>
+        <span class="n">WebDriverWait</span><span class="p">(</span><span class="n">browser</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">until</span><span class="p">(</span>
+            <span class="n">EC</span><span class="o">.</span><span class="n">visibility_of_element_located</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">tabs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;aria-controls&#39;</span><span class="p">))</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Verify active state</span>
+        <span class="k">assert</span> <span class="s1">&#39;bg-red-500&#39;</span> <span class="ow">in</span> <span class="n">tabs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;class&#39;</span><span class="p">)</span> <span class="ow">or</span> \
+               <span class="s1">&#39;bg-green-500&#39;</span> <span class="ow">in</span> <span class="n">tabs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;class&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-testing">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Performance Testing</a><a class="headerlink" href="#performance-testing" title="Link to this heading">¶</a></h2>
+<section id="load-testing-with-locust">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Load Testing with Locust</a><a class="headerlink" href="#load-testing-with-locust" title="Link to this heading">¶</a></h3>
+<p><strong>Basic Load Test:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># locustfile.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">locust</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpUser</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">between</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">locust</span><span class="w"> </span><span class="kn">import</span> <span class="n">events</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SATHIUser</span><span class="p">(</span><span class="n">HttpUser</span><span class="p">):</span>
+    <span class="n">wait_time</span> <span class="o">=</span> <span class="n">between</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Login before testing.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/account/login/&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;login&#39;</span><span class="p">:</span> <span class="s1">&#39;testuser&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="s1">&#39;testpass123&#39;</span>
+        <span class="p">})</span>
+
+    <span class="nd">@task</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">view_patient_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;View patient list (common action).&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/patients/&#39;</span><span class="p">)</span>
+
+    <span class="nd">@task</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">view_prom_review</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;View PROM review (most common action).&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/patients/123e4567-e89b-12d3-a456-426614174000/prom-review/&#39;</span><span class="p">)</span>
+
+    <span class="nd">@task</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">view_patient_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;View patient detail (less common).&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/patients/123e4567-e89b-12d3-a456-426614174000/&#39;</span><span class="p">)</span>
+
+    <span class="nd">@task</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_filters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply filters on PROM review.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s1">&#39;/patients/123e4567-e89b-12d3-a456-426614174000/prom-review/&#39;</span><span class="p">,</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;questionnaire&#39;</span><span class="p">:</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time_range&#39;</span><span class="p">:</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;start_date_reference&#39;</span><span class="p">:</span> <span class="s1">&#39;date_of_registration&#39;</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Run Load Test:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start with 10 users, spawn 2 per second</span>
+locust<span class="w"> </span>-f<span class="w"> </span>locustfile.py<span class="w"> </span>--host<span class="o">=</span>http://localhost:8000<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--users<span class="w"> </span><span class="m">10</span><span class="w"> </span>--spawn-rate<span class="w"> </span><span class="m">2</span>
+
+<span class="c1"># Open web UI at http://localhost:8089</span>
+</pre></div>
+</div>
+<p><strong>Performance Targets:</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Endpoint</p></th>
+<th class="head"><p>Target (95th percentile)</p></th>
+<th class="head"><p>Max Acceptable</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Patient List</p></td>
+<td><p>&lt; 500ms</p></td>
+<td><p>&lt; 1000ms</p></td>
+</tr>
+<tr class="row-odd"><td><p>PROM Review (cold cache)</p></td>
+<td><p>&lt; 2000ms</p></td>
+<td><p>&lt; 5000ms</p></td>
+</tr>
+<tr class="row-even"><td><p>PROM Review (warm cache)</p></td>
+<td><p>&lt; 500ms</p></td>
+<td><p>&lt; 1000ms</p></td>
+</tr>
+<tr class="row-odd"><td><p>Patient Detail</p></td>
+<td><p>&lt; 300ms</p></td>
+<td><p>&lt; 600ms</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="database-query-testing">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Database Query Testing</a><a class="headerlink" href="#database-query-testing" title="Link to this heading">¶</a></h3>
+<p><strong>Test Query Count:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.test.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">override_settings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">connection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.test.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">CaptureQueriesContext</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_patient_list_query_count</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">test_user</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test patient list doesn&#39;t have N+1 queries.&quot;&quot;&quot;</span>
+    <span class="c1"># Add permission</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Permission</span>
+    <span class="n">permission</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_patient&#39;</span><span class="p">)</span>
+    <span class="n">test_user</span><span class="o">.</span><span class="n">user_permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">permission</span><span class="p">)</span>
+
+    <span class="n">client</span><span class="o">.</span><span class="n">force_login</span><span class="p">(</span><span class="n">test_user</span><span class="p">)</span>
+
+    <span class="c1"># Capture queries</span>
+    <span class="k">with</span> <span class="n">CaptureQueriesContext</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span> <span class="k">as</span> <span class="n">context</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/patients/&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Should use select_related/prefetch_related</span>
+    <span class="c1"># Acceptable query count: ~5-10 queries</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">captured_queries</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">15</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="security-testing">
+<h2><a class="toc-backref" href="#id20" role="doc-backlink">Security Testing</a><a class="headerlink" href="#security-testing" title="Link to this heading">¶</a></h2>
+<section id="permission-tests">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Permission Tests</a><a class="headerlink" href="#permission-tests" title="Link to this heading">¶</a></h3>
+<p><strong>Test View Permissions:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># tests/test_security.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.urls</span><span class="w"> </span><span class="kn">import</span> <span class="n">reverse</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TestViewPermissions</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_anonymous_cannot_access_patient_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test anonymous users cannot access patient list.&quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;patient_list&#39;</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">302</span>  <span class="c1"># Redirect to login</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_user_without_permission_cannot_access</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">test_user</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test users without permission get 403.&quot;&quot;&quot;</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">force_login</span><span class="p">(</span><span class="n">test_user</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;patient_list&#39;</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_user_with_permission_can_access</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">test_user</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test users with permission can access.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Permission</span>
+        <span class="n">permission</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_patient&#39;</span><span class="p">)</span>
+        <span class="n">test_user</span><span class="o">.</span><span class="n">user_permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">permission</span><span class="p">)</span>
+
+        <span class="n">client</span><span class="o">.</span><span class="n">force_login</span><span class="p">(</span><span class="n">test_user</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;patient_list&#39;</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+</pre></div>
+</div>
+</section>
+<section id="csrf-protection-tests">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">CSRF Protection Tests</a><a class="headerlink" href="#csrf-protection-tests" title="Link to this heading">¶</a></h3>
+<p><strong>Test CSRF Token Required:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_post_requires_csrf_token</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">test_user</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test POST requests require CSRF token.&quot;&quot;&quot;</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">force_login</span><span class="p">(</span><span class="n">test_user</span><span class="p">)</span>
+
+    <span class="c1"># POST without CSRF token</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/patients/create/&#39;</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Test Patient&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;patient_id&#39;</span><span class="p">:</span> <span class="s1">&#39;P001&#39;</span>
+    <span class="p">})</span>
+
+    <span class="c1"># Should fail with 403</span>
+    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="test-data-factories">
+<h2><a class="toc-backref" href="#id23" role="doc-backlink">Test Data Factories</a><a class="headerlink" href="#test-data-factories" title="Link to this heading">¶</a></h2>
+<section id="using-factory-boy">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Using factory_boy</a><a class="headerlink" href="#using-factory-boy" title="Link to this heading">¶</a></h3>
+<p><strong>Define Factories:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># tests/factories.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">factory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">factory.django</span><span class="w"> </span><span class="kn">import</span> <span class="n">DjangoModelFactory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patient</span><span class="p">,</span> <span class="n">Institution</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">InstitutionFactory</span><span class="p">(</span><span class="n">DjangoModelFactory</span><span class="p">):</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Institution</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Hospital </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Faker</span><span class="p">(</span><span class="s1">&#39;address&#39;</span><span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PatientFactory</span><span class="p">(</span><span class="n">DjangoModelFactory</span><span class="p">):</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Patient</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Faker</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+    <span class="n">patient_id</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;P</span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s1">05d</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">institution</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">SubFactory</span><span class="p">(</span><span class="n">InstitutionFactory</span><span class="p">)</span>
+    <span class="n">date_of_registration</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Faker</span><span class="p">(</span><span class="s1">&#39;date_this_year&#39;</span><span class="p">)</span>
+    <span class="n">gender</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Iterator</span><span class="p">([</span><span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">])</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">UserFactory</span><span class="p">(</span><span class="n">DjangoModelFactory</span><span class="p">):</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">User</span>
+
+    <span class="n">username</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;user</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">LazyAttribute</span><span class="p">(</span><span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">obj</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s1">@example.com&#39;</span><span class="p">)</span>
+    <span class="n">password</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">PostGenerationMethodCall</span><span class="p">(</span><span class="s1">&#39;set_password&#39;</span><span class="p">,</span> <span class="s1">&#39;testpass123&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Use Factories in Tests:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tests.factories</span><span class="w"> </span><span class="kn">import</span> <span class="n">PatientFactory</span><span class="p">,</span> <span class="n">InstitutionFactory</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_with_factory</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test using factory-generated data.&quot;&quot;&quot;</span>
+    <span class="c1"># Create 5 patients</span>
+    <span class="n">patients</span> <span class="o">=</span> <span class="n">PatientFactory</span><span class="o">.</span><span class="n">create_batch</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">patients</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">institution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">patients</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="running-tests">
+<h2><a class="toc-backref" href="#id25" role="doc-backlink">Running Tests</a><a class="headerlink" href="#running-tests" title="Link to this heading">¶</a></h2>
+<section id="run-all-tests">
+<h3><a class="toc-backref" href="#id26" role="doc-backlink">Run All Tests</a><a class="headerlink" href="#run-all-tests" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run all tests</span>
+pytest
+
+<span class="c1"># Run with coverage</span>
+pytest<span class="w"> </span>--cov<span class="o">=</span>.<span class="w"> </span>--cov-report<span class="o">=</span>html
+
+<span class="c1"># Run specific test file</span>
+pytest<span class="w"> </span>patientapp/tests/test_models.py
+
+<span class="c1"># Run specific test class</span>
+pytest<span class="w"> </span>patientapp/tests/test_models.py::TestPatientModel
+
+<span class="c1"># Run specific test</span>
+pytest<span class="w"> </span>patientapp/tests/test_models.py::TestPatientModel::test_patient_creation
+</pre></div>
+</div>
+</section>
+<section id="run-tests-by-marker">
+<h3><a class="toc-backref" href="#id27" role="doc-backlink">Run Tests by Marker</a><a class="headerlink" href="#run-tests-by-marker" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run only unit tests</span>
+pytest<span class="w"> </span>-m<span class="w"> </span>unit
+
+<span class="c1"># Run only integration tests</span>
+pytest<span class="w"> </span>-m<span class="w"> </span>integration
+
+<span class="c1"># Run only UI tests</span>
+pytest<span class="w"> </span>-m<span class="w"> </span>ui
+
+<span class="c1"># Skip slow tests</span>
+pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not slow&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="parallel-testing">
+<h3><a class="toc-backref" href="#id28" role="doc-backlink">Parallel Testing</a><a class="headerlink" href="#parallel-testing" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install pytest-xdist</span>
+pip<span class="w"> </span>install<span class="w"> </span>pytest-xdist
+
+<span class="c1"># Run tests in parallel (4 workers)</span>
+pytest<span class="w"> </span>-n<span class="w"> </span><span class="m">4</span>
+</pre></div>
+</div>
+</section>
+<section id="coverage-reports">
+<h3><a class="toc-backref" href="#id29" role="doc-backlink">Coverage Reports</a><a class="headerlink" href="#coverage-reports" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate HTML coverage report</span>
+pytest<span class="w"> </span>--cov<span class="o">=</span>.<span class="w"> </span>--cov-report<span class="o">=</span>html
+
+<span class="c1"># Open report</span>
+open<span class="w"> </span>htmlcov/index.html
+
+<span class="c1"># Generate terminal report</span>
+pytest<span class="w"> </span>--cov<span class="o">=</span>.<span class="w"> </span>--cov-report<span class="o">=</span>term-missing
+</pre></div>
+</div>
+</section>
+</section>
+<section id="continuous-integration">
+<h2><a class="toc-backref" href="#id30" role="doc-backlink">Continuous Integration</a><a class="headerlink" href="#continuous-integration" title="Link to this heading">¶</a></h2>
+<section id="github-actions">
+<h3><a class="toc-backref" href="#id31" role="doc-backlink">GitHub Actions</a><a class="headerlink" href="#github-actions" title="Link to this heading">¶</a></h3>
+<p><strong>.github/workflows/tests.yml:</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Tests</span>
+
+<span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">push</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">pull_request</span><span class="p p-Indicator">]</span>
+
+<span class="nt">jobs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">test</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+
+<span class="w">    </span><span class="nt">services</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">postgres</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgres:15</span>
+<span class="w">        </span><span class="nt">env</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">POSTGRES_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgres</span>
+<span class="w">        </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;-</span>
+<span class="w">          </span><span class="no">--health-cmd pg_isready</span>
+<span class="w">          </span><span class="no">--health-interval 10s</span>
+<span class="w">          </span><span class="no">--health-timeout 5s</span>
+<span class="w">          </span><span class="no">--health-retries 5</span>
+
+<span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v3</span>
+
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Set up Python</span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span>
+<span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.11&#39;</span>
+
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install dependencies</span>
+<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">          </span><span class="no">pip install -r requirements.txt</span>
+<span class="w">          </span><span class="no">pip install pytest pytest-django pytest-cov</span>
+
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run tests</span>
+<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pytest --cov=. --cov-report=xml</span>
+<span class="w">        </span><span class="nt">env</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">DATABASE_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgresql://postgres:postgres@localhost/test_db</span>
+
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Upload coverage</span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">codecov/codecov-action@v3</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices">
+<h2><a class="toc-backref" href="#id32" role="doc-backlink">Best Practices</a><a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<section id="test-organization">
+<h3><a class="toc-backref" href="#id33" role="doc-backlink">Test Organization</a><a class="headerlink" href="#test-organization" title="Link to this heading">¶</a></h3>
+<p><strong>DO:</strong></p>
+<ul class="simple">
+<li><p>Organize tests by app (<code class="docutils literal notranslate"><span class="pre">patientapp/tests/</span></code>)</p></li>
+<li><p>Use descriptive test names</p></li>
+<li><p>Test one thing per test</p></li>
+<li><p>Use fixtures for common setup</p></li>
+<li><p>Mock external dependencies</p></li>
+<li><p>Test edge cases and error conditions</p></li>
+</ul>
+<p><strong>DON’T:</strong></p>
+<ul class="simple">
+<li><p>Put all tests in one file</p></li>
+<li><p>Test multiple things in one test</p></li>
+<li><p>Use real external APIs in tests</p></li>
+<li><p>Skip error case testing</p></li>
+<li><p>Ignore test failures</p></li>
+</ul>
+</section>
+<section id="test-coverage-goals">
+<h3><a class="toc-backref" href="#id34" role="doc-backlink">Test Coverage Goals</a><a class="headerlink" href="#test-coverage-goals" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Target Coverage</p></th>
+<th class="head"><p>Minimum Coverage</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Models</p></td>
+<td><p>90%+</p></td>
+<td><p>80%</p></td>
+</tr>
+<tr class="row-odd"><td><p>Views</p></td>
+<td><p>85%+</p></td>
+<td><p>75%</p></td>
+</tr>
+<tr class="row-even"><td><p>Forms</p></td>
+<td><p>90%+</p></td>
+<td><p>80%</p></td>
+</tr>
+<tr class="row-odd"><td><p>Utilities</p></td>
+<td><p>95%+</p></td>
+<td><p>85%</p></td>
+</tr>
+<tr class="row-even"><td><p>Overall</p></td>
+<td><p>85%+</p></td>
+<td><p>75%</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="resources">
+<h2><a class="toc-backref" href="#id35" role="doc-backlink">Resources</a><a class="headerlink" href="#resources" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.pytest.org/">pytest Documentation</a></p></li>
+<li><p><a class="reference external" href="https://pytest-django.readthedocs.io/">pytest-django</a></p></li>
+<li><p><a class="reference external" href="https://factoryboy.readthedocs.io/">factory_boy</a></p></li>
+<li><p><a class="reference external" href="https://www.selenium.dev/documentation/">Selenium Documentation</a></p></li>
+<li><p><a class="reference external" href="https://docs.locust.io/">Locust Documentation</a></p></li>
+<li><p><a class="reference external" href="https://docs.djangoproject.com/en/stable/topics/testing/">Django Testing</a></p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SATHI: Self Reported Assessment and Tracking for Health Insights</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../patient/index.html">Patient Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html">Security &amp; Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frontend_development.html">Frontend Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_components.html">UI Components Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_integration.html">Data Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pwa_setup.html">Progressive Web App (PWA) Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Testing Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="docstring_guide.html">Writing Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="extending_sathi.html">Extending SATHI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Developer Documentation</a><ul>
+      <li>Previous: <a href="performance.html" title="previous chapter">Performance Optimization</a></li>
+      <li>Next: <a href="api_reference.html" title="next chapter">API Reference</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, CHAVI Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/developer/testing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

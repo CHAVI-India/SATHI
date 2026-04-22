@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Performance Optimization &#8212; SATHI: Self Reported Assessment and Tracking for Health Insights Version 2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=44449404"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Testing Guide" href="testing.html" />
+    <link rel="prev" title="Progressive Web App (PWA) Setup" href="pwa_setup.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="performance-optimization">
+<h1>Performance Optimization<a class="headerlink" href="#performance-optimization" title="Link to this heading">¶</a></h1>
+<p>Guide to optimizing SATHI’s performance for better user experience and scalability.</p>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id4">Overview</a></p></li>
+<li><p><a class="reference internal" href="#performance-metrics" id="id5">Performance Metrics</a></p>
+<ul>
+<li><p><a class="reference internal" href="#target-performance-goals" id="id6">Target Performance Goals</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#lazy-loading-implementation" id="id7">Lazy Loading Implementation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#id1" id="id8">Overview</a></p></li>
+<li><p><a class="reference internal" href="#prom-review-page-optimization" id="id9">PROM Review Page Optimization</a></p></li>
+<li><p><a class="reference internal" href="#lazy-loading-strategy" id="id10">Lazy Loading Strategy</a></p></li>
+<li><p><a class="reference internal" href="#performance-impact" id="id11">Performance Impact</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#caching-strategy" id="id12">Caching Strategy</a></p>
+<ul>
+<li><p><a class="reference internal" href="#memcached-configuration" id="id13">Memcached Configuration</a></p></li>
+<li><p><a class="reference internal" href="#cache-key-strategy" id="id14">Cache Key Strategy</a></p></li>
+<li><p><a class="reference internal" href="#cache-invalidation" id="id15">Cache Invalidation</a></p></li>
+<li><p><a class="reference internal" href="#cache-performance-impact" id="id16">Cache Performance Impact</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#database-optimization" id="id17">Database Optimization</a></p>
+<ul>
+<li><p><a class="reference internal" href="#query-optimization" id="id18">Query Optimization</a></p></li>
+<li><p><a class="reference internal" href="#database-indexing" id="id19">Database Indexing</a></p></li>
+<li><p><a class="reference internal" href="#query-analysis" id="id20">Query Analysis</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#frontend-optimization" id="id21">Frontend Optimization</a></p>
+<ul>
+<li><p><a class="reference internal" href="#tailwind-css-optimization" id="id22">Tailwind CSS Optimization</a></p></li>
+<li><p><a class="reference internal" href="#htmx-optimization" id="id23">HTMX Optimization</a></p></li>
+<li><p><a class="reference internal" href="#static-file-optimization" id="id24">Static File Optimization</a></p></li>
+<li><p><a class="reference internal" href="#image-optimization" id="id25">Image Optimization</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#monitoring-profiling" id="id26">Monitoring &amp; Profiling</a></p>
+<ul>
+<li><p><a class="reference internal" href="#django-debug-toolbar" id="id27">Django Debug Toolbar</a></p></li>
+<li><p><a class="reference internal" href="#python-profiling" id="id28">Python Profiling</a></p></li>
+<li><p><a class="reference internal" href="#performance-testing" id="id29">Performance Testing</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#best-practices" id="id30">Best Practices</a></p>
+<ul>
+<li><p><a class="reference internal" href="#general-guidelines" id="id31">General Guidelines</a></p></li>
+<li><p><a class="reference internal" href="#checklist" id="id32">Checklist</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#troubleshooting" id="id33">Troubleshooting</a></p>
+<ul>
+<li><p><a class="reference internal" href="#common-issues" id="id34">Common Issues</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#resources" id="id35">Resources</a></p></li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>SATHI implements several performance optimization strategies:</p>
+<ul class="simple">
+<li><p><strong>Lazy Loading</strong>: Progressive loading of plots and heavy content</p></li>
+<li><p><strong>Caching</strong>: Memcached for database query results</p></li>
+<li><p><strong>Database Optimization</strong>: Efficient queries and indexing</p></li>
+<li><p><strong>Frontend Optimization</strong>: Minimal JavaScript, optimized CSS</p></li>
+<li><p><strong>HTMX</strong>: Partial page updates without full reloads</p></li>
+</ul>
+</section>
+<section id="performance-metrics">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Performance Metrics</a><a class="headerlink" href="#performance-metrics" title="Link to this heading">¶</a></h2>
+<section id="target-performance-goals">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Target Performance Goals</a><a class="headerlink" href="#target-performance-goals" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Target</p></th>
+<th class="head"><p>Critical Threshold</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Initial Page Load</p></td>
+<td><p>&lt; 2 seconds</p></td>
+<td><p>&lt; 5 seconds</p></td>
+</tr>
+<tr class="row-odd"><td><p>Time to Interactive</p></td>
+<td><p>&lt; 3 seconds</p></td>
+<td><p>&lt; 6 seconds</p></td>
+</tr>
+<tr class="row-even"><td><p>PROM Review Page (cold cache)</p></td>
+<td><p>&lt; 5 seconds</p></td>
+<td><p>&lt; 10 seconds</p></td>
+</tr>
+<tr class="row-odd"><td><p>PROM Review Page (warm cache)</p></td>
+<td><p>&lt; 2 seconds</p></td>
+<td><p>&lt; 4 seconds</p></td>
+</tr>
+<tr class="row-even"><td><p>Database Query Time</p></td>
+<td><p>&lt; 100ms</p></td>
+<td><p>&lt; 500ms</p></td>
+</tr>
+<tr class="row-odd"><td><p>Plot Generation</p></td>
+<td><p>&lt; 200ms each</p></td>
+<td><p>&lt; 1 second each</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="lazy-loading-implementation">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Lazy Loading Implementation</a><a class="headerlink" href="#lazy-loading-implementation" title="Link to this heading">¶</a></h2>
+<section id="id1">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Overview</a><a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<p>Lazy loading dramatically improves initial page load by deferring non-critical content.</p>
+<p><strong>Before Lazy Loading:</strong></p>
+<ul class="simple">
+<li><p>Initial page load: 12.3 seconds (blocking)</p></li>
+<li><p>User sees white screen with loader</p></li>
+<li><p>All 60+ plots generated synchronously</p></li>
+</ul>
+<p><strong>After Lazy Loading:</strong></p>
+<ul class="simple">
+<li><p>Initial page load: 1-2 seconds (85% faster!)</p></li>
+<li><p>Page appears immediately with data</p></li>
+<li><p>Plots load progressively as user scrolls</p></li>
+<li><p>Hidden tabs don’t load until viewed</p></li>
+</ul>
+</section>
+<section id="prom-review-page-optimization">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">PROM Review Page Optimization</a><a class="headerlink" href="#prom-review-page-optimization" title="Link to this heading">¶</a></h3>
+<p>The PROM Review page was the primary performance bottleneck.</p>
+<p><strong>Performance Breakdown (Before):</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Total Load Time: 12.3 seconds
+├── Item Response Processing: 4.7s (31 items × ~150ms)
+├── Construct Score Calculation: 3.2s (29 constructs)
+├── Aggregation Statistics: 2.8s (population data)
+├── Plot Generation: 1.4s (60+ Bokeh plots)
+└── Template Rendering: 0.2s
+</pre></div>
+</div>
+<p><strong>Bottleneck Analysis:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Item Responses</strong>: 31 items × 150ms = 4.7 seconds</p>
+<ul class="simple">
+<li><p>Fetch historical data for each item</p></li>
+<li><p>Calculate percentages</p></li>
+<li><p>Generate Bokeh plot</p></li>
+</ul>
+</li>
+<li><p><strong>Construct Scores</strong>: 29 constructs × 110ms = 3.2 seconds</p>
+<ul class="simple">
+<li><p>Query submissions</p></li>
+<li><p>Calculate scores</p></li>
+<li><p>Generate plot</p></li>
+</ul>
+</li>
+<li><p><strong>Aggregation</strong>: 7.2 seconds for population statistics</p>
+<ul class="simple">
+<li><p>Most expensive operation</p></li>
+<li><p>Queries across all patients</p></li>
+<li><p>Complex calculations</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="lazy-loading-strategy">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Lazy Loading Strategy</a><a class="headerlink" href="#lazy-loading-strategy" title="Link to this heading">¶</a></h3>
+<p><strong>Implementation:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># patientapp/views.py</span>
+
+<span class="nd">@login_required</span>
+<span class="nd">@permission_required</span><span class="p">(</span><span class="s1">&#39;patientapp.view_patient&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">prom_review</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main PROM review view - skip plot generation.&quot;&quot;&quot;</span>
+    <span class="n">patient</span> <span class="o">=</span> <span class="n">get_accessible_patient_or_404</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">pk</span><span class="p">)</span>
+
+    <span class="c1"># Get construct scores WITHOUT plots</span>
+    <span class="n">construct_scores</span> <span class="o">=</span> <span class="n">ConstructScoreData</span><span class="p">(</span>
+        <span class="n">patient</span><span class="o">=</span><span class="n">patient</span><span class="p">,</span>
+        <span class="n">generate_plot</span><span class="o">=</span><span class="kc">False</span>  <span class="c1"># Skip plot generation</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Get item responses WITHOUT plots</span>
+    <span class="n">item_responses</span> <span class="o">=</span> <span class="n">get_item_responses</span><span class="p">(</span>
+        <span class="n">patient</span><span class="o">=</span><span class="n">patient</span><span class="p">,</span>
+        <span class="n">generate_plots</span><span class="o">=</span><span class="kc">False</span>  <span class="c1"># Skip plot generation</span>
+    <span class="p">)</span>
+
+    <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;patient&#39;</span><span class="p">:</span> <span class="n">patient</span><span class="p">,</span>
+        <span class="s1">&#39;construct_scores&#39;</span><span class="p">:</span> <span class="n">construct_scores</span><span class="p">,</span>
+        <span class="s1">&#39;item_responses&#39;</span><span class="p">:</span> <span class="n">item_responses</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;promapp/prom_review.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Lazy Load Endpoints:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@login_required</span>
+<span class="nd">@permission_required</span><span class="p">(</span><span class="s1">&#39;patientapp.view_patient&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">prom_review_construct_plot</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">construct_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lazy-load a single construct plot via HTMX.&quot;&quot;&quot;</span>
+    <span class="n">patient</span> <span class="o">=</span> <span class="n">get_accessible_patient_or_404</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">pk</span><span class="p">)</span>
+
+    <span class="c1"># Get filters from request</span>
+    <span class="n">filters</span> <span class="o">=</span> <span class="n">get_filters_from_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="c1"># Generate ONLY this plot</span>
+    <span class="n">construct_score</span> <span class="o">=</span> <span class="n">ConstructScoreData</span><span class="p">(</span>
+        <span class="n">patient</span><span class="o">=</span><span class="n">patient</span><span class="p">,</span>
+        <span class="n">construct_id</span><span class="o">=</span><span class="n">construct_id</span><span class="p">,</span>
+        <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+        <span class="n">generate_plot</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># Generate this one plot</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;promapp/partials/construct_plot.html&#39;</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;score_data&#39;</span><span class="p">:</span> <span class="n">construct_score</span>
+    <span class="p">})</span>
+</pre></div>
+</div>
+<p><strong>Template Integration:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- templates/promapp/components/construct_score_card.html --&gt;</span>
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;plot-container&quot;</span><span class="p">&gt;</span>
+    <span class="cm">&lt;!-- Placeholder with loading spinner --&gt;</span>
+    <span class="p">&lt;</span><span class="nt">div</span>
+        <span class="na">hx-get</span><span class="o">=</span><span class="s">&quot;{% url &#39;prom_review_construct_plot&#39; patient.id construct.id %}?{{ request.GET.urlencode }}&quot;</span>
+        <span class="na">hx-trigger</span><span class="o">=</span><span class="s">&quot;revealed&quot;</span>
+        <span class="na">hx-swap</span><span class="o">=</span><span class="s">&quot;outerHTML&quot;</span><span class="p">&gt;</span>
+
+        <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;loading-spinner&quot;</span><span class="p">&gt;</span>
+            <span class="p">&lt;</span><span class="nt">svg</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;animate-spin h-8 w-8 text-blue-600&quot;</span><span class="p">&gt;</span>
+                <span class="cm">&lt;!-- Spinner SVG --&gt;</span>
+            <span class="p">&lt;/</span><span class="nt">svg</span><span class="p">&gt;</span>
+            <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Loading plot...<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+        <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+<p><strong>Key Features:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">hx-trigger=&quot;revealed&quot;</span></code> - Loads when scrolled into viewport</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hx-swap=&quot;outerHTML&quot;</span></code> - Replaces placeholder with plot</p></li>
+<li><p>Filter parameters passed via <code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">request.GET.urlencode</span> <span class="pre">}}</span></code></p></li>
+<li><p>Graceful degradation if HTMX fails</p></li>
+</ul>
+</section>
+<section id="performance-impact">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Performance Impact</a><a class="headerlink" href="#performance-impact" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Before</p></th>
+<th class="head"><p>After</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Initial Page Load</p></td>
+<td><p>12.3s (blocking)</p></td>
+<td><p>1-2s (85% faster)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Time to Interactive</p></td>
+<td><p>12.3s</p></td>
+<td><p>1-2s</p></td>
+</tr>
+<tr class="row-even"><td><p>Total Time to All Plots</p></td>
+<td><p>12.3s</p></td>
+<td><p>~12s (progressive)</p></td>
+</tr>
+<tr class="row-odd"><td><p>User Perceived Performance</p></td>
+<td><p>Poor (white screen)</p></td>
+<td><p>Excellent (instant)</p></td>
+</tr>
+<tr class="row-even"><td><p>Filter Application</p></td>
+<td><p>12s+ reload</p></td>
+<td><p>Instant update</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="caching-strategy">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Caching Strategy</a><a class="headerlink" href="#caching-strategy" title="Link to this heading">¶</a></h2>
+<section id="memcached-configuration">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Memcached Configuration</a><a class="headerlink" href="#memcached-configuration" title="Link to this heading">¶</a></h3>
+<p>SATHI uses Memcached for caching expensive database queries.</p>
+<p><strong>Settings:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># chaviprom/settings.py</span>
+
+<span class="n">CACHES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;BACKEND&#39;</span><span class="p">:</span> <span class="s1">&#39;django.core.cache.backends.memcached.PyMemcacheCache&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;LOCATION&#39;</span><span class="p">:</span> <span class="s1">&#39;127.0.0.1:11211&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;TIMEOUT&#39;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>  <span class="c1"># 5 minutes default</span>
+        <span class="s1">&#39;OPTIONS&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;no_delay&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;ignore_exc&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;max_pool_size&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="s1">&#39;use_pooling&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="cache-key-strategy">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Cache Key Strategy</a><a class="headerlink" href="#cache-key-strategy" title="Link to this heading">¶</a></h3>
+<p><strong>Patient-Specific Data:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.core.cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_patient_construct_scores</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">filters</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get construct scores with caching.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Build cache key</span>
+    <span class="n">cache_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;construct_scores:</span><span class="si">{</span><span class="n">patient</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="nb">hash</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filters</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="c1"># Try cache first</span>
+    <span class="n">cached_data</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cache_key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cached_data</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cached_data</span>
+
+    <span class="c1"># Calculate if not cached</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">calculate_construct_scores</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">filters</span><span class="p">)</span>
+
+    <span class="c1"># Cache for 5 minutes</span>
+    <span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">scores</span>
+</pre></div>
+</div>
+<p><strong>Aggregation Data:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_aggregation_statistics</span><span class="p">(</span><span class="n">filters</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get population-level aggregation with caching.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Aggregation is shared across patients with same filters</span>
+    <span class="n">cache_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;aggregation:</span><span class="si">{</span><span class="nb">hash</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filters</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="n">cached_data</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cache_key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cached_data</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cached_data</span>
+
+    <span class="c1"># Calculate aggregation (expensive!)</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">calculate_aggregation_statistics</span><span class="p">(</span><span class="n">filters</span><span class="p">)</span>
+
+    <span class="c1"># Cache for 1 hour (changes less frequently)</span>
+    <span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">stats</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3600</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">stats</span>
+</pre></div>
+</div>
+</section>
+<section id="cache-invalidation">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">Cache Invalidation</a><a class="headerlink" href="#cache-invalidation" title="Link to this heading">¶</a></h3>
+<p><strong>Signal-Based Invalidation:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># patientapp/signals.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.db.models.signals</span><span class="w"> </span><span class="kn">import</span> <span class="n">post_save</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.dispatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">receiver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.core.cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache</span>
+
+<span class="nd">@receiver</span><span class="p">(</span><span class="n">post_save</span><span class="p">,</span> <span class="n">sender</span><span class="o">=</span><span class="n">QuestionnaireSubmission</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">invalidate_patient_cache</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Invalidate cache when new submission is created.&quot;&quot;&quot;</span>
+    <span class="n">patient</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">patient_questionnaire</span><span class="o">.</span><span class="n">patient</span>
+
+    <span class="c1"># Clear all cache keys for this patient</span>
+    <span class="n">cache_pattern</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;construct_scores:</span><span class="si">{</span><span class="n">patient</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:*&quot;</span>
+    <span class="n">cache</span><span class="o">.</span><span class="n">delete_pattern</span><span class="p">(</span><span class="n">cache_pattern</span><span class="p">)</span>
+
+    <span class="c1"># Clear aggregation cache (affects population stats)</span>
+    <span class="n">cache</span><span class="o">.</span><span class="n">delete_pattern</span><span class="p">(</span><span class="s2">&quot;aggregation:*&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Manual Cache Clearing:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.core.cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache</span>
+
+<span class="c1"># Clear all caches</span>
+<span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+<span class="c1"># Clear specific pattern</span>
+<span class="n">cache</span><span class="o">.</span><span class="n">delete_pattern</span><span class="p">(</span><span class="s2">&quot;construct_scores:*&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="cache-performance-impact">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Cache Performance Impact</a><a class="headerlink" href="#cache-performance-impact" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Scenario</p></th>
+<th class="head"><p>Time (No Cache)</p></th>
+<th class="head"><p>Time (With Cache)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Cold Cache (First Load)</p></td>
+<td><p>12s</p></td>
+<td><p>12s</p></td>
+</tr>
+<tr class="row-odd"><td><p>Warm Cache (Aggregation)</p></td>
+<td><p>12s</p></td>
+<td><p>5s (58% faster)</p></td>
+</tr>
+<tr class="row-even"><td><p>Full Cache Hit</p></td>
+<td><p>12s</p></td>
+<td><p>2s (83% faster)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Aggregation Calculation</p></td>
+<td><p>7.2s</p></td>
+<td><p>0.1s (99% faster)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="database-optimization">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Database Optimization</a><a class="headerlink" href="#database-optimization" title="Link to this heading">¶</a></h2>
+<section id="query-optimization">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Query Optimization</a><a class="headerlink" href="#query-optimization" title="Link to this heading">¶</a></h3>
+<p><strong>Use select_related() for Foreign Keys:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Bad: N+1 queries</span>
+<span class="n">patients</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">patient</span> <span class="ow">in</span> <span class="n">patients</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">patient</span><span class="o">.</span><span class="n">institution</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>  <span class="c1"># Extra query per patient</span>
+
+<span class="c1"># Good: Single query with JOIN</span>
+<span class="n">patients</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;institution&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">patient</span> <span class="ow">in</span> <span class="n">patients</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">patient</span><span class="o">.</span><span class="n">institution</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>  <span class="c1"># No extra query</span>
+</pre></div>
+</div>
+<p><strong>Use prefetch_related() for Many-to-Many:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Bad: N+1 queries</span>
+<span class="n">treatments</span> <span class="o">=</span> <span class="n">Treatment</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">treatment</span> <span class="ow">in</span> <span class="n">treatments</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">tt</span> <span class="ow">in</span> <span class="n">treatment</span><span class="o">.</span><span class="n">treatment_type</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>  <span class="c1"># Extra query per treatment</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">tt</span><span class="o">.</span><span class="n">treatment_type</span><span class="p">)</span>
+
+<span class="c1"># Good: 2 queries total</span>
+<span class="n">treatments</span> <span class="o">=</span> <span class="n">Treatment</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">prefetch_related</span><span class="p">(</span><span class="s1">&#39;treatment_type&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">treatment</span> <span class="ow">in</span> <span class="n">treatments</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">tt</span> <span class="ow">in</span> <span class="n">treatment</span><span class="o">.</span><span class="n">treatment_type</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>  <span class="c1"># No extra query</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">tt</span><span class="o">.</span><span class="n">treatment_type</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Use only() to Limit Fields:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Bad: Fetches all fields</span>
+<span class="n">patients</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+<span class="c1"># Good: Only fetch needed fields</span>
+<span class="n">patients</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">only</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;date_of_registration&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Use values() for Dictionaries:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Bad: Creates model instances</span>
+<span class="n">patient_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()]</span>
+
+<span class="c1"># Good: Returns dictionaries (faster)</span>
+<span class="n">patient_names</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="database-indexing">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Database Indexing</a><a class="headerlink" href="#database-indexing" title="Link to this heading">¶</a></h3>
+<p><strong>Add Indexes to Frequently Queried Fields:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># patientapp/models.py</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">QuestionnaireSubmission</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">patient_questionnaire</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">PatientQuestionnaire</span><span class="p">,</span>
+        <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span>
+    <span class="p">)</span>
+    <span class="n">submission_date</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span>
+        <span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">db_index</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># Index for date filtering</span>
+    <span class="p">)</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">indexes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">models</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span>
+                <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;patient_questionnaire&#39;</span><span class="p">,</span> <span class="s1">&#39;submission_date&#39;</span><span class="p">],</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;submission_patient_date_idx&#39;</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Composite Indexes:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">QuestionnaireItemResponse</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="c1"># ... fields ...</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">indexes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="c1"># Composite index for common query pattern</span>
+            <span class="n">models</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span>
+                <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;questionnaire_submission&#39;</span><span class="p">,</span> <span class="s1">&#39;item&#39;</span><span class="p">],</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;response_submission_item_idx&#39;</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="query-analysis">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Query Analysis</a><a class="headerlink" href="#query-analysis" title="Link to this heading">¶</a></h3>
+<p><strong>Use Django Debug Toolbar:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py (development only)</span>
+<span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
+    <span class="n">INSTALLED_APPS</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;debug_toolbar&#39;</span><span class="p">]</span>
+    <span class="n">MIDDLEWARE</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;debug_toolbar.middleware.DebugToolbarMiddleware&#39;</span><span class="p">]</span>
+    <span class="n">INTERNAL_IPS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Log Slow Queries:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py</span>
+<span class="n">LOGGING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;console&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;logging.StreamHandler&#39;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;loggers&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;django.db.backends&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;console&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="s1">&#39;DEBUG&#39;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="frontend-optimization">
+<h2><a class="toc-backref" href="#id21" role="doc-backlink">Frontend Optimization</a><a class="headerlink" href="#frontend-optimization" title="Link to this heading">¶</a></h2>
+<section id="tailwind-css-optimization">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">Tailwind CSS Optimization</a><a class="headerlink" href="#tailwind-css-optimization" title="Link to this heading">¶</a></h3>
+<p><strong>Production Build:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build optimized CSS (removes unused classes)</span>
+npm<span class="w"> </span>run<span class="w"> </span>build:css
+</pre></div>
+</div>
+<p><strong>Configuration:</strong></p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// tailwind.config.js</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="s1">&#39;./templates/**/*.html&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="s1">&#39;./static/js/**/*.js&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nx">theme</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">extend</span><span class="o">:</span><span class="w"> </span><span class="p">{},</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nx">plugins</span><span class="o">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Result:</strong></p>
+<ul class="simple">
+<li><p>Development CSS: ~3.5MB</p></li>
+<li><p>Production CSS: ~50KB (98% reduction)</p></li>
+</ul>
+</section>
+<section id="htmx-optimization">
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">HTMX Optimization</a><a class="headerlink" href="#htmx-optimization" title="Link to this heading">¶</a></h3>
+<p><strong>Partial Page Updates:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Only update specific section, not entire page --&gt;</span>
+<span class="p">&lt;</span><span class="nt">form</span> <span class="na">hx-post</span><span class="o">=</span><span class="s">&quot;/patients/filter/&quot;</span>
+      <span class="na">hx-target</span><span class="o">=</span><span class="s">&quot;#patient-table&quot;</span>
+      <span class="na">hx-swap</span><span class="o">=</span><span class="s">&quot;innerHTML&quot;</span><span class="p">&gt;</span>
+    <span class="cm">&lt;!-- Filters --&gt;</span>
+<span class="p">&lt;/</span><span class="nt">form</span><span class="p">&gt;</span>
+
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;patient-table&quot;</span><span class="p">&gt;</span>
+    <span class="cm">&lt;!-- Only this section updates --&gt;</span>
+<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+<p><strong>Request Indicators:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Show loading state during request --&gt;</span>
+<span class="p">&lt;</span><span class="nt">button</span> <span class="na">hx-post</span><span class="o">=</span><span class="s">&quot;/submit/&quot;</span>
+        <span class="na">hx-indicator</span><span class="o">=</span><span class="s">&quot;#spinner&quot;</span><span class="p">&gt;</span>
+    Submit
+<span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;spinner&quot;</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;htmx-indicator&quot;</span><span class="p">&gt;</span>
+    Loading...
+<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="static-file-optimization">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Static File Optimization</a><a class="headerlink" href="#static-file-optimization" title="Link to this heading">¶</a></h3>
+<p><strong>Compression:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py</span>
+
+<span class="c1"># Enable GZip compression</span>
+<span class="n">MIDDLEWARE</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;django.middleware.gzip.GZipMiddleware&#39;</span><span class="p">,</span>
+    <span class="c1"># ... other middleware</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Static File Caching:</strong></p>
+<div class="highlight-nginx notranslate"><div class="highlight"><pre><span></span><span class="c1"># nginx.conf</span>
+<span class="k">location</span><span class="w"> </span><span class="s">/static/</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kn">alias</span><span class="w"> </span><span class="s">/var/www/chavi-prom/staticfiles/</span><span class="p">;</span>
+<span class="w">    </span><span class="kn">expires</span><span class="w"> </span><span class="s">1y</span><span class="p">;</span>
+<span class="w">    </span><span class="kn">add_header</span><span class="w"> </span><span class="s">Cache-Control</span><span class="w"> </span><span class="s">&quot;public,</span><span class="w"> </span><span class="s">immutable&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="image-optimization">
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">Image Optimization</a><a class="headerlink" href="#image-optimization" title="Link to this heading">¶</a></h3>
+<p><strong>Use Appropriate Formats:</strong></p>
+<ul class="simple">
+<li><p>PNG: Icons, logos (lossless)</p></li>
+<li><p>JPEG: Photos (lossy, smaller)</p></li>
+<li><p>SVG: Icons, simple graphics (scalable)</p></li>
+<li><p>WebP: Modern browsers (best compression)</p></li>
+</ul>
+<p><strong>Optimize Images:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Optimize PNG</span>
+optipng<span class="w"> </span>-o7<span class="w"> </span>image.png
+
+<span class="c1"># Optimize JPEG</span>
+jpegoptim<span class="w"> </span>--max<span class="o">=</span><span class="m">85</span><span class="w"> </span>image.jpg
+
+<span class="c1"># Convert to WebP</span>
+cwebp<span class="w"> </span>-q<span class="w"> </span><span class="m">80</span><span class="w"> </span>image.jpg<span class="w"> </span>-o<span class="w"> </span>image.webp
+</pre></div>
+</div>
+</section>
+</section>
+<section id="monitoring-profiling">
+<h2><a class="toc-backref" href="#id26" role="doc-backlink">Monitoring &amp; Profiling</a><a class="headerlink" href="#monitoring-profiling" title="Link to this heading">¶</a></h2>
+<section id="django-debug-toolbar">
+<h3><a class="toc-backref" href="#id27" role="doc-backlink">Django Debug Toolbar</a><a class="headerlink" href="#django-debug-toolbar" title="Link to this heading">¶</a></h3>
+<p><strong>Installation:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>django-debug-toolbar
+</pre></div>
+</div>
+<p><strong>Configuration:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py (development only)</span>
+<span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
+    <span class="n">INSTALLED_APPS</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;debug_toolbar&#39;</span><span class="p">]</span>
+    <span class="n">MIDDLEWARE</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;debug_toolbar.middleware.DebugToolbarMiddleware&#39;</span><span class="p">)</span>
+    <span class="n">INTERNAL_IPS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Features:</strong></p>
+<ul class="simple">
+<li><p>SQL query analysis</p></li>
+<li><p>Template rendering time</p></li>
+<li><p>Cache hit/miss statistics</p></li>
+<li><p>Signal execution time</p></li>
+</ul>
+</section>
+<section id="python-profiling">
+<h3><a class="toc-backref" href="#id28" role="doc-backlink">Python Profiling</a><a class="headerlink" href="#python-profiling" title="Link to this heading">¶</a></h3>
+<p><strong>cProfile:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cProfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pstats</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">profile_view</span><span class="p">():</span>
+    <span class="n">profiler</span> <span class="o">=</span> <span class="n">cProfile</span><span class="o">.</span><span class="n">Profile</span><span class="p">()</span>
+    <span class="n">profiler</span><span class="o">.</span><span class="n">enable</span><span class="p">()</span>
+
+    <span class="c1"># Your code here</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">expensive_function</span><span class="p">()</span>
+
+    <span class="n">profiler</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">pstats</span><span class="o">.</span><span class="n">Stats</span><span class="p">(</span><span class="n">profiler</span><span class="p">)</span>
+    <span class="n">stats</span><span class="o">.</span><span class="n">sort_stats</span><span class="p">(</span><span class="s1">&#39;cumulative&#39;</span><span class="p">)</span>
+    <span class="n">stats</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>  <span class="c1"># Top 20 functions</span>
+
+    <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+</div>
+<p><strong>django-silk:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>django-silk
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py</span>
+<span class="n">INSTALLED_APPS</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;silk&#39;</span><span class="p">]</span>
+<span class="n">MIDDLEWARE</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;silk.middleware.SilkyMiddleware&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="performance-testing">
+<h3><a class="toc-backref" href="#id29" role="doc-backlink">Performance Testing</a><a class="headerlink" href="#performance-testing" title="Link to this heading">¶</a></h3>
+<p><strong>Load Testing with Locust:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># locustfile.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">locust</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpUser</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">between</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SATHIUser</span><span class="p">(</span><span class="n">HttpUser</span><span class="p">):</span>
+    <span class="n">wait_time</span> <span class="o">=</span> <span class="n">between</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="nd">@task</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">view_patient_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/patients/&quot;</span><span class="p">)</span>
+
+    <span class="nd">@task</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># 3x more frequent</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">view_prom_review</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/patients/123/prom-review/&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run load test</span>
+locust<span class="w"> </span>-f<span class="w"> </span>locustfile.py<span class="w"> </span>--host<span class="o">=</span>http://localhost:8000
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices">
+<h2><a class="toc-backref" href="#id30" role="doc-backlink">Best Practices</a><a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<section id="general-guidelines">
+<h3><a class="toc-backref" href="#id31" role="doc-backlink">General Guidelines</a><a class="headerlink" href="#general-guidelines" title="Link to this heading">¶</a></h3>
+<p><strong>DO:</strong></p>
+<ul class="simple">
+<li><p>Use lazy loading for heavy content</p></li>
+<li><p>Cache expensive calculations</p></li>
+<li><p>Optimize database queries</p></li>
+<li><p>Use indexes on frequently queried fields</p></li>
+<li><p>Monitor performance regularly</p></li>
+<li><p>Profile before optimizing</p></li>
+<li><p>Measure impact of changes</p></li>
+</ul>
+<p><strong>DON’T:</strong></p>
+<ul class="simple">
+<li><p>Premature optimization</p></li>
+<li><p>Cache everything blindly</p></li>
+<li><p>Ignore database query counts</p></li>
+<li><p>Load all data at once</p></li>
+<li><p>Skip performance testing</p></li>
+<li><p>Optimize without measuring</p></li>
+</ul>
+</section>
+<section id="checklist">
+<h3><a class="toc-backref" href="#id32" role="doc-backlink">Checklist</a><a class="headerlink" href="#checklist" title="Link to this heading">¶</a></h3>
+<p><strong>Before Deployment:</strong></p>
+<ul class="simple">
+<li><p>[ ] Run production CSS build</p></li>
+<li><p>[ ] Enable caching in production</p></li>
+<li><p>[ ] Add database indexes</p></li>
+<li><p>[ ] Optimize images</p></li>
+<li><p>[ ] Enable GZip compression</p></li>
+<li><p>[ ] Test with realistic data volumes</p></li>
+<li><p>[ ] Profile critical views</p></li>
+<li><p>[ ] Load test with expected traffic</p></li>
+</ul>
+<p><strong>Ongoing:</strong></p>
+<ul class="simple">
+<li><p>[ ] Monitor cache hit rates</p></li>
+<li><p>[ ] Review slow query logs</p></li>
+<li><p>[ ] Check page load times</p></li>
+<li><p>[ ] Analyze user metrics</p></li>
+<li><p>[ ] Update cache strategies</p></li>
+<li><p>[ ] Optimize new features</p></li>
+</ul>
+</section>
+</section>
+<section id="troubleshooting">
+<h2><a class="toc-backref" href="#id33" role="doc-backlink">Troubleshooting</a><a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h2>
+<section id="common-issues">
+<h3><a class="toc-backref" href="#id34" role="doc-backlink">Common Issues</a><a class="headerlink" href="#common-issues" title="Link to this heading">¶</a></h3>
+<p><strong>Slow Page Loads:</strong></p>
+<ol class="arabic simple">
+<li><p>Check database query count (Django Debug Toolbar)</p></li>
+<li><p>Add select_related/prefetch_related</p></li>
+<li><p>Enable caching</p></li>
+<li><p>Implement lazy loading</p></li>
+</ol>
+<p><strong>High Memory Usage:</strong></p>
+<ol class="arabic simple">
+<li><p>Limit queryset size with pagination</p></li>
+<li><p>Use values() instead of model instances</p></li>
+<li><p>Clear old cache entries</p></li>
+<li><p>Optimize image sizes</p></li>
+</ol>
+<p><strong>Cache Not Working:</strong></p>
+<ol class="arabic simple">
+<li><p>Verify Memcached is running: <code class="docutils literal notranslate"><span class="pre">systemctl</span> <span class="pre">status</span> <span class="pre">memcached</span></code></p></li>
+<li><p>Check cache key generation</p></li>
+<li><p>Verify cache timeout settings</p></li>
+<li><p>Test cache with simple example</p></li>
+</ol>
+<p><strong>Database Slow:</strong></p>
+<ol class="arabic simple">
+<li><p>Add missing indexes</p></li>
+<li><p>Optimize complex queries</p></li>
+<li><p>Use database query analysis</p></li>
+<li><p>Consider read replicas for scaling</p></li>
+</ol>
+</section>
+</section>
+<section id="resources">
+<h2><a class="toc-backref" href="#id35" role="doc-backlink">Resources</a><a class="headerlink" href="#resources" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.djangoproject.com/en/stable/topics/performance/">Django Performance Tips</a></p></li>
+<li><p><a class="reference external" href="https://django-debug-toolbar.readthedocs.io/">Django Debug Toolbar</a></p></li>
+<li><p><a class="reference external" href="https://memcached.org/">Memcached Documentation</a></p></li>
+<li><p><a class="reference external" href="https://htmx.org/docs/">HTMX Documentation</a></p></li>
+<li><p><a class="reference external" href="https://tailwindcss.com/docs/optimizing-for-production">Tailwind CSS Optimization</a></p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SATHI: Self Reported Assessment and Tracking for Health Insights</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../patient/index.html">Patient Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html">Security &amp; Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frontend_development.html">Frontend Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_components.html">UI Components Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_integration.html">Data Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pwa_setup.html">Progressive Web App (PWA) Setup</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Performance Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html">Testing Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="docstring_guide.html">Writing Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="extending_sathi.html">Extending SATHI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Developer Documentation</a><ul>
+      <li>Previous: <a href="pwa_setup.html" title="previous chapter">Progressive Web App (PWA) Setup</a></li>
+      <li>Next: <a href="testing.html" title="next chapter">Testing Guide</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, CHAVI Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/developer/performance.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
