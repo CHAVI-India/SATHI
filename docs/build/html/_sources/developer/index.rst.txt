@@ -8,7 +8,6 @@ This section provides technical documentation for developers installing, configu
    :caption: Developer Guides:
 
    installation
-   configuration
    architecture
    security
    frontend_development
@@ -19,5 +18,5 @@ This section provides technical documentation for developers installing, configu
    testing
    api_reference
    docstring_guide
-   extending_sathi
-   contributing
+
+
