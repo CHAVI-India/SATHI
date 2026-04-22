@@ -12,7 +12,5 @@ This section provides technical documentation for developers installing, configu
    architecture
    api_reference
    docstring_guide
-   database_schema
    extending_sathi
    contributing
-   deployment

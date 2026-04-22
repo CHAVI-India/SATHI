@@ -35,22 +35,857 @@
             
   <section id="architecture">
 <h1>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">¶</a></h1>
-<p>Overview of SATHI’s architecture and design.</p>
+<p>This document provides a comprehensive overview of SATHI’s system architecture, data models, and design patterns.</p>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#system-overview" id="id1">System Overview</a></p></li>
+<li><p><a class="reference internal" href="#django-apps-structure" id="id2">Django Apps Structure</a></p>
+<ul>
+<li><p><a class="reference internal" href="#patientapp" id="id3">patientapp</a></p></li>
+<li><p><a class="reference internal" href="#promapp" id="id4">promapp</a></p></li>
+<li><p><a class="reference internal" href="#providerapp" id="id5">providerapp</a></p></li>
+<li><p><a class="reference internal" href="#chaviprom" id="id6">chaviprom</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#technology-stack" id="id7">Technology Stack</a></p></li>
+<li><p><a class="reference internal" href="#data-model-architecture" id="id8">Data Model Architecture</a></p>
+<ul>
+<li><p><a class="reference internal" href="#clinical-data-domain" id="id9">Clinical Data Domain</a></p>
+<ul>
+<li><p><a class="reference internal" href="#institution" id="id10">Institution</a></p></li>
+<li><p><a class="reference internal" href="#patient" id="id11">Patient</a></p></li>
+<li><p><a class="reference internal" href="#diagnosis" id="id12">Diagnosis</a></p></li>
+<li><p><a class="reference internal" href="#treatment" id="id13">Treatment</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#prom-structure-domain" id="id14">PROM Structure Domain</a></p>
+<ul>
+<li><p><a class="reference internal" href="#constructscale" id="id15">ConstructScale</a></p></li>
+<li><p><a class="reference internal" href="#item" id="id16">Item</a></p></li>
+<li><p><a class="reference internal" href="#likertscale-likertscaleresponseoption" id="id17">LikertScale &amp; LikertScaleResponseOption</a></p></li>
+<li><p><a class="reference internal" href="#rangescale" id="id18">RangeScale</a></p></li>
+<li><p><a class="reference internal" href="#questionnaire" id="id19">Questionnaire</a></p></li>
+<li><p><a class="reference internal" href="#questionnaireitem" id="id20">QuestionnaireItem</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#prom-response-domain" id="id21">PROM Response Domain</a></p>
+<ul>
+<li><p><a class="reference internal" href="#patientquestionnaire" id="id22">PatientQuestionnaire</a></p></li>
+<li><p><a class="reference internal" href="#questionnairesubmission" id="id23">QuestionnaireSubmission</a></p></li>
+<li><p><a class="reference internal" href="#questionnaireitemresponse" id="id24">QuestionnaireItemResponse</a></p></li>
+<li><p><a class="reference internal" href="#questionnaireconstructscore" id="id25">QuestionnaireConstructScore</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#composite-advanced-models" id="id26">Composite &amp; Advanced Models</a></p>
+<ul>
+<li><p><a class="reference internal" href="#compositeconstructscalescoring" id="id27">CompositeConstructScaleScoring</a></p></li>
+<li><p><a class="reference internal" href="#aiapiconfiguration" id="id28">AIAPIConfiguration</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#data-flow-architecture" id="id29">Data Flow Architecture</a></p>
+<ul>
+<li><p><a class="reference internal" href="#questionnaire-creation-flow" id="id30">Questionnaire Creation Flow</a></p></li>
+<li><p><a class="reference internal" href="#patient-response-flow" id="id31">Patient Response Flow</a></p></li>
+<li><p><a class="reference internal" href="#score-calculation-flow" id="id32">Score Calculation Flow</a></p></li>
+<li><p><a class="reference internal" href="#aggregation-analytics-flow" id="id33">Aggregation &amp; Analytics Flow</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#security-architecture" id="id34">Security Architecture</a></p>
+<ul>
+<li><p><a class="reference internal" href="#data-encryption" id="id35">Data Encryption</a></p></li>
+<li><p><a class="reference internal" href="#institution-based-isolation" id="id36">Institution-Based Isolation</a></p></li>
+<li><p><a class="reference internal" href="#role-based-access-control" id="id37">Role-Based Access Control</a></p></li>
+<li><p><a class="reference internal" href="#authentication-2fa" id="id38">Authentication &amp; 2FA</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#performance-optimization" id="id39">Performance Optimization</a></p>
+<ul>
+<li><p><a class="reference internal" href="#database-indexing" id="id40">Database Indexing</a></p></li>
+<li><p><a class="reference internal" href="#query-optimization" id="id41">Query Optimization</a></p></li>
+<li><p><a class="reference internal" href="#lazy-loading-with-htmx" id="id42">Lazy Loading with HTMX</a></p></li>
+<li><p><a class="reference internal" href="#caching-strategy" id="id43">Caching Strategy</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#extensibility-points" id="id44">Extensibility Points</a></p>
+<ul>
+<li><p><a class="reference internal" href="#custom-scoring-equations" id="id45">Custom Scoring Equations</a></p></li>
+<li><p><a class="reference internal" href="#pluggable-ai-services" id="id46">Pluggable AI Services</a></p></li>
+<li><p><a class="reference internal" href="#multi-language-support" id="id47">Multi-Language Support</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#design-patterns" id="id48">Design Patterns</a></p>
+<ul>
+<li><p><a class="reference internal" href="#repository-pattern" id="id49">Repository Pattern</a></p></li>
+<li><p><a class="reference internal" href="#signal-based-architecture" id="id50">Signal-Based Architecture</a></p></li>
+<li><p><a class="reference internal" href="#component-based-templates" id="id51">Component-Based Templates</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#future-enhancements" id="id52">Future Enhancements</a></p></li>
+<li><p><a class="reference internal" href="#conclusion" id="id53">Conclusion</a></p></li>
+</ul>
+</nav>
 <section id="system-overview">
-<h2>System Overview<a class="headerlink" href="#system-overview" title="Link to this heading">¶</a></h2>
-<p><em>To be documented: High-level system architecture</em></p>
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">System Overview</a><a class="headerlink" href="#system-overview" title="Link to this heading">¶</a></h2>
+<p>SATHI (Self-reported Assessment and Tracking for Health Insights) is a Django-based web application designed to collect, manage, and analyze Patient-Reported Outcome Measures (PROMs). The system follows a modular architecture with clear separation of concerns across multiple Django apps.</p>
+<p><strong>Core Capabilities:</strong></p>
+<ul class="simple">
+<li><p>Multi-institutional patient management with encrypted PHI</p></li>
+<li><p>Flexible PROM questionnaire creation and administration</p></li>
+<li><p>Real-time construct score calculation with clinical significance detection</p></li>
+<li><p>Population-level aggregation and comparison analytics</p></li>
+<li><p>Multi-language support with translatable content</p></li>
+<li><p>Role-based access control (RBAC) with institution-level data isolation</p></li>
+</ul>
+<p><strong>Architecture Principles:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Security First</strong>: All PHI encrypted at rest, institution-based data isolation</p></li>
+<li><p><strong>Modularity</strong>: Separate apps for distinct functional domains</p></li>
+<li><p><strong>Extensibility</strong>: Pluggable AI services, customizable scoring equations</p></li>
+<li><p><strong>Performance</strong>: Lazy loading, database indexing, query optimization</p></li>
+<li><p><strong>Internationalization</strong>: Multi-language support via django-parler</p></li>
+</ol>
 </section>
-<section id="django-apps">
-<h2>Django Apps<a class="headerlink" href="#django-apps" title="Link to this heading">¶</a></h2>
-<p><em>To be documented: Overview of Django apps (promapp, patientapp, etc.)</em></p>
+<section id="django-apps-structure">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Django Apps Structure</a><a class="headerlink" href="#django-apps-structure" title="Link to this heading">¶</a></h2>
+<p>SATHI is organized into four primary Django applications, each with specific responsibilities:</p>
+<section id="patientapp">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">patientapp</a><a class="headerlink" href="#patientapp" title="Link to this heading">¶</a></h3>
+<p><strong>Purpose</strong>: Patient and clinical data management</p>
+<p><strong>Responsibilities:</strong></p>
+<ul class="simple">
+<li><p>Patient demographic information (encrypted)</p></li>
+<li><p>Institution management and access control</p></li>
+<li><p>Diagnosis and treatment tracking</p></li>
+<li><p>Clinical timeline management</p></li>
+</ul>
+<p><strong>Key Models</strong>: <code class="docutils literal notranslate"><span class="pre">Patient</span></code>, <code class="docutils literal notranslate"><span class="pre">Institution</span></code>, <code class="docutils literal notranslate"><span class="pre">Diagnosis</span></code>, <code class="docutils literal notranslate"><span class="pre">Treatment</span></code></p>
 </section>
-<section id="data-models">
-<h2>Data Models<a class="headerlink" href="#data-models" title="Link to this heading">¶</a></h2>
-<p><em>To be documented: Key data models and relationships</em></p>
+<section id="promapp">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">promapp</a><a class="headerlink" href="#promapp" title="Link to this heading">¶</a></h3>
+<p><strong>Purpose</strong>: PROM questionnaire and scoring engine</p>
+<p><strong>Responsibilities:</strong></p>
+<ul class="simple">
+<li><p>Questionnaire structure and item management</p></li>
+<li><p>Response scale definitions (Likert, Range)</p></li>
+<li><p>Construct score calculation</p></li>
+<li><p>Composite scoring</p></li>
+<li><p>Multi-language translations</p></li>
+<li><p>AI-augmented services (TTS, STT)</p></li>
+</ul>
+<p><strong>Key Models</strong>: <code class="docutils literal notranslate"><span class="pre">Questionnaire</span></code>, <code class="docutils literal notranslate"><span class="pre">Item</span></code>, <code class="docutils literal notranslate"><span class="pre">ConstructScale</span></code>, <code class="docutils literal notranslate"><span class="pre">QuestionnaireSubmission</span></code></p>
+</section>
+<section id="providerapp">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">providerapp</a><a class="headerlink" href="#providerapp" title="Link to this heading">¶</a></h3>
+<p><strong>Purpose</strong>: Healthcare provider management</p>
+<p><strong>Responsibilities:</strong></p>
+<ul class="simple">
+<li><p>Provider account management</p></li>
+<li><p>Provider type classification</p></li>
+<li><p>Institution assignment</p></li>
+<li><p>Account expiry tracking</p></li>
+</ul>
+<p><strong>Key Models</strong>: <code class="docutils literal notranslate"><span class="pre">Provider</span></code>, <code class="docutils literal notranslate"><span class="pre">ProviderType</span></code></p>
+</section>
+<section id="chaviprom">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">chaviprom</a><a class="headerlink" href="#chaviprom" title="Link to this heading">¶</a></h3>
+<p><strong>Purpose</strong>: Core project configuration and cross-cutting concerns</p>
+<p><strong>Responsibilities:</strong></p>
+<ul class="simple">
+<li><p>Django settings and configuration</p></li>
+<li><p>URL routing</p></li>
+<li><p>Authentication and security middleware</p></li>
+<li><p>Context processors</p></li>
+<li><p>Signal handlers</p></li>
+</ul>
+</section>
 </section>
 <section id="technology-stack">
-<h2>Technology Stack<a class="headerlink" href="#technology-stack" title="Link to this heading">¶</a></h2>
-<p><em>To be documented: Technologies used (Django, HTMX, Tailwind, etc.)</em></p>
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Technology Stack</a><a class="headerlink" href="#technology-stack" title="Link to this heading">¶</a></h2>
+<p><strong>Backend Framework:</strong></p>
+<ul class="simple">
+<li><p><strong>Django 5.x</strong>: Web framework</p></li>
+<li><p><strong>Python 3.13</strong>: Programming language</p></li>
+<li><p><strong>PostgreSQL</strong>: Primary database (supports encrypted fields)</p></li>
+</ul>
+<p><strong>Security &amp; Authentication:</strong></p>
+<ul class="simple">
+<li><p><strong>django-two-factor-auth</strong>: 2FA implementation</p></li>
+<li><p><strong>django-ratelimit</strong>: Rate limiting for security</p></li>
+<li><p><strong>django-recaptcha</strong>: Bot protection</p></li>
+<li><p><strong>secured-fields</strong>: Field-level encryption for PHI</p></li>
+</ul>
+<p><strong>Frontend:</strong></p>
+<ul class="simple">
+<li><p><strong>HTMX</strong>: Dynamic content loading without JavaScript frameworks</p></li>
+<li><p><strong>TailwindCSS</strong>: Utility-first CSS framework</p></li>
+<li><p><strong>django-cotton</strong>: Component-based templating</p></li>
+<li><p><strong>Plotly/Bokeh</strong>: Interactive data visualization</p></li>
+</ul>
+<p><strong>Internationalization:</strong></p>
+<ul class="simple">
+<li><p><strong>django-parler</strong>: Multi-language model translations</p></li>
+<li><p><strong>gettext</strong>: String translations</p></li>
+</ul>
+<p><strong>Performance:</strong></p>
+<ul class="simple">
+<li><p><strong>Memcached</strong>: Caching layer (production)</p></li>
+<li><p><strong>Gunicorn</strong>: WSGI HTTP server</p></li>
+<li><p><strong>WhiteNoise</strong>: Static file serving</p></li>
+</ul>
+<p><strong>Development Tools:</strong></p>
+<ul class="simple">
+<li><p><strong>Sphinx</strong>: Documentation generation</p></li>
+<li><p><strong>django-debug-toolbar</strong>: Development debugging</p></li>
+</ul>
+</section>
+<section id="data-model-architecture">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Data Model Architecture</a><a class="headerlink" href="#data-model-architecture" title="Link to this heading">¶</a></h2>
+<p>The data model is organized into three primary domains: <strong>Clinical Data</strong>, <strong>PROM Structure</strong>, and <strong>PROM Responses</strong>.</p>
+<section id="clinical-data-domain">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Clinical Data Domain</a><a class="headerlink" href="#clinical-data-domain" title="Link to this heading">¶</a></h3>
+<section id="institution">
+<h4><a class="toc-backref" href="#id10" role="doc-backlink">Institution</a><a class="headerlink" href="#institution" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Multi-tenancy and data isolation</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Institution</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+    <span class="n">created_date</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">modified_date</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Relationships:</strong></p>
+<ul class="simple">
+<li><p>One-to-Many with <code class="docutils literal notranslate"><span class="pre">Patient</span></code></p></li>
+<li><p>One-to-Many with <code class="docutils literal notranslate"><span class="pre">Provider</span></code></p></li>
+</ul>
+<p><strong>Security</strong>: All patient and provider data is filtered by institution to ensure data isolation.</p>
+</section>
+<section id="patient">
+<h4><a class="toc-backref" href="#id11" role="doc-backlink">Patient</a><a class="headerlink" href="#patient" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Store patient demographic and clinical information</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Patient</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">institution</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Institution</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">OneToOneField</span><span class="p">(</span><span class="n">User</span><span class="p">)</span>  <span class="c1"># Django auth user</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">EncryptedCharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">searchable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">patient_id</span> <span class="o">=</span> <span class="n">EncryptedCharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">searchable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">date_of_registration</span> <span class="o">=</span> <span class="n">EncryptedDateField</span><span class="p">(</span><span class="n">searchable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">age</span> <span class="o">=</span> <span class="n">PositiveIntegerField</span><span class="p">(</span><span class="n">db_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">gender</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">GenderChoices</span><span class="p">,</span> <span class="n">db_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">preferred_language</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">LANGUAGES</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Encryption</strong>: Name, patient_id, and dates are encrypted using <code class="docutils literal notranslate"><span class="pre">secured_fields</span></code></p>
+<p><strong>Indexes</strong>: Composite indexes on <code class="docutils literal notranslate"><span class="pre">(institution,</span> <span class="pre">gender)</span></code>, <code class="docutils literal notranslate"><span class="pre">(institution,</span> <span class="pre">age)</span></code> for filtering</p>
+<p><strong>Relationships:</strong></p>
+<ul class="simple">
+<li><p>Belongs to <code class="docutils literal notranslate"><span class="pre">Institution</span></code></p></li>
+<li><p>Linked to Django <code class="docutils literal notranslate"><span class="pre">User</span></code> (1:1)</p></li>
+<li><p>Has many <code class="docutils literal notranslate"><span class="pre">Diagnosis</span></code> (1:N)</p></li>
+<li><p>Has many <code class="docutils literal notranslate"><span class="pre">PatientQuestionnaire</span></code> (1:N)</p></li>
+</ul>
+</section>
+<section id="diagnosis">
+<h4><a class="toc-backref" href="#id12" role="doc-backlink">Diagnosis</a><a class="headerlink" href="#diagnosis" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Track patient diagnoses with ICD-11 coding</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Diagnosis</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">patient</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Patient</span><span class="p">)</span>
+    <span class="n">diagnosis</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">DiagnosisList</span><span class="p">)</span>
+    <span class="n">date_of_diagnosis</span> <span class="o">=</span> <span class="n">EncryptedDateField</span><span class="p">(</span><span class="n">searchable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Relationships:</strong></p>
+<ul class="simple">
+<li><p>Belongs to <code class="docutils literal notranslate"><span class="pre">Patient</span></code></p></li>
+<li><p>References <code class="docutils literal notranslate"><span class="pre">DiagnosisList</span></code> (standardized diagnosis catalog)</p></li>
+<li><p>Has many <code class="docutils literal notranslate"><span class="pre">Treatment</span></code> (1:N)</p></li>
+</ul>
+</section>
+<section id="treatment">
+<h4><a class="toc-backref" href="#id13" role="doc-backlink">Treatment</a><a class="headerlink" href="#treatment" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Track treatment episodes with dates and intent</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Treatment</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">diagnosis</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Diagnosis</span><span class="p">)</span>
+    <span class="n">treatment_type</span> <span class="o">=</span> <span class="n">ManyToManyField</span><span class="p">(</span><span class="n">TreatmentType</span><span class="p">)</span>
+    <span class="n">treatment_intent</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">TreatmentIntentChoices</span><span class="p">)</span>
+    <span class="n">date_of_start_of_treatment</span> <span class="o">=</span> <span class="n">EncryptedDateField</span><span class="p">()</span>
+    <span class="n">currently_ongoing_treatment</span> <span class="o">=</span> <span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">date_of_end_of_treatment</span> <span class="o">=</span> <span class="n">EncryptedDateField</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Validation</strong>: Custom <code class="docutils literal notranslate"><span class="pre">clean()</span></code> method ensures:</p>
+<ul class="simple">
+<li><p>Start date not in future</p></li>
+<li><p>End date not before start date</p></li>
+<li><p>Ongoing treatments have no end date</p></li>
+<li><p>Completed treatments have end date</p></li>
+</ul>
+<p><strong>Relationships:</strong></p>
+<ul class="simple">
+<li><p>Belongs to <code class="docutils literal notranslate"><span class="pre">Diagnosis</span></code></p></li>
+<li><p>Has many <code class="docutils literal notranslate"><span class="pre">TreatmentType</span></code> (M:N)</p></li>
+</ul>
+</section>
+</section>
+<section id="prom-structure-domain">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">PROM Structure Domain</a><a class="headerlink" href="#prom-structure-domain" title="Link to this heading">¶</a></h3>
+<section id="constructscale">
+<h4><a class="toc-backref" href="#id15" role="doc-backlink">ConstructScale</a><a class="headerlink" href="#constructscale" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Define latent trait measurement with scoring equation</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ConstructScale</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>  <span class="c1"># e.g., &quot;Physical Function&quot;</span>
+    <span class="n">instrument_name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>  <span class="c1"># e.g., &quot;EORTC QLQ-C30&quot;</span>
+    <span class="n">instrument_version</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
+    <span class="n">scale_equation</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">1025</span><span class="p">)</span>  <span class="c1"># e.g., &quot;{q1} + {q2} + {q3}&quot;</span>
+    <span class="n">minimum_number_of_items</span> <span class="o">=</span> <span class="n">IntegerField</span><span class="p">()</span>
+    <span class="n">scale_better_score_direction</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">DirectionChoices</span><span class="p">)</span>
+    <span class="n">scale_threshold_score</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>
+    <span class="n">scale_minimum_clinical_important_difference</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>
+    <span class="n">scale_normative_score_mean</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>
+    <span class="n">scale_normative_score_standard_deviation</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Equation Validation</strong>: Uses Lark parser to validate mathematical equations</p>
+<p><strong>Clinical Parameters:</strong></p>
+<ul class="simple">
+<li><p><strong>Threshold Score</strong>: Clinical significance cutoff</p></li>
+<li><p><strong>MCID</strong>: Minimum clinically important difference</p></li>
+<li><p><strong>Normative Score</strong>: Population reference values (mean ± SD)</p></li>
+</ul>
+<p><strong>Relationships:</strong></p>
+<ul class="simple">
+<li><p>Has many <code class="docutils literal notranslate"><span class="pre">Item</span></code> (M:N)</p></li>
+<li><p>Referenced by <code class="docutils literal notranslate"><span class="pre">CompositeConstructScaleScoring</span></code></p></li>
+</ul>
+</section>
+<section id="item">
+<h4><a class="toc-backref" href="#id16" role="doc-backlink">Item</a><a class="headerlink" href="#item" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Individual questions in a questionnaire</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Item</span><span class="p">(</span><span class="n">TranslatableModel</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">construct_scale</span> <span class="o">=</span> <span class="n">ManyToManyField</span><span class="p">(</span><span class="n">ConstructScale</span><span class="p">)</span>
+    <span class="n">translations</span> <span class="o">=</span> <span class="n">TranslatedFields</span><span class="p">(</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">),</span>  <span class="c1"># Question text</span>
+        <span class="n">media</span> <span class="o">=</span> <span class="n">FileField</span><span class="p">(</span><span class="n">upload_to</span><span class="o">=</span><span class="s1">&#39;item_media/&#39;</span><span class="p">)</span>  <span class="c1"># Audio/video/image</span>
+    <span class="p">)</span>
+    <span class="n">abbreviated_item_id</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">item_number</span> <span class="o">=</span> <span class="n">IntegerField</span><span class="p">()</span>  <span class="c1"># For equation references {q1}, {q2}</span>
+    <span class="n">response_type</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">ResponseTypeChoices</span><span class="p">)</span>
+    <span class="n">likert_response</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">LikertScale</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">range_response</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">RangeScale</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Clinical parameters (optional, item-level)</span>
+    <span class="n">item_better_score_direction</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
+    <span class="n">item_threshold_score</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>
+    <span class="n">item_minimum_clinical_important_difference</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Translation</strong>: Question text and media translatable via django-parler</p>
+<p><strong>Response Types:</strong></p>
+<ul class="simple">
+<li><p><strong>Text</strong>: Free-form text input</p></li>
+<li><p><strong>Number</strong>: Numeric input</p></li>
+<li><p><strong>Likert</strong>: Ordered categorical scale</p></li>
+<li><p><strong>Range</strong>: Numeric slider (e.g., 0-10)</p></li>
+<li><p><strong>Media</strong>: Audio/video recording by patient</p></li>
+</ul>
+<p><strong>Validation</strong>: Ensures response type matches selected scale (Likert or Range)</p>
+</section>
+<section id="likertscale-likertscaleresponseoption">
+<h4><a class="toc-backref" href="#id17" role="doc-backlink">LikertScale &amp; LikertScaleResponseOption</a><a class="headerlink" href="#likertscale-likertscaleresponseoption" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Define ordered categorical response scales</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">LikertScale</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">likert_scale_name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LikertScaleResponseOption</span><span class="p">(</span><span class="n">TranslatableModel</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">likert_scale</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">LikertScale</span><span class="p">)</span>
+    <span class="n">option_order</span> <span class="o">=</span> <span class="n">IntegerField</span><span class="p">()</span>
+    <span class="n">translations</span> <span class="o">=</span> <span class="n">TranslatedFields</span><span class="p">(</span>
+        <span class="n">option_text</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(),</span>  <span class="c1"># e.g., &quot;Not at all&quot;, &quot;A little&quot;</span>
+        <span class="n">option_media</span> <span class="o">=</span> <span class="n">FileField</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="n">option_emoji</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
+    <span class="n">option_value</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>  <span class="c1"># Numeric value for scoring</span>
+</pre></div>
+</div>
+<p><strong>Features:</strong></p>
+<ul class="simple">
+<li><p>Viridis color palette for visual representation</p></li>
+<li><p>Automatic text color selection based on background luminance</p></li>
+<li><p>Translatable option text and media</p></li>
+</ul>
+</section>
+<section id="rangescale">
+<h4><a class="toc-backref" href="#id18" role="doc-backlink">RangeScale</a><a class="headerlink" href="#rangescale" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Define numeric slider scales</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">RangeScale</span><span class="p">(</span><span class="n">TranslatableModel</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">range_scale_name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
+    <span class="n">max_value</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>
+    <span class="n">min_value</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>
+    <span class="n">increment</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>
+    <span class="n">translations</span> <span class="o">=</span> <span class="n">TranslatedFields</span><span class="p">(</span>
+        <span class="n">min_value_text</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(),</span>  <span class="c1"># e.g., &quot;No Pain&quot;</span>
+        <span class="n">max_value_text</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>   <span class="c1"># e.g., &quot;Worst Pain&quot;</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Validation</strong>: Ensures min &lt; max and (max - min) divisible by increment</p>
+</section>
+<section id="questionnaire">
+<h4><a class="toc-backref" href="#id19" role="doc-backlink">Questionnaire</a><a class="headerlink" href="#questionnaire" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Collection of items presented to patients</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Questionnaire</span><span class="p">(</span><span class="n">TranslatableModel</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">translations</span> <span class="o">=</span> <span class="n">TranslatedFields</span><span class="p">(</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(),</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="n">questionnaire_order</span> <span class="o">=</span> <span class="n">IntegerField</span><span class="p">()</span>
+    <span class="n">questionnaire_answer_interval</span> <span class="o">=</span> <span class="n">DurationField</span><span class="p">()</span>
+    <span class="n">questionnaire_redirect</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;self&#39;</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Relationships:</strong></p>
+<ul class="simple">
+<li><p>Has many <code class="docutils literal notranslate"><span class="pre">QuestionnaireItem</span></code> (M:N through table with order)</p></li>
+<li><p>Can redirect to another <code class="docutils literal notranslate"><span class="pre">Questionnaire</span></code> after completion</p></li>
+</ul>
+</section>
+<section id="questionnaireitem">
+<h4><a class="toc-backref" href="#id20" role="doc-backlink">QuestionnaireItem</a><a class="headerlink" href="#questionnaireitem" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Junction table linking questionnaires to items with ordering</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">QuestionnaireItem</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">questionnaire</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Questionnaire</span><span class="p">)</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Item</span><span class="p">)</span>
+    <span class="n">item_order</span> <span class="o">=</span> <span class="n">IntegerField</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Features</strong>: Allows same item to appear in multiple questionnaires with different ordering</p>
+</section>
+</section>
+<section id="prom-response-domain">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">PROM Response Domain</a><a class="headerlink" href="#prom-response-domain" title="Link to this heading">¶</a></h3>
+<section id="patientquestionnaire">
+<h4><a class="toc-backref" href="#id22" role="doc-backlink">PatientQuestionnaire</a><a class="headerlink" href="#patientquestionnaire" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Assignment of questionnaire to patient</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">PatientQuestionnaire</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">patient</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Patient</span><span class="p">)</span>
+    <span class="n">questionnaire</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Questionnaire</span><span class="p">)</span>
+    <span class="n">date_assigned</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">is_active</span> <span class="o">=</span> <span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Relationships:</strong></p>
+<ul class="simple">
+<li><p>Links <code class="docutils literal notranslate"><span class="pre">Patient</span></code> to <code class="docutils literal notranslate"><span class="pre">Questionnaire</span></code></p></li>
+<li><p>Has many <code class="docutils literal notranslate"><span class="pre">QuestionnaireSubmission</span></code> (1:N)</p></li>
+</ul>
+</section>
+<section id="questionnairesubmission">
+<h4><a class="toc-backref" href="#id23" role="doc-backlink">QuestionnaireSubmission</a><a class="headerlink" href="#questionnairesubmission" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Single completion of a questionnaire by a patient</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">QuestionnaireSubmission</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">patient_questionnaire</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">PatientQuestionnaire</span><span class="p">)</span>
+    <span class="n">patient</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Patient</span><span class="p">,</span> <span class="n">db_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">submission_date</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">db_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">is_complete</span> <span class="o">=</span> <span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Indexes</strong>: Composite index on <code class="docutils literal notranslate"><span class="pre">(patient,</span> <span class="pre">submission_date)</span></code> for timeline queries</p>
+<p><strong>Relationships:</strong></p>
+<ul class="simple">
+<li><p>Belongs to <code class="docutils literal notranslate"><span class="pre">PatientQuestionnaire</span></code></p></li>
+<li><p>Has many <code class="docutils literal notranslate"><span class="pre">QuestionnaireItemResponse</span></code> (1:N)</p></li>
+<li><p>Has many <code class="docutils literal notranslate"><span class="pre">QuestionnaireConstructScore</span></code> (1:N)</p></li>
+</ul>
+</section>
+<section id="questionnaireitemresponse">
+<h4><a class="toc-backref" href="#id24" role="doc-backlink">QuestionnaireItemResponse</a><a class="headerlink" href="#questionnaireitemresponse" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Patient’s answer to a single item</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">QuestionnaireItemResponse</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">questionnaire_submission</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">QuestionnaireSubmission</span><span class="p">)</span>
+    <span class="n">questionnaire_item</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">QuestionnaireItem</span><span class="p">)</span>
+    <span class="n">response_text</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">response_number</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">response_likert</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">LikertScaleResponseOption</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">response_range</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">response_media</span> <span class="o">=</span> <span class="n">FileField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">response_date</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Polymorphic Storage</strong>: Different fields for different response types</p>
+</section>
+<section id="questionnaireconstructscore">
+<h4><a class="toc-backref" href="#id25" role="doc-backlink">QuestionnaireConstructScore</a><a class="headerlink" href="#questionnaireconstructscore" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Calculated construct score from item responses</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">QuestionnaireConstructScore</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">questionnaire_submission</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">QuestionnaireSubmission</span><span class="p">)</span>
+    <span class="n">construct</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">ConstructScale</span><span class="p">)</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>
+    <span class="n">items_answered</span> <span class="o">=</span> <span class="n">IntegerField</span><span class="p">()</span>
+    <span class="n">total_items</span> <span class="o">=</span> <span class="n">IntegerField</span><span class="p">()</span>
+    <span class="n">calculation_date</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Calculation</strong>: Scores computed using construct’s equation with item responses</p>
+<p><strong>Indexes</strong>: Optimized for time-series queries on <code class="docutils literal notranslate"><span class="pre">(construct,</span> <span class="pre">questionnaire_submission__patient)</span></code></p>
+</section>
+</section>
+<section id="composite-advanced-models">
+<h3><a class="toc-backref" href="#id26" role="doc-backlink">Composite &amp; Advanced Models</a><a class="headerlink" href="#composite-advanced-models" title="Link to this heading">¶</a></h3>
+<section id="compositeconstructscalescoring">
+<h4><a class="toc-backref" href="#id27" role="doc-backlink">CompositeConstructScaleScoring</a><a class="headerlink" href="#compositeconstructscalescoring" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Combine multiple construct scores into higher-level metrics</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CompositeConstructScaleScoring</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">composite_construct_scale_name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
+    <span class="n">construct_scales</span> <span class="o">=</span> <span class="n">ManyToManyField</span><span class="p">(</span><span class="n">ConstructScale</span><span class="p">)</span>
+    <span class="n">scoring_type</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">ScoringTypeChoices</span><span class="p">)</span>
+    <span class="c1"># Average, Sum, Median, Mode, Min, Max</span>
+</pre></div>
+</div>
+<p><strong>Use Case</strong>: Create summary scores like FACT TOI (Trial Outcome Index)</p>
+</section>
+<section id="aiapiconfiguration">
+<h4><a class="toc-backref" href="#id28" role="doc-backlink">AIAPIConfiguration</a><a class="headerlink" href="#aiapiconfiguration" title="Link to this heading">¶</a></h4>
+<p><strong>Purpose</strong>: Configure AI-augmented services (TTS, STT, etc.)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">AIAPIConfiguration</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">ai_provider</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
+    <span class="n">ai_capability</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">AICapabilitiesChoices</span><span class="p">)</span>
+    <span class="n">utility_function_path</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>  <span class="c1"># Python import path</span>
+    <span class="n">api_url</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
+    <span class="n">api_key_environment_variable_name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Capabilities</strong>: Text-to-Speech, Speech-to-Text, Image/Video Generation</p>
+<p><strong>Validation</strong>: Ensures utility function exists and is callable, API key in environment</p>
+</section>
+</section>
+</section>
+<section id="data-flow-architecture">
+<h2><a class="toc-backref" href="#id29" role="doc-backlink">Data Flow Architecture</a><a class="headerlink" href="#data-flow-architecture" title="Link to this heading">¶</a></h2>
+<section id="questionnaire-creation-flow">
+<h3><a class="toc-backref" href="#id30" role="doc-backlink">Questionnaire Creation Flow</a><a class="headerlink" href="#questionnaire-creation-flow" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Define Construct Scale</strong> → Set name, equation, clinical parameters</p></li>
+<li><p><strong>Create Response Scales</strong> → Define Likert or Range scales (if needed)</p></li>
+<li><p><strong>Create Items</strong> → Write questions, assign response types and scales</p></li>
+<li><p><strong>Build Questionnaire</strong> → Select items, set order, configure redirects</p></li>
+<li><p><strong>Assign to Patients</strong> → Create <code class="docutils literal notranslate"><span class="pre">PatientQuestionnaire</span></code> records</p></li>
+</ol>
+</section>
+<section id="patient-response-flow">
+<h3><a class="toc-backref" href="#id31" role="doc-backlink">Patient Response Flow</a><a class="headerlink" href="#patient-response-flow" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Patient Login</strong> → 2FA authentication</p></li>
+<li><p><strong>View Assigned Questionnaires</strong> → Filtered by <code class="docutils literal notranslate"><span class="pre">PatientQuestionnaire.is_active</span></code></p></li>
+<li><p><strong>Answer Questions</strong> → Create <code class="docutils literal notranslate"><span class="pre">QuestionnaireItemResponse</span></code> records</p></li>
+<li><p><strong>Submit Questionnaire</strong> → Mark <code class="docutils literal notranslate"><span class="pre">QuestionnaireSubmission.is_complete</span> <span class="pre">=</span> <span class="pre">True</span></code></p></li>
+<li><p><strong>Calculate Scores</strong> → Generate <code class="docutils literal notranslate"><span class="pre">QuestionnaireConstructScore</span></code> records</p></li>
+<li><p><strong>Trigger Signals</strong> → Cache invalidation, audit logging</p></li>
+</ol>
+</section>
+<section id="score-calculation-flow">
+<h3><a class="toc-backref" href="#id32" role="doc-backlink">Score Calculation Flow</a><a class="headerlink" href="#score-calculation-flow" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Fetch Item Responses</strong> → Get all responses for submission</p></li>
+<li><p><strong>Group by Construct</strong> → Organize responses by construct scale</p></li>
+<li><p><strong>Validate Minimum Items</strong> → Check <code class="docutils literal notranslate"><span class="pre">minimum_number_of_items</span></code> met</p></li>
+<li><p><strong>Parse Equation</strong> → Use Lark parser to build AST</p></li>
+<li><p><strong>Transform &amp; Evaluate</strong> → Substitute item values, compute result</p></li>
+<li><p><strong>Store Score</strong> → Save to <code class="docutils literal notranslate"><span class="pre">QuestionnaireConstructScore</span></code></p></li>
+<li><p><strong>Check Clinical Significance</strong> → Compare to threshold, MCID, normative values</p></li>
+</ol>
+</section>
+<section id="aggregation-analytics-flow">
+<h3><a class="toc-backref" href="#id33" role="doc-backlink">Aggregation &amp; Analytics Flow</a><a class="headerlink" href="#aggregation-analytics-flow" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Filter Patients</strong> → Apply demographic filters (gender, diagnosis, treatment, age)</p></li>
+<li><p><strong>Fetch Historical Scores</strong> → Bulk query for all patients’ construct scores</p></li>
+<li><p><strong>Calculate Time Intervals</strong> → Relative to start date (registration, diagnosis, treatment)</p></li>
+<li><p><strong>Aggregate by Interval</strong> → Compute median/mean with IQR/CI for each timepoint</p></li>
+<li><p><strong>Generate Plots</strong> → Create Bokeh/Plotly visualizations with population comparison</p></li>
+<li><p><strong>Cache Results</strong> → Store aggregated data in Memcached (1 hour TTL)</p></li>
+</ol>
+</section>
+</section>
+<section id="security-architecture">
+<h2><a class="toc-backref" href="#id34" role="doc-backlink">Security Architecture</a><a class="headerlink" href="#security-architecture" title="Link to this heading">¶</a></h2>
+<section id="data-encryption">
+<h3><a class="toc-backref" href="#id35" role="doc-backlink">Data Encryption</a><a class="headerlink" href="#data-encryption" title="Link to this heading">¶</a></h3>
+<p><strong>Field-Level Encryption</strong> (via <code class="docutils literal notranslate"><span class="pre">secured_fields</span></code>):</p>
+<ul class="simple">
+<li><p>Patient name, patient_id</p></li>
+<li><p>All clinical dates (diagnosis, treatment, registration)</p></li>
+<li><p>Searchable encryption allows filtering without decryption</p></li>
+</ul>
+<p><strong>Encryption Keys</strong>: Stored in environment variables, never in code</p>
+</section>
+<section id="institution-based-isolation">
+<h3><a class="toc-backref" href="#id36" role="doc-backlink">Institution-Based Isolation</a><a class="headerlink" href="#institution-based-isolation" title="Link to this heading">¶</a></h3>
+<p><strong>Access Control Pattern</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_accessible_patient_or_404</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">patient_pk</span><span class="p">):</span>
+    <span class="c1"># Get user&#39;s institutions</span>
+    <span class="n">user_institutions</span> <span class="o">=</span> <span class="n">get_user_institutions</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+
+    <span class="c1"># Filter patient by institution</span>
+    <span class="n">patient</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">pk</span><span class="o">=</span><span class="n">patient_pk</span><span class="p">,</span>
+        <span class="n">institution__in</span><span class="o">=</span><span class="n">user_institutions</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">patient</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">Http404</span>
+    <span class="k">return</span> <span class="n">patient</span>
+</pre></div>
+</div>
+<p><strong>Enforcement</strong>: All views use institution filtering, preventing cross-institution data access</p>
+</section>
+<section id="role-based-access-control">
+<h3><a class="toc-backref" href="#id37" role="doc-backlink">Role-Based Access Control</a><a class="headerlink" href="#role-based-access-control" title="Link to this heading">¶</a></h3>
+<p><strong>Django Permissions</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">patientapp.view_patient</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">patientapp.add_patient</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">promapp.view_questionnaire</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">promapp.add_constructscale</span></code></p></li>
+</ul>
+<p><strong>Permission Checks</strong>: <code class="docutils literal notranslate"><span class="pre">&#64;permission_required</span></code> decorators on all views</p>
+</section>
+<section id="authentication-2fa">
+<h3><a class="toc-backref" href="#id38" role="doc-backlink">Authentication &amp; 2FA</a><a class="headerlink" href="#authentication-2fa" title="Link to this heading">¶</a></h3>
+<p><strong>Multi-Factor Authentication</strong>:</p>
+<ul class="simple">
+<li><p>TOTP (Time-based One-Time Password)</p></li>
+<li><p>Backup codes for account recovery</p></li>
+<li><p>Session binding to prevent token replay</p></li>
+<li><p>Rate limiting on login attempts</p></li>
+</ul>
+<p><strong>Session Security</strong>:</p>
+<ul class="simple">
+<li><p>CSRF protection</p></li>
+<li><p>Secure cookies (HTTPOnly, Secure, SameSite)</p></li>
+<li><p>IP and User-Agent binding</p></li>
+</ul>
+</section>
+</section>
+<section id="performance-optimization">
+<h2><a class="toc-backref" href="#id39" role="doc-backlink">Performance Optimization</a><a class="headerlink" href="#performance-optimization" title="Link to this heading">¶</a></h2>
+<section id="database-indexing">
+<h3><a class="toc-backref" href="#id40" role="doc-backlink">Database Indexing</a><a class="headerlink" href="#database-indexing" title="Link to this heading">¶</a></h3>
+<p><strong>Strategic Indexes</strong>:</p>
+<ul class="simple">
+<li><p>Composite indexes on frequently filtered combinations</p></li>
+<li><p>Foreign key indexes on all relationships</p></li>
+<li><p>Date indexes for timeline queries</p></li>
+</ul>
+<p><strong>Example</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+    <span class="n">indexes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">models</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;institution&#39;</span><span class="p">,</span> <span class="s1">&#39;gender&#39;</span><span class="p">]),</span>
+        <span class="n">models</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;patient&#39;</span><span class="p">,</span> <span class="s1">&#39;submission_date&#39;</span><span class="p">]),</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="query-optimization">
+<h3><a class="toc-backref" href="#id41" role="doc-backlink">Query Optimization</a><a class="headerlink" href="#query-optimization" title="Link to this heading">¶</a></h3>
+<p><strong>Techniques</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">select_related()</span></code> for forward foreign keys</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prefetch_related()</span></code> for reverse foreign keys and M2M</p></li>
+<li><p>Bulk operations to reduce database round-trips</p></li>
+<li><p>Lazy evaluation with <code class="docutils literal notranslate"><span class="pre">only()</span></code> and <code class="docutils literal notranslate"><span class="pre">defer()</span></code></p></li>
+</ul>
+<p><strong>Example</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">patients</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span>
+    <span class="s1">&#39;institution&#39;</span>
+<span class="p">)</span><span class="o">.</span><span class="n">prefetch_related</span><span class="p">(</span>
+    <span class="s1">&#39;diagnosis_set__diagnosis&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;diagnosis_set__treatment_set__treatment_type&#39;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="lazy-loading-with-htmx">
+<h3><a class="toc-backref" href="#id42" role="doc-backlink">Lazy Loading with HTMX</a><a class="headerlink" href="#lazy-loading-with-htmx" title="Link to this heading">¶</a></h3>
+<p><strong>Plot Generation</strong>:</p>
+<ul class="simple">
+<li><p>Main page loads without plots (1-2s)</p></li>
+<li><p>Plots loaded on-demand via HTMX <code class="docutils literal notranslate"><span class="pre">hx-trigger=&quot;revealed&quot;</span></code></p></li>
+<li><p>85% faster initial page load</p></li>
+</ul>
+<p><strong>Benefits</strong>:</p>
+<ul class="simple">
+<li><p>Progressive enhancement</p></li>
+<li><p>Reduced server load</p></li>
+<li><p>Better user experience</p></li>
+</ul>
+</section>
+<section id="caching-strategy">
+<h3><a class="toc-backref" href="#id43" role="doc-backlink">Caching Strategy</a><a class="headerlink" href="#caching-strategy" title="Link to this heading">¶</a></h3>
+<p><strong>Cache Layers</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Patient-Specific Data</strong> (5 min TTL)
+- Individual scores
+- Item responses</p></li>
+<li><p><strong>Aggregation Data</strong> (1 hour TTL)
+- Population statistics
+- Shared across patients with same filters</p></li>
+<li><p><strong>Static Content</strong> (Indefinite)
+- Questionnaire structure
+- Response scales</p></li>
+</ol>
+<p><strong>Cache Invalidation</strong>: Signals on <code class="docutils literal notranslate"><span class="pre">QuestionnaireSubmission.post_save</span></code></p>
+</section>
+</section>
+<section id="extensibility-points">
+<h2><a class="toc-backref" href="#id44" role="doc-backlink">Extensibility Points</a><a class="headerlink" href="#extensibility-points" title="Link to this heading">¶</a></h2>
+<section id="custom-scoring-equations">
+<h3><a class="toc-backref" href="#id45" role="doc-backlink">Custom Scoring Equations</a><a class="headerlink" href="#custom-scoring-equations" title="Link to this heading">¶</a></h3>
+<p><strong>Equation Parser</strong>: Lark-based grammar supports:</p>
+<ul class="simple">
+<li><p>Basic arithmetic: <code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">/</span></code>, <code class="docutils literal notranslate"><span class="pre">^</span></code></p></li>
+<li><p>Functions: <code class="docutils literal notranslate"><span class="pre">sqrt()</span></code>, <code class="docutils literal notranslate"><span class="pre">abs()</span></code>, <code class="docutils literal notranslate"><span class="pre">min()</span></code>, <code class="docutils literal notranslate"><span class="pre">max()</span></code></p></li>
+<li><p>Item references: <code class="docutils literal notranslate"><span class="pre">{q1}</span></code>, <code class="docutils literal notranslate"><span class="pre">{q2}</span></code>, etc.</p></li>
+<li><p>Conditional logic (future enhancement)</p></li>
+</ul>
+<p><strong>Example Equations</strong>:</p>
+<ul class="simple">
+<li><p>EORTC: <code class="docutils literal notranslate"><span class="pre">(1</span> <span class="pre">-</span> <span class="pre">({q1}</span> <span class="pre">+</span> <span class="pre">{q2})</span> <span class="pre">/</span> <span class="pre">8)</span> <span class="pre">*</span> <span class="pre">100</span></code></p></li>
+<li><p>Average: <code class="docutils literal notranslate"><span class="pre">({q1}</span> <span class="pre">+</span> <span class="pre">{q2}</span> <span class="pre">+</span> <span class="pre">{q3})</span> <span class="pre">/</span> <span class="pre">3</span></code></p></li>
+<li><p>Weighted: <code class="docutils literal notranslate"><span class="pre">{q1}</span> <span class="pre">*</span> <span class="pre">0.5</span> <span class="pre">+</span> <span class="pre">{q2}</span> <span class="pre">*</span> <span class="pre">0.3</span> <span class="pre">+</span> <span class="pre">{q3}</span> <span class="pre">*</span> <span class="pre">0.2</span></code></p></li>
+</ul>
+</section>
+<section id="pluggable-ai-services">
+<h3><a class="toc-backref" href="#id46" role="doc-backlink">Pluggable AI Services</a><a class="headerlink" href="#pluggable-ai-services" title="Link to this heading">¶</a></h3>
+<p><strong>Architecture</strong>: Function-based plugins via <code class="docutils literal notranslate"><span class="pre">AIAPIConfiguration</span></code></p>
+<p><strong>Integration Pattern</strong>:</p>
+<ol class="arabic simple">
+<li><p>Create utility function in <code class="docutils literal notranslate"><span class="pre">promapp/ai_utils/</span></code></p></li>
+<li><p>Register in <code class="docutils literal notranslate"><span class="pre">AIAPIConfiguration</span></code> with import path</p></li>
+<li><p>System dynamically loads and calls function</p></li>
+</ol>
+<p><strong>Supported Services</strong>:</p>
+<ul class="simple">
+<li><p>Text-to-Speech (TTS)</p></li>
+<li><p>Speech-to-Text (STT)</p></li>
+<li><p>Image/Video generation</p></li>
+</ul>
+</section>
+<section id="multi-language-support">
+<h3><a class="toc-backref" href="#id47" role="doc-backlink">Multi-Language Support</a><a class="headerlink" href="#multi-language-support" title="Link to this heading">¶</a></h3>
+<p><strong>Translation Layers</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Model Translations</strong> (django-parler)
+- Questionnaire names/descriptions
+- Item text and media
+- Response option text</p></li>
+<li><p><strong>UI Translations</strong> (gettext)
+- Interface strings
+- Help text
+- Error messages</p></li>
+</ol>
+<p><strong>Language Selection</strong>: Per-patient preference stored in <code class="docutils literal notranslate"><span class="pre">Patient.preferred_language</span></code></p>
+</section>
+</section>
+<section id="design-patterns">
+<h2><a class="toc-backref" href="#id48" role="doc-backlink">Design Patterns</a><a class="headerlink" href="#design-patterns" title="Link to this heading">¶</a></h2>
+<section id="repository-pattern">
+<h3><a class="toc-backref" href="#id49" role="doc-backlink">Repository Pattern</a><a class="headerlink" href="#repository-pattern" title="Link to this heading">¶</a></h3>
+<p><strong>Utility Functions</strong>: Centralized data access in <code class="docutils literal notranslate"><span class="pre">patientapp/utils.py</span></code> and <code class="docutils literal notranslate"><span class="pre">promapp/utils.py</span></code></p>
+<p><strong>Benefits</strong>:</p>
+<ul class="simple">
+<li><p>Consistent query patterns</p></li>
+<li><p>Easier testing and mocking</p></li>
+<li><p>Performance optimization in one place</p></li>
+</ul>
+</section>
+<section id="signal-based-architecture">
+<h3><a class="toc-backref" href="#id50" role="doc-backlink">Signal-Based Architecture</a><a class="headerlink" href="#signal-based-architecture" title="Link to this heading">¶</a></h3>
+<p><strong>Django Signals</strong>: Used for cross-cutting concerns</p>
+<p><strong>Examples</strong>:</p>
+<ul class="simple">
+<li><p>Cache invalidation on data changes</p></li>
+<li><p>Audit logging for security events</p></li>
+<li><p>User language preference updates</p></li>
+</ul>
+<p><strong>Pattern</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@receiver</span><span class="p">(</span><span class="n">post_save</span><span class="p">,</span> <span class="n">sender</span><span class="o">=</span><span class="n">QuestionnaireSubmission</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">invalidate_cache</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">cache_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;patient_</span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">patient_id</span><span class="si">}</span><span class="s2">_scores&quot;</span>
+    <span class="n">cache</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">cache_key</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="component-based-templates">
+<h3><a class="toc-backref" href="#id51" role="doc-backlink">Component-Based Templates</a><a class="headerlink" href="#component-based-templates" title="Link to this heading">¶</a></h3>
+<p><strong>Django Cotton</strong>: Reusable UI components</p>
+<p><strong>Benefits</strong>:</p>
+<ul class="simple">
+<li><p>Consistent UI across application</p></li>
+<li><p>Easier maintenance</p></li>
+<li><p>Reduced code duplication</p></li>
+</ul>
+<p><strong>Example Components</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">c-action_buttons</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">c-card</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">c-dropdown</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="future-enhancements">
+<h2><a class="toc-backref" href="#id52" role="doc-backlink">Future Enhancements</a><a class="headerlink" href="#future-enhancements" title="Link to this heading">¶</a></h2>
+<p><strong>Planned Features</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Adaptive Testing</strong> (CAT)
+- IRT-based item selection
+- Reduced patient burden</p></li>
+<li><p><strong>Advanced Analytics</strong>
+- Machine learning predictions
+- Trend analysis
+- Risk stratification</p></li>
+<li><p><strong>Mobile App</strong>
+- Native iOS/Android apps
+- Offline data collection
+- Push notifications</p></li>
+<li><p><strong>API Layer</strong>
+- RESTful API for external integrations
+- FHIR compliance
+- Webhook support</p></li>
+</ol>
+<p><strong>Technical Debt</strong>:</p>
+<ul class="simple">
+<li><p>Migrate to async views for better concurrency</p></li>
+<li><p>Implement GraphQL for flexible data queries</p></li>
+<li><p>Add comprehensive integration tests</p></li>
+<li><p>Enhance caching with Redis Cluster</p></li>
+</ul>
+</section>
+<section id="conclusion">
+<h2><a class="toc-backref" href="#id53" role="doc-backlink">Conclusion</a><a class="headerlink" href="#conclusion" title="Link to this heading">¶</a></h2>
+<p>SATHI’s architecture balances security, performance, and extensibility through:</p>
+<ul class="simple">
+<li><p><strong>Modular Design</strong>: Clear separation of concerns across Django apps</p></li>
+<li><p><strong>Robust Data Model</strong>: Comprehensive PROM structure with clinical parameters</p></li>
+<li><p><strong>Security-First</strong>: Encryption, isolation, and RBAC at every layer</p></li>
+<li><p><strong>Performance</strong>: Strategic indexing, caching, and lazy loading</p></li>
+<li><p><strong>Extensibility</strong>: Pluggable AI services, custom equations, multi-language support</p></li>
+</ul>
+<p>This architecture supports the core mission of collecting and analyzing patient-reported outcomes while maintaining the highest standards of data security and clinical utility.</p>
 </section>
 </section>
 
