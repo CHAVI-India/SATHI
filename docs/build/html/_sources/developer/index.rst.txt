@@ -13,6 +13,7 @@ This section provides technical documentation for developers installing, configu
    frontend_development
    ui_components
    data_integration
+   internationalization
    pwa_setup
    performance
    testing

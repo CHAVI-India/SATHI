@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Internationalization &amp; Translation &#8212; SATHI: Self Reported Assessment and Tracking for Health Insights Version 2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=44449404"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Progressive Web App (PWA) Setup" href="pwa_setup.html" />
+    <link rel="prev" title="Data Integration Guide" href="data_integration.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="internationalization-translation">
+<h1>Internationalization &amp; Translation<a class="headerlink" href="#internationalization-translation" title="Link to this heading">¶</a></h1>
+<p>Complete guide to adding new languages, translating content, and managing multilingual support in SATHI.</p>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p></li>
+<li><p><a class="reference internal" href="#architecture" id="id2">Architecture</a></p>
+<ul>
+<li><p><a class="reference internal" href="#translation-layers" id="id3">Translation Layers</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#language-configuration" id="id4">Language Configuration</a></p>
+<ul>
+<li><p><a class="reference internal" href="#supported-languages" id="id5">Supported Languages</a></p></li>
+<li><p><a class="reference internal" href="#default-language" id="id6">Default Language</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#adding-a-new-language" id="id7">Adding a New Language</a></p>
+<ul>
+<li><p><a class="reference internal" href="#step-1-update-environment-configuration" id="id8">Step 1: Update Environment Configuration</a></p></li>
+<li><p><a class="reference internal" href="#step-2-update-parler-configuration" id="id9">Step 2: Update Parler Configuration</a></p></li>
+<li><p><a class="reference internal" href="#step-3-create-translation-files" id="id10">Step 3: Create Translation Files</a></p></li>
+<li><p><a class="reference internal" href="#step-4-translate-interface-strings" id="id11">Step 4: Translate Interface Strings</a></p></li>
+<li><p><a class="reference internal" href="#step-5-compile-translations" id="id12">Step 5: Compile Translations</a></p></li>
+<li><p><a class="reference internal" href="#step-6-restart-server" id="id13">Step 6: Restart Server</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#database-content-translation" id="id14">Database Content Translation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#translating-through-admin-interface" id="id15">Translating Through Admin Interface</a></p></li>
+<li><p><a class="reference internal" href="#translating-through-django-shell" id="id16">Translating Through Django Shell</a></p></li>
+<li><p><a class="reference internal" href="#checking-available-translations" id="id17">Checking Available Translations</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#user-interface-translation" id="id18">User Interface Translation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#template-translation" id="id19">Template Translation</a></p></li>
+<li><p><a class="reference internal" href="#python-code-translation" id="id20">Python Code Translation</a></p></li>
+<li><p><a class="reference internal" href="#model-translation" id="id21">Model Translation</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#language-switching" id="id22">Language Switching</a></p>
+<ul>
+<li><p><a class="reference internal" href="#url-based-language-switching" id="id23">URL-Based Language Switching</a></p></li>
+<li><p><a class="reference internal" href="#middleware-configuration" id="id24">Middleware Configuration</a></p></li>
+<li><p><a class="reference internal" href="#language-selector-widget" id="id25">Language Selector Widget</a></p></li>
+<li><p><a class="reference internal" href="#session-based-language-preference" id="id26">Session-Based Language Preference</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#translation-workflow" id="id27">Translation Workflow</a></p>
+<ul>
+<li><p><a class="reference internal" href="#development-workflow" id="id28">Development Workflow</a></p></li>
+<li><p><a class="reference internal" href="#production-deployment" id="id29">Production Deployment</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#translation-file-structure" id="id30">Translation File Structure</a></p>
+<ul>
+<li><p><a class="reference internal" href="#directory-layout" id="id31">Directory Layout</a></p></li>
+<li><p><a class="reference internal" href="#po-file-format" id="id32">PO File Format</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#best-practices" id="id33">Best Practices</a></p>
+<ul>
+<li><p><a class="reference internal" href="#translation-guidelines" id="id34">Translation Guidelines</a></p></li>
+<li><p><a class="reference internal" href="#font-configuration" id="id35">Font Configuration</a></p></li>
+<li><p><a class="reference internal" href="#rtl-language-support" id="id36">RTL Language Support</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#troubleshooting" id="id37">Troubleshooting</a></p>
+<ul>
+<li><p><a class="reference internal" href="#common-issues" id="id38">Common Issues</a></p></li>
+<li><p><a class="reference internal" href="#database-translations-not-showing" id="id39">Database Translations Not Showing</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#testing-translations" id="id40">Testing Translations</a></p>
+<ul>
+<li><p><a class="reference internal" href="#manual-testing" id="id41">Manual Testing</a></p></li>
+<li><p><a class="reference internal" href="#automated-testing" id="id42">Automated Testing</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#resources" id="id43">Resources</a></p>
+<ul>
+<li><p><a class="reference internal" href="#external-resources" id="id44">External Resources</a></p></li>
+<li><p><a class="reference internal" href="#translation-services" id="id45">Translation Services</a></p></li>
+<li><p><a class="reference internal" href="#language-codes-reference" id="id46">Language Codes Reference</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>SATHI supports comprehensive internationalization (i18n) through two complementary systems:</p>
+<ol class="arabic simple">
+<li><p><strong>Django Parler</strong>: For translating database content (questionnaires, items, responses)</p></li>
+<li><p><strong>Django gettext</strong>: For translating the user interface (templates, messages, labels)</p></li>
+</ol>
+<p>This dual approach allows:</p>
+<ul class="simple">
+<li><p>Healthcare workers to create questionnaires in multiple languages</p></li>
+<li><p>Patients to view the interface in their preferred language</p></li>
+<li><p>Administrators to manage translations through both UI and files</p></li>
+</ul>
+</section>
+<section id="architecture">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Architecture</a><a class="headerlink" href="#architecture" title="Link to this heading">¶</a></h2>
+<section id="translation-layers">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Translation Layers</a><a class="headerlink" href="#translation-layers" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><strong>Database Content (Parler)</strong></dt><dd><ul class="simple">
+<li><p>Questionnaire names and descriptions</p></li>
+<li><p>Item text and instructions</p></li>
+<li><p>Likert/Range scale labels</p></li>
+<li><p>Construct scale names</p></li>
+<li><p>Diagnosis and treatment names</p></li>
+</ul>
+</dd>
+<dt><strong>User Interface (gettext)</strong></dt><dd><ul class="simple">
+<li><p>Navigation menus</p></li>
+<li><p>Form labels and buttons</p></li>
+<li><p>Error messages</p></li>
+<li><p>Help text and instructions</p></li>
+<li><p>Static page content</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+<section id="language-configuration">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Language Configuration</a><a class="headerlink" href="#language-configuration" title="Link to this heading">¶</a></h2>
+<section id="supported-languages">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Supported Languages</a><a class="headerlink" href="#supported-languages" title="Link to this heading">¶</a></h3>
+<p>Languages are configured in <code class="docutils literal notranslate"><span class="pre">chaviprom/settings.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load from environment variable</span>
+<span class="n">LANGUAGES_STRING</span> <span class="o">=</span> <span class="n">env</span><span class="p">(</span><span class="s1">&#39;LANGUAGES&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;en:English,hi:Hindi,bn:Bengali&#39;</span><span class="p">)</span>
+
+<span class="c1"># Parse into Django format</span>
+<span class="n">LANGUAGES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="nb">tuple</span><span class="p">(</span><span class="n">lang</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">lang</span> <span class="ow">in</span> <span class="n">LANGUAGES_STRING</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+<span class="p">]</span>
+
+<span class="c1"># Example result:</span>
+<span class="c1"># LANGUAGES = [</span>
+<span class="c1">#     (&#39;en&#39;, &#39;English&#39;),</span>
+<span class="c1">#     (&#39;hi&#39;, &#39;Hindi&#39;),</span>
+<span class="c1">#     (&#39;bn&#39;, &#39;Bengali&#39;),</span>
+<span class="c1"># ]</span>
+</pre></div>
+</div>
+<p><strong>Environment Variable Format:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># In .env file</span>
+<span class="nv">LANGUAGES</span><span class="o">=</span>en:English,hi:Hindi,bn:Bengali,ta:Tamil,te:Telugu
+</pre></div>
+</div>
+</section>
+<section id="default-language">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Default Language</a><a class="headerlink" href="#default-language" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">LANGUAGE_CODE</span> <span class="o">=</span> <span class="s1">&#39;en&#39;</span>  <span class="c1"># Default language</span>
+
+<span class="n">PARLER_LANGUAGES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="kc">None</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;hi&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;bn&#39;</span><span class="p">},</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;fallback&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;hide_untranslated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="adding-a-new-language">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Adding a New Language</a><a class="headerlink" href="#adding-a-new-language" title="Link to this heading">¶</a></h2>
+<section id="step-1-update-environment-configuration">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Step 1: Update Environment Configuration</a><a class="headerlink" href="#step-1-update-environment-configuration" title="Link to this heading">¶</a></h3>
+<p>Add the new language to your <code class="docutils literal notranslate"><span class="pre">.env</span></code> file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Before</span>
+<span class="nv">LANGUAGES</span><span class="o">=</span>en:English,hi:Hindi,bn:Bengali
+
+<span class="c1"># After (adding Tamil)</span>
+<span class="nv">LANGUAGES</span><span class="o">=</span>en:English,hi:Hindi,bn:Bengali,ta:Tamil
+</pre></div>
+</div>
+<p><strong>Language Code Reference:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">en</span></code> - English</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hi</span></code> - Hindi</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bn</span></code> - Bengali</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ta</span></code> - Tamil</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">te</span></code> - Telugu</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mr</span></code> - Marathi</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gu</span></code> - Gujarati</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kn</span></code> - Kannada</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ml</span></code> - Malayalam</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pa</span></code> - Punjabi</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">or</span></code> - Odia</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">as</span></code> - Assamese</p></li>
+</ul>
+</section>
+<section id="step-2-update-parler-configuration">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Step 2: Update Parler Configuration</a><a class="headerlink" href="#step-2-update-parler-configuration" title="Link to this heading">¶</a></h3>
+<p>Edit <code class="docutils literal notranslate"><span class="pre">chaviprom/settings.py</span></code> to add the language code to <code class="docutils literal notranslate"><span class="pre">PARLER_LANGUAGES</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PARLER_LANGUAGES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="kc">None</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;hi&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;bn&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;ta&#39;</span><span class="p">},</span>  <span class="c1"># New language</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;fallback&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;hide_untranslated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="step-3-create-translation-files">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Step 3: Create Translation Files</a><a class="headerlink" href="#step-3-create-translation-files" title="Link to this heading">¶</a></h3>
+<p><strong>Prerequisites:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">gettext</span></code> must be installed on your system</p></li>
+<li><p>Linux: <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">apt-get</span> <span class="pre">install</span> <span class="pre">gettext</span></code></p></li>
+<li><p>macOS: <code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">gettext</span></code></p></li>
+<li><p>Windows: Download from <a class="reference external" href="https://gnuwin32.sourceforge.net/packages/gettext.htm">GNU gettext</a></p></li>
+</ul>
+<p><strong>Generate Message Files:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create .po file for new language (Tamil example)</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>makemessages<span class="w"> </span>-l<span class="w"> </span>ta<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;venv&quot;</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;node_modules&quot;</span>
+
+<span class="c1"># For multiple languages at once</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>makemessages<span class="w"> </span>-l<span class="w"> </span>ta<span class="w"> </span>-l<span class="w"> </span>te<span class="w"> </span>-l<span class="w"> </span>mr<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;venv&quot;</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;node_modules&quot;</span>
+</pre></div>
+</div>
+<p><strong>What This Does:</strong></p>
+<ul class="simple">
+<li><p>Scans all Python and template files for translatable strings</p></li>
+<li><p>Creates <code class="docutils literal notranslate"><span class="pre">locale/ta/LC_MESSAGES/django.po</span></code></p></li>
+<li><p>Extracts strings marked with <code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">trans</span> <span class="pre">%}</span></code> and <code class="docutils literal notranslate"><span class="pre">gettext()</span></code></p></li>
+<li><p>Ignores virtual environment and node_modules</p></li>
+</ul>
+</section>
+<section id="step-4-translate-interface-strings">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Step 4: Translate Interface Strings</a><a class="headerlink" href="#step-4-translate-interface-strings" title="Link to this heading">¶</a></h3>
+<p>Edit the generated <code class="docutils literal notranslate"><span class="pre">.po</span></code> file at <code class="docutils literal notranslate"><span class="pre">locale/ta/LC_MESSAGES/django.po</span></code>:</p>
+<div class="highlight-po notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example translations</span>
+<span class="nv">msgid</span> <span class="s">&quot;Welcome&quot;</span>
+<span class="nv">msgstr</span> <span class="s">&quot;வரவேற்பு&quot;</span>
+
+<span class="nv">msgid</span> <span class="s">&quot;Patient Portal&quot;</span>
+<span class="nv">msgstr</span> <span class="s">&quot;நோயாளி போர்ட்டல்&quot;</span>
+
+<span class="nv">msgid</span> <span class="s">&quot;Complete Questionnaire&quot;</span>
+<span class="nv">msgstr</span> <span class="s">&quot;கேள்வித்தாளை முடிக்கவும்&quot;</span>
+
+<span class="nv">msgid</span> <span class="s">&quot;Submit&quot;</span>
+<span class="nv">msgstr</span> <span class="s">&quot;சமர்ப்பிக்கவும்&quot;</span>
+</pre></div>
+</div>
+<p><strong>Translation Tools:</strong></p>
+<ul class="simple">
+<li><p><strong>Poedit</strong>: GUI editor for .po files (<a class="reference external" href="https://poedit.net/">poedit.net</a>)</p></li>
+<li><p><strong>Lokalize</strong>: KDE translation tool</p></li>
+<li><p><strong>Manual editing</strong>: Any text editor works</p></li>
+</ul>
+</section>
+<section id="step-5-compile-translations">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Step 5: Compile Translations</a><a class="headerlink" href="#step-5-compile-translations" title="Link to this heading">¶</a></h3>
+<p>After editing <code class="docutils literal notranslate"><span class="pre">.po</span></code> files, compile them to binary format:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Compile all languages</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>compilemessages<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;venv&quot;</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;node_modules&quot;</span>
+
+<span class="c1"># Compile specific language</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>compilemessages<span class="w"> </span>-l<span class="w"> </span>ta<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;venv&quot;</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;node_modules&quot;</span>
+</pre></div>
+</div>
+<p><strong>Output:</strong></p>
+<ul class="simple">
+<li><p>Creates <code class="docutils literal notranslate"><span class="pre">locale/ta/LC_MESSAGES/django.mo</span></code> (binary file)</p></li>
+<li><p>This file is used by Django at runtime</p></li>
+<li><p>Must recompile after every <code class="docutils literal notranslate"><span class="pre">.po</span></code> file change</p></li>
+</ul>
+</section>
+<section id="step-6-restart-server">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Step 6: Restart Server</a><a class="headerlink" href="#step-6-restart-server" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Development</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>runserver
+
+<span class="c1"># Production (Supervisor)</span>
+sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span class="w"> </span>chaviprom
+</pre></div>
+</div>
+</section>
+</section>
+<section id="database-content-translation">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink">Database Content Translation</a><a class="headerlink" href="#database-content-translation" title="Link to this heading">¶</a></h2>
+<section id="translating-through-admin-interface">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">Translating Through Admin Interface</a><a class="headerlink" href="#translating-through-admin-interface" title="Link to this heading">¶</a></h3>
+<p>SATHI uses Django Parler for database content translation. All translatable models have language tabs in the admin interface.</p>
+<p><strong>Translating a Questionnaire:</strong></p>
+<ol class="arabic simple">
+<li><p>Navigate to <strong>Admin → Questionnaires → Select Questionnaire</strong></p></li>
+<li><p>Click the <strong>language tabs</strong> at the top (English | Hindi | Bengali | Tamil)</p></li>
+<li><p>Switch to target language tab</p></li>
+<li><p>Enter translated content:
+- Name
+- Description
+- Instructions</p></li>
+<li><p>Click <strong>Save</strong></p></li>
+</ol>
+<p><strong>Translating Items:</strong></p>
+<ol class="arabic simple">
+<li><p>Navigate to <strong>Admin → Items → Select Item</strong></p></li>
+<li><p>Switch to target language tab</p></li>
+<li><p>Translate:
+- Item name (question text)
+- Item instructions
+- Media descriptions</p></li>
+<li><p>Click <strong>Save</strong></p></li>
+</ol>
+<p><strong>Translating Likert Scales:</strong></p>
+<ol class="arabic simple">
+<li><p>Navigate to <strong>Admin → Likert Scales → Select Scale</strong></p></li>
+<li><p>Switch to target language tab</p></li>
+<li><p>Translate scale name</p></li>
+<li><p>Navigate to <strong>Likert Scale Response Elements</strong></p></li>
+<li><p>Translate each response option text</p></li>
+<li><p>Click <strong>Save</strong></p></li>
+</ol>
+</section>
+<section id="translating-through-django-shell">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Translating Through Django Shell</a><a class="headerlink" href="#translating-through-django-shell" title="Link to this heading">¶</a></h3>
+<p>For bulk translations or programmatic updates:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">promapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Questionnaire</span>
+
+<span class="c1"># Get questionnaire</span>
+<span class="n">q</span> <span class="o">=</span> <span class="n">Questionnaire</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Set English translation</span>
+<span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;en&#39;</span><span class="p">)</span>
+<span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Patient Health Questionnaire&quot;</span>
+<span class="n">q</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Assess patient health status&quot;</span>
+<span class="n">q</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+<span class="c1"># Set Hindi translation</span>
+<span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;hi&#39;</span><span class="p">)</span>
+<span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;रोगी स्वास्थ्य प्रश्नावली&quot;</span>
+<span class="n">q</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;रोगी स्वास्थ्य स्थिति का आकलन करें&quot;</span>
+<span class="n">q</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+<span class="c1"># Set Tamil translation</span>
+<span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;ta&#39;</span><span class="p">)</span>
+<span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;நோயாளி சுகாதார கேள்வித்தாள்&quot;</span>
+<span class="n">q</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;நோயாளி சுகாதார நிலையை மதிப்பிடவும்&quot;</span>
+<span class="n">q</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="checking-available-translations">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Checking Available Translations</a><a class="headerlink" href="#checking-available-translations" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">promapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Item</span>
+
+<span class="n">item</span> <span class="o">=</span> <span class="n">Item</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Get all available translations</span>
+<span class="n">translations</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get_available_languages</span><span class="p">()</span>
+<span class="c1"># Returns: [&#39;en&#39;, &#39;hi&#39;, &#39;bn&#39;]</span>
+
+<span class="c1"># Check if translation exists</span>
+<span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">has_translation</span><span class="p">(</span><span class="s1">&#39;ta&#39;</span><span class="p">):</span>
+    <span class="n">item</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;ta&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="user-interface-translation">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">User Interface Translation</a><a class="headerlink" href="#user-interface-translation" title="Link to this heading">¶</a></h2>
+<section id="template-translation">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Template Translation</a><a class="headerlink" href="#template-translation" title="Link to this heading">¶</a></h3>
+<p>Use <code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">trans</span> <span class="pre">%}</span></code> and <code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">blocktrans</span> <span class="pre">%}</span></code> template tags:</p>
+<p><strong>Simple Translation:</strong></p>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">load</span> <span class="nv">i18n</span> <span class="cp">%}</span>
+
+<span class="x">&lt;h1&gt;</span><span class="cp">{%</span> <span class="k">trans</span> <span class="s2">&quot;Welcome to SATHI&quot;</span> <span class="cp">%}</span><span class="x">&lt;/h1&gt;</span>
+<span class="x">&lt;p&gt;</span><span class="cp">{%</span> <span class="k">trans</span> <span class="s2">&quot;Complete your questionnaires&quot;</span> <span class="cp">%}</span><span class="x">&lt;/p&gt;</span>
+
+<span class="x">&lt;button&gt;</span><span class="cp">{%</span> <span class="k">trans</span> <span class="s2">&quot;Submit&quot;</span> <span class="cp">%}</span><span class="x">&lt;/button&gt;</span>
+</pre></div>
+</div>
+<p><strong>Translation with Variables:</strong></p>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">load</span> <span class="nv">i18n</span> <span class="cp">%}</span>
+
+<span class="cp">{%</span> <span class="k">blocktrans</span> <span class="k">with</span> <span class="nv">name</span><span class="o">=</span><span class="nv">patient.name</span> <span class="cp">%}</span>
+<span class="x">Welcome, </span><span class="cp">{{</span> <span class="nv">name</span> <span class="cp">}}</span><span class="x">!</span>
+<span class="cp">{%</span> <span class="k">endblocktrans</span> <span class="cp">%}</span>
+
+<span class="cp">{%</span> <span class="k">blocktrans</span> <span class="nv">count</span> <span class="nv">counter</span><span class="o">=</span><span class="nv">items</span><span class="o">|</span><span class="nf">length</span> <span class="cp">%}</span>
+<span class="x">You have </span><span class="cp">{{</span> <span class="nv">counter</span> <span class="cp">}}</span><span class="x"> questionnaire to complete.</span>
+<span class="cp">{%</span> <span class="k">plural</span> <span class="cp">%}</span>
+<span class="x">You have </span><span class="cp">{{</span> <span class="nv">counter</span> <span class="cp">}}</span><span class="x"> questionnaires to complete.</span>
+<span class="cp">{%</span> <span class="k">endblocktrans</span> <span class="cp">%}</span>
+</pre></div>
+</div>
+<p><strong>Translation with Context:</strong></p>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">load</span> <span class="nv">i18n</span> <span class="cp">%}</span>
+
+<span class="c">{# Context helps translators understand usage #}</span>
+<span class="cp">{%</span> <span class="k">trans</span> <span class="s2">&quot;Date&quot;</span> <span class="nv">context</span> <span class="s2">&quot;questionnaire submission date&quot;</span> <span class="cp">%}</span>
+<span class="cp">{%</span> <span class="k">trans</span> <span class="s2">&quot;Date&quot;</span> <span class="nv">context</span> <span class="s2">&quot;patient birth date&quot;</span> <span class="cp">%}</span>
+</pre></div>
+</div>
+</section>
+<section id="python-code-translation">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Python Code Translation</a><a class="headerlink" href="#python-code-translation" title="Link to this heading">¶</a></h3>
+<p>Use <code class="docutils literal notranslate"><span class="pre">gettext()</span></code> and related functions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext</span> <span class="k">as</span> <span class="n">_</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext_lazy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ngettext</span>
+
+<span class="c1"># Simple translation</span>
+<span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Questionnaire submitted successfully&quot;</span><span class="p">)</span>
+
+<span class="c1"># Lazy translation (for class-level definitions)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="n">gettext_lazy</span><span class="p">(</span><span class="s2">&quot;Patient Name&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+<span class="c1"># Plural forms</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_message</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ngettext</span><span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">%(count)d</span><span class="s2"> item completed&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;</span><span class="si">%(count)d</span><span class="s2"> items completed&quot;</span><span class="p">,</span>
+        <span class="n">count</span>
+    <span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="n">count</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="model-translation">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Model Translation</a><a class="headerlink" href="#model-translation" title="Link to this heading">¶</a></h3>
+<p>For model field help text and verbose names:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Patient</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+        <span class="n">max_length</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+        <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Patient Name&quot;</span><span class="p">),</span>
+        <span class="n">help_text</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Enter the patient&#39;s full name&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">verbose_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Patient&quot;</span><span class="p">)</span>
+        <span class="n">verbose_name_plural</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Patients&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="language-switching">
+<h2><a class="toc-backref" href="#id22" role="doc-backlink">Language Switching</a><a class="headerlink" href="#language-switching" title="Link to this heading">¶</a></h2>
+<section id="url-based-language-switching">
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">URL-Based Language Switching</a><a class="headerlink" href="#url-based-language-switching" title="Link to this heading">¶</a></h3>
+<p>SATHI uses <code class="docutils literal notranslate"><span class="pre">i18n_patterns</span></code> for language prefixes in URLs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># chaviprom/urls.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.conf.urls.i18n</span><span class="w"> </span><span class="kn">import</span> <span class="n">i18n_patterns</span>
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="n">i18n_patterns</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">(</span><span class="s1">&#39;patients/&#39;</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s1">&#39;patientapp.urls&#39;</span><span class="p">)),</span>
+    <span class="n">path</span><span class="p">(</span><span class="s1">&#39;questionnaires/&#39;</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s1">&#39;promapp.urls&#39;</span><span class="p">)),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>URL Examples:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">/en/patients/</span></code> - English</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/hi/patients/</span></code> - Hindi</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/ta/patients/</span></code> - Tamil</p></li>
+</ul>
+</section>
+<section id="middleware-configuration">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Middleware Configuration</a><a class="headerlink" href="#middleware-configuration" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py</span>
+<span class="n">MIDDLEWARE</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;django.middleware.security.SecurityMiddleware&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;django.contrib.sessions.middleware.SessionMiddleware&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;django.middleware.locale.LocaleMiddleware&#39;</span><span class="p">,</span>  <span class="c1"># Language detection</span>
+    <span class="s1">&#39;django.middleware.common.CommonMiddleware&#39;</span><span class="p">,</span>
+    <span class="c1"># ... other middleware</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="language-selector-widget">
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">Language Selector Widget</a><a class="headerlink" href="#language-selector-widget" title="Link to this heading">¶</a></h3>
+<p>The navbar includes a language dropdown:</p>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">load</span> <span class="nv">i18n</span> <span class="cp">%}</span>
+
+<span class="x">&lt;form action=&quot;</span><span class="cp">{%</span> <span class="k">url</span> <span class="s1">&#39;set_language&#39;</span> <span class="cp">%}</span><span class="x">&quot; method=&quot;post&quot;&gt;</span>
+<span class="x">    </span><span class="cp">{%</span> <span class="k">csrf_token</span> <span class="cp">%}</span>
+<span class="x">    &lt;select name=&quot;language&quot; onchange=&quot;this.form.submit()&quot;&gt;</span>
+<span class="x">        </span><span class="cp">{%</span> <span class="k">get_available_languages</span> <span class="k">as</span> <span class="nv">languages</span> <span class="cp">%}</span>
+<span class="x">        </span><span class="cp">{%</span> <span class="k">for</span> <span class="nv">lang_code</span><span class="o">,</span> <span class="nv">lang_name</span> <span class="k">in</span> <span class="nv">languages</span> <span class="cp">%}</span>
+<span class="x">            &lt;option value=&quot;</span><span class="cp">{{</span> <span class="nv">lang_code</span> <span class="cp">}}</span><span class="x">&quot;</span>
+<span class="x">                </span><span class="cp">{%</span> <span class="k">if</span> <span class="nv">lang_code</span> <span class="o">==</span> <span class="nv">LANGUAGE_CODE</span> <span class="cp">%}</span><span class="x">selected</span><span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span><span class="x">&gt;</span>
+<span class="x">                </span><span class="cp">{{</span> <span class="nv">lang_name</span> <span class="cp">}}</span>
+<span class="x">            &lt;/option&gt;</span>
+<span class="x">        </span><span class="cp">{%</span> <span class="k">endfor</span> <span class="cp">%}</span>
+<span class="x">    &lt;/select&gt;</span>
+<span class="x">&lt;/form&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="session-based-language-preference">
+<h3><a class="toc-backref" href="#id26" role="doc-backlink">Session-Based Language Preference</a><a class="headerlink" href="#session-based-language-preference" title="Link to this heading">¶</a></h3>
+<p>Language preference is stored in the user’s session:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In views</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">activate</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">set_user_language</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">language_code</span><span class="p">):</span>
+    <span class="n">activate</span><span class="p">(</span><span class="n">language_code</span><span class="p">)</span>
+    <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="n">LANGUAGE_SESSION_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">language_code</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTP_REFERER&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="translation-workflow">
+<h2><a class="toc-backref" href="#id27" role="doc-backlink">Translation Workflow</a><a class="headerlink" href="#translation-workflow" title="Link to this heading">¶</a></h2>
+<section id="development-workflow">
+<h3><a class="toc-backref" href="#id28" role="doc-backlink">Development Workflow</a><a class="headerlink" href="#development-workflow" title="Link to this heading">¶</a></h3>
+<ol class="arabic">
+<li><p><strong>Mark Strings for Translation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In Python</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext</span> <span class="k">as</span> <span class="n">_</span>
+<span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Hello, world!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="c">{# In templates #}</span>
+<span class="cp">{%</span> <span class="k">trans</span> <span class="s2">&quot;Hello, world!&quot;</span> <span class="cp">%}</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Extract Messages</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>makemessages<span class="w"> </span>-l<span class="w"> </span>ta<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;venv&quot;</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;node_modules&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Translate Strings</strong></p>
+<p>Edit <code class="docutils literal notranslate"><span class="pre">locale/ta/LC_MESSAGES/django.po</span></code></p>
+</li>
+<li><p><strong>Compile Messages</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>compilemessages<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;venv&quot;</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;node_modules&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Test Translations</strong></p>
+<ul class="simple">
+<li><p>Switch language in UI</p></li>
+<li><p>Verify all strings are translated</p></li>
+<li><p>Check for encoding issues</p></li>
+</ul>
+</li>
+<li><p><strong>Commit Changes</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>add<span class="w"> </span>locale/
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Add Tamil translations&quot;</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="production-deployment">
+<h3><a class="toc-backref" href="#id29" role="doc-backlink">Production Deployment</a><a class="headerlink" href="#production-deployment" title="Link to this heading">¶</a></h3>
+<ol class="arabic">
+<li><p><strong>Pull Latest Translations</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </span>main
+</pre></div>
+</div>
+</li>
+<li><p><strong>Compile Messages</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>compilemessages<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;venv&quot;</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;node_modules&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Collect Static Files</strong> (if needed)</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>collectstatic<span class="w"> </span>--noinput
+</pre></div>
+</div>
+</li>
+<li><p><strong>Restart Application</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span class="w"> </span>chaviprom
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+</section>
+<section id="translation-file-structure">
+<h2><a class="toc-backref" href="#id30" role="doc-backlink">Translation File Structure</a><a class="headerlink" href="#translation-file-structure" title="Link to this heading">¶</a></h2>
+<section id="directory-layout">
+<h3><a class="toc-backref" href="#id31" role="doc-backlink">Directory Layout</a><a class="headerlink" href="#directory-layout" title="Link to this heading">¶</a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>chaviprom/
+├── locale/
+│   ├── en/
+│   │   └── LC_MESSAGES/
+│   │       ├── django.po
+│   │       └── django.mo
+│   ├── hi/
+│   │   └── LC_MESSAGES/
+│   │       ├── django.po
+│   │       └── django.mo
+│   ├── bn/
+│   │   └── LC_MESSAGES/
+│   │       ├── django.po
+│   │       └── django.mo
+│   └── ta/
+│       └── LC_MESSAGES/
+│           ├── django.po
+│           └── django.mo
+</pre></div>
+</div>
+</section>
+<section id="po-file-format">
+<h3><a class="toc-backref" href="#id32" role="doc-backlink">PO File Format</a><a class="headerlink" href="#po-file-format" title="Link to this heading">¶</a></h3>
+<div class="highlight-po notranslate"><div class="highlight"><pre><span></span><span class="c1"># Translation metadata</span>
+<span class="nv">msgid</span> <span class="s">&quot;&quot;</span>
+<span class="nv">msgstr</span> <span class="s">&quot;&quot;</span>
+<span class="s">&quot;</span><span class="py">Project-Id-Version:</span><span class="s"> SATHI 1.0\n&quot;</span>
+<span class="s">&quot;</span><span class="py">Report-Msgid-Bugs-To:</span><span class="s"> \n&quot;</span>
+<span class="s">&quot;</span><span class="py">POT-Creation-Date:</span><span class="s"> 2026-04-22 19:00+0530\n&quot;</span>
+<span class="s">&quot;</span><span class="py">Language:</span><span class="s"> ta\n&quot;</span>
+<span class="s">&quot;</span><span class="py">MIME-Version:</span><span class="s"> 1.0\n&quot;</span>
+<span class="s">&quot;</span><span class="py">Content-Type:</span><span class="s"> text/plain; charset=UTF-8\n&quot;</span>
+
+<span class="c1"># Simple translation</span>
+<span class="kd">#: templates/navbar.html:15</span>
+<span class="nv">msgid</span> <span class="s">&quot;Home&quot;</span>
+<span class="nv">msgstr</span> <span class="s">&quot;முகப்பு&quot;</span>
+
+<span class="c1"># Translation with context</span>
+<span class="kd">#: promapp/views.py:45</span>
+<span class="nv">msgctxt</span> <span class="s">&quot;questionnaire status&quot;</span>
+<span class="nv">msgid</span> <span class="s">&quot;Completed&quot;</span>
+<span class="nv">msgstr</span> <span class="s">&quot;முடிந்தது&quot;</span>
+
+<span class="c1"># Plural forms</span>
+<span class="kd">#: promapp/views.py:67</span>
+<span class="nv">msgid</span> <span class="s">&quot;%(count)d questionnaire&quot;</span>
+<span class="nv">msgid_plural</span> <span class="s">&quot;%(count)d questionnaires&quot;</span>
+<span class="nv">msgstr[</span><span class="mi">0</span><span class="nv">]</span> <span class="s">&quot;%(count)d கேள்வித்தாள்&quot;</span>
+<span class="nv">msgstr[</span><span class="mi">1</span><span class="nv">]</span> <span class="s">&quot;%(count)d கேள்வித்தாள்கள்&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices">
+<h2><a class="toc-backref" href="#id33" role="doc-backlink">Best Practices</a><a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<section id="translation-guidelines">
+<h3><a class="toc-backref" href="#id34" role="doc-backlink">Translation Guidelines</a><a class="headerlink" href="#translation-guidelines" title="Link to this heading">¶</a></h3>
+<ol class="arabic">
+<li><p><strong>Use Descriptive Context</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Good</span>
+<span class="n">_</span><span class="p">(</span><span class="s2">&quot;Date&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;submission date&quot;</span><span class="p">)</span>
+<span class="n">_</span><span class="p">(</span><span class="s2">&quot;Date&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;birth date&quot;</span><span class="p">)</span>
+
+<span class="c1"># Avoid</span>
+<span class="n">_</span><span class="p">(</span><span class="s2">&quot;Date&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Avoid String Concatenation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Bad</span>
+<span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Welcome&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">user</span><span class="o">.</span><span class="n">name</span>
+
+<span class="c1"># Good</span>
+<span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Welcome, </span><span class="si">%(name)s</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Use Lazy Translation for Class Definitions</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+     <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Keep Translations in Sync</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Update all language files when adding new strings</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>makemessages<span class="w"> </span>-a<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;venv&quot;</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;node_modules&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Test All Languages</strong></p>
+<ul class="simple">
+<li><p>Switch to each language</p></li>
+<li><p>Verify UI renders correctly</p></li>
+<li><p>Check for text overflow</p></li>
+<li><p>Validate special characters</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="font-configuration">
+<h3><a class="toc-backref" href="#id35" role="doc-backlink">Font Configuration</a><a class="headerlink" href="#font-configuration" title="Link to this heading">¶</a></h3>
+<p>Different languages may require different fonts:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py</span>
+<span class="n">LANGUAGE_FONTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;en&#39;</span><span class="p">:</span> <span class="s1">&#39;Arial, sans-serif&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hi&#39;</span><span class="p">:</span> <span class="s1">&#39;Noto Sans Devanagari, sans-serif&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;bn&#39;</span><span class="p">:</span> <span class="s1">&#39;Noto Sans Bengali, sans-serif&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ta&#39;</span><span class="p">:</span> <span class="s1">&#39;Noto Sans Tamil, sans-serif&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In templates:</p>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">load</span> <span class="nv">i18n</span> <span class="cp">%}</span>
+
+<span class="x">&lt;style&gt;</span>
+<span class="x">    body {</span>
+<span class="x">        font-family: </span><span class="cp">{{</span> <span class="nv">LANGUAGE_FONTS</span><span class="o">|</span><span class="nf">get</span><span class="o">:</span><span class="nv">LANGUAGE_CODE</span> <span class="cp">}}</span><span class="x">;</span>
+<span class="x">    }</span>
+<span class="x">&lt;/style&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="rtl-language-support">
+<h3><a class="toc-backref" href="#id36" role="doc-backlink">RTL Language Support</a><a class="headerlink" href="#rtl-language-support" title="Link to this heading">¶</a></h3>
+<p>For right-to-left languages (Arabic, Urdu):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py</span>
+<span class="n">LANGUAGES_BIDI</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ar&#39;</span><span class="p">,</span> <span class="s1">&#39;ur&#39;</span><span class="p">,</span> <span class="s1">&#39;he&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">load</span> <span class="nv">i18n</span> <span class="cp">%}</span>
+
+<span class="x">&lt;html dir=&quot;</span><span class="cp">{%</span> <span class="k">if</span> <span class="nv">LANGUAGE_BIDI</span> <span class="cp">%}</span><span class="x">rtl</span><span class="cp">{%</span> <span class="k">else</span> <span class="cp">%}</span><span class="x">ltr</span><span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span><span class="x">&quot;&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="troubleshooting">
+<h2><a class="toc-backref" href="#id37" role="doc-backlink">Troubleshooting</a><a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h2>
+<section id="common-issues">
+<h3><a class="toc-backref" href="#id38" role="doc-backlink">Common Issues</a><a class="headerlink" href="#common-issues" title="Link to this heading">¶</a></h3>
+<p><strong>Translations Not Appearing</strong></p>
+<ol class="arabic">
+<li><p>Check <code class="docutils literal notranslate"><span class="pre">.mo</span></code> file exists:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ls<span class="w"> </span>locale/ta/LC_MESSAGES/django.mo
+</pre></div>
+</div>
+</li>
+<li><p>Recompile messages:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>compilemessages<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;venv&quot;</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;node_modules&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p>Restart server:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>runserver
+</pre></div>
+</div>
+</li>
+</ol>
+<p><strong>Encoding Errors</strong></p>
+<p>Ensure <code class="docutils literal notranslate"><span class="pre">.po</span></code> files use UTF-8:</p>
+<div class="highlight-po notranslate"><div class="highlight"><pre><span></span><span class="s">&quot;</span><span class="py">Content-Type:</span><span class="s"> text/plain; charset=UTF-8\n&quot;</span>
+</pre></div>
+</div>
+<p><strong>Missing Translations</strong></p>
+<p>Update message files:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>makemessages<span class="w"> </span>-l<span class="w"> </span>ta<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;venv&quot;</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;node_modules&quot;</span>
+</pre></div>
+</div>
+<p><strong>Fuzzy Translations</strong></p>
+<p>Remove <code class="docutils literal notranslate"><span class="pre">#,</span> <span class="pre">fuzzy</span></code> markers from <code class="docutils literal notranslate"><span class="pre">.po</span></code> files after reviewing translations.</p>
+</section>
+<section id="database-translations-not-showing">
+<h3><a class="toc-backref" href="#id39" role="doc-backlink">Database Translations Not Showing</a><a class="headerlink" href="#database-translations-not-showing" title="Link to this heading">¶</a></h3>
+<ol class="arabic">
+<li><p><strong>Check Parler Configuration</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Verify language is in PARLER_LANGUAGES</span>
+<span class="n">PARLER_LANGUAGES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="kc">None</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;ta&#39;</span><span class="p">},</span>  <span class="c1"># Must be here</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Verify Translation Exists</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">item</span> <span class="o">=</span> <span class="n">Item</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get_available_languages</span><span class="p">())</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Check Fallback Settings</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PARLER_LANGUAGES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;fallback&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;hide_untranslated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># Show English if translation missing</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+</section>
+<section id="testing-translations">
+<h2><a class="toc-backref" href="#id40" role="doc-backlink">Testing Translations</a><a class="headerlink" href="#testing-translations" title="Link to this heading">¶</a></h2>
+<section id="manual-testing">
+<h3><a class="toc-backref" href="#id41" role="doc-backlink">Manual Testing</a><a class="headerlink" href="#manual-testing" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Switch Language in UI</strong>
+- Use language selector in navbar
+- Verify URL changes (<code class="docutils literal notranslate"><span class="pre">/en/</span></code> → <code class="docutils literal notranslate"><span class="pre">/ta/</span></code>)</p></li>
+<li><p><strong>Check All Pages</strong>
+- Navigation menus
+- Forms and labels
+- Error messages
+- Help text</p></li>
+<li><p><strong>Test Database Content</strong>
+- Create questionnaire in English
+- Add Tamil translation
+- Switch language and verify</p></li>
+</ol>
+</section>
+<section id="automated-testing">
+<h3><a class="toc-backref" href="#id42" role="doc-backlink">Automated Testing</a><a class="headerlink" href="#automated-testing" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestCase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">activate</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TranslationTests</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_tamil_translation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">activate</span><span class="p">(</span><span class="s1">&#39;ta&#39;</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/patients/&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s1">&#39;நோயாளர்கள்&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_questionnaire_translation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">promapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Questionnaire</span>
+
+        <span class="n">q</span> <span class="o">=</span> <span class="n">Questionnaire</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+        <span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;en&#39;</span><span class="p">)</span>
+        <span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Health Survey&quot;</span>
+        <span class="n">q</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;ta&#39;</span><span class="p">)</span>
+        <span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;சுகாதார கணக்கெடுப்பு&quot;</span>
+        <span class="n">q</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;ta&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;சுகாதார கணக்கெடுப்பு&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="resources">
+<h2><a class="toc-backref" href="#id43" role="doc-backlink">Resources</a><a class="headerlink" href="#resources" title="Link to this heading">¶</a></h2>
+<section id="external-resources">
+<h3><a class="toc-backref" href="#id44" role="doc-backlink">External Resources</a><a class="headerlink" href="#external-resources" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.djangoproject.com/en/stable/topics/i18n/">Django Internationalization Documentation</a></p></li>
+<li><p><a class="reference external" href="https://django-parler.readthedocs.io/">Django Parler Documentation</a></p></li>
+<li><p><a class="reference external" href="https://poedit.net/">Poedit Translation Editor</a></p></li>
+<li><p><a class="reference external" href="https://www.gnu.org/software/gettext/manual/">GNU gettext Manual</a></p></li>
+</ul>
+</section>
+<section id="translation-services">
+<h3><a class="toc-backref" href="#id45" role="doc-backlink">Translation Services</a><a class="headerlink" href="#translation-services" title="Link to this heading">¶</a></h3>
+<p>For professional translations:</p>
+<ul class="simple">
+<li><p>Google Translate API (for initial drafts)</p></li>
+<li><p>Professional translation services</p></li>
+<li><p>Community translators</p></li>
+<li><p>Native speakers for review</p></li>
+</ul>
+</section>
+<section id="language-codes-reference">
+<h3><a class="toc-backref" href="#id46" role="doc-backlink">Language Codes Reference</a><a class="headerlink" href="#language-codes-reference" title="Link to this heading">¶</a></h3>
+<p>ISO 639-1 codes for Indian languages:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">as</span></code> - Assamese (অসমীয়া)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bn</span></code> - Bengali (বাংলা)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gu</span></code> - Gujarati (ગુજરાતી)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hi</span></code> - Hindi (हिन्दी)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kn</span></code> - Kannada (ಕನ್ನಡ)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ml</span></code> - Malayalam (മലയാളം)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mr</span></code> - Marathi (मराठी)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">or</span></code> - Odia (ଓଡ଼ିଆ)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pa</span></code> - Punjabi (ਪੰਜਾਬੀ)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ta</span></code> - Tamil (தமிழ்)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">te</span></code> - Telugu (తెలుగు)</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SATHI: Self Reported Assessment and Tracking for Health Insights</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../patient/index.html">Patient Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html">Security &amp; Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frontend_development.html">Frontend Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_components.html">UI Components Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_integration.html">Data Integration Guide</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Internationalization &amp; Translation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pwa_setup.html">Progressive Web App (PWA) Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html">Testing Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="docstring_guide.html">Writing Documentation</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Developer Documentation</a><ul>
+      <li>Previous: <a href="data_integration.html" title="previous chapter">Data Integration Guide</a></li>
+      <li>Next: <a href="pwa_setup.html" title="next chapter">Progressive Web App (PWA) Setup</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, CHAVI Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/developer/internationalization.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
