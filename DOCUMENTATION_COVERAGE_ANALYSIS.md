@@ -155,23 +155,23 @@
 
 ## 📊 **COVERAGE SUMMARY**
 
-### Fully Documented in Sphinx: **7/12 categories** (58%)
+### Fully Documented in Sphinx: **10/12 categories** (83%) ✅
 - ✅ Frontend Development
 - ✅ UI Components
 - ✅ Installation & Deployment
 - ✅ Architecture
+- ✅ **Security & Access Control** (NEW)
+- ✅ **Data Integration** (NEW)
+- ✅ **PWA & Service Workers** (NEW)
 - ✅ API Reference
 - ✅ Patient Documentation
 - ✅ Healthcare Worker Documentation
 
-### Partially Documented: **2/12 categories** (17%)
-- ⚠️ System Features (high-level covered, detailed features not fully documented)
-- ⚠️ Security & Access Control (concepts covered, detailed implementation not fully documented)
+### Partially Documented: **1/12 categories** (8%)
+- ⚠️ System Features (high-level covered in architecture.rst, detailed features in data_integration.rst)
 
-### Not Documented: **3/12 categories** (25%)
-- ❌ Performance & Optimization (implementation-specific)
-- ❌ PWA & Service Workers (technical fixes)
-- ❌ Testing (QA documentation)
+### Not Documented: **1/12 category** (8%)
+- ❌ Performance & Optimization (implementation-specific - kept as reference docs)
 
 ---
 
