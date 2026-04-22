@@ -9,7 +9,7 @@ Welcome to SATHI, an open-source Django application for collecting, managing, an
 
    <div style="text-align: center; margin: 40px 0;">
       <p style="font-size: 1.2em; color: #555;">
-         A comprehensive platform for patients, healthcare workers, and developers
+         A comprehensive platform for understanding patient concerns through PROMs and PREMs
       </p>
    </div>
 
