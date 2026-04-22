@@ -1,5 +1,8 @@
 Answering Questions
 ==========================
+.. contents:: Table of Contents
+   :local:
+   :depth: 2
 
 
 Viewing questionnaires that can be answered

@@ -1,5 +1,8 @@
 Assigning Questionnaires
 =========================
+.. contents:: Table of Contents
+   :local:
+   :depth: 2
 
 This page explains how to assign questionnaires to a patient, control their visibility, and schedule them for specific dates and times. All of these actions are done from the **Manage Questionnaires** page for a patient.
 

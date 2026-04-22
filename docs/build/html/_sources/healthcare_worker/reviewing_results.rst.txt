@@ -1,6 +1,11 @@
 Reviewing Results
 ==================
 
+.. contents:: Table of Contents
+   :local:
+   :depth: 2
+
+
 The PRO Review page is your central dashboard for viewing and analyzing patient questionnaire responses over time. This page helps you track patient outcomes, identify concerning trends, and compare individual patient scores against population data.
 
 Accessing the PRO Review Page

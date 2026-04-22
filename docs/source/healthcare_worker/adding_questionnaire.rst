@@ -1,5 +1,9 @@
 Adding Questionnaires
 ======================
+.. contents:: Table of Contents
+   :local:
+   :depth: 2
+
 
 This guide explains how to create Patient Reported Outcome Measures (PROMs) questionnaires in SATHI. Creating questionnaires involves a structured four-step process that must be followed in order.
 

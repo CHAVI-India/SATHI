@@ -1,6 +1,11 @@
 Two Factor Authentication 
 ==============================
 
+.. contents:: Table of Contents
+   :local:
+   :depth: 2
+
+
 The system supports and recommends two-factor authentication for additional security. Two factor authentication allows you to use another password which is separate from the usual password and can be generated on the fly such that an hacker cannot access your account even if they know the password. In order to set up this two-factor authentication you will need access to a Timed One Time Password (TOTP) application on your mobile phone. Some popular options are Google Authenticator (Android/iOS), Authy (Android/iOS), Microsoft Authenticator (Android/iOS) etc. 
 
 To setup two factor authentication, first log in to the portal. After logging in, please navigate to the top left where your username appears. Click on the dropdown and it will show a menu where the settings for two-factor authentication can be accessed.

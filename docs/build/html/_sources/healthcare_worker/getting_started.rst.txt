@@ -1,5 +1,8 @@
 Getting Started
 ====================================
+.. contents:: Table of Contents
+   :local:
+   :depth: 2
 
 This guide will help you get started with using SATHI as a healthcare worker.
 

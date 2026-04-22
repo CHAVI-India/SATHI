@@ -1,6 +1,10 @@
 Patient Management
 ==================
 
+.. contents:: Table of Contents
+   :local:
+   :depth: 2
+
 This page explains how to find patients, add new patients, view and update their details, and manage diagnoses and treatments.
 
 .. note::

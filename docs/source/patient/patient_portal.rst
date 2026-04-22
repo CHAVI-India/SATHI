@@ -1,5 +1,8 @@
 Viewing Your Results
 =====================
+.. contents:: Table of Contents
+   :local:
+   :depth: 2
 
 The patient portal has been designed to allow you to view the answers you have provided for the questionnaires yourself. This page shows all the answers you have provided and shows plots of your responses over a period of time.
 
