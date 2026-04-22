@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>UI Components Reference &#8212; SATHI: Self Reported Assessment and Tracking for Health Insights Version 2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=44449404"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Reference" href="api_reference.html" />
+    <link rel="prev" title="Frontend Development" href="frontend_development.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="ui-components-reference">
+<h1>UI Components Reference<a class="headerlink" href="#ui-components-reference" title="Link to this heading">¶</a></h1>
+<p>Complete reference for Django Cotton UI components used in SATHI.</p>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p></li>
+<li><p><a class="reference internal" href="#card-components" id="id2">Card Components</a></p>
+<ul>
+<li><p><a class="reference internal" href="#card-component" id="id3">Card Component</a></p></li>
+<li><p><a class="reference internal" href="#field-display-component" id="id4">Field Display Component</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#button-components" id="id5">Button Components</a></p>
+<ul>
+<li><p><a class="reference internal" href="#button-component" id="id6">Button Component</a></p></li>
+<li><p><a class="reference internal" href="#link-button-component" id="id7">Link Button Component</a></p></li>
+<li><p><a class="reference internal" href="#icon-button-component" id="id8">Icon Button Component</a></p></li>
+<li><p><a class="reference internal" href="#button-group-component" id="id9">Button Group Component</a></p></li>
+<li><p><a class="reference internal" href="#common-icon-paths" id="id10">Common Icon Paths</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#dropdown-components" id="id11">Dropdown Components</a></p>
+<ul>
+<li><p><a class="reference internal" href="#important-syntax-note" id="id12">Important Syntax Note</a></p></li>
+<li><p><a class="reference internal" href="#filter-dropdown" id="id13">Filter Dropdown</a></p></li>
+<li><p><a class="reference internal" href="#form-dropdown" id="id14">Form Dropdown</a></p></li>
+<li><p><a class="reference internal" href="#language-selector" id="id15">Language Selector</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#list-card-component" id="id16">List Card Component</a></p></li>
+<li><p><a class="reference internal" href="#paginator-component" id="id17">Paginator Component</a></p></li>
+<li><p><a class="reference internal" href="#best-practices" id="id18">Best Practices</a></p>
+<ul>
+<li><p><a class="reference internal" href="#component-usage" id="id19">Component Usage</a></p></li>
+<li><p><a class="reference internal" href="#responsive-design" id="id20">Responsive Design</a></p></li>
+<li><p><a class="reference internal" href="#accessibility" id="id21">Accessibility</a></p></li>
+<li><p><a class="reference internal" href="#performance" id="id22">Performance</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#resources" id="id23">Resources</a></p></li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>SATHI uses Django Cotton for reusable, maintainable UI components. All components follow consistent design patterns and support Tailwind CSS styling.</p>
+<p><strong>Key Benefits:</strong></p>
+<ul class="simple">
+<li><p>Consistent UI across the application</p></li>
+<li><p>Reduced code duplication</p></li>
+<li><p>Easier maintenance and updates</p></li>
+<li><p>Built-in accessibility features</p></li>
+<li><p>Mobile-responsive by default</p></li>
+</ul>
+</section>
+<section id="card-components">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Card Components</a><a class="headerlink" href="#card-components" title="Link to this heading">¶</a></h2>
+<section id="card-component">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Card Component</a><a class="headerlink" href="#card-component" title="Link to this heading">¶</a></h3>
+<p>Flexible container for structured content.</p>
+<p><strong>Basic Usage:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>{% load cotton %}
+
+<span class="p">&lt;</span><span class="nt">c-card</span> <span class="na">title</span><span class="o">=</span><span class="s">&quot;Patient Information&quot;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Card content goes here...<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">c-card</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+<p><strong>Props:</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Prop</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">title</span></code></p></td>
+<td><p>string</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>Card title/header text</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">subtitle</span></code></p></td>
+<td><p>string</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>Optional subtitle below title</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">header_actions</span></code></p></td>
+<td><p>string</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>HTML for header action buttons</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">footer</span></code></p></td>
+<td><p>string</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>HTML content for footer</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">shadow</span></code></p></td>
+<td><p>string</p></td>
+<td><p>“md”</p></td>
+<td><p>Shadow level: none, sm, md, lg, xl</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rounded</span></code></p></td>
+<td><p>string</p></td>
+<td><p>“md”</p></td>
+<td><p>Border radius: none, sm, md, lg, xl</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">border</span></code></p></td>
+<td><p>string</p></td>
+<td><p>“light”</p></td>
+<td><p>Border style: none, light, medium, strong</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">padding</span></code></p></td>
+<td><p>string</p></td>
+<td><p>“md”</p></td>
+<td><p>Padding level: none, sm, md, lg, xl</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">header_bg</span></code></p></td>
+<td><p>string</p></td>
+<td><p>“bg-gray-50”</p></td>
+<td><p>Header background color</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">body_bg</span></code></p></td>
+<td><p>string</p></td>
+<td><p>“bg-white”</p></td>
+<td><p>Body background color</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">footer_bg</span></code></p></td>
+<td><p>string</p></td>
+<td><p>“bg-gray-50”</p></td>
+<td><p>Footer background color</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Advanced Examples:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Card with header actions --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-card</span>
+    <span class="na">title</span><span class="o">=</span><span class="s">&quot;Diagnoses&quot;</span>
+    <span class="na">header_actions</span><span class="o">=</span><span class="s">&#39;&lt;button class=&quot;btn btn-primary&quot;&gt;Add New&lt;/button&gt;&#39;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Diagnoses list...<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">c-card</span><span class="p">&gt;</span>
+
+<span class="cm">&lt;!-- Card with footer --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-card</span>
+    <span class="na">title</span><span class="o">=</span><span class="s">&quot;Patient Details&quot;</span>
+    <span class="na">footer</span><span class="o">=</span><span class="s">&#39;&lt;div class=&quot;text-right&quot;&gt;&lt;button&gt;Save&lt;/button&gt;&lt;/div&gt;&#39;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Form fields...<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">c-card</span><span class="p">&gt;</span>
+
+<span class="cm">&lt;!-- Custom styling --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-card</span>
+    <span class="na">title</span><span class="o">=</span><span class="s">&quot;Important Notice&quot;</span>
+    <span class="na">shadow</span><span class="o">=</span><span class="s">&quot;lg&quot;</span>
+    <span class="na">rounded</span><span class="o">=</span><span class="s">&quot;xl&quot;</span>
+    <span class="na">border</span><span class="o">=</span><span class="s">&quot;strong&quot;</span>
+    <span class="na">header_bg</span><span class="o">=</span><span class="s">&quot;bg-red-50&quot;</span>
+    <span class="na">body_bg</span><span class="o">=</span><span class="s">&quot;bg-red-100&quot;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Critical information...<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">c-card</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+<p><strong>Mobile Responsiveness:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Responsive content inside cards --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-card</span> <span class="na">title</span><span class="o">=</span><span class="s">&quot;Patient Info&quot;</span> <span class="na">padding</span><span class="o">=</span><span class="s">&quot;md&quot;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;flex flex-col sm:flex-row sm:justify-between gap-3&quot;</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;flex-1 min-w-0&quot;</span><span class="p">&gt;</span>
+            <span class="p">&lt;</span><span class="nt">h3</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;truncate&quot;</span><span class="p">&gt;</span>{{ patient.name }}<span class="p">&lt;/</span><span class="nt">h3</span><span class="p">&gt;</span>
+            <span class="p">&lt;</span><span class="nt">p</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;text-sm text-gray-600&quot;</span><span class="p">&gt;</span>{{ patient.id }}<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+        <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;flex space-x-2 sm:flex-shrink-0&quot;</span><span class="p">&gt;</span>
+            <span class="cm">&lt;!-- Action buttons --&gt;</span>
+        <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">c-card</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="field-display-component">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Field Display Component</a><a class="headerlink" href="#field-display-component" title="Link to this heading">¶</a></h3>
+<p>Display label-value pairs with optional badge styling.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-field_display</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Patient Name&quot;</span>
+    <span class="na">value</span><span class="o">=</span><span class="s">&quot;{{ patient.name }}&quot;</span> <span class="p">/&gt;</span>
+
+<span class="cm">&lt;!-- With badge --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-field_display</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Status&quot;</span>
+    <span class="na">value</span><span class="o">=</span><span class="s">&quot;Active&quot;</span>
+    <span class="na">badge</span><span class="o">=</span><span class="s">&quot;true&quot;</span>
+    <span class="na">badge_color</span><span class="o">=</span><span class="s">&quot;green&quot;</span> <span class="p">/&gt;</span>
+</pre></div>
+</div>
+<p><strong>Props:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">label</span></code> - Field label text</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">value</span></code> - Field value to display</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">badge</span></code> - Display as badge (true/false)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">badge_color</span></code> - Badge color: blue, green, red, yellow, gray</p></li>
+</ul>
+</section>
+</section>
+<section id="button-components">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Button Components</a><a class="headerlink" href="#button-components" title="Link to this heading">¶</a></h2>
+<section id="button-component">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Button Component</a><a class="headerlink" href="#button-component" title="Link to this heading">¶</a></h3>
+<p>Versatile button with multiple variants and sizes.</p>
+<p><strong>Props:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">variant</span></code> - Style: primary, secondary, danger, success, outline, ghost</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code> - Size: sm, md, lg, xl</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code> - Type: button, submit, reset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">disabled</span></code> - Boolean</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">full_width</span></code> - Boolean</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">loading</span></code> - Boolean</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">icon_left</span></code> - SVG path for left icon</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">icon_right</span></code> - SVG path for right icon</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">href</span></code> - URL for navigation</p></li>
+<li><p>HTMX attributes: <code class="docutils literal notranslate"><span class="pre">hx_get</span></code>, <code class="docutils literal notranslate"><span class="pre">hx_post</span></code>, <code class="docutils literal notranslate"><span class="pre">hx_target</span></code>, <code class="docutils literal notranslate"><span class="pre">hx_swap</span></code>, <code class="docutils literal notranslate"><span class="pre">hx_trigger</span></code>, <code class="docutils literal notranslate"><span class="pre">hx_confirm</span></code></p></li>
+</ul>
+<p><strong>Examples:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Basic primary button --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-button</span><span class="p">&gt;</span>Save<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+
+<span class="cm">&lt;!-- Secondary button with icon --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-button</span>
+    <span class="na">variant</span><span class="o">=</span><span class="s">&quot;secondary&quot;</span>
+    <span class="na">icon_left</span><span class="o">=</span><span class="s">&quot;&lt;path d=&#39;M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z&#39;/&gt;&quot;</span><span class="p">&gt;</span>
+    Add New
+<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+
+<span class="cm">&lt;!-- Danger button with confirmation --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-button</span>
+    <span class="na">variant</span><span class="o">=</span><span class="s">&quot;danger&quot;</span>
+    <span class="na">hx_post</span><span class="o">=</span><span class="s">&quot;/delete/123/&quot;</span>
+    <span class="na">hx_confirm</span><span class="o">=</span><span class="s">&quot;Are you sure?&quot;</span><span class="p">&gt;</span>
+    Delete
+<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+
+<span class="cm">&lt;!-- Loading button --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">loading</span><span class="o">=</span><span class="s">&quot;true&quot;</span><span class="p">&gt;</span>
+    Processing...
+<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+
+<span class="cm">&lt;!-- Full width button --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">full_width</span><span class="o">=</span><span class="s">&quot;true&quot;</span><span class="p">&gt;</span>
+    Full Width Button
+<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="link-button-component">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Link Button Component</a><a class="headerlink" href="#link-button-component" title="Link to this heading">¶</a></h3>
+<p>Button-styled anchor tag for navigation.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Navigation button --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-link_button</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;{% url &#39;questionnaire_list&#39; %}&quot;</span><span class="p">&gt;</span>
+    View Questionnaires
+<span class="p">&lt;/</span><span class="nt">c-link_button</span><span class="p">&gt;</span>
+
+<span class="cm">&lt;!-- External link --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-link_button</span>
+    <span class="na">href</span><span class="o">=</span><span class="s">&quot;https://example.com&quot;</span>
+    <span class="na">target</span><span class="o">=</span><span class="s">&quot;_blank&quot;</span>
+    <span class="na">variant</span><span class="o">=</span><span class="s">&quot;outline&quot;</span><span class="p">&gt;</span>
+    External Link
+<span class="p">&lt;/</span><span class="nt">c-link_button</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="icon-button-component">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Icon Button Component</a><a class="headerlink" href="#icon-button-component" title="Link to this heading">¶</a></h3>
+<p>Button containing only an icon.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Edit button --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-icon_button</span>
+    <span class="na">icon</span><span class="o">=</span><span class="s">&quot;&lt;path d=&#39;M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.828-2.828z&#39;/&gt;&quot;</span>
+    <span class="na">aria_label</span><span class="o">=</span><span class="s">&quot;Edit&quot;</span>
+    <span class="na">title</span><span class="o">=</span><span class="s">&quot;Edit item&quot;</span>
+    <span class="na">variant</span><span class="o">=</span><span class="s">&quot;ghost&quot;</span> <span class="p">/&gt;</span>
+
+<span class="cm">&lt;!-- Delete button with HTMX --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-icon_button</span>
+    <span class="na">icon</span><span class="o">=</span><span class="s">&quot;&lt;path fill-rule=&#39;evenodd&#39; d=&#39;M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z&#39; clip-rule=&#39;evenodd&#39;/&gt;&quot;</span>
+    <span class="na">variant</span><span class="o">=</span><span class="s">&quot;danger&quot;</span>
+    <span class="na">size</span><span class="o">=</span><span class="s">&quot;sm&quot;</span>
+    <span class="na">hx_delete</span><span class="o">=</span><span class="s">&quot;/api/item/123/&quot;</span>
+    <span class="na">hx_confirm</span><span class="o">=</span><span class="s">&quot;Delete this item?&quot;</span>
+    <span class="na">aria_label</span><span class="o">=</span><span class="s">&quot;Delete&quot;</span> <span class="p">/&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="button-group-component">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Button Group Component</a><a class="headerlink" href="#button-group-component" title="Link to this heading">¶</a></h3>
+<p>Groups related buttons together.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Horizontal button group --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-button_group</span> <span class="na">rounded</span><span class="o">=</span><span class="s">&quot;true&quot;</span> <span class="na">shadow</span><span class="o">=</span><span class="s">&quot;true&quot;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">&quot;outline&quot;</span><span class="p">&gt;</span>Previous<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">&quot;outline&quot;</span><span class="p">&gt;</span>Next<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">c-button_group</span><span class="p">&gt;</span>
+
+<span class="cm">&lt;!-- Vertical button group --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-button_group</span> <span class="na">vertical</span><span class="o">=</span><span class="s">&quot;true&quot;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">&quot;secondary&quot;</span><span class="p">&gt;</span>Edit<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">&quot;secondary&quot;</span><span class="p">&gt;</span>Duplicate<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">&quot;danger&quot;</span><span class="p">&gt;</span>Delete<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">c-button_group</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="common-icon-paths">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Common Icon Paths</a><a class="headerlink" href="#common-icon-paths" title="Link to this heading">¶</a></h3>
+<p>Heroicons SVG paths for common actions:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Plus icon --&gt;</span>
+<span class="p">&lt;</span><span class="nt">path</span> <span class="na">fill-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span> <span class="na">d</span><span class="o">=</span><span class="s">&quot;M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z&quot;</span> <span class="na">clip-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span> <span class="p">/&gt;</span>
+
+<span class="cm">&lt;!-- Edit/Pencil icon --&gt;</span>
+<span class="p">&lt;</span><span class="nt">path</span> <span class="na">d</span><span class="o">=</span><span class="s">&quot;M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.828-2.828z&quot;</span><span class="p">/&gt;</span>
+
+<span class="cm">&lt;!-- Trash/Delete icon --&gt;</span>
+<span class="p">&lt;</span><span class="nt">path</span> <span class="na">fill-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span> <span class="na">d</span><span class="o">=</span><span class="s">&quot;M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z&quot;</span> <span class="na">clip-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span><span class="p">/&gt;</span>
+
+<span class="cm">&lt;!-- Eye/View icon --&gt;</span>
+<span class="p">&lt;</span><span class="nt">path</span> <span class="na">d</span><span class="o">=</span><span class="s">&quot;M10 12a2 2 0 100-4 2 2 0 000 4z&quot;</span><span class="p">/&gt;&lt;</span><span class="nt">path</span> <span class="na">fill-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span> <span class="na">d</span><span class="o">=</span><span class="s">&quot;M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z&quot;</span> <span class="na">clip-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span><span class="p">/&gt;</span>
+
+<span class="cm">&lt;!-- Search icon --&gt;</span>
+<span class="p">&lt;</span><span class="nt">path</span> <span class="na">fill-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span> <span class="na">d</span><span class="o">=</span><span class="s">&quot;M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z&quot;</span> <span class="na">clip-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span><span class="p">/&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="dropdown-components">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Dropdown Components</a><a class="headerlink" href="#dropdown-components" title="Link to this heading">¶</a></h2>
+<section id="important-syntax-note">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Important Syntax Note</a><a class="headerlink" href="#important-syntax-note" title="Link to this heading">¶</a></h3>
+<p>When passing dynamic values to Django Cotton components, use the <code class="docutils literal notranslate"><span class="pre">:</span></code> prefix:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">:options=&quot;variable_name&quot;</span></code> instead of <code class="docutils literal notranslate"><span class="pre">options=variable_name</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:selected=&quot;request.GET.field&quot;</span></code> instead of <code class="docutils literal notranslate"><span class="pre">selected=request.GET.field</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:errors=&quot;form.field.errors&quot;</span></code> instead of <code class="docutils literal notranslate"><span class="pre">errors=form.field.errors</span></code></p></li>
+</ul>
+<p>Static strings can be passed without the <code class="docutils literal notranslate"><span class="pre">:</span></code> prefix.</p>
+</section>
+<section id="filter-dropdown">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Filter Dropdown</a><a class="headerlink" href="#filter-dropdown" title="Link to this heading">¶</a></h3>
+<p>For search/filter forms with HTMX integration.</p>
+<p><strong>Props:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> - Select element name (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">label</span></code> - Label text (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">placeholder</span></code> - Default option text</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">options</span></code> - List of options (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">selected</span></code> - Currently selected value</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">required</span></code> - Boolean</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">help_text</span></code> - Help text below dropdown</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hx_get</span></code> - HTMX get URL</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hx_target</span></code> - HTMX target element</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hx_trigger</span></code> - HTMX trigger event (default: “change”)</p></li>
+</ul>
+<p><strong>Examples:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Basic filter dropdown --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-filter_dropdown</span>
+    <span class="na">name</span><span class="o">=</span><span class="s">&quot;institution&quot;</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Institution&quot;</span>
+    <span class="na">placeholder</span><span class="o">=</span><span class="s">&quot;All Institutions&quot;</span>
+    <span class="na">:options</span><span class="o">=</span><span class="s">&quot;institutions&quot;</span>
+    <span class="na">:selected</span><span class="o">=</span><span class="s">&quot;request.GET.institution&quot;</span> <span class="p">/&gt;</span>
+
+<span class="cm">&lt;!-- With HTMX integration --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-filter_dropdown</span>
+    <span class="na">name</span><span class="o">=</span><span class="s">&quot;gender&quot;</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Gender&quot;</span>
+    <span class="na">placeholder</span><span class="o">=</span><span class="s">&quot;All Genders&quot;</span>
+    <span class="na">:options</span><span class="o">=</span><span class="s">&quot;gender_choices&quot;</span>
+    <span class="na">:selected</span><span class="o">=</span><span class="s">&quot;request.GET.gender&quot;</span>
+    <span class="na">hx_get</span><span class="o">=</span><span class="s">&quot;{% url &#39;patient_list&#39; %}&quot;</span>
+    <span class="na">hx_target</span><span class="o">=</span><span class="s">&quot;#patientsTable&quot;</span> <span class="p">/&gt;</span>
+
+<span class="cm">&lt;!-- With help text --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-filter_dropdown</span>
+    <span class="na">name</span><span class="o">=</span><span class="s">&quot;diagnosis&quot;</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Diagnosis&quot;</span>
+    <span class="na">placeholder</span><span class="o">=</span><span class="s">&quot;All Diagnoses&quot;</span>
+    <span class="na">:options</span><span class="o">=</span><span class="s">&quot;diagnoses&quot;</span>
+    <span class="na">:selected</span><span class="o">=</span><span class="s">&quot;request.GET.diagnosis&quot;</span>
+    <span class="na">help_text</span><span class="o">=</span><span class="s">&quot;Select a diagnosis to filter patients&quot;</span> <span class="p">/&gt;</span>
+</pre></div>
+</div>
+<p><strong>Option Formats:</strong></p>
+<ol class="arabic">
+<li><p>Objects with id/name attributes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">institutions</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Hospital A&#39;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Hospital B&#39;</span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</li>
+<li><p>Tuples (value, label):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gender_choices</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="s1">&#39;Male&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;Female&#39;</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</li>
+<li><p>Simple strings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">diagnoses</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Cancer&#39;</span><span class="p">,</span> <span class="s1">&#39;Diabetes&#39;</span><span class="p">,</span> <span class="s1">&#39;Heart Disease&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="form-dropdown">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Form Dropdown</a><a class="headerlink" href="#form-dropdown" title="Link to this heading">¶</a></h3>
+<p>For Django form fields with validation support.</p>
+<p><strong>Additional Props:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">errors</span></code> - Form field errors to display</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_link</span></code> - URL for creating new options</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_text</span></code> - Text for create link (default: “Create new option”)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_link_target</span></code> - Target for create link</p></li>
+</ul>
+<p><strong>Examples:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Basic form dropdown --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-form_dropdown</span>
+    <span class="na">name</span><span class="o">=</span><span class="s">&quot;construct_scale&quot;</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Construct Scale&quot;</span>
+    <span class="na">placeholder</span><span class="o">=</span><span class="s">&quot;---------&quot;</span>
+    <span class="na">:options</span><span class="o">=</span><span class="s">&quot;form.construct_scale.field.queryset&quot;</span>
+    <span class="na">:selected</span><span class="o">=</span><span class="s">&quot;form.construct_scale.value&quot;</span>
+    <span class="na">:errors</span><span class="o">=</span><span class="s">&quot;form.construct_scale.errors&quot;</span>
+    <span class="na">required</span><span class="o">=</span><span class="s">true</span> <span class="p">/&gt;</span>
+
+<span class="cm">&lt;!-- With create link --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-form_dropdown</span>
+    <span class="na">name</span><span class="o">=</span><span class="s">&quot;likert_response&quot;</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Likert Scale&quot;</span>
+    <span class="na">:options</span><span class="o">=</span><span class="s">&quot;likert_scales&quot;</span>
+    <span class="na">:selected</span><span class="o">=</span><span class="s">&quot;form.likert_response.value&quot;</span>
+    <span class="na">:errors</span><span class="o">=</span><span class="s">&quot;form.likert_response.errors&quot;</span>
+    <span class="na">create_link</span><span class="o">=</span><span class="s">&quot;{% url &#39;likert_scale_create&#39; %}&quot;</span>
+    <span class="na">create_text</span><span class="o">=</span><span class="s">&quot;Create new Likert scale&quot;</span>
+    <span class="na">create_link_target</span><span class="o">=</span><span class="s">&quot;_blank&quot;</span> <span class="p">/&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="language-selector">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">Language Selector</a><a class="headerlink" href="#language-selector" title="Link to this heading">¶</a></h3>
+<p>For navbar language switching.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-language_selector</span> <span class="p">/&gt;</span>
+</pre></div>
+</div>
+<p>Automatically displays available languages from Django settings.</p>
+</section>
+</section>
+<section id="list-card-component">
+<h2><a class="toc-backref" href="#id16" role="doc-backlink">List Card Component</a><a class="headerlink" href="#list-card-component" title="Link to this heading">¶</a></h2>
+<p>Display items in a card-based list layout.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-list_card</span>
+    <span class="na">items</span><span class="o">=</span><span class="s">&quot;{{ patients }}&quot;</span>
+    <span class="na">title_field</span><span class="o">=</span><span class="s">&quot;name&quot;</span>
+    <span class="na">subtitle_field</span><span class="o">=</span><span class="s">&quot;patient_id&quot;</span>
+    <span class="na">url_field</span><span class="o">=</span><span class="s">&quot;get_absolute_url&quot;</span> <span class="p">/&gt;</span>
+</pre></div>
+</div>
+<p><strong>Props:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">items</span></code> - List of items to display</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">title_field</span></code> - Field name for title</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">subtitle_field</span></code> - Field name for subtitle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">url_field</span></code> - Field name for detail URL</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">badge_field</span></code> - Field name for badge text</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">badge_color</span></code> - Badge color</p></li>
+</ul>
+</section>
+<section id="paginator-component">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Paginator Component</a><a class="headerlink" href="#paginator-component" title="Link to this heading">¶</a></h2>
+<p>Responsive pagination for Django ListView.</p>
+<p><strong>Basic Usage:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-paginator</span>
+    <span class="na">:page_obj</span><span class="o">=</span><span class="s">&quot;page_obj&quot;</span>
+    <span class="na">:is_paginated</span><span class="o">=</span><span class="s">&quot;is_paginated&quot;</span> <span class="p">/&gt;</span>
+</pre></div>
+</div>
+<p><strong>Props:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">page_obj</span></code> - Django Page object (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_paginated</span></code> - Boolean (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">show_info</span></code> - Show result count (default: true)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">show_page_numbers</span></code> - Show page numbers (default: true)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">preserve_params</span></code> - Preserve URL parameters (default: true)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">class</span></code> - Additional CSS classes</p></li>
+</ul>
+<p><strong>Features:</strong></p>
+<ul class="simple">
+<li><p><strong>Responsive</strong>: Mobile shows Previous/Next only, desktop shows full pagination</p></li>
+<li><p><strong>Accessible</strong>: ARIA labels and keyboard navigation</p></li>
+<li><p><strong>HTMX Integration</strong>: Built-in support for partial page updates</p></li>
+<li><p><strong>URL Preservation</strong>: Maintains search and filter parameters</p></li>
+</ul>
+<p><strong>Examples:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Full pagination --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-paginator</span>
+    <span class="na">:page_obj</span><span class="o">=</span><span class="s">&quot;page_obj&quot;</span>
+    <span class="na">:is_paginated</span><span class="o">=</span><span class="s">&quot;is_paginated&quot;</span>
+    <span class="na">show_info</span><span class="o">=</span><span class="s">&quot;true&quot;</span>
+    <span class="na">show_page_numbers</span><span class="o">=</span><span class="s">&quot;true&quot;</span>
+    <span class="na">class</span><span class="o">=</span><span class="s">&quot;my-8&quot;</span> <span class="p">/&gt;</span>
+
+<span class="cm">&lt;!-- Minimal pagination (mobile-friendly) --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-paginator</span>
+    <span class="na">:page_obj</span><span class="o">=</span><span class="s">&quot;page_obj&quot;</span>
+    <span class="na">:is_paginated</span><span class="o">=</span><span class="s">&quot;is_paginated&quot;</span>
+    <span class="na">show_info</span><span class="o">=</span><span class="s">&quot;false&quot;</span>
+    <span class="na">show_page_numbers</span><span class="o">=</span><span class="s">&quot;false&quot;</span> <span class="p">/&gt;</span>
+</pre></div>
+</div>
+<p><strong>Django View Setup:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.views.generic</span><span class="w"> </span><span class="kn">import</span> <span class="n">ListView</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PatientListView</span><span class="p">(</span><span class="n">ListView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Patient</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s1">&#39;patientapp/patient_list.html&#39;</span>
+    <span class="n">context_object_name</span> <span class="o">=</span> <span class="s1">&#39;patients&#39;</span>
+    <span class="n">paginate_by</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># Items per page</span>
+</pre></div>
+</div>
+<p><strong>Template Integration:</strong></p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>{% extends &#39;base.html&#39; %}
+{% load cotton %}
+
+{% block content %}
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;container mx-auto px-4&quot;</span><span class="p">&gt;</span>
+    {% for patient in patients %}
+        <span class="cm">&lt;!-- Patient cards --&gt;</span>
+    {% endfor %}
+
+    <span class="p">&lt;</span><span class="nt">c-paginator</span>
+        <span class="na">:page_obj</span><span class="o">=</span><span class="s">&quot;page_obj&quot;</span>
+        <span class="na">:is_paginated</span><span class="o">=</span><span class="s">&quot;is_paginated&quot;</span> <span class="p">/&gt;</span>
+<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+{% endblock %}
+</pre></div>
+</div>
+</section>
+<section id="best-practices">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">Best Practices</a><a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<section id="component-usage">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Component Usage</a><a class="headerlink" href="#component-usage" title="Link to this heading">¶</a></h3>
+<p><strong>DO:</strong></p>
+<ul class="simple">
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">:</span></code> prefix for dynamic values</p></li>
+<li><p>Provide required props</p></li>
+<li><p>Use semantic HTML inside components</p></li>
+<li><p>Test on mobile devices</p></li>
+<li><p>Include ARIA labels for accessibility</p></li>
+</ul>
+<p><strong>DON’T:</strong></p>
+<ul class="simple">
+<li><p>Mix static and dynamic syntax</p></li>
+<li><p>Nest components unnecessarily</p></li>
+<li><p>Override component styles directly</p></li>
+<li><p>Forget error handling in forms</p></li>
+</ul>
+</section>
+<section id="responsive-design">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Responsive Design</a><a class="headerlink" href="#responsive-design" title="Link to this heading">¶</a></h3>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Good: Mobile-first responsive layout --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-card</span> <span class="na">title</span><span class="o">=</span><span class="s">&quot;Details&quot;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6&quot;</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">c-field_display</span> <span class="na">label</span><span class="o">=</span><span class="s">&quot;Name&quot;</span> <span class="na">value</span><span class="o">=</span><span class="s">&quot;{{ patient.name }}&quot;</span> <span class="p">/&gt;</span>
+        <span class="p">&lt;</span><span class="nt">c-field_display</span> <span class="na">label</span><span class="o">=</span><span class="s">&quot;ID&quot;</span> <span class="na">value</span><span class="o">=</span><span class="s">&quot;{{ patient.id }}&quot;</span> <span class="p">/&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">c-card</span><span class="p">&gt;</span>
+
+<span class="cm">&lt;!-- Good: Responsive button group --&gt;</span>
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;flex flex-col sm:flex-row gap-2&quot;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">full_width</span><span class="o">=</span><span class="s">&quot;true&quot;</span><span class="p">&gt;</span>Save<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">&quot;secondary&quot;</span> <span class="na">full_width</span><span class="o">=</span><span class="s">&quot;true&quot;</span><span class="p">&gt;</span>Cancel<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="accessibility">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Accessibility</a><a class="headerlink" href="#accessibility" title="Link to this heading">¶</a></h3>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Good: Proper ARIA labels --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-icon_button</span>
+    <span class="na">icon</span><span class="o">=</span><span class="s">&quot;...&quot;</span>
+    <span class="na">aria_label</span><span class="o">=</span><span class="s">&quot;Edit patient details&quot;</span>
+    <span class="na">title</span><span class="o">=</span><span class="s">&quot;Edit&quot;</span> <span class="p">/&gt;</span>
+
+<span class="cm">&lt;!-- Good: Form validation --&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-form_dropdown</span>
+    <span class="na">name</span><span class="o">=</span><span class="s">&quot;diagnosis&quot;</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Diagnosis&quot;</span>
+    <span class="na">:errors</span><span class="o">=</span><span class="s">&quot;form.diagnosis.errors&quot;</span>
+    <span class="na">required</span><span class="o">=</span><span class="s">true</span> <span class="p">/&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="performance">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">Performance</a><a class="headerlink" href="#performance" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Use lazy loading for large lists</p></li>
+<li><p>Implement HTMX for partial updates</p></li>
+<li><p>Minimize nested components</p></li>
+<li><p>Cache component renders when possible</p></li>
+</ul>
+</section>
+</section>
+<section id="resources">
+<h2><a class="toc-backref" href="#id23" role="doc-backlink">Resources</a><a class="headerlink" href="#resources" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://django-cotton.com/">Django Cotton Documentation</a></p></li>
+<li><p><a class="reference external" href="https://tailwindcss.com/docs/">Tailwind CSS Components</a></p></li>
+<li><p><a class="reference external" href="https://heroicons.com/">Heroicons</a></p></li>
+<li><p><a class="reference external" href="https://htmx.org/">HTMX Documentation</a></p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SATHI: Self Reported Assessment and Tracking for Health Insights</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../patient/index.html">Patient Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frontend_development.html">Frontend Development</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">UI Components Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="docstring_guide.html">Writing Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="extending_sathi.html">Extending SATHI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Developer Documentation</a><ul>
+      <li>Previous: <a href="frontend_development.html" title="previous chapter">Frontend Development</a></li>
+      <li>Next: <a href="api_reference.html" title="next chapter">API Reference</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, CHAVI Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/developer/ui_components.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
