@@ -193,41 +193,56 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
             prefix = ". " if needs_leading_period else " "
             
             # Always include population score information for print reports
-            # Get the typical reference population score description
+            # Include BOTH patient population comparison AND healthy normative when available
+            patient_pop_text = ""
+            healthy_norm_text = ""
+            
+            # First: Get patient population comparison if available
             if score_data.aggregated_statistics:
-                # Use actual aggregated data
                 latest_agg = get_latest_aggregated_stat(score_data.aggregated_statistics)
                 if latest_agg:
                     pop_score = float(latest_agg['central'])
                     pop_n = latest_agg['n']
                     
-                    # Always show population comparison
-                    if score > pop_score:
+                    if abs(score - pop_score) < 0.1:  # Essentially equal to peers
+                        patient_pop_text = f"Similar to other patients who typically score around <b>{pop_score:.1f}</b>"
+                    elif score > pop_score:
                         if direction == 'Higher is Better':
-                            normative_text = f"{prefix}Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores <b>better</b> than typical."
+                            patient_pop_text = f"Higher than other patients who typically score around <b>{pop_score:.1f}</b>"
                         else:
-                            normative_text = f"{prefix}Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores much <b>higher</b> than typical."
+                            patient_pop_text = f"Worse than other patients who typically score around <b>{pop_score:.1f}</b>"
                     else:
                         if direction == 'Higher is Better':
-                            normative_text = f"{prefix}Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores <b>lower</b> than typical."
+                            patient_pop_text = f"Lower than other patients who typically score around <b>{pop_score:.1f}</b>"
                         else:
-                            normative_text = f"{prefix}Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores <b>better</b> than typical."
-            else:
-                # Use normative mean as reference - always show
-                if diff_from_norm > 0:
+                            patient_pop_text = f"Better than other patients who typically score around <b>{pop_score:.1f}</b>"
+            
+            # Second: Always include healthy normative comparison for clinical context
+            if normative is not None:
+                if abs(diff_from_norm) < 0.1:  # Equal to healthy
+                    healthy_norm_text = "similar to healthy population"
+                elif diff_from_norm > 0:  # Above healthy normative
                     if direction == 'Higher is Better':
-                        normative_text = f"{prefix}Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>better</b> than average."
+                        healthy_norm_text = "better than healthy population"
                     elif direction == 'Lower is Better':
-                        normative_text = f"{prefix}Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores much <b>higher</b> than typical."
+                        healthy_norm_text = "worse than healthy population"
                     else:
-                        normative_text = f"{prefix}Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>differently</b> from typical."
-                else:
+                        healthy_norm_text = "higher than healthy population"
+                else:  # Below healthy normative
                     if direction == 'Higher is Better':
-                        normative_text = f"{prefix}Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>lower</b> than average."
+                        healthy_norm_text = "lower than healthy population"
                     elif direction == 'Lower is Better':
-                        normative_text = f"{prefix}Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>better</b> than average."
+                        healthy_norm_text = "better than healthy population"
                     else:
-                        normative_text = f"{prefix}Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>differently</b> from typical."
+                        healthy_norm_text = "lower than healthy population"
+            
+            # Combine both comparisons
+            if patient_pop_text and healthy_norm_text:
+                normative_text = f"{prefix}{patient_pop_text}, but <b>{healthy_norm_text}</b> (normative: {normative_val:.1f})."
+            elif patient_pop_text:
+                normative_text = f"{prefix}{patient_pop_text}."
+            elif healthy_norm_text:
+                normative_text = f"{prefix}Healthy population typically scores around <b>{normative_val:.1f}</b>; this patient scores <b>{healthy_norm_text}</b>."
         
         parts.append(normative_text)
         
