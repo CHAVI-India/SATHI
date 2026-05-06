@@ -188,6 +188,10 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
                 sd_val = float(normative_sd)
                 is_significant_norm = diff_abs >= (0.5 * sd_val)
             
+            # Check if we need a period before normative (when no threshold exists)
+            needs_leading_period = threshold is None
+            prefix = ". " if needs_leading_period else " "
+            
             # Always include population score information for print reports
             # Get the typical reference population score description
             if score_data.aggregated_statistics:
@@ -200,30 +204,30 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
                     # Always show population comparison
                     if score > pop_score:
                         if direction == 'Higher is Better':
-                            normative_text = f" Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores <b>better</b> than typical."
+                            normative_text = f"{prefix}Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores <b>better</b> than typical."
                         else:
-                            normative_text = f" Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores much <b>higher</b> than typical."
+                            normative_text = f"{prefix}Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores much <b>higher</b> than typical."
                     else:
                         if direction == 'Higher is Better':
-                            normative_text = f" Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores <b>lower</b> than typical."
+                            normative_text = f"{prefix}Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores <b>lower</b> than typical."
                         else:
-                            normative_text = f" Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores <b>better</b> than typical."
+                            normative_text = f"{prefix}Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores <b>better</b> than typical."
             else:
                 # Use normative mean as reference - always show
                 if diff_from_norm > 0:
                     if direction == 'Higher is Better':
-                        normative_text = f" Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>better</b> than average."
+                        normative_text = f"{prefix}Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>better</b> than average."
                     elif direction == 'Lower is Better':
-                        normative_text = f" Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores much <b>higher</b> than typical."
+                        normative_text = f"{prefix}Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores much <b>higher</b> than typical."
                     else:
-                        normative_text = f" Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>differently</b> from typical."
+                        normative_text = f"{prefix}Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>differently</b> from typical."
                 else:
                     if direction == 'Higher is Better':
-                        normative_text = f" Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>lower</b> than average."
+                        normative_text = f"{prefix}Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>lower</b> than average."
                     elif direction == 'Lower is Better':
-                        normative_text = f" Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>better</b> than average."
+                        normative_text = f"{prefix}Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>better</b> than average."
                     else:
-                        normative_text = f" Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>differently</b> from typical."
+                        normative_text = f"{prefix}Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>differently</b> from typical."
         
         parts.append(normative_text)
         
