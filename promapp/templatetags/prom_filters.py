@@ -107,10 +107,9 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
         construct_name = construct.name
         
         # Start building the summary with HTML formatting
+        # Note: Opening sentence ("The X score is Y") is NOT included here
+        # because the template already shows: "Construct Name (score): summary"
         parts = []
-        
-        # Opening sentence with score
-        parts.append(f"The {construct_name} score is {score_formatted}")
         
         # Score change information
         change_text = ""
@@ -124,7 +123,7 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
                 is_significant_change = change_abs >= float(mid)
             
             if change == 0:
-                change_text = ", which is <b>stable</b> since the last visit"
+                change_text = "<b>Stable</b> since the last visit"
             else:
                 change_desc = ""
                 if direction == 'Higher is Better':
@@ -143,9 +142,9 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
                     else:
                         change_desc = "remained relatively stable"
                 
-                change_text = f", which has {change_desc} by <b>{change_abs:.1f} points</b> since the last visit"
+                change_text = f"Has {change_desc} by <b>{change_abs:.1f} points</b> since the last visit"
         else:
-            change_text = ", which is the <b>first measurement</b> for this assessment"
+            change_text = "<b>First measurement</b> for this assessment"
         
         parts.append(change_text)
         
@@ -157,19 +156,19 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
             
             if direction == 'Higher is Better':
                 if score < threshold_val:
-                    threshold_text = f" and is <b>significantly below</b> the normal threshold of {threshold_val:.1f}."
+                    threshold_text = f" and is <b>significantly below</b> the normal threshold of {threshold_val:.1f}"
                 elif score > threshold_val:
                     above_by = score - threshold_val
-                    threshold_text = f" but <b>significantly above</b> the normal threshold of {threshold_val:.1f}."
+                    threshold_text = f" and is <b>significantly above</b> the normal threshold of {threshold_val:.1f}"
                 else:
-                    threshold_text = f" and is at the threshold of {threshold_val:.1f}."
+                    threshold_text = f" and is at the threshold of {threshold_val:.1f}"
             elif direction == 'Lower is Better':
                 if score > threshold_val:
-                    threshold_text = f" but <b>significantly above</b> the normal threshold of {threshold_val:.1f}."
+                    threshold_text = f" and is <b>significantly above</b> the normal threshold of {threshold_val:.1f}"
                 elif score < threshold_val:
-                    threshold_text = f" and is <b>well below</b> the normal threshold of {threshold_val:.1f}."
+                    threshold_text = f" and is <b>well below</b> the normal threshold of {threshold_val:.1f}"
                 else:
-                    threshold_text = f" and is at the threshold of {threshold_val:.1f}."
+                    threshold_text = f" and is at the threshold of {threshold_val:.1f}"
             
             # Note: Clinical attention indication is redundant since topline results are 
             # already grouped under "Requires Attention" section
@@ -252,17 +251,10 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
         
         parts.append(item_text)
         
-        # Combine all parts with proper punctuation handling
-        summary = ""
-        for i, part in enumerate(parts):
-            if part:
-                # If this part starts with a space and previous part doesn't end with punctuation, add period
-                if part.startswith(" ") and summary and not summary.rstrip().endswith((".", "!", "?", ",")):
-                    summary += "."
-                summary += part
+        # Combine all parts
+        summary = "".join(parts)
         
         # Clean up and finalize
-        # Fix double periods that may occur from combining sections
         summary = summary.replace("..", ".").replace(".,", ",").strip()
         # Remove <br> at the end if present before adding final period
         summary = summary.rstrip("<br>")
