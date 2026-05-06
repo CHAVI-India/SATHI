@@ -106,7 +106,7 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
         
         construct_name = construct.name
         
-        # Start building the summary
+        # Start building the summary with HTML formatting
         parts = []
         
         # Opening sentence with score
@@ -124,28 +124,28 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
                 is_significant_change = change_abs >= float(mid)
             
             if change == 0:
-                change_text = ", which is stable since the last visit"
+                change_text = ", which is <b>stable</b> since the last visit"
             else:
                 change_desc = ""
                 if direction == 'Higher is Better':
                     if change > 0:
-                        change_desc = "improved" if is_significant_change else "slightly improved"
+                        change_desc = "<b>improved</b>" if is_significant_change else "<b>slightly improved</b>"
                     else:
-                        change_desc = "worsened" if is_significant_change else "slightly worsened"
+                        change_desc = "<b>worsened</b>" if is_significant_change else "<b>slightly worsened</b>"
                 elif direction == 'Lower is Better':
                     if change < 0:
-                        change_desc = "improved" if is_significant_change else "slightly improved"
+                        change_desc = "<b>improved</b>" if is_significant_change else "<b>slightly improved</b>"
                     else:
-                        change_desc = "worsened" if is_significant_change else "slightly worsened"
+                        change_desc = "<b>worsened</b>" if is_significant_change else "<b>slightly worsened</b>"
                 else:  # Middle is Better
                     if is_significant_change:
-                        change_desc = "changed significantly"
+                        change_desc = "<b>changed significantly</b>"
                     else:
                         change_desc = "remained relatively stable"
                 
-                change_text = f", which has {change_desc} by {change_abs:.1f} points since the last visit"
+                change_text = f", which has {change_desc} by <b>{change_abs:.1f} points</b> since the last visit"
         else:
-            change_text = ", which is the first measurement for this assessment"
+            change_text = ", which is the <b>first measurement</b> for this assessment"
         
         parts.append(change_text)
         
@@ -157,17 +157,17 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
             
             if direction == 'Higher is Better':
                 if score < threshold_val:
-                    threshold_text = f" and is significantly below the normal threshold of {threshold_val:.1f}"
+                    threshold_text = f" and is <b>significantly below</b> the normal threshold of {threshold_val:.1f}"
                 elif score > threshold_val:
                     above_by = score - threshold_val
-                    threshold_text = f" but significantly above the normal threshold of {threshold_val:.1f}"
+                    threshold_text = f" but <b>significantly above</b> the normal threshold of {threshold_val:.1f}"
                 else:
                     threshold_text = f" and is at the threshold of {threshold_val:.1f}"
             elif direction == 'Lower is Better':
                 if score > threshold_val:
-                    threshold_text = f" but significantly above the normal threshold of {threshold_val:.1f}"
+                    threshold_text = f" but <b>significantly above</b> the normal threshold of {threshold_val:.1f}"
                 elif score < threshold_val:
-                    threshold_text = f" and is well below the normal threshold of {threshold_val:.1f}"
+                    threshold_text = f" and is <b>well below</b> the normal threshold of {threshold_val:.1f}"
                 else:
                     threshold_text = f" and is at the threshold of {threshold_val:.1f}"
             
@@ -189,43 +189,42 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
                 sd_val = float(normative_sd)
                 is_significant_norm = diff_abs >= (0.5 * sd_val)
             
-            if is_significant_norm or diff_abs > 0.1:  # Include if significant or any meaningful difference
-                # Get the typical reference population score description
-                if score_data.aggregated_statistics:
-                    # Use actual aggregated data
-                    latest_agg = get_latest_aggregated_stat(score_data.aggregated_statistics)
-                    if latest_agg:
-                        pop_score = float(latest_agg['central'])
-                        pop_n = latest_agg['n']
-                        
-                        if abs(score - pop_score) > 0.5:
-                            if score > pop_score:
-                                if direction == 'Higher is Better':
-                                    normative_text = f" Most people in the reference group score around {pop_score:.1f}, meaning this patient scores better than typical."
-                                else:
-                                    normative_text = f" Most people in the reference group score around {pop_score:.1f}, meaning this patient scores much higher than typical."
-                            else:
-                                if direction == 'Higher is Better':
-                                    normative_text = f" Most people in the reference group score around {pop_score:.1f}, meaning this patient scores lower than typical."
-                                else:
-                                    normative_text = f" Most people in the reference group score around {pop_score:.1f}, meaning this patient scores better than typical."
-                else:
-                    # Use normative mean as reference
-                    if abs(diff_from_norm) > 0.5:
-                        if diff_from_norm > 0:
-                            if direction == 'Higher is Better':
-                                normative_text = f" Most people typically score around {normative_val:.1f}, meaning this patient scores better than average."
-                            elif direction == 'Lower is Better':
-                                normative_text = f" Most people typically score around {normative_val:.1f}, meaning this patient scores much higher than typical."
-                            else:
-                                normative_text = f" Most people typically score around {normative_val:.1f}, meaning this patient scores differently from typical."
+            # Always include population score information for print reports
+            # Get the typical reference population score description
+            if score_data.aggregated_statistics:
+                # Use actual aggregated data
+                latest_agg = get_latest_aggregated_stat(score_data.aggregated_statistics)
+                if latest_agg:
+                    pop_score = float(latest_agg['central'])
+                    pop_n = latest_agg['n']
+                    
+                    # Always show population comparison
+                    if score > pop_score:
+                        if direction == 'Higher is Better':
+                            normative_text = f" Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores <b>better</b> than typical."
                         else:
-                            if direction == 'Higher is Better':
-                                normative_text = f" Most people typically score around {normative_val:.1f}, meaning this patient scores lower than average."
-                            elif direction == 'Lower is Better':
-                                normative_text = f" Most people typically score around {normative_val:.1f}, meaning this patient scores better than average."
-                            else:
-                                normative_text = f" Most people typically score around {normative_val:.1f}, meaning this patient scores differently from typical."
+                            normative_text = f" Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores much <b>higher</b> than typical."
+                    else:
+                        if direction == 'Higher is Better':
+                            normative_text = f" Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores <b>lower</b> than typical."
+                        else:
+                            normative_text = f" Most people in the reference group score around <b>{pop_score:.1f}</b>, meaning this patient scores <b>better</b> than typical."
+            else:
+                # Use normative mean as reference - always show
+                if diff_from_norm > 0:
+                    if direction == 'Higher is Better':
+                        normative_text = f" Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>better</b> than average."
+                    elif direction == 'Lower is Better':
+                        normative_text = f" Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores much <b>higher</b> than typical."
+                    else:
+                        normative_text = f" Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>differently</b> from typical."
+                else:
+                    if direction == 'Higher is Better':
+                        normative_text = f" Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>lower</b> than average."
+                    elif direction == 'Lower is Better':
+                        normative_text = f" Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>better</b> than average."
+                    else:
+                        normative_text = f" Most people typically score around <b>{normative_val:.1f}</b>, meaning this patient scores <b>differently</b> from typical."
         
         parts.append(normative_text)
         
@@ -239,10 +238,11 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
                     
                     if worsened and len(worsened) > 0:
                         if len(worsened) == 1:
-                            item_text = f" The item '{worsened[0].questionnaire_item.item.name}' has worsened."
+                            item_name = worsened[0].questionnaire_item.item.name
+                            item_text = f"<br><i>Item: {item_name}</i> - has <b>worsened</b>."
                         else:
-                            item_names = [item.questionnaire_item.item.name for item in worsened[:3]]
-                            item_text = f" Items that have worsened: {', '.join(item_names)}"
+                            item_names = [f"<i>{item.questionnaire_item.item.name}</i>" for item in worsened[:3]]
+                            item_text = f"<br>Items that have <b>worsened</b>: {', '.join(item_names)}"
                             if len(worsened) > 3:
                                 item_text += f" and {len(worsened) - 3} others."
                             else:

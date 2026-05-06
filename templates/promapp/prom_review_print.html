@@ -181,7 +181,7 @@
                 <p class="construct-line">
                     <span class="construct-name">{{ score_data.construct.name }}</span>
                     <span class="construct-score">({{ score_data.score|floatformat:1 }}):</span>
-                    {{ score_data|generate_simplified_summary:item_responses_grouped }}
+                    {{ score_data|generate_simplified_summary:item_responses_grouped|safe }}
                 </p>
             </td>
         </tr>
@@ -202,7 +202,7 @@
                 <p class="construct-line">
                     <span class="construct-name">{{ score_data.construct.name }}</span>
                     <span class="construct-score">({{ score_data.score|floatformat:1 }}):</span>
-                    {{ score_data|generate_simplified_summary_no_improved_items:item_responses_grouped }}
+                    {{ score_data|generate_simplified_summary_no_improved_items:item_responses_grouped|safe }}
                 </p>
             </td>
         </tr>
