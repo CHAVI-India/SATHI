@@ -41,11 +41,16 @@ bokeh_resources = Resources(mode='server', root_url='/static/bokeh/')
 
 @login_required
 @permission_required('patientapp.view_patient', raise_exception=True)
-def prom_review(request, pk):
+def prom_review(request, pk, print_mode=False):
     """View for the PRO Review page that shows patient questionnaire responses.
     Supports global filtering for all sections of the page.
+    
+    Args:
+        request: HTTP request
+        pk: Patient UUID
+        print_mode: If True, renders print-optimized template instead of interactive page
     """
-    logger.info(f"PRO Review view called for patient ID: {pk}")
+    logger.info(f"PRO Review view called for patient ID: {pk}, print_mode={print_mode}")
     
     # Get patient with institution access check
     patient = get_accessible_patient_or_404(request.user, pk)
@@ -1116,7 +1121,53 @@ def prom_review(request, pk):
     if request.headers.get('HX-Request'):
         return render(request, 'promapp/components/main_content.html', context)
     
+    # If in print mode, render the print-optimized template
+    if print_mode:
+        return render(request, 'promapp/prom_review_print.html', context)
+    
     return render(request, 'promapp/prom_review.html', context)
+
+
+@login_required
+@permission_required('patientapp.view_patient', raise_exception=True)
+def prom_review_print(request, pk):
+    """
+    Print-friendly view for PRO Review report with simplified summaries.
+    Reuses the same data gathering logic as prom_review but renders a 
+    print-optimized template with natural language summaries.
+    """
+    # Reuse the main prom_review logic by calling it and capturing context
+    # We'll use the same filtering and data gathering
+    logger.info(f"PRO Review Print view called for patient ID: {pk}")
+    
+    # Get patient with institution access check
+    patient = get_accessible_patient_or_404(request.user, pk)
+    
+    # Get filter parameters (same as prom_review)
+    questionnaire_filter = request.GET.get('questionnaire_filter')
+    max_time_interval = request.GET.get('max_time_interval')
+    time_range = request.GET.get('time_range', '5')
+    item_filter = request.GET.getlist('item_filter')
+    start_date_reference = request.GET.get('start_date_reference', 'date_of_registration')
+    time_interval = request.GET.get('time_interval', 'weeks')
+    aggregation_type = request.GET.get('aggregation_type', 'median_iqr')
+    patient_filter_gender = request.GET.get('patient_filter_gender')
+    patient_filter_diagnosis = request.GET.get('patient_filter_diagnosis')
+    patient_filter_treatment = request.GET.get('patient_filter_treatment')
+    patient_filter_min_age = request.GET.get('patient_filter_min_age')
+    patient_filter_max_age = request.GET.get('patient_filter_max_age')
+    
+    # Build the filter parameters to pass to prom_review logic
+    # We'll reuse the prom_review view's logic by making an internal request
+    # or we can redirect with a special parameter
+    
+    # For simplicity and to avoid code duplication, we'll use the same 
+    # context gathering approach - essentially duplicating the logic but 
+    # rendering a different template
+    
+    # Redirect to prom_review with print parameter, which will handle data gathering
+    # and render the print template
+    return prom_review(request, pk, print_mode=True)
 
 
 @login_required

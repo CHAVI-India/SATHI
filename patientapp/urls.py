@@ -28,6 +28,7 @@ urlpatterns = [
 
     # PRO Review URLs
     path('patients/<uuid:pk>/prom-review/', views.prom_review, name='prom_review'),
+    path('patients/<uuid:pk>/prom-review/print/', views.prom_review_print, name='prom_review_print'),
     path('patients/<uuid:pk>/prom-review/item-search/', views.prom_review_item_search, name='prom_review_item_search'),
     path('patients/<uuid:pk>/prom-review/construct-plot/<uuid:construct_id>/', views.prom_review_construct_plot, name='prom_review_construct_plot'),
     path('patients/<uuid:pk>/prom-review/composite-plot/<uuid:composite_id>/', views.prom_review_composite_plot, name='prom_review_composite_plot'),
