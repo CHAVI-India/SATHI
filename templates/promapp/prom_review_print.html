@@ -34,6 +34,12 @@
             display: none !important;
         }
         
+        /* Hide language selector section - target by form action */
+        form[action*="set_language"],
+        form[action*="i18n"] {
+            display: none !important;
+        }
+        
         .page-break {
             page-break-before: always;
         }
@@ -272,8 +278,21 @@
 
 {% block extra_js %}
 <script>
-    // Auto-trigger print dialog if opened with ?print=true parameter
     document.addEventListener('DOMContentLoaded', function() {
+        // Hide language selector section
+        const langForms = document.querySelectorAll('form[action*="set_language"]');
+        langForms.forEach(function(form) {
+            // Hide parent containers up to the section level
+            let parent = form.parentElement;
+            while (parent && !parent.classList.contains('bg-gray-100')) {
+                parent = parent.parentElement;
+            }
+            if (parent) {
+                parent.style.display = 'none';
+            }
+        });
+        
+        // Auto-trigger print dialog if opened with ?print=auto parameter
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('print') === 'auto') {
             setTimeout(function() {
