@@ -171,11 +171,8 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
                 else:
                     threshold_text = f" and is at the threshold of {threshold_val:.1f}"
             
-            # Add clinical attention note
-            if direction == 'Higher is Better' and score < threshold_val:
-                threshold_text += ". This low score needs clinical attention"
-            elif direction == 'Lower is Better' and score > threshold_val:
-                threshold_text += ". This elevated score needs clinical attention"
+            # Note: Clinical attention indication is redundant since topline results are 
+            # already grouped under "Requires Attention" section
         
         parts.append(threshold_text)
         
@@ -206,10 +203,10 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
                                 if direction == 'Higher is Better':
                                     normative_text = f" Most people in the reference group score around {pop_score:.1f}, meaning this patient scores better than typical."
                                 else:
-                                    normative_text = f" Most people in the reference group score around {pop_score:.1f}, meaning this patient scores much higher than typical. This elevated score needs clinical attention."
+                                    normative_text = f" Most people in the reference group score around {pop_score:.1f}, meaning this patient scores much higher than typical."
                             else:
                                 if direction == 'Higher is Better':
-                                    normative_text = f" Most people in the reference group score around {pop_score:.1f}, meaning this patient scores lower than typical. This low score needs clinical attention."
+                                    normative_text = f" Most people in the reference group score around {pop_score:.1f}, meaning this patient scores lower than typical."
                                 else:
                                     normative_text = f" Most people in the reference group score around {pop_score:.1f}, meaning this patient scores better than typical."
                 else:
@@ -219,12 +216,12 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
                             if direction == 'Higher is Better':
                                 normative_text = f" Most people typically score around {normative_val:.1f}, meaning this patient scores better than average."
                             elif direction == 'Lower is Better':
-                                normative_text = f" Most people typically score around {normative_val:.1f}, meaning this patient scores much higher than typical. This elevated score needs clinical attention."
+                                normative_text = f" Most people typically score around {normative_val:.1f}, meaning this patient scores much higher than typical."
                             else:
                                 normative_text = f" Most people typically score around {normative_val:.1f}, meaning this patient scores differently from typical."
                         else:
                             if direction == 'Higher is Better':
-                                normative_text = f" Most people typically score around {normative_val:.1f}, meaning this patient scores lower than average. This low score needs clinical attention."
+                                normative_text = f" Most people typically score around {normative_val:.1f}, meaning this patient scores lower than average."
                             elif direction == 'Lower is Better':
                                 normative_text = f" Most people typically score around {normative_val:.1f}, meaning this patient scores better than average."
                             else:
@@ -242,24 +239,15 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
                     
                     if worsened and len(worsened) > 0:
                         if len(worsened) == 1:
-                            item_text = f" The item '{worsened[0].questionnaire_item.item.name}' has worsened and may be driving this score."
+                            item_text = f" The item '{worsened[0].questionnaire_item.item.name}' has worsened."
                         else:
                             item_names = [item.questionnaire_item.item.name for item in worsened[:3]]
-                            item_text = f" Items that have worsened include: {', '.join(item_names)}"
+                            item_text = f" Items that have worsened: {', '.join(item_names)}"
                             if len(worsened) > 3:
                                 item_text += f" and {len(worsened) - 3} others."
                             else:
                                 item_text += "."
-                    elif improved and len(improved) > 0:
-                        if len(improved) == 1:
-                            item_text = f" The item '{improved[0].questionnaire_item.item.name}' has improved."
-                        else:
-                            item_names = [item.questionnaire_item.item.name for item in improved[:3]]
-                            item_text = f" Items that have improved include: {', '.join(item_names)}"
-                            if len(improved) > 3:
-                                item_text += f" and {len(improved) - 3} others."
-                            else:
-                                item_text += "."
+                    # Note: Improved items not shown in summary to reduce verbosity
                     break
         
         parts.append(item_text)
@@ -280,3 +268,30 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
             return f"The {score_data.construct.name} score is {float(score_data.score):.1f}."
         except:
             return "Score data available."
+
+
+@register.filter
+def generate_simplified_summary_no_improved_items(score_data, item_responses_grouped=None):
+    """
+    Generate a simplified summary that only includes worsened items, not improved items.
+    Used for 'Other Construct Scores' section to reduce verbosity.
+    """
+    # Get the base summary
+    summary = generate_simplified_summary(score_data, item_responses_grouped)
+    
+    # Remove any improved items text (patterns like "The item 'X' has improved." or "Items that have improved include:")
+    import re
+    
+    # Remove improved item sentences
+    patterns = [
+        r" The item '[^']+' has improved\.",
+        r" Items that have improved include: [^.]+\.",
+    ]
+    
+    for pattern in patterns:
+        summary = re.sub(pattern, "", summary)
+    
+    # Clean up any double spaces or trailing issues
+    summary = summary.replace("  ", " ").strip()
+    
+    return summary

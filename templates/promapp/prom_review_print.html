@@ -35,28 +35,62 @@
             padding: 0 !important;
         }
         
-        .summary-card {
-            border: 1px solid #e5e7eb !important;
+        .summary-table {
+            border: 1px solid #d1d5db !important;
+            border-collapse: collapse !important;
             box-shadow: none !important;
+            width: 100% !important;
+        }
+        
+        .summary-table td {
+            border-bottom: 1px solid #e5e7eb !important;
+            padding: 6px 8px !important;
+        }
+        
+        .summary-table tr:last-child td {
+            border-bottom: none !important;
         }
     }
     
-    .summary-card {
-        page-break-inside: avoid;
-        margin-bottom: 12px;
+    .summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid #d1d5db;
     }
     
-    .construct-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: 6px;
+    .summary-table td {
+        border-bottom: 1px solid #e5e7eb;
+        padding: 6px 8px;
+        vertical-align: top;
     }
     
-    .summary-text {
+    .summary-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .construct-line {
         font-size: 11px;
-        line-height: 1.5;
-        color: #4b5563;
+        line-height: 1.4;
+        color: #374151;
+    }
+    
+    .construct-name {
+        font-weight: 600;
+    }
+    
+    .construct-score {
+        font-weight: 600;
+        color: #2563eb;
+    }
+    
+    .section-header {
+        font-size: 13px;
+        font-weight: 700;
+        color: #1f2937;
+        padding: 4px 0;
+        border-bottom: 2px solid #d1d5db;
+        margin-bottom: 0;
+        margin-top: 8px;
     }
     
     .score-badge {
@@ -136,102 +170,85 @@
 
     <!-- Topline Results Section -->
     {% if important_construct_scores %}
-    <div class="mb-6">
-        <div class="flex items-center gap-2 mb-3 pb-2 border-b-2 border-red-200">
-            <div class="w-3 h-3 rounded-full bg-red-500"></div>
-            <h3 class="text-lg font-bold text-gray-900">{% translate "Topline Results - Requires Attention" %}</h3>
-        </div>
-        
-        <div class="space-y-3">
-            {% for score_data in important_construct_scores %}
-            <div class="summary-card bg-white rounded-lg p-3 border border-gray-200">
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="construct-title">{{ score_data.construct.name }}</h4>
-                    {% with status=score_data|get_clinical_status %}
-                    <span class="score-badge {% if status == 'concerning' %}score-concerning{% elif status == 'favorable' %}score-favorable{% else %}score-stable{% endif %}">
-                        {{ score_data.score|floatformat:1 }}
-                    </span>
-                    {% endwith %}
-                </div>
-                <p class="summary-text">
+    <div class="section-header" style="color: #dc2626;">
+        {% translate "Topline Results - Requires Attention" %}
+    </div>
+    
+    <table class="summary-table bg-white rounded">
+        {% for score_data in important_construct_scores %}
+        <tr class="page-break-avoid">
+            <td>
+                <p class="construct-line">
+                    <span class="construct-name">{{ score_data.construct.name }}</span>
+                    <span class="construct-score">({{ score_data.score|floatformat:1 }}):</span>
                     {{ score_data|generate_simplified_summary:item_responses_grouped }}
                 </p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
     {% endif %}
 
     <!-- Other Construct Scores Section -->
     {% if other_construct_scores %}
-    <div class="mb-6 {% if important_construct_scores %}page-break{% endif %}">
-        <div class="flex items-center gap-2 mb-3 pb-2 border-b-2 border-green-200">
-            <div class="w-3 h-3 rounded-full bg-green-500"></div>
-            <h3 class="text-lg font-bold text-gray-900">{% translate "Other Construct Scores" %}</h3>
-        </div>
-        
-        <div class="space-y-3">
-            {% for score_data in other_construct_scores %}
-            <div class="summary-card bg-white rounded-lg p-3 border border-gray-200">
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="construct-title">{{ score_data.construct.name }}</h4>
-                    {% with status=score_data|get_clinical_status %}
-                    <span class="score-badge {% if status == 'concerning' %}score-concerning{% elif status == 'favorable' %}score-favorable{% else %}score-stable{% endif %}">
-                        {{ score_data.score|floatformat:1 }}
-                    </span>
-                    {% endwith %}
-                </div>
-                <p class="summary-text">
-                    {{ score_data|generate_simplified_summary:item_responses_grouped }}
-                </p>
-            </div>
-            {% endfor %}
-        </div>
+    <div class="section-header" style="color: #16a34a;">
+        {% translate "Other Construct Scores" %}
     </div>
+    
+    <table class="summary-table bg-white rounded">
+        {% for score_data in other_construct_scores %}
+        <tr class="page-break-avoid">
+            <td>
+                <p class="construct-line">
+                    <span class="construct-name">{{ score_data.construct.name }}</span>
+                    <span class="construct-score">({{ score_data.score|floatformat:1 }}):</span>
+                    {{ score_data|generate_simplified_summary_no_improved_items:item_responses_grouped }}
+                </p>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
     {% endif %}
 
     <!-- Composite Scores Section -->
     {% if composite_construct_scores %}
-    <div class="mb-6 {% if important_construct_scores or other_construct_scores %}page-break{% endif %}">
-        <div class="flex items-center gap-2 mb-3 pb-2 border-b-2 border-blue-200">
-            <div class="w-3 h-3 rounded-full bg-blue-500"></div>
-            <h3 class="text-lg font-bold text-gray-900">{% translate "Composite Scores" %}</h3>
-        </div>
-        
-        <div class="space-y-3">
-            {% for score_data in composite_construct_scores %}
-            <div class="summary-card bg-white rounded-lg p-3 border border-gray-200">
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="construct-title">{{ score_data.composite_construct_scale.composite_construct_scale_name }}</h4>
-                    <span class="score-badge score-stable">{{ score_data.score|floatformat:1 }}</span>
-                </div>
-                <p class="summary-text">
-                    {% translate "The" %} {{ score_data.composite_construct_scale.composite_construct_scale_name }} {% translate "composite score is" %} {{ score_data.score|floatformat:1 }}
+    <div class="section-header" style="color: #2563eb;">
+        {% translate "Composite Scores" %}
+    </div>
+    
+    <table class="summary-table bg-white rounded">
+        {% for score_data in composite_construct_scores %}
+        <tr class="page-break-avoid">
+            <td>
+                <p class="construct-line">
+                    <span class="construct-name">{{ score_data.composite_construct_scale.composite_construct_scale_name }}</span>
+                    <span class="construct-score">({{ score_data.score|floatformat:1 }}):</span>
+                    {% translate "Composite score is" %} {{ score_data.score|floatformat:1 }}
                     {% if score_data.score_change is not None %}
                         {% if score_data.score_change > 0 %}
                             {% if score_data.composite_construct_scale.composite_construct_score_direction == 'Higher is Better' %}
-                                {% translate "and has improved by" %} {{ score_data.score_change|floatformat:1 }} {% translate "points since the last assessment" %}
+                                {% translate "and has improved by" %} {{ score_data.score_change|floatformat:1 }} {% translate "points" %}
                             {% else %}
-                                {% translate "and has increased by" %} {{ score_data.score_change|floatformat:1 }} {% translate "points since the last assessment, which requires monitoring" %}
+                                {% translate "and has increased by" %} {{ score_data.score_change|floatformat:1 }} {% translate "points" %}
                             {% endif %}
                         {% elif score_data.score_change < 0 %}
                             {% if score_data.composite_construct_scale.composite_construct_score_direction == 'Higher is Better' %}
-                                {% translate "and has decreased by" %} {{ score_data.score_change|abs_value|floatformat:1 }} {% translate "points since the last assessment, which requires monitoring" %}
+                                {% translate "and has decreased by" %} {{ score_data.score_change|abs_value|floatformat:1 }} {% translate "points" %}
                             {% else %}
-                                {% translate "and has improved by" %} {{ score_data.score_change|abs_value|floatformat:1 }} {% translate "points since the last assessment" %}
+                                {% translate "and has improved by" %} {{ score_data.score_change|abs_value|floatformat:1 }} {% translate "points" %}
                             {% endif %}
                         {% else %}
-                            {% translate "and has remained stable since the last assessment" %}
+                            {% translate "and is stable" %}
                         {% endif %}
                     {% else %}
-                        . {% translate "This is the first assessment for this composite score" %}
+                        {% translate "(first assessment)" %}
                     {% endif %}
-                    . {% translate "This score is calculated from" %} {{ score_data.composite_construct_scale.construct_scales.count }} {% translate "individual construct scales" %}.
+                    . {% translate "Calculated from" %} {{ score_data.composite_construct_scale.construct_scales.count }} {% translate "constructs" %}.
                 </p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
     {% endif %}
 
     <!-- Footer -->
