@@ -11,6 +11,13 @@
         @page {
             size: A4;
             margin: 15mm 12mm;
+            /* Hide browser's default headers and footers */
+            @top-center { content: none; }
+            @bottom-center { content: none; }
+            @top-left { content: none; }
+            @top-right { content: none; }
+            @bottom-left { content: none; }
+            @bottom-right { content: none; }
         }
         
         body {
@@ -19,6 +26,11 @@
         }
         
         .no-print {
+            display: none !important;
+        }
+        
+        /* Hide website footer and header from base template */
+        footer, header, nav {
             display: none !important;
         }
         
@@ -254,7 +266,6 @@
     <!-- Footer -->
     <div class="mt-8 pt-4 border-t border-gray-200 text-center text-xs text-gray-500 page-break-avoid">
         <p>{% translate "CHAVI-PROM Patient Reported Outcomes Review" %} | {% translate "Generated on" %} {% now "d M Y H:i" %}</p>
-        <p class="mt-1">{% translate "This report is for clinical review purposes. Please discuss these results with your healthcare provider." %}</p>
     </div>
 </div>
 {% endblock %}
