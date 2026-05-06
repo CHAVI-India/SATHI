@@ -157,19 +157,19 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
             
             if direction == 'Higher is Better':
                 if score < threshold_val:
-                    threshold_text = f" and is <b>significantly below</b> the normal threshold of {threshold_val:.1f}"
+                    threshold_text = f" and is <b>significantly below</b> the normal threshold of {threshold_val:.1f}."
                 elif score > threshold_val:
                     above_by = score - threshold_val
-                    threshold_text = f" but <b>significantly above</b> the normal threshold of {threshold_val:.1f}"
+                    threshold_text = f" but <b>significantly above</b> the normal threshold of {threshold_val:.1f}."
                 else:
-                    threshold_text = f" and is at the threshold of {threshold_val:.1f}"
+                    threshold_text = f" and is at the threshold of {threshold_val:.1f}."
             elif direction == 'Lower is Better':
                 if score > threshold_val:
-                    threshold_text = f" but <b>significantly above</b> the normal threshold of {threshold_val:.1f}"
+                    threshold_text = f" but <b>significantly above</b> the normal threshold of {threshold_val:.1f}."
                 elif score < threshold_val:
-                    threshold_text = f" and is <b>well below</b> the normal threshold of {threshold_val:.1f}"
+                    threshold_text = f" and is <b>well below</b> the normal threshold of {threshold_val:.1f}."
                 else:
-                    threshold_text = f" and is at the threshold of {threshold_val:.1f}"
+                    threshold_text = f" and is at the threshold of {threshold_val:.1f}."
             
             # Note: Clinical attention indication is redundant since topline results are 
             # already grouped under "Requires Attention" section
@@ -252,11 +252,20 @@ def generate_simplified_summary(score_data, item_responses_grouped=None):
         
         parts.append(item_text)
         
-        # Combine all parts
-        summary = "".join(parts)
+        # Combine all parts with proper punctuation handling
+        summary = ""
+        for i, part in enumerate(parts):
+            if part:
+                # If this part starts with a space and previous part doesn't end with punctuation, add period
+                if part.startswith(" ") and summary and not summary.rstrip().endswith((".", "!", "?", ",")):
+                    summary += "."
+                summary += part
         
         # Clean up and finalize
+        # Fix double periods that may occur from combining sections
         summary = summary.replace("..", ".").replace(".,", ",").strip()
+        # Remove <br> at the end if present before adding final period
+        summary = summary.rstrip("<br>")
         if not summary.endswith("."):
             summary += "."
         
