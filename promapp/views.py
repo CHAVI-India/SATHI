@@ -4470,7 +4470,7 @@ def generate_tts_preview(request):
         return JsonResponse({
             'success': True,
             'audio_base64': audio_base64,
-            'request_id': rresult['request_id'],
+            'request_id': result['request_id'],
             'format': result['format']
         })
         
