@@ -3113,9 +3113,30 @@ class ItemTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
     def form_valid(self, form):
         current_language = self.request.GET.get('language', settings.LANGUAGE_CODE)
         item = self.get_object()
+        media_clear = self.request.POST.get('media-clear', False)
+
+        if media_clear:
+            # The displayed media may belong to a fallback language (e.g. 'en' shown while
+            # editing 'en-gb'). Find the language that actually owns the file and clear it there.
+            item._skip_media_validation = True
+            base_lang = current_language.split('-')[0]
+            langs_to_clear = set([current_language])
+            if base_lang != current_language:
+                langs_to_clear.add(base_lang)
+            for lang in langs_to_clear:
+                try:
+                    translation = item.translations.get(language_code=lang)
+                    if translation.media:
+                        translation.media.delete(save=False)
+                        translation.media = None
+                        translation.save()
+                except item.translations.model.DoesNotExist:
+                    pass
+
         item.set_current_language(current_language)
         item.name = form.cleaned_data['name']
-        item.media = form.cleaned_data['media']
+        if not media_clear:
+            item.media = form.cleaned_data['media']
         item.save()
         messages.success(self.request, _('Translation saved successfully.'))
         return redirect(self.get_success_url())
