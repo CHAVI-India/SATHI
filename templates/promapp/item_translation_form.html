@@ -183,7 +183,7 @@
                                         </div>
                                     {% endif %}
                                     <div class="mt-3">
-                                        {{ form.media }}
+                                        <input type="file" name="media" id="id_media" accept="audio/*,video/*,image/*" class="w-full px-4 py-2 text-lg border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                     </div>
                                     {% if form.media.errors %}
                                         <div class="text-red-600 text-sm mt-1">{{ form.media.errors }}</div>
@@ -200,24 +200,6 @@
                                         {% translate "Convert the question text to speech and preview it before saving to the media field." %}
                                     </p>
                                     
-                                    <!-- Existing Saved Audio -->
-                                    {% if original_media %}
-                                        <div class="mb-4 p-3 bg-white border border-green-300 rounded-lg">
-                                            <p class="text-sm font-medium text-green-800 mb-2 flex items-center">
-                                                <i class="fas fa-check-circle mr-2"></i>
-                                                {% translate "Current Saved Audio:" %}
-                                            </p>
-                                            <audio controls class="w-full mb-2">
-                                                <source src="{{ original_media.url }}" type="audio/wav">
-                                                <source src="{{ original_media.url }}" type="audio/mpeg">
-                                                {% translate "Your browser does not support the audio element." %}
-                                            </audio>
-                                            <p class="text-xs text-gray-600">
-                                                <i class="fas fa-info-circle mr-1"></i>
-                                                {% translate "This audio will be replaced if you generate and save new audio below." %}
-                                            </p>
-                                        </div>
-                                    {% endif %}
                                     
                                     <div class="flex gap-3 mb-4">
                                         <button type="button" id="preview-tts-btn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2">
