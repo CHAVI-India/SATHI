@@ -146,8 +146,50 @@
                                     <i class="fas fa-language mr-2"></i>
                                     {% blocktrans with lang=current_language_name %}{{ lang }} Translation{% endblocktrans %}
                                 </h3>
-                                {{ form|crispy }}
-                                
+                                <!-- Name Field -->
+                                <div class="mb-4">
+                                    {{ form.name.label_tag }}
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="text-red-600 text-sm mt-1">{{ form.name.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Media Field with Prominent Clear Option -->
+                                <div class="mb-4">
+                                    {{ form.media.label_tag }}
+                                    {% if form.media.value %}
+                                        <div class="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                            <p class="text-sm text-gray-700 mb-2">
+                                                <i class="fas fa-file-audio mr-1 text-blue-600"></i>
+                                                {% translate "Current file:" %} <span class="font-medium">{{ form.media.value }}</span>
+                                            </p>
+                                            <audio controls class="w-full mb-3">
+                                                <source src="{{ form.media.value.url }}" type="audio/wav">
+                                                <source src="{{ form.media.value.url }}" type="audio/mpeg">
+                                                {% translate "Your browser does not support the audio element." %}
+                                            </audio>
+                                            <div class="border-t border-gray-200 pt-3 mt-3">
+                                                <label class="flex items-center cursor-pointer group">
+                                                    <input type="checkbox" name="media-clear" id="id_media-clear" class="w-5 h-5 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2 cursor-pointer">
+                                                    <span class="ml-3 text-sm font-medium text-red-600 group-hover:text-red-700">
+                                                        <i class="fas fa-trash-alt mr-1"></i>{% translate "Remove this media file" %}
+                                                    </span>
+                                                </label>
+                                                <p class="text-xs text-gray-500 mt-2 ml-8">
+                                                    {% translate "Check this box and click 'Save Translation' to permanently delete the current media file. The file will not be deleted until you save the form." %}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    <div class="mt-3">
+                                        {{ form.media }}
+                                    </div>
+                                    {% if form.media.errors %}
+                                        <div class="text-red-600 text-sm mt-1">{{ form.media.errors }}</div>
+                                    {% endif %}
+                                </div>
+
                                 <!-- TTS Section -->
                                 <div class="mt-6 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
                                     <h4 class="text-md font-semibold mb-3 text-purple-900 flex items-center">
