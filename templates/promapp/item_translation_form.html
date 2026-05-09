@@ -426,6 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             formData.append('text', text);
             formData.append('language_code', getLanguageCode());
+            formData.append('django_language_code', currentLang);
             formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
             
             const response = await fetch(ttsSaveUrl, {

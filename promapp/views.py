@@ -4470,7 +4470,7 @@ def generate_tts_preview(request):
         return JsonResponse({
             'success': True,
             'audio_base64': audio_base64,
-            'request_id': result['request_id'],
+            'request_id': rresult['request_id'],
             'format': result['format']
         })
         
@@ -4498,6 +4498,9 @@ def save_tts_to_item(request, item_id):
         item = get_object_or_404(Item, id=item_id)
         text = request.POST.get('text', '').strip()
         language_code = request.POST.get('language_code', 'en-IN')
+        # django_language_code is the exact Parler language code to save to (e.g. 'en-gb', 'en', 'hi')
+        # Falls back to stripping the region from language_code if not provided
+        django_lang = request.POST.get('django_language_code', '').strip() or language_code.split('-')[0]
         
         if not text:
             return JsonResponse({'error': 'Text is required'}, status=400)
@@ -4511,24 +4514,6 @@ def save_tts_to_item(request, item_id):
         filename = f"tts_{item.abbreviated_item_id or item.id}_{language_code}_{uuid_lib.uuid4().hex[:8]}.wav"
         
         logger.info(f"Saving TTS audio to {filename}")
-        
-        # Map Sarvam AI language codes to Django Parler language codes
-        # Sarvam uses 'en-IN', 'hi-IN', etc., but Parler might use 'en', 'en-gb', 'hi', etc.
-        language_map = {
-            'en-IN': 'en',
-            'hi-IN': 'hi',
-            'ta-IN': 'ta',
-            'te-IN': 'te',
-            'kn-IN': 'kn',
-            'ml-IN': 'ml',
-            'mr-IN': 'mr',
-            'gu-IN': 'gu',
-            'bn-IN': 'bn',
-            'pa-IN': 'pa',
-        }
-        
-        # Get the Django language code
-        django_lang = language_map.get(language_code, language_code.split('-')[0])
         
         logger.info(f"Sarvam language code: {language_code}, Django language code: {django_lang}")
         logger.info(f"Setting item language to: {django_lang}")
