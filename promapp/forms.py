@@ -885,6 +885,20 @@ class ItemTranslationForm(TranslatableModelForm):
         model = Item
         fields = ['name', 'media']
 
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Check if media is being cleared (ClearableFileInput returns False when cleared)
+        media_clear = self.data.get('media-clear', False)
+
+        if media_clear:
+            # Set flag to skip media validation in model
+            self.instance._skip_media_validation = True
+            # Convert False to None for proper FileField clearing
+            cleaned_data['media'] = None
+
+        return cleaned_data
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
