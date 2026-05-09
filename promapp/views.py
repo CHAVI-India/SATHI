@@ -3142,7 +3142,8 @@ class ItemTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
         return redirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse('item_list')
+        language = self.request.GET.get('language', settings.LANGUAGE_CODE)
+        return reverse('item_translation', kwargs={'pk': self.object.pk}) + f'?language={language}'
 
 class ItemTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     """
