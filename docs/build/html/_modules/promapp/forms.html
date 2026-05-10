@@ -1034,6 +1034,23 @@
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;media&#39;</span><span class="p">]</span></div>
 
 
+<div class="viewcode-block" id="ItemTranslationForm.clean">
+<a class="viewcode-back" href="../../developer/api_reference.html#promapp.views.ItemTranslationForm.clean">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cleaned_data</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
+
+        <span class="c1"># Check if media is being cleared (ClearableFileInput returns False when cleared)</span>
+        <span class="n">media_clear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;media-clear&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">media_clear</span><span class="p">:</span>
+            <span class="c1"># Set flag to skip media validation in model</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">_skip_media_validation</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1"># Convert False to None for proper FileField clearing</span>
+            <span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;media&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">cleaned_data</span></div>
+
+
 <div class="viewcode-block" id="ItemTranslationForm.__init__">
 <a class="viewcode-back" href="../../developer/api_reference.html#promapp.views.ItemTranslationForm.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1614,13 +1631,10 @@
     </div>
 </search>
 <script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../patient/index.html">Patient Documentation</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">Developer Documentation</a></li>
 </ul>
 

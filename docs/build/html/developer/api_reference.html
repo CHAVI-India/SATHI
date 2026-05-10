@@ -15,7 +15,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Writing Documentation" href="docstring_guide.html" />
-    <link rel="prev" title="Architecture" href="architecture.html" />
+    <link rel="prev" title="Testing Guide" href="testing.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -81,9 +81,26 @@
 <span id="patient-views"></span><h3><a class="toc-backref" href="#id2" role="doc-backlink">Patient Views</a><a class="headerlink" href="#module-patientapp.views" title="Link to this heading">¶</a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="patientapp.views.prom_review">
-<span class="sig-prename descclassname"><span class="pre">patientapp.views.</span></span><span class="sig-name descname"><span class="pre">prom_review</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/patientapp/views.html#prom_review"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#patientapp.views.prom_review" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">patientapp.views.</span></span><span class="sig-name descname"><span class="pre">prom_review</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/patientapp/views.html#prom_review"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#patientapp.views.prom_review" title="Link to this definition">¶</a></dt>
 <dd><p>View for the PRO Review page that shows patient questionnaire responses.
 Supports global filtering for all sections of the page.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request</strong> – HTTP request</p></li>
+<li><p><strong>pk</strong> – Patient UUID</p></li>
+<li><p><strong>print_mode</strong> – If True, renders print-optimized template instead of interactive page</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="patientapp.views.prom_review_print">
+<span class="sig-prename descclassname"><span class="pre">patientapp.views.</span></span><span class="sig-name descname"><span class="pre">prom_review_print</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/patientapp/views.html#prom_review_print"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#patientapp.views.prom_review_print" title="Link to this definition">¶</a></dt>
+<dd><p>Print-friendly view for PRO Review report with simplified summaries.
+Reuses the same data gathering logic as prom_review but renders a
+print-optimized template with natural language summaries.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -8216,6 +8233,15 @@ is saved manually at a later time. Return the model instance.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="promapp.forms.ItemTranslationForm.clean">
+<span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/promapp/forms.html#ItemTranslationForm.clean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#promapp.forms.ItemTranslationForm.clean" title="Link to this definition">¶</a></dt>
+<dd><p>Hook for doing any extra form-wide cleaning after Field.clean() has
+been called on every field. Any ValidationError raised by this method
+will not be associated with a particular field; it will have a
+special-case association with the field named ‘__all__’.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="promapp.forms.ItemTranslationForm.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/promapp/forms.html#ItemTranslationForm.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#promapp.forms.ItemTranslationForm.__init__" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -8908,6 +8934,31 @@ the rest are the function arguments.</p>
 <dd><p>Get the latest (most recent time interval) aggregated statistic</p>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="promapp.templatetags.prom_filters.get_clinical_status">
+<span class="sig-prename descclassname"><span class="pre">promapp.templatetags.prom_filters.</span></span><span class="sig-name descname"><span class="pre">get_clinical_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">score_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/promapp/templatetags/prom_filters.html#get_clinical_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#promapp.templatetags.prom_filters.get_clinical_status" title="Link to this definition">¶</a></dt>
+<dd><p>Determine clinical status for a construct score.
+Returns: ‘concerning’, ‘favorable’, or ‘stable’</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="promapp.templatetags.prom_filters.generate_simplified_summary">
+<span class="sig-prename descclassname"><span class="pre">promapp.templatetags.prom_filters.</span></span><span class="sig-name descname"><span class="pre">generate_simplified_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">score_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_responses_grouped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/promapp/templatetags/prom_filters.html#generate_simplified_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#promapp.templatetags.prom_filters.generate_simplified_summary" title="Link to this definition">¶</a></dt>
+<dd><p>Generate a simplified, natural language summary for print reports.</p>
+<p>Example output:
+“The neurological problems score is 33.3, which is stable since the last visit but
+significantly above the normal threshold of 9.0. Most people in the reference group
+score 0.0, meaning this patient scores much higher than typical. This elevated
+score needs clinical attention.”</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="promapp.templatetags.prom_filters.generate_simplified_summary_no_improved_items">
+<span class="sig-prename descclassname"><span class="pre">promapp.templatetags.prom_filters.</span></span><span class="sig-name descname"><span class="pre">generate_simplified_summary_no_improved_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">score_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_responses_grouped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/promapp/templatetags/prom_filters.html#generate_simplified_summary_no_improved_items"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#promapp.templatetags.prom_filters.generate_simplified_summary_no_improved_items" title="Link to this definition">¶</a></dt>
+<dd><p>Generate a simplified summary that only includes worsened items, not improved items.
+Used for ‘Other Construct Scores’ section to reduce verbosity.</p>
+</dd></dl>
+
 </section>
 <section id="module-promapp.ai_utils.utils">
 <span id="ai-utilities"></span><h3><a class="toc-backref" href="#id15" role="doc-backlink">AI Utilities</a><a class="headerlink" href="#module-promapp.ai_utils.utils" title="Link to this heading">¶</a></h3>
@@ -9303,23 +9354,23 @@ For local development: Falls back to REMOTE_ADDR when parent returns None</p>
     </div>
 </search>
 <script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../patient/index.html">Patient Documentation</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
-</ul>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../patient/index.html">Patient Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html">Security &amp; Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frontend_development.html">Frontend Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_components.html">UI Components Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_integration.html">Data Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="internationalization.html">Internationalization &amp; Translation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pwa_setup.html">Progressive Web App (PWA) Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html">Testing Guide</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">API Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="docstring_guide.html">Writing Documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="database_schema.html">Database Schema</a></li>
-<li class="toctree-l2"><a class="reference internal" href="extending_sathi.html">Extending SATHI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="contributing.html">Contributing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="deployment.html">Deployment</a></li>
 </ul>
 </li>
 </ul>
@@ -9329,7 +9380,7 @@ For local development: Falls back to REMOTE_ADDR when parent returns None</p>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html">Developer Documentation</a><ul>
-      <li>Previous: <a href="architecture.html" title="previous chapter">Architecture</a></li>
+      <li>Previous: <a href="testing.html" title="previous chapter">Testing Guide</a></li>
       <li>Next: <a href="docstring_guide.html" title="next chapter">Writing Documentation</a></li>
   </ul></li>
   </ul></li>

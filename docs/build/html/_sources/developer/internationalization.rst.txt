@@ -156,20 +156,51 @@ Step 3: Create Translation Files
 
 **Generate Message Files:**
 
+A ``Makefile`` is provided at the project root to ensure message extraction is scoped
+correctly. It only scans the **chaviprom**, **patientapp**, **providerapp**, and
+**templates** directories, ignoring everything else (docs, static files, third-party
+code, etc.).
+
 .. code-block:: bash
 
-   # Create .po file for new language (Tamil example)
-   python manage.py makemessages -l ta -i "venv" -i "node_modules"
-   
-   # For multiple languages at once
-   python manage.py makemessages -l ta -l te -l mr -i "venv" -i "node_modules"
+   # Create/update .po file for a single language (Tamil example)
+   make messages LANG=ta
+
+   # For multiple languages, run the command once per language
+   make messages LANG=ta
+   make messages LANG=te
+   make messages LANG=mr
+
+If you prefer to run ``django-admin`` directly, you **must** pass the ignore flags
+manually to avoid scanning directories that contain raw template examples (e.g.
+``docs/build/``) which will cause ``SyntaxError`` during extraction:
+
+.. code-block:: bash
+
+   django-admin makemessages -l ta \
+       --ignore="docs/*" \
+       --ignore="venv/*" \
+       --ignore="node_modules/*" \
+       --ignore="static/*" \
+       --ignore="staticfiles/*" \
+       --ignore="promapp/*" \
+       --ignore="media/*" \
+       --ignore="item_media/*" \
+       --ignore="logs/*" \
+       --ignore=".git/*" \
+       --ignore=".github/*"
+
+.. note::
+
+   The ``promapp`` directory is deliberately excluded because its translatable strings
+   are managed through Django Parler (database-level translations), not gettext.
 
 **What This Does:**
 
-- Scans all Python and template files for translatable strings
+- Scans Python and template files in ``chaviprom/``, ``patientapp/``, ``providerapp/``, and ``templates/``
 - Creates ``locale/ta/LC_MESSAGES/django.po``
 - Extracts strings marked with ``{% trans %}`` and ``gettext()``
-- Ignores virtual environment and node_modules
+- Ignores docs, static assets, virtual environment, and node_modules
 
 Step 4: Translate Interface Strings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -209,6 +240,12 @@ After editing ``.po`` files, compile them to binary format:
    
    # Compile specific language
    python manage.py compilemessages -l ta -i "venv" -i "node_modules"
+
+Alternatively, use the Makefile:
+
+.. code-block:: bash
+
+   make compilemessages LANG=ta
 
 **Output:**
 
@@ -501,11 +538,11 @@ Development Workflow
       {# In templates #}
       {% trans "Hello, world!" %}
 
-2. **Extract Messages**
+2. **Extract Messages** (use the Makefile to ensure correct scoping)
 
    .. code-block:: bash
    
-      python manage.py makemessages -l ta -i "venv" -i "node_modules"
+      make messages LANG=ta
 
 3. **Translate Strings**
 
@@ -515,7 +552,7 @@ Development Workflow
 
    .. code-block:: bash
    
-      python manage.py compilemessages -i "venv" -i "node_modules"
+      make compilemessages LANG=ta
 
 5. **Test Translations**
 
@@ -556,6 +593,41 @@ Production Deployment
    .. code-block:: bash
    
       sudo supervisorctl restart chaviprom
+
+Makefile Reference
+------------------
+
+A ``Makefile`` at the project root provides two targets for managing translations.
+It ensures that ``makemessages`` only extracts strings from the application modules
+that use gettext (``chaviprom/``, ``patientapp/``, ``providerapp/``) and the shared
+``templates/`` directory.
+
+.. code-block:: bash
+
+   # Usage
+   make messages LANG=bn          # Extract messages for Bengali
+   make compilemessages LANG=bn   # Compile .po → .mo for Bengali
+
+**Scoped Directories (included):**
+
+- ``chaviprom/`` — project settings, views, forms
+- ``patientapp/`` — patient-facing app
+- ``providerapp/`` — healthcare provider app
+- ``templates/`` — shared Django templates
+
+**Ignored Directories:**
+
+- ``docs/`` — contains raw template examples that break the parser
+- ``promapp/`` — uses Django Parler for database-level translations, not gettext
+- ``venv/``, ``node_modules/`` — third-party code
+- ``static/``, ``staticfiles/`` — compiled assets
+- ``media/``, ``item_media/``, ``logs/`` — runtime data
+
+.. warning::
+
+   Running ``django-admin makemessages`` **without** the ignore flags will fail with a
+   ``SyntaxError`` because ``docs/build/`` contains ``.rst.txt`` files with raw Django
+   template examples that the gettext parser cannot handle.
 
 Translation File Structure
 --------------------------
@@ -658,7 +730,9 @@ Translation Guidelines
    .. code-block:: bash
    
       # Update all language files when adding new strings
-      python manage.py makemessages -a -i "venv" -i "node_modules"
+      make messages LANG=bn
+      make messages LANG=hi
+      make messages LANG=ta
 
 5. **Test All Languages**
 
@@ -728,7 +802,7 @@ Common Issues
 
    .. code-block:: bash
    
-      python manage.py compilemessages -i "venv" -i "node_modules"
+      make compilemessages LANG=ta
 
 3. Restart server:
 
@@ -750,7 +824,7 @@ Update message files:
 
 .. code-block:: bash
 
-   python manage.py makemessages -l ta -i "venv" -i "node_modules"
+   make messages LANG=ta
 
 **Fuzzy Translations**
 

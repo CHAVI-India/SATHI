@@ -84,6 +84,291 @@
     <span class="n">max_interval</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">aggregated_statistics</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="k">return</span> <span class="n">aggregated_statistics</span><span class="p">[</span><span class="n">max_interval</span><span class="p">]</span></div>
 
+
+
+<div class="viewcode-block" id="get_clinical_status">
+<a class="viewcode-back" href="../../../developer/api_reference.html#promapp.templatetags.prom_filters.get_clinical_status">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">filter</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_clinical_status</span><span class="p">(</span><span class="n">score_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine clinical status for a construct score.</span>
+<span class="sd">    Returns: &#39;concerning&#39;, &#39;favorable&#39;, or &#39;stable&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">score_data</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">score_data</span><span class="o">.</span><span class="n">score</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;stable&#39;</span>
+        
+        <span class="n">score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">score_data</span><span class="o">.</span><span class="n">score</span><span class="p">)</span>
+        <span class="n">construct</span> <span class="o">=</span> <span class="n">score_data</span><span class="o">.</span><span class="n">construct</span>
+        <span class="n">direction</span> <span class="o">=</span> <span class="n">construct</span><span class="o">.</span><span class="n">scale_better_score_direction</span> <span class="ow">or</span> <span class="s1">&#39;Higher is Better&#39;</span>
+        <span class="n">threshold</span> <span class="o">=</span> <span class="n">construct</span><span class="o">.</span><span class="n">scale_threshold_score</span>
+        
+        <span class="c1"># Check if score is concerning based on direction and threshold</span>
+        <span class="k">if</span> <span class="n">threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">threshold_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Higher is Better&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">score</span> <span class="o">&lt;</span> <span class="n">threshold_val</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="s1">&#39;concerning&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="s1">&#39;favorable&#39;</span>
+            <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Lower is Better&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">threshold_val</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="s1">&#39;concerning&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="s1">&#39;favorable&#39;</span>
+        
+        <span class="c1"># If no threshold, check if clinically significant</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">score_data</span><span class="p">,</span> <span class="s1">&#39;is_clinically_significant&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">score_data</span><span class="o">.</span><span class="n">is_clinically_significant</span><span class="p">():</span>
+            <span class="k">return</span> <span class="s1">&#39;concerning&#39;</span>
+        
+        <span class="k">return</span> <span class="s1">&#39;stable&#39;</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;stable&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="generate_simplified_summary">
+<a class="viewcode-back" href="../../../developer/api_reference.html#promapp.templatetags.prom_filters.generate_simplified_summary">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">filter</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_simplified_summary</span><span class="p">(</span><span class="n">score_data</span><span class="p">,</span> <span class="n">item_responses_grouped</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a simplified, natural language summary for print reports.</span>
+<span class="sd">    </span>
+<span class="sd">    Example output:</span>
+<span class="sd">    &quot;The neurological problems score is 33.3, which is stable since the last visit but </span>
+<span class="sd">    significantly above the normal threshold of 9.0. Most people in the reference group </span>
+<span class="sd">    score 0.0, meaning this patient scores much higher than typical. This elevated </span>
+<span class="sd">    score needs clinical attention.&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">score_data</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">score_data</span><span class="o">.</span><span class="n">score</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;No score data available.&quot;</span>
+        
+        <span class="n">construct</span> <span class="o">=</span> <span class="n">score_data</span><span class="o">.</span><span class="n">construct</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">score_data</span><span class="o">.</span><span class="n">score</span><span class="p">)</span>
+        <span class="n">score_formatted</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span>
+        
+        <span class="n">direction</span> <span class="o">=</span> <span class="n">construct</span><span class="o">.</span><span class="n">scale_better_score_direction</span> <span class="ow">or</span> <span class="s1">&#39;Higher is Better&#39;</span>
+        <span class="n">threshold</span> <span class="o">=</span> <span class="n">construct</span><span class="o">.</span><span class="n">scale_threshold_score</span>
+        <span class="n">normative</span> <span class="o">=</span> <span class="n">construct</span><span class="o">.</span><span class="n">scale_normative_score_mean</span>
+        <span class="n">normative_sd</span> <span class="o">=</span> <span class="n">construct</span><span class="o">.</span><span class="n">scale_normative_score_standard_deviation</span>
+        <span class="n">mid</span> <span class="o">=</span> <span class="n">construct</span><span class="o">.</span><span class="n">scale_minimum_clinical_important_difference</span>
+        
+        <span class="n">construct_name</span> <span class="o">=</span> <span class="n">construct</span><span class="o">.</span><span class="n">name</span>
+        
+        <span class="c1"># Start building the summary with HTML formatting</span>
+        <span class="c1"># Note: Opening sentence (&quot;The X score is Y&quot;) is NOT included here</span>
+        <span class="c1"># because the template already shows: &quot;Construct Name (score): summary&quot;</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># Score change information</span>
+        <span class="n">change_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">score_data</span><span class="o">.</span><span class="n">score_change</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">score_data</span><span class="o">.</span><span class="n">previous_score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">change</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">score_data</span><span class="o">.</span><span class="n">score_change</span><span class="p">)</span>
+            <span class="n">change_abs</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">change</span><span class="p">)</span>
+            
+            <span class="c1"># Determine if change is clinically significant using MID</span>
+            <span class="n">is_significant_change</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">mid</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">is_significant_change</span> <span class="o">=</span> <span class="n">change_abs</span> <span class="o">&gt;=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">change</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">change_text</span> <span class="o">=</span> <span class="s2">&quot;&lt;b&gt;Stable&lt;/b&gt; since the last visit&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">change_desc</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Higher is Better&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">change</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">change_desc</span> <span class="o">=</span> <span class="s2">&quot;&lt;b&gt;improved&lt;/b&gt;&quot;</span> <span class="k">if</span> <span class="n">is_significant_change</span> <span class="k">else</span> <span class="s2">&quot;&lt;b&gt;slightly improved&lt;/b&gt;&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">change_desc</span> <span class="o">=</span> <span class="s2">&quot;&lt;b&gt;worsened&lt;/b&gt;&quot;</span> <span class="k">if</span> <span class="n">is_significant_change</span> <span class="k">else</span> <span class="s2">&quot;&lt;b&gt;slightly worsened&lt;/b&gt;&quot;</span>
+                <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Lower is Better&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">change</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">change_desc</span> <span class="o">=</span> <span class="s2">&quot;&lt;b&gt;improved&lt;/b&gt;&quot;</span> <span class="k">if</span> <span class="n">is_significant_change</span> <span class="k">else</span> <span class="s2">&quot;&lt;b&gt;slightly improved&lt;/b&gt;&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">change_desc</span> <span class="o">=</span> <span class="s2">&quot;&lt;b&gt;worsened&lt;/b&gt;&quot;</span> <span class="k">if</span> <span class="n">is_significant_change</span> <span class="k">else</span> <span class="s2">&quot;&lt;b&gt;slightly worsened&lt;/b&gt;&quot;</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># Middle is Better</span>
+                    <span class="k">if</span> <span class="n">is_significant_change</span><span class="p">:</span>
+                        <span class="n">change_desc</span> <span class="o">=</span> <span class="s2">&quot;&lt;b&gt;changed significantly&lt;/b&gt;&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">change_desc</span> <span class="o">=</span> <span class="s2">&quot;remained relatively stable&quot;</span>
+                
+                <span class="n">change_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Has </span><span class="si">{</span><span class="n">change_desc</span><span class="si">}</span><span class="s2"> by &lt;b&gt;</span><span class="si">{</span><span class="n">change_abs</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> points&lt;/b&gt; since the last visit&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">change_text</span> <span class="o">=</span> <span class="s2">&quot;&lt;b&gt;First measurement&lt;/b&gt; for this assessment&quot;</span>
+        
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">change_text</span><span class="p">)</span>
+        
+        <span class="c1"># Threshold comparison</span>
+        <span class="n">threshold_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">threshold_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">score</span> <span class="o">-</span> <span class="n">threshold_val</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Higher is Better&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">score</span> <span class="o">&lt;</span> <span class="n">threshold_val</span><span class="p">:</span>
+                    <span class="n">threshold_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; and is &lt;b&gt;significantly below&lt;/b&gt; the normal threshold of </span><span class="si">{</span><span class="n">threshold_val</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">elif</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">threshold_val</span><span class="p">:</span>
+                    <span class="n">above_by</span> <span class="o">=</span> <span class="n">score</span> <span class="o">-</span> <span class="n">threshold_val</span>
+                    <span class="n">threshold_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; and is &lt;b&gt;significantly above&lt;/b&gt; the normal threshold of </span><span class="si">{</span><span class="n">threshold_val</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">threshold_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; and is at the threshold of </span><span class="si">{</span><span class="n">threshold_val</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Lower is Better&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">threshold_val</span><span class="p">:</span>
+                    <span class="n">threshold_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; and is &lt;b&gt;significantly above&lt;/b&gt; the normal threshold of </span><span class="si">{</span><span class="n">threshold_val</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">elif</span> <span class="n">score</span> <span class="o">&lt;</span> <span class="n">threshold_val</span><span class="p">:</span>
+                    <span class="n">threshold_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; and is &lt;b&gt;well below&lt;/b&gt; the normal threshold of </span><span class="si">{</span><span class="n">threshold_val</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">threshold_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; and is at the threshold of </span><span class="si">{</span><span class="n">threshold_val</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span>
+            
+            <span class="c1"># Note: Clinical attention indication is redundant since topline results are </span>
+            <span class="c1"># already grouped under &quot;Requires Attention&quot; section</span>
+        
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">threshold_text</span><span class="p">)</span>
+        
+        <span class="c1"># Normative comparison</span>
+        <span class="n">normative_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">normative</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">normative_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">normative</span><span class="p">)</span>
+            <span class="n">diff_from_norm</span> <span class="o">=</span> <span class="n">score</span> <span class="o">-</span> <span class="n">normative_val</span>
+            <span class="n">diff_abs</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">diff_from_norm</span><span class="p">)</span>
+            
+            <span class="c1"># Determine if difference is significant</span>
+            <span class="n">is_significant_norm</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">normative_sd</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="n">normative_sd</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sd_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">normative_sd</span><span class="p">)</span>
+                <span class="n">is_significant_norm</span> <span class="o">=</span> <span class="n">diff_abs</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">sd_val</span><span class="p">)</span>
+            
+            <span class="c1"># Check if we need a period before normative (when no threshold exists)</span>
+            <span class="n">needs_leading_period</span> <span class="o">=</span> <span class="n">threshold</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;. &quot;</span> <span class="k">if</span> <span class="n">needs_leading_period</span> <span class="k">else</span> <span class="s2">&quot; &quot;</span>
+            
+            <span class="c1"># Always include population score information for print reports</span>
+            <span class="c1"># Include BOTH patient population comparison AND healthy normative when available</span>
+            <span class="n">patient_pop_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">healthy_norm_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            
+            <span class="c1"># First: Get patient population comparison if available</span>
+            <span class="k">if</span> <span class="n">score_data</span><span class="o">.</span><span class="n">aggregated_statistics</span><span class="p">:</span>
+                <span class="n">latest_agg</span> <span class="o">=</span> <span class="n">get_latest_aggregated_stat</span><span class="p">(</span><span class="n">score_data</span><span class="o">.</span><span class="n">aggregated_statistics</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">latest_agg</span><span class="p">:</span>
+                    <span class="n">pop_score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">latest_agg</span><span class="p">[</span><span class="s1">&#39;central&#39;</span><span class="p">])</span>
+                    <span class="n">pop_n</span> <span class="o">=</span> <span class="n">latest_agg</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span>
+                    
+                    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">score</span> <span class="o">-</span> <span class="n">pop_score</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>  <span class="c1"># Essentially equal to peers</span>
+                        <span class="n">patient_pop_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Similar to other patients who typically score around &lt;b&gt;</span><span class="si">{</span><span class="n">pop_score</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&lt;/b&gt;&quot;</span>
+                    <span class="k">elif</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">pop_score</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Higher is Better&#39;</span><span class="p">:</span>
+                            <span class="n">patient_pop_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Higher than other patients who typically score around &lt;b&gt;</span><span class="si">{</span><span class="n">pop_score</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&lt;/b&gt;&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">patient_pop_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Worse than other patients who typically score around &lt;b&gt;</span><span class="si">{</span><span class="n">pop_score</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&lt;/b&gt;&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Higher is Better&#39;</span><span class="p">:</span>
+                            <span class="n">patient_pop_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Lower than other patients who typically score around &lt;b&gt;</span><span class="si">{</span><span class="n">pop_score</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&lt;/b&gt;&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">patient_pop_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Better than other patients who typically score around &lt;b&gt;</span><span class="si">{</span><span class="n">pop_score</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&lt;/b&gt;&quot;</span>
+            
+            <span class="c1"># Second: Always include healthy normative comparison for clinical context</span>
+            <span class="k">if</span> <span class="n">normative</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">diff_from_norm</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>  <span class="c1"># Equal to healthy</span>
+                    <span class="n">healthy_norm_text</span> <span class="o">=</span> <span class="s2">&quot;similar to healthy population&quot;</span>
+                <span class="k">elif</span> <span class="n">diff_from_norm</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># Above healthy normative</span>
+                    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Higher is Better&#39;</span><span class="p">:</span>
+                        <span class="n">healthy_norm_text</span> <span class="o">=</span> <span class="s2">&quot;better than healthy population&quot;</span>
+                    <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Lower is Better&#39;</span><span class="p">:</span>
+                        <span class="n">healthy_norm_text</span> <span class="o">=</span> <span class="s2">&quot;worse than healthy population&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">healthy_norm_text</span> <span class="o">=</span> <span class="s2">&quot;higher than healthy population&quot;</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># Below healthy normative</span>
+                    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Higher is Better&#39;</span><span class="p">:</span>
+                        <span class="n">healthy_norm_text</span> <span class="o">=</span> <span class="s2">&quot;lower than healthy population&quot;</span>
+                    <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Lower is Better&#39;</span><span class="p">:</span>
+                        <span class="n">healthy_norm_text</span> <span class="o">=</span> <span class="s2">&quot;better than healthy population&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">healthy_norm_text</span> <span class="o">=</span> <span class="s2">&quot;lower than healthy population&quot;</span>
+            
+            <span class="c1"># Combine both comparisons</span>
+            <span class="k">if</span> <span class="n">patient_pop_text</span> <span class="ow">and</span> <span class="n">healthy_norm_text</span><span class="p">:</span>
+                <span class="n">normative_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">patient_pop_text</span><span class="si">}</span><span class="s2">, but &lt;b&gt;</span><span class="si">{</span><span class="n">healthy_norm_text</span><span class="si">}</span><span class="s2">&lt;/b&gt; (normative: </span><span class="si">{</span><span class="n">normative_val</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">).&quot;</span>
+            <span class="k">elif</span> <span class="n">patient_pop_text</span><span class="p">:</span>
+                <span class="n">normative_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">patient_pop_text</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="k">elif</span> <span class="n">healthy_norm_text</span><span class="p">:</span>
+                <span class="n">normative_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">Healthy population typically scores around &lt;b&gt;</span><span class="si">{</span><span class="n">normative_val</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&lt;/b&gt;; this patient scores &lt;b&gt;</span><span class="si">{</span><span class="n">healthy_norm_text</span><span class="si">}</span><span class="s2">&lt;/b&gt;.&quot;</span>
+        
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normative_text</span><span class="p">)</span>
+        
+        <span class="c1"># Item-level summary if available</span>
+        <span class="n">item_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">item_responses_grouped</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">item_responses_grouped</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="s1">&#39;get&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">group</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;construct&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="s1">&#39;construct&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">construct</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+                    <span class="n">worsened</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;worsened_items&#39;</span><span class="p">,</span> <span class="p">[])</span>
+                    <span class="n">improved</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;improved_items&#39;</span><span class="p">,</span> <span class="p">[])</span>
+                    
+                    <span class="k">if</span> <span class="n">worsened</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">worsened</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">worsened</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                            <span class="n">item_name</span> <span class="o">=</span> <span class="n">worsened</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">questionnaire_item</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">name</span>
+                            <span class="n">item_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&lt;br&gt;&lt;i&gt;Item: </span><span class="si">{</span><span class="n">item_name</span><span class="si">}</span><span class="s2">&lt;/i&gt; - has &lt;b&gt;worsened&lt;/b&gt;.&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">item_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;&lt;i&gt;</span><span class="si">{</span><span class="n">item</span><span class="o">.</span><span class="n">questionnaire_item</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&lt;/i&gt;&quot;</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">worsened</span><span class="p">[:</span><span class="mi">3</span><span class="p">]]</span>
+                            <span class="n">item_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&lt;br&gt;Items that have &lt;b&gt;worsened&lt;/b&gt;: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">item_names</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">worsened</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+                                <span class="n">item_text</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">worsened</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">3</span><span class="si">}</span><span class="s2"> others.&quot;</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">item_text</span> <span class="o">+=</span> <span class="s2">&quot;.&quot;</span>
+                    <span class="c1"># Note: Improved items not shown in summary to reduce verbosity</span>
+                    <span class="k">break</span>
+        
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item_text</span><span class="p">)</span>
+        
+        <span class="c1"># Combine all parts</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
+        
+        <span class="c1"># Clean up and finalize</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="n">summary</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.,&quot;</span><span class="p">,</span> <span class="s2">&quot;,&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="c1"># Remove &lt;br&gt; at the end if present before adding final period</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="n">summary</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">summary</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
+            <span class="n">summary</span> <span class="o">+=</span> <span class="s2">&quot;.&quot;</span>
+        
+        <span class="k">return</span> <span class="n">summary</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c1"># Return basic summary on error</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">score_data</span><span class="o">.</span><span class="n">construct</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> score is </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">score_data</span><span class="o">.</span><span class="n">score</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Score data available.&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="generate_simplified_summary_no_improved_items">
+<a class="viewcode-back" href="../../../developer/api_reference.html#promapp.templatetags.prom_filters.generate_simplified_summary_no_improved_items">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">filter</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_simplified_summary_no_improved_items</span><span class="p">(</span><span class="n">score_data</span><span class="p">,</span> <span class="n">item_responses_grouped</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a simplified summary that only includes worsened items, not improved items.</span>
+<span class="sd">    Used for &#39;Other Construct Scores&#39; section to reduce verbosity.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get the base summary</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">generate_simplified_summary</span><span class="p">(</span><span class="n">score_data</span><span class="p">,</span> <span class="n">item_responses_grouped</span><span class="p">)</span>
+    
+    <span class="c1"># Remove any improved items text (patterns like &quot;The item &#39;X&#39; has improved.&quot; or &quot;Items that have improved include:&quot;)</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+    
+    <span class="c1"># Remove improved item sentences</span>
+    <span class="n">patterns</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="sa">r</span><span class="s2">&quot; The item &#39;[^&#39;]+&#39; has improved\.&quot;</span><span class="p">,</span>
+        <span class="sa">r</span><span class="s2">&quot; Items that have improved include: [^.]+\.&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    
+    <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">:</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">summary</span><span class="p">)</span>
+    
+    <span class="c1"># Clean up any double spaces or trailing issues</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">summary</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;  &quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">summary</span></div>
+
 </pre></div>
 
           </div>
@@ -111,13 +396,10 @@
     </div>
 </search>
 <script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../patient/index.html">Patient Documentation</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../developer/index.html">Developer Documentation</a></li>
 </ul>
 

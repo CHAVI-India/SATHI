@@ -76,11 +76,16 @@
 <a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.prom_review">[docs]</a>
 <span class="nd">@login_required</span>
 <span class="nd">@permission_required</span><span class="p">(</span><span class="s1">&#39;patientapp.view_patient&#39;</span><span class="p">,</span> <span class="n">raise_exception</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">prom_review</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">prom_review</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">print_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;View for the PRO Review page that shows patient questionnaire responses.</span>
 <span class="sd">    Supports global filtering for all sections of the page.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        request: HTTP request</span>
+<span class="sd">        pk: Patient UUID</span>
+<span class="sd">        print_mode: If True, renders print-optimized template instead of interactive page</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PRO Review view called for patient ID: </span><span class="si">{</span><span class="n">pk</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PRO Review view called for patient ID: </span><span class="si">{</span><span class="n">pk</span><span class="si">}</span><span class="s2">, print_mode=</span><span class="si">{</span><span class="n">print_mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     
     <span class="c1"># Get patient with institution access check</span>
     <span class="n">patient</span> <span class="o">=</span> <span class="n">get_accessible_patient_or_404</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">pk</span><span class="p">)</span>
@@ -1151,7 +1156,56 @@
     <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HX-Request&#39;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;promapp/components/main_content.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
     
+    <span class="c1"># If in print mode, render the print-optimized template</span>
+    <span class="k">if</span> <span class="n">print_mode</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;promapp/prom_review_print.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+    
     <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;promapp/prom_review.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="prom_review_print">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.prom_review_print">[docs]</a>
+<span class="nd">@login_required</span>
+<span class="nd">@permission_required</span><span class="p">(</span><span class="s1">&#39;patientapp.view_patient&#39;</span><span class="p">,</span> <span class="n">raise_exception</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">prom_review_print</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Print-friendly view for PRO Review report with simplified summaries.</span>
+<span class="sd">    Reuses the same data gathering logic as prom_review but renders a </span>
+<span class="sd">    print-optimized template with natural language summaries.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Reuse the main prom_review logic by calling it and capturing context</span>
+    <span class="c1"># We&#39;ll use the same filtering and data gathering</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PRO Review Print view called for patient ID: </span><span class="si">{</span><span class="n">pk</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Get patient with institution access check</span>
+    <span class="n">patient</span> <span class="o">=</span> <span class="n">get_accessible_patient_or_404</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">pk</span><span class="p">)</span>
+    
+    <span class="c1"># Get filter parameters (same as prom_review)</span>
+    <span class="n">questionnaire_filter</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;questionnaire_filter&#39;</span><span class="p">)</span>
+    <span class="n">max_time_interval</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_time_interval&#39;</span><span class="p">)</span>
+    <span class="n">time_range</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;time_range&#39;</span><span class="p">,</span> <span class="s1">&#39;5&#39;</span><span class="p">)</span>
+    <span class="n">item_filter</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="s1">&#39;item_filter&#39;</span><span class="p">)</span>
+    <span class="n">start_date_reference</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;start_date_reference&#39;</span><span class="p">,</span> <span class="s1">&#39;date_of_registration&#39;</span><span class="p">)</span>
+    <span class="n">time_interval</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;time_interval&#39;</span><span class="p">,</span> <span class="s1">&#39;weeks&#39;</span><span class="p">)</span>
+    <span class="n">aggregation_type</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;aggregation_type&#39;</span><span class="p">,</span> <span class="s1">&#39;median_iqr&#39;</span><span class="p">)</span>
+    <span class="n">patient_filter_gender</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;patient_filter_gender&#39;</span><span class="p">)</span>
+    <span class="n">patient_filter_diagnosis</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;patient_filter_diagnosis&#39;</span><span class="p">)</span>
+    <span class="n">patient_filter_treatment</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;patient_filter_treatment&#39;</span><span class="p">)</span>
+    <span class="n">patient_filter_min_age</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;patient_filter_min_age&#39;</span><span class="p">)</span>
+    <span class="n">patient_filter_max_age</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;patient_filter_max_age&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Build the filter parameters to pass to prom_review logic</span>
+    <span class="c1"># We&#39;ll reuse the prom_review view&#39;s logic by making an internal request</span>
+    <span class="c1"># or we can redirect with a special parameter</span>
+    
+    <span class="c1"># For simplicity and to avoid code duplication, we&#39;ll use the same </span>
+    <span class="c1"># context gathering approach - essentially duplicating the logic but </span>
+    <span class="c1"># rendering a different template</span>
+    
+    <span class="c1"># Redirect to prom_review with print parameter, which will handle data gathering</span>
+    <span class="c1"># and render the print template</span>
+    <span class="k">return</span> <span class="n">prom_review</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">print_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
 
@@ -2795,13 +2849,10 @@
     </div>
 </search>
 <script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../patient/index.html">Patient Documentation</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">Developer Documentation</a></li>
 </ul>
 

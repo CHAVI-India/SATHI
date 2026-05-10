@@ -3477,9 +3477,30 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="n">current_language</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;language&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LANGUAGE_CODE</span><span class="p">)</span>
         <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span>
+        <span class="n">media_clear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;media-clear&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">media_clear</span><span class="p">:</span>
+            <span class="c1"># The displayed media may belong to a fallback language (e.g. &#39;en&#39; shown while</span>
+            <span class="c1"># editing &#39;en-gb&#39;). Find the language that actually owns the file and clear it there.</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">_skip_media_validation</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">base_lang</span> <span class="o">=</span> <span class="n">current_language</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">langs_to_clear</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">current_language</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">base_lang</span> <span class="o">!=</span> <span class="n">current_language</span><span class="p">:</span>
+                <span class="n">langs_to_clear</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">base_lang</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">lang</span> <span class="ow">in</span> <span class="n">langs_to_clear</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">translation</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">translations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">language_code</span><span class="o">=</span><span class="n">lang</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">translation</span><span class="o">.</span><span class="n">media</span><span class="p">:</span>
+                        <span class="n">translation</span><span class="o">.</span><span class="n">media</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                        <span class="n">translation</span><span class="o">.</span><span class="n">media</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="n">translation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                <span class="k">except</span> <span class="n">item</span><span class="o">.</span><span class="n">translations</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
         <span class="n">item</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="n">current_language</span><span class="p">)</span>
         <span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
-        <span class="n">item</span><span class="o">.</span><span class="n">media</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;media&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">media_clear</span><span class="p">:</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">media</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;media&#39;</span><span class="p">]</span>
         <span class="n">item</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
         <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Translation saved successfully.&#39;</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_success_url</span><span class="p">())</span></div>
@@ -3488,7 +3509,8 @@
 <div class="viewcode-block" id="ItemTranslationView.get_success_url">
 <a class="viewcode-back" href="../../developer/api_reference.html#promapp.views.ItemTranslationView.get_success_url">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_success_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;item_list&#39;</span><span class="p">)</span></div>
+        <span class="n">language</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;language&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LANGUAGE_CODE</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;item_translation&#39;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;pk&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">pk</span><span class="p">})</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;?language=</span><span class="si">{</span><span class="n">language</span><span class="si">}</span><span class="s1">&#39;</span></div>
 </div>
 
 
@@ -5088,6 +5110,9 @@
         <span class="n">item</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Item</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">item_id</span><span class="p">)</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="n">language_code</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;language_code&#39;</span><span class="p">,</span> <span class="s1">&#39;en-IN&#39;</span><span class="p">)</span>
+        <span class="c1"># django_language_code is the exact Parler language code to save to (e.g. &#39;en-gb&#39;, &#39;en&#39;, &#39;hi&#39;)</span>
+        <span class="c1"># Falls back to stripping the region from language_code if not provided</span>
+        <span class="n">django_lang</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;django_language_code&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="n">language_code</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         
         <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">({</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Text is required&#39;</span><span class="p">},</span> <span class="n">status</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
@@ -5101,24 +5126,6 @@
         <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;tts_</span><span class="si">{</span><span class="n">item</span><span class="o">.</span><span class="n">abbreviated_item_id</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">item</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">language_code</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">uuid_lib</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">[:</span><span class="mi">8</span><span class="p">]</span><span class="si">}</span><span class="s2">.wav&quot;</span>
         
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving TTS audio to </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
-        <span class="c1"># Map Sarvam AI language codes to Django Parler language codes</span>
-        <span class="c1"># Sarvam uses &#39;en-IN&#39;, &#39;hi-IN&#39;, etc., but Parler might use &#39;en&#39;, &#39;en-gb&#39;, &#39;hi&#39;, etc.</span>
-        <span class="n">language_map</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;en-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;hi-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;hi&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;ta-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;ta&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;te-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;te&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;kn-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;kn&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;ml-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;ml&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;mr-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;mr&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;gu-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;gu&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;bn-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;bn&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;pa-IN&#39;</span><span class="p">:</span> <span class="s1">&#39;pa&#39;</span><span class="p">,</span>
-        <span class="p">}</span>
-        
-        <span class="c1"># Get the Django language code</span>
-        <span class="n">django_lang</span> <span class="o">=</span> <span class="n">language_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">language_code</span><span class="p">,</span> <span class="n">language_code</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
         
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sarvam language code: </span><span class="si">{</span><span class="n">language_code</span><span class="si">}</span><span class="s2">, Django language code: </span><span class="si">{</span><span class="n">django_lang</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting item language to: </span><span class="si">{</span><span class="n">django_lang</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -5176,13 +5183,10 @@
     </div>
 </search>
 <script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../patient/index.html">Patient Documentation</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">Developer Documentation</a></li>
 </ul>
 
