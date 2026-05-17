@@ -33,6 +33,55 @@ You can also narrow the list using these filters:
 
 Any combination of filters can be applied at once. The list shows 25 patients per page with pagination controls at the bottom.
 
+Project Filtering and Patient-Project Relationships
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Project Filter**
+
+The **Project** filter allows you to view patients who are assigned to specific research projects or clinical studies. This is particularly useful when you need to:
+
+- Focus on patients participating in a particular study
+- Review progress for a specific research cohort
+- Export data for project-based reporting
+- Manage questionnaires for targeted patient groups
+
+To use the project filter:
+
+1. Select a project from the **Project** dropdown (shows "All Projects" by default)
+2. The patient list will automatically update to show only patients assigned to that project
+3. The filter persists across pagination and works with other filters
+
+**Understanding Patient-Project Relationships**
+
+Each patient can be associated with multiple projects simultaneously. The system tracks these relationships through:
+
+- **Project Assignments** - Direct links between patients and projects
+- **Project Display** - Patient cards show all assigned projects as teal-colored badges
+- **Project-Based Filtering** - Quick access to project-specific patient cohorts
+
+**Visual Indicators**
+
+In the patient list, you can see project information in two ways:
+
+1. **Filter Dropdown** - Shows all available projects with patient assignments
+2. **Patient Cards** - Display project badges for each patient:
+   
+   - **Teal badges** indicate project assignments
+   - **Multiple badges** show when a patient is in several projects
+   - **"No projects assigned"** appears when a patient isn't in any project
+
+**Use Cases**
+
+Project filtering is commonly used for:
+
+- **Research Studies** - Focus on participants in specific clinical trials
+- **Quality Improvement** - Review patients in particular care programs  
+- **Data Export** - Generate reports for specific project cohorts
+- **Follow-up Management** - Track patients who need project-specific care
+
+.. note::
+   Only projects that have patient assignments will appear in the filter dropdown. If you need to assign patients to a new project, contact your administrator.
+
 Actions from the Patient List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
