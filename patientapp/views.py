@@ -2154,6 +2154,7 @@ def patient_list(request):
     diagnosis = request.GET.get('diagnosis', '')
     treatment_type = request.GET.get('treatment_type', '')
     questionnaire_count = request.GET.get('questionnaire_count', '')
+    project_id = request.GET.get('project', '')
     sort_by = request.GET.get('sort', 'name')
     
     # Start with base queryset and apply institution filtering
@@ -2176,6 +2177,10 @@ def patient_list(request):
     
     if treatment_type:
         patients = patients.filter(diagnosis__treatment__treatment_type__treatment_type__icontains=treatment_type).distinct()
+    
+    # Apply project filter
+    if project_id:
+        patients = patients.filter(patientproject__project_id=project_id).distinct()
     
     # Apply questionnaire count filter
     if questionnaire_count:
@@ -2227,6 +2232,11 @@ def patient_list(request):
     # Get unique treatment types for the filter dropdown (only from accessible patients)
     treatment_types = list(TreatmentType.objects.values_list('treatment_type', flat=True).distinct().exclude(treatment_type__isnull=True).exclude(treatment_type=''))
     
+    # Get projects for the filter dropdown (only projects with patient assignments)
+    projects = Project.objects.filter(
+        patientproject__patient__in=patients
+    ).distinct().order_by('project_name')
+    
     # Pagination
     page = request.GET.get('page', 1)
     paginator = Paginator(patients, 25)  # Show 25 patients per page to match questionnaire list
@@ -2238,7 +2248,7 @@ def patient_list(request):
     except EmptyPage:
         patients = paginator.page(paginator.num_pages)
     
-    # Add questionnaire data to each patient
+    # Add questionnaire and project data to each patient
     current_language = get_language()
     for patient in patients:
         # Import here to avoid circular imports
@@ -2254,11 +2264,35 @@ def patient_list(request):
             patient=patient
         ).values_list('questionnaire_id', flat=True).distinct()
         
-        patient.questionnaire_names = list(
-            Questionnaire.objects.filter(
-                id__in=questionnaire_ids,
+        # Get questionnaires with their response counts
+        questionnaires_with_counts = []
+        for q_id in questionnaire_ids:
+            questionnaire = Questionnaire.objects.filter(
+                id=q_id,
                 translations__language_code=current_language
-            ).values_list('translations__name', flat=True)
+            ).first()
+            
+            if questionnaire:
+                # Count submissions for this patient and questionnaire
+                submission_count = QuestionnaireSubmission.objects.filter(
+                    patient=patient,
+                    patient_questionnaire__questionnaire=questionnaire
+                ).count()
+                
+                questionnaires_with_counts.append({
+                    'name': questionnaire.translations.filter(
+                        language_code=current_language
+                    ).first().name,
+                    'response_count': submission_count
+                })
+        
+        patient.questionnaires_with_counts = questionnaires_with_counts
+        
+        # Get patient's projects
+        patient.projects = list(
+            PatientProject.objects.filter(patient=patient)
+            .select_related('project')
+            .order_by('project__project_name')
         )
     
     # Add dropdown options for filter components
@@ -2282,6 +2316,7 @@ def patient_list(request):
         'gender_choices': gender_choices,
         'diagnoses': diagnoses,
         'treatment_types': treatment_types,
+        'projects': projects,
         'questionnaire_count_choices': questionnaire_count_choices,
         'sort_choices': sort_choices,
         'is_paginated': patients.has_other_pages(),

@@ -57,8 +57,8 @@
                 </div>
             </div>
             
-            <!-- Bottom row: Medical and Questionnaire Information -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-100">
+            <!-- Bottom row: Medical and Project Information -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-gray-100">
                 <!-- Diagnoses -->
                 <div>
                     <h4 class="text-sm font-medium text-gray-700 mb-2">{% translate "Diagnoses" %}</h4>
@@ -75,6 +75,25 @@
                     {% endif %}
                 </div>
                 
+                <!-- Projects -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">{% translate "Projects" %}</h4>
+                    {% if patient.projects %}
+                        <div class="flex flex-wrap gap-1">
+                            {% for project_assignment in patient.projects %}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+                                {{ project_assignment.project.project_name|truncatechars:25 }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-sm text-gray-500 italic">{% translate "No projects assigned" %}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Second row: Treatments and Questionnaires -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-gray-100">
                 <!-- Treatments -->
                 <div>
                     <h4 class="text-sm font-medium text-gray-700 mb-2">{% translate "Treatments" %}</h4>
@@ -99,11 +118,14 @@
                 <!-- Questionnaires -->
                 <div>
                     <h4 class="text-sm font-medium text-gray-700 mb-2">{% translate "Assigned Questionnaires" %}</h4>
-                    {% if patient.questionnaire_names %}
+                    {% if patient.questionnaires_with_counts %}
                         <div class="flex flex-wrap gap-1">
-                            {% for qname in patient.questionnaire_names %}
+                            {% for q_data in patient.questionnaires_with_counts %}
                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                {{ qname|truncatechars:25 }}
+                                {{ q_data.name|truncatechars:25 }}
+                                <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-200 text-purple-900">
+                                    {{ q_data.response_count }}
+                                </span>
                             </span>
                             {% endfor %}
                         </div>

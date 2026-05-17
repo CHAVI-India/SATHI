@@ -101,6 +101,14 @@
                 :options="questionnaire_count_choices"
                 :selected="request.GET.questionnaire_count" />
 
+            <!-- Project Filter -->
+            <c-filter_dropdown 
+                name="project" 
+                label="{% translate 'Project' %}"
+                placeholder="{% translate 'All Projects' %}"
+                :options="projects"
+                :selected="request.GET.project" />
+
             <!-- Diagnosis Filter -->
             <c-filter_dropdown 
                 name="diagnosis" 
