@@ -36,4 +36,11 @@ urlpatterns = [
     
     # Patient Portal URL
     path('my-portal/', views.patient_portal, name='patient_portal'),
+    
+    # Project Management URLs
+    path('patients/<uuid:patient_pk>/projects/create/', views.patient_project_create, name='patient_project_create'),
+    path('patient-projects/<uuid:pk>/update/', views.patient_project_update, name='patient_project_update'),
+    path('patient-projects/<uuid:pk>/delete/', views.patient_project_delete, name='patient_project_delete'),
+    path('projects/create/', views.project_create, name='project_create'),
+    path('projects/<uuid:pk>/update/', views.project_update, name='project_update'),
 ]

@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% translate "Export by Project" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-blue-700">{% translate "Export by Project" %}</h1>
+          <p class="mt-1 text-sm text-gray-600">
+            {% translate "Select a project to export questionnaire responses for its assigned patients." %}
+          </p>
+        </div>
+        <div>
+          <a href="{% url 'questionnaire_export_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            {% translate "Back to Export List" %}
+          </a>
+        </div>
+      </div>
+      
+      {% if messages %}
+        <div class="mb-6">
+          {% for message in messages %}
+            <div class="{% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 mb-3 rounded border" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      {% if projects %}
+        <!-- Search controls -->
+        {% url 'project_export_list' as search_url %}
+        {% include 'promapp/components/search_form.html' with search_label="Search projects" search_placeholder="Search by project name..." show_search_button=True hx_get=search_url hx_target="#projects-container" hx_indicator="#loading-indicator" hx_push_url="true" search_trigger='hx-trigger="keyup changed delay:500ms, submit"' show_loading=True %}
+        
+        <div id="projects-container" class="w-full overflow-hidden">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% translate "Project Name" %}
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% translate "Description" %}
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% translate "Patients" %}
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% translate "Questionnaires" %}
+                </th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {% translate "Actions" %}
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for project_data in projects_with_stats %}
+                <tr>
+                  <td class="px-6 py-4">
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ project_data.project.project_name }}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-gray-500">
+                      {{ project_data.project.description|default:"-"|truncatechars:100 }}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-gray-500">
+                      {{ project_data.patient_count }}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-gray-500">
+                      {{ project_data.questionnaire_count }}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="{% url 'project_questionnaire_export_list' project_data.project.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                      {% translate "Select Questionnaires" %}
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                    {% translate "No projects with questionnaire responses found." %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="mt-6">
+          <c-paginator 
+            :page_obj="page_obj" 
+            :is_paginated="is_paginated" 
+            show_info="true"
+            show_page_numbers="true"
+            preserve_params="true" />
+        </div>
+        {% endif %}
+      {% else %}
+        <div class="text-center py-8">
+          <p class="text-gray-600 mb-4">{% translate "No projects with questionnaire responses available." %}</p>
+          <p class="text-sm text-gray-500">
+            {% translate "Projects will appear here once patients assigned to them complete questionnaires." %}
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

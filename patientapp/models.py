@@ -8,6 +8,7 @@ import uuid
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.db.models import Q
 
 # Create your models here.
 
@@ -27,6 +28,25 @@ class Institution(models.Model):
 
     def __str__(self):
         return self.name
+
+class Project(models.Model):
+    '''
+    This model will store information about the project to which the patient will be assigned to. Patient may be assigned to one or multiple projects.
+    '''
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project_name = models.CharField(max_length= 512,null=True, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_date']
+        verbose_name = "Project"
+        verbose_name_plural = "Projects"
+
+    def __str__(self):
+        return self.project_name
+
+
 
 class GenderChoices(models.TextChoices):
     MALE = 'Male'
@@ -94,6 +114,32 @@ def update_user_language(sender, instance, **kwargs):
             session = instance.user.session
             session[translation.LANGUAGE_SESSION_KEY] = instance.preferred_language or settings.LANGUAGE_CODE
             session.save()
+
+class PatientProject(models.Model):
+    '''
+    PatientProject model to link patients to project using a many to many relationship. The table also stores the date the patient was assigned to the project as that will be used later on with questionnaire export to allow users to export the questionnaires which were answered by the patient during the period the patient was a part of the project.
+    '''
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True, blank=True, db_index=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, db_index=True)
+    date_patient_enrolled_in_project= models.DateField(null=True,blank=True)
+    date_patient_exited_from_project= models.DateField(null=True,blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_date']
+        verbose_name = 'Patient Project'
+        verbose_name_plural = 'Patient Projects'
+        indexes = [
+            models.Index(fields=['patient', 'project'], name='patient_project_idx'),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['patient', 'project'], name='unique_patient_project')
+        ]
+
+    def __str__(self):
+        return f"{self.patient} - {self.project}"
 
 
 class DiagnosisList(models.Model):

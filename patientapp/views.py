@@ -7,12 +7,12 @@ from django.contrib import messages
 from django.urls import reverse_lazy, reverse
 from django.utils.translation import gettext_lazy as _, gettext, get_language
 from django.utils import timezone
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import Q, Count, Max
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
-from .models import Patient, Diagnosis, DiagnosisList, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices
-from .forms import PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm, DiagnosisListForm
+from .models import Patient, Diagnosis, DiagnosisList, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices, Project, PatientProject
+from .forms import PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm, DiagnosisListForm, ProjectForm, PatientProjectForm
 from promapp.models import *
 from .utils import (
     ConstructScoreData, calculate_percentage, create_item_response_plot, get_patient_start_date, 
@@ -2299,9 +2299,11 @@ def patient_list(request):
 def patient_detail(request, pk):
     patient = get_accessible_patient_or_404(request.user, pk)
     diagnoses = patient.diagnosis_set.all().order_by('-created_date')
+    patient_projects = patient.patientproject_set.all().order_by('-created_date')
     context = {
         'patient': patient,
         'diagnoses': diagnoses,
+        'patient_projects': patient_projects,
     }
     return render(request, 'patientapp/patient_detail.html', context)
 
@@ -2627,6 +2629,151 @@ def get_patient_count():
     Returns an integer count.
     """
     return Patient.objects.count()
+
+
+# Project Management Views
+
+@login_required
+@permission_required('patientapp.add_patientproject', raise_exception=True)
+def patient_project_create(request, patient_pk):
+    """
+    Create a new patient-project assignment.
+    """
+    patient = get_accessible_patient_or_404(request.user, patient_pk)
+    
+    if request.method == 'POST':
+        form = PatientProjectForm(request.POST, patient=patient)
+        if form.is_valid():
+            patient_project = form.save(commit=False)
+            patient_project.patient = patient
+            try:
+                patient_project.save()
+                messages.success(request, _('Patient successfully assigned to project.'))
+                return redirect('patient_detail', pk=patient_pk)
+            except IntegrityError:
+                form.add_error('project', _('This patient is already assigned to this project.'))
+    else:
+        form = PatientProjectForm(patient=patient)
+    
+    return render(request, 'patientapp/patient_project_form.html', {
+        'form': form,
+        'patient': patient,
+        'title': _('Assign Patient to Project'),
+        'action': 'create'
+    })
+
+
+@login_required
+@permission_required('patientapp.change_patientproject', raise_exception=True)
+def patient_project_update(request, pk):
+    """
+    Update an existing patient-project assignment.
+    """
+    patient_project = get_object_or_404(PatientProject, pk=pk)
+    
+    # Check access to the patient
+    patient = get_accessible_patient_or_404(request.user, patient_project.patient.id)
+    
+    if request.method == 'POST':
+        form = PatientProjectForm(request.POST, instance=patient_project, patient=patient)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Patient project assignment updated successfully.'))
+            return redirect('patient_detail', pk=patient_project.patient.id)
+    else:
+        form = PatientProjectForm(instance=patient_project, patient=patient)
+    
+    return render(request, 'patientapp/patient_project_form.html', {
+        'form': form,
+        'patient': patient,
+        'patient_project': patient_project,
+        'title': _('Update Patient Project Assignment'),
+        'action': 'update'
+    })
+
+
+@login_required
+@permission_required('patientapp.delete_patientproject', raise_exception=True)
+def patient_project_delete(request, pk):
+    """
+    Delete a patient-project assignment.
+    """
+    patient_project = get_object_or_404(PatientProject, pk=pk)
+    
+    # Check access to the patient
+    patient = get_accessible_patient_or_404(request.user, patient_project.patient.id)
+    patient_id = patient_project.patient.id
+    
+    if request.method == 'POST':
+        project_name = patient_project.project.project_name
+        patient_project.delete()
+        messages.success(request, _('Patient removed from project: %(project)s.') % {'project': project_name})
+        return redirect('patient_detail', pk=patient_id)
+    
+    return render(request, 'patientapp/patient_project_confirm_delete.html', {
+        'patient_project': patient_project,
+        'patient': patient,
+        'title': _('Remove Patient from Project')
+    })
+
+
+@login_required
+def project_create(request):
+    """
+    Create a new project (staff only).
+    """
+    if not request.user.is_staff:
+        messages.error(request, _('You do not have permission to create projects.'))
+        return redirect('index')
+    
+    if request.method == 'POST':
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            project = form.save()
+            messages.success(request, _('Project created successfully.'))
+            return redirect('patient_detail', pk=request.GET.get('patient_pk', ''))
+    else:
+        form = ProjectForm()
+    
+    return render(request, 'patientapp/project_form.html', {
+        'form': form,
+        'title': _('Create New Project'),
+        'action': 'create',
+        'patient_pk': request.GET.get('patient_pk', '')
+    })
+
+
+@login_required
+def project_update(request, pk):
+    """
+    Update an existing project (staff only).
+    """
+    if not request.user.is_staff:
+        messages.error(request, _('You do not have permission to edit projects.'))
+        return redirect('index')
+    
+    project = get_object_or_404(Project, pk=pk)
+    
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, instance=project)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Project updated successfully.'))
+            return_url = request.GET.get('return_url', '')
+            if return_url:
+                return redirect(return_url)
+            return redirect('patient_detail', pk=request.GET.get('patient_pk', ''))
+    else:
+        form = ProjectForm(instance=project)
+    
+    return render(request, 'patientapp/project_form.html', {
+        'form': form,
+        'project': project,
+        'title': _('Update Project'),
+        'action': 'update',
+        'patient_pk': request.GET.get('patient_pk', ''),
+        'return_url': request.GET.get('return_url', '')
+    })
 
 
 

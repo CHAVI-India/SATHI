@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
-from .models import Patient, Institution, Treatment, Diagnosis, DiagnosisList
+from .models import Patient, Institution, Treatment, Diagnosis, DiagnosisList, Project, PatientProject
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Div, Submit, HTML
 from django.utils.translation import gettext_lazy as _
@@ -159,3 +159,73 @@ class TreatmentForm(forms.ModelForm):
                 self.initial['date_of_start_of_treatment'] = self.instance.date_of_start_of_treatment.strftime('%Y-%m-%d')
             if self.instance.date_of_end_of_treatment:
                 self.initial['date_of_end_of_treatment'] = self.instance.date_of_end_of_treatment.strftime('%Y-%m-%d')
+
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = ['project_name']
+        labels = {
+            'project_name': _('Project Name'),
+        }
+        widgets = {
+            'project_name': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+                'placeholder': _('Enter project name')
+            }),
+        }
+
+class PatientProjectForm(forms.ModelForm):
+    class Meta:
+        model = PatientProject
+        fields = ['project', 'date_patient_enrolled_in_project', 'date_patient_exited_from_project']
+        labels = {
+            'project': _('Project'),
+            'date_patient_enrolled_in_project': _('Date Enrolled'),
+            'date_patient_exited_from_project': _('Date Exited'),
+        }
+        widgets = {
+            'project': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+            }),
+            'date_patient_enrolled_in_project': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+            }),
+            'date_patient_exited_from_project': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        patient = kwargs.pop('patient', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filter projects to exclude ones already assigned to this patient (for new assignments)
+        if patient and not self.instance.pk:
+            existing_project_ids = PatientProject.objects.filter(patient=patient).values_list('project_id', flat=True)
+            self.fields['project'].queryset = Project.objects.exclude(id__in=existing_project_ids)
+        
+        # Set initial values for date fields if instance exists
+        if self.instance and self.instance.pk:
+            if self.instance.date_patient_enrolled_in_project:
+                self.initial['date_patient_enrolled_in_project'] = self.instance.date_patient_enrolled_in_project.strftime('%Y-%m-%d')
+            if self.instance.date_patient_exited_from_project:
+                self.initial['date_patient_exited_from_project'] = self.instance.date_patient_exited_from_project.strftime('%Y-%m-%d')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        project = cleaned_data.get('project')
+        enrollment_date = cleaned_data.get('date_patient_enrolled_in_project')
+        exit_date = cleaned_data.get('date_patient_exited_from_project')
+        
+        # Check for duplicate patient-project assignment (for new assignments only)
+        if project and not self.instance.pk and hasattr(self, 'patient') and self.patient:
+            if PatientProject.objects.filter(patient=self.patient, project=project).exists():
+                raise forms.ValidationError(_('This patient is already assigned to this project.'))
+        
+        # Validate that exit date is after enrollment date
+        if enrollment_date and exit_date and exit_date < enrollment_date:
+            raise forms.ValidationError(_('Exit date cannot be before enrollment date.'))
+        
+        return cleaned_data

@@ -13,7 +13,8 @@ from django.conf import settings
 from django.utils import translation
 from django.utils.html import escape
 from django.utils.http import url_has_allowed_host_and_scheme
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, ConstructScale, ResponseTypeChoices, LikertScaleResponseOption, PatientQuestionnaire, QuestionnaireItemResponse, Patient, QuestionnaireItemRule, QuestionnaireItemRuleGroup, QuestionnaireSubmission, QuestionnaireConstructScore, CompositeConstructScaleScoring, QuestionnairePatientSchedule
+from promapp.models import * 
+from patientapp.models import Project, Patient
 from .forms import (
     QuestionnaireForm, ItemForm, QuestionnaireItemForm, 
     LikertScaleForm, LikertScaleResponseOptionFormSet,
@@ -36,7 +37,6 @@ from django.utils.timesince import timeuntil
 from django.conf import settings
 from django.utils import translation
 import uuid
-from patientapp.models import Patient
 
 # Create your views here.
 
@@ -2395,6 +2395,118 @@ class QuestionnaireExportListView(LoginRequiredMixin, PermissionRequiredMixin, L
         context['search_query'] = self.request.GET.get('search', '')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         
+        # Get projects that have patient assignments
+        from patientapp.models import Project, PatientProject
+        projects_with_assignments = Project.objects.filter(
+            patientproject__patient__isnull=False
+        ).distinct().order_by('project_name')
+        context['projects'] = projects_with_assignments
+        
+        return context
+
+
+class ProjectExportListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """View for listing projects available for export."""
+    model = Project
+    template_name = 'promapp/project_export_list.html'
+    context_object_name = 'projects'
+    permission_required = 'patientapp.view_project'
+    paginate_by = 25
+
+    def get_queryset(self):
+        """Return only projects that have patients with questionnaire submissions."""
+        from patientapp.models import PatientProject, Patient
+        
+        # Get projects that have patients who have submitted questionnaires
+        projects_with_responses = Project.objects.filter(
+            patientproject__patient__questionnaire_submission__isnull=False
+        ).distinct().order_by('project_name')
+        
+        # Apply search filter if provided
+        search = self.request.GET.get('search')
+        if search:
+            projects_with_responses = projects_with_responses.filter(
+                project_name__icontains=search
+            )
+            
+        return projects_with_responses
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search', '')
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # For each project, get patient count and questionnaire count
+        projects_with_stats = []
+        for project in context['projects']:
+            from patientapp.models import PatientProject
+            patient_count = PatientProject.objects.filter(project=project).count()
+            
+            # Get questionnaires that have submissions from patients in this project
+            from promapp.models import QuestionnaireSubmission
+            questionnaires_with_submissions = QuestionnaireSubmission.objects.filter(
+                patient__patientproject__project=project
+            ).values_list('patient_questionnaire__questionnaire', flat=True).distinct().count()
+            
+            projects_with_stats.append({
+                'project': project,
+                'patient_count': patient_count,
+                'questionnaire_count': questionnaires_with_submissions,
+            })
+            
+        context['projects_with_stats'] = projects_with_stats
+        
+        return context
+
+
+class ProjectQuestionnaireExportListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """View for listing questionnaires available for export for a specific project."""
+    model = Questionnaire
+    template_name = 'promapp/project_questionnaire_export_list.html'
+    context_object_name = 'questionnaires'
+    permission_required = 'promapp.view_questionnaire'
+    paginate_by = 25
+
+    def get_queryset(self):
+        """Return only questionnaires that have submissions from patients in this project."""
+        project_id = self.kwargs.get('project_id')
+        self.project = get_object_or_404(Project, id=project_id)
+        
+        # Get questionnaires that have submissions from patients in this project
+        questionnaires_with_submissions = QuestionnaireSubmission.objects.filter(
+            patient__patientproject__project=self.project
+        ).values_list('patient_questionnaire__questionnaire', flat=True).distinct()
+        
+        queryset = Questionnaire.objects.filter(id__in=questionnaires_with_submissions)
+        
+        # Apply search filter if provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(translations__name__icontains=search)
+            
+        return queryset.distinct('id').order_by('id', 'translations__name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+        context['search_query'] = self.request.GET.get('search', '')
+        context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # For each questionnaire, get submission count from patients in this project
+        questionnaires_with_stats = []
+        for questionnaire in context['questionnaires']:
+            submission_count = QuestionnaireSubmission.objects.filter(
+                patient_questionnaire__questionnaire=questionnaire,
+                patient__patientproject__project=self.project
+            ).count()
+            
+            questionnaires_with_stats.append({
+                'questionnaire': questionnaire,
+                'submission_count': submission_count,
+            })
+            
+        context['questionnaires_with_stats'] = questionnaires_with_stats
+        
         return context
 
 
@@ -2419,6 +2531,16 @@ class QuestionnaireExportPatientListView(LoginRequiredMixin, PermissionRequiredM
         # Filter patients by institution if user is not admin
         queryset = Patient.objects.filter(id__in=patient_ids)
         
+        # Apply project filter if provided
+        project_id = self.request.GET.get('project')
+        if project_id:
+            from patientapp.models import PatientProject
+            # Filter patients to only those assigned to the specified project
+            project_patient_ids = PatientProject.objects.filter(
+                project_id=project_id
+            ).values_list('patient', flat=True)
+            queryset = queryset.filter(id__in=project_patient_ids)
+        
         # If user is not admin, filter by their institution
         if not self.request.user.is_superuser:
             # Assuming there's a relationship between user and institution
@@ -2442,7 +2564,16 @@ class QuestionnaireExportPatientListView(LoginRequiredMixin, PermissionRequiredM
         context['search_query'] = self.request.GET.get('search', '')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         
-        # For each patient, get the number of submissions they have for this questionnaire
+        # Add project filter information
+        project_id = self.request.GET.get('project')
+        if project_id:
+            from patientapp.models import Project
+            try:
+                context['selected_project'] = Project.objects.get(id=project_id)
+            except Project.DoesNotExist:
+                context['selected_project'] = None
+        
+        # For each patient, get the number of submissions they have for this questionnaire and their projects
         patients_with_submission_count = []
         for patient in context['patients']:
             submission_count = QuestionnaireSubmission.objects.filter(
@@ -2450,9 +2581,16 @@ class QuestionnaireExportPatientListView(LoginRequiredMixin, PermissionRequiredM
                 patient_questionnaire__questionnaire=self.questionnaire
             ).count()
             
+            # Get patient's projects
+            from patientapp.models import PatientProject
+            patient_projects = PatientProject.objects.filter(
+                patient=patient
+            ).select_related('project').order_by('project__project_name')
+            
             patients_with_submission_count.append({
                 'patient': patient,
                 'submission_count': submission_count,
+                'projects': patient_projects,
             })
             
         context['patients_with_submission_count'] = patients_with_submission_count
@@ -2513,6 +2651,16 @@ def export_questionnaire_responses(request, questionnaire_id, patient_id=None):
     if patient_id:
         patient = get_object_or_404(Patient, id=patient_id)
         submissions_query = submissions_query.filter(patient=patient)
+        
+    # Filter by project if specified
+    project_id = request.GET.get('project')
+    if project_id:
+        from patientapp.models import PatientProject
+        # Get patients assigned to the specified project
+        project_patient_ids = PatientProject.objects.filter(
+            project_id=project_id
+        ).values_list('patient', flat=True)
+        submissions_query = submissions_query.filter(patient__id__in=project_patient_ids)
         
     # Filter by institution if user is not admin
     if not request.user.is_superuser:

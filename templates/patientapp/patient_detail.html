@@ -216,6 +216,76 @@
             </div>
         </c-card>
       </div>
+
+      <!-- Projects Section -->
+      <div class="mb-8">
+        <div class="flex justify-between items-center mb-4">
+          <div></div>
+          {% if perms.patientapp.add_patientproject %}
+          <c-create_button href="{% url 'patient_project_create' patient.id %}" target="_blank">
+              {% trans "Assign to Project" %}
+            </c-create_button>
+          {% endif %}
+        </div>
+        
+        <c-card 
+            title="{% trans 'Projects' %}"
+            shadow="lg"
+            border="medium"
+            padding="sm">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {% for patient_project in patient_projects %}
+                <c-card
+                    shadow="md"
+                    border="light"
+                    padding="sm">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-1">
+                            <h4 class="text-lg font-medium text-gray-900">
+                                {{ patient_project.project.project_name }}
+                            </h4>
+                            <div class="mt-2 text-sm text-gray-600 space-y-1">
+                                {% if patient_project.date_patient_enrolled_in_project %}
+                                <p>
+                                    <span class="font-medium">{% trans "Enrolled" %}:</span> 
+                                    {{ patient_project.date_patient_enrolled_in_project|date:"F j, Y" }}
+                                </p>
+                                {% endif %}
+                                
+                                {% if patient_project.date_patient_exited_from_project %}
+                                <p>
+                                    <span class="font-medium">{% trans "Exited" %}:</span> 
+                                    {{ patient_project.date_patient_exited_from_project|date:"F j, Y" }}
+                                </p>
+                                {% else %}
+                                <p>
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        {% trans "Active" %}
+                                    </span>
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            {% if perms.patientapp.change_patientproject %}
+                            <c-edit_button href="{% url 'patient_project_update' patient_project.id %}" target="_blank" size="sm">
+                                {% trans "Edit" %}
+                            </c-edit_button>
+                            {% endif %}
+                            {% if perms.patientapp.delete_patientproject %}
+                            <c-delete_button href="{% url 'patient_project_delete' patient_project.id %}" size="sm">
+                                {% trans "Remove" %}
+                            </c-delete_button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </c-card>
+                {% empty %}
+                <p class="text-gray-500 col-span-2">{% trans "No projects assigned" %}</p>
+                {% endfor %}
+            </div>
+        </c-card>
+      </div>
     </div>
   </div>
 </div>

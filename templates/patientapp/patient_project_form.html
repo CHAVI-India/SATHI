@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="p-6">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-blue-700">{{ title }}</h1>
+        <p class="text-gray-600 mt-2">
+          {% if action == 'create' %}
+            {% trans "Assign" %} <strong>{{ patient.name }}</strong> {% trans "to a project" %}
+          {% else %}
+            {% trans "Update project assignment for" %} <strong>{{ patient.name }}</strong>
+          {% endif %}
+        </p>
+      </div>
+
+      {% if messages %}
+        <div class="mb-6">
+          {% for message in messages %}
+            <div class="{% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 mb-3 rounded border" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        
+        <c-card 
+            title="{% if action == 'create' %}{% trans 'Project Assignment' %}{% else %}{% trans 'Update Assignment' %}{% endif %}"
+            shadow="lg"
+            border="medium"
+            padding="sm"
+            class="mb-6">
+            
+            <div class="space-y-4">
+                <div>
+                    <label for="{{ form.project.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.project.label }}
+                        <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.project }}
+                    {% if form.project.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.project.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if form.project.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.project.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.date_patient_enrolled_in_project.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.date_patient_enrolled_in_project.label }}
+                    </label>
+                    {{ form.date_patient_enrolled_in_project }}
+                    {% if form.date_patient_enrolled_in_project.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.date_patient_enrolled_in_project.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if form.date_patient_enrolled_in_project.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.date_patient_enrolled_in_project.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.date_patient_exited_from_project.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.date_patient_exited_from_project.label }}
+                    </label>
+                    {{ form.date_patient_exited_from_project }}
+                    {% if form.date_patient_exited_from_project.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.date_patient_exited_from_project.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if form.date_patient_exited_from_project.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.date_patient_exited_from_project.help_text }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">
+                        {% trans "Leave empty if the patient is still actively enrolled in the project." %}
+                    </p>
+                </div>
+            </div>
+        </c-card>
+
+        {% if form.non_field_errors %}
+            <div class="mb-6">
+                <div class="bg-red-100 border-red-400 text-red-700 px-4 py-3 rounded border" role="alert">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="flex justify-end space-x-3">
+          <c-button 
+              variant="secondary"
+              onclick="window.location.href='{% url 'patient_detail' patient.id %}';">
+            {% trans 'Cancel' %}
+          </c-button>
+          
+          <c-button 
+              type="submit"
+              variant="primary">
+            {% if action == 'create' %}{% trans 'Assign to Project' %}{% else %}{% trans 'Update Assignment' %}{% endif %}
+          </c-button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

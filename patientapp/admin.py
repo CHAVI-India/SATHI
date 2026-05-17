@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import *
+from patientapp.models import *
 from allauth.account.decorators import secure_admin_login
 from import_export import resources
 from import_export.admin import ImportExportActionModelAdmin, ImportExportModelAdmin
@@ -64,3 +64,11 @@ class TreatmentTypeAdmin(admin.ModelAdmin):
 @admin.register(Treatment)
 class TreatmentAdmin(admin.ModelAdmin):
     list_display = ['diagnosis', 'treatment_intent', 'date_of_start_of_treatment','currently_ongoing_treatment','date_of_end_of_treatment', 'created_date', 'modified_date']
+
+@admin.register(Project)
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = ['project_name', 'created_date', 'modified_date']
+
+@admin.register(PatientProject)
+class PatientProjectAdmin(admin.ModelAdmin):
+    list_display = ['patient', 'project', 'date_patient_enrolled_in_project', 'date_patient_exited_from_project', 'created_date', 'modified_date']
