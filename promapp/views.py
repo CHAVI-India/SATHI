@@ -2419,7 +2419,7 @@ class ProjectExportListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
         
         # Get projects that have patients who have submitted questionnaires
         projects_with_responses = Project.objects.filter(
-            patientproject__patient__questionnaire_submission__isnull=False
+            patientproject__patient__questionnairesubmission__isnull=False
         ).distinct().order_by('project_name')
         
         # Apply search filter if provided
