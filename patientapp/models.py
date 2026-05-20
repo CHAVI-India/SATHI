@@ -1,3 +1,4 @@
+from calendar import c
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -263,3 +264,21 @@ class Treatment(models.Model):
         if errors:
             raise ValidationError(errors)
     
+
+class ProjectRedcapMapping (models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    redcap_project_url = models.URLField()
+    redcap_project_token = secured_fields.EncryptedTextField()
+    redcap_project_token_allows_import = models.BooleanField(default=False,help_text = "Select if the the mdoel allows data to be imported into REDCap or not. Most default API tokens do not allow this so please check your API key settings in REDCap.")
+    redcap_project_info = models.JSONField(null=True, blank=True, help_text="This is the project information that will be automatically extracted from REDCap after the poject settings are filled.")
+    date_redcap_project_info_updated = models.DateField(null=True, blank=True)
+    redcap_record_count = models.IntegerField(null=True, blank=True, help_text="This is the record count that will be automatically extracted from REDCap after the poject settings are filled.")
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Project Redcap Mapping'
+        verbose_name_plural = 'Project Redcap Mappings'
+
+    def __str__(self):
+        return f"{self.project.name} - {self.redcap_project_url}"
