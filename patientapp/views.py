@@ -3400,6 +3400,13 @@ def redcap_export(request, pk, mapping_pk):
     })
 
 
+_SUBMISSION_DATE_FORMATS = {
+    'date_ymd': '%Y-%m-%d',
+    'datetime_ymd': '%Y-%m-%d %H:%M',
+    'datetime_seconds_ymd': '%Y-%m-%d %H:%M:%S',
+}
+
+
 def _collect_export_rows(mapping, selected_fms, id_map):
     """Build list of dicts for REDCap import (wide format, one row per submission)."""
     from promapp.models import QuestionnaireSubmission, QuestionnaireItemResponse
@@ -3413,6 +3420,8 @@ def _collect_export_rows(mapping, selected_fms, id_map):
             patient__in=id_map.keys(),
         ).select_related('patient', 'patient_questionnaire').order_by('patient', 'submission_date')
 
+        date_fmt = _SUBMISSION_DATE_FORMATS.get(fm.submission_date_format) if fm.submission_date_format else None
+
         for sub in submissions:
             study_id = id_map.get(sub.patient_id)
             if not study_id:
@@ -3423,6 +3432,9 @@ def _collect_export_rows(mapping, selected_fms, id_map):
             if fm.redcap_form_is_repeating or fm.redcap_event_is_repeating:
                 row['redcap_repeat_instrument'] = fm.redcap_form_name
                 row['redcap_repeat_instance'] = ''
+
+            if fm.submission_date_field and date_fmt and sub.submission_date:
+                row[fm.submission_date_field] = sub.submission_date.strftime(date_fmt)
 
             responses = {
                 r.questionnaire_item_id: r.response_value

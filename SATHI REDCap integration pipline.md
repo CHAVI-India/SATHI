@@ -124,35 +124,66 @@ Implemented at the `RedcapFormToQuestionnaireMapping` level (not the individual 
 
 ---
 
-### 🔄 In Progress / Partially Done
+### ✅ Also Completed
 
 #### Step 4 — Item-level field mapping
-- `RedcapFieldToItemMapping` model exists linking a PROM item to a REDCap field name within a form mapping.
-- Field mapping UI (`redcap_field_mappings` view) exists.
-- Status: basic structure in place; needs review for completeness.
+- `RedcapFieldToItemMapping` model links a `QuestionnaireItem` to a REDCap field name, scoped to a `RedcapFormToQuestionnaireMapping`.
+- DB constraints: unique REDCap field per form mapping; unique questionnaire item per form mapping (one-to-one).
+- `RedcapFieldToItemMappingForm` — dropdown populated from REDCap metadata fields for the selected form; date/datetime fields highlighted with a 📅 badge.
+- `redcap_field_mappings` view handles add and delete of field mappings via POST `action` parameter.
+- Template (`redcap_field_mappings.html`) shows existing mappings and an inline add form.
+
+#### Steps 6 & 7 — Patient selection and study ID mapping
+- `RedcapStudyIDtoPatientIDMap` model maps a SATHI `Patient` to a REDCap `redcap_study_id` per `ProjectRedcapMapping`.
+- `redcap_patient_ids` view shows all patients linked to the project and allows bulk saving of REDCap study IDs via a single form POST.
+- Template (`redcap_patient_ids.html`) renders an editable table with one text input per patient.
+
+#### Steps 9–11 — Export (initial implementation)
+- `redcap_export` view and `redcap_export.html` template: UI to select form mappings and trigger export.
+- `ExportTypeChoices`: `MANUAL` (CSV download) and `AUTOMATIC` (API).
+- **CSV export** (`_build_csv_export`): wide-format CSV with `record_id`, `redcap_event_name`, `redcap_repeat_instrument`, `redcap_repeat_instance`, and one column per mapped REDCap field. All submissions for all patients with a study ID mapping are included.
+- **API export** (`_run_api_export`): imports rows via PyCap `import_records()`.
+- **Transaction logging** (`RedcapDataExportLog`): records patient, user, form mapping, export type, start/end time, status (`pending/completed/incomplete/failed`), and raw response log. Last 50 logs shown on export page.
+- `submission_date_field` / `submission_date_format` written to model but **not yet used** in `_collect_export_rows` to populate the submission date column in the export.
+
+---
+
+### 🔄 In Progress / Partially Done
+
+#### Submission date population in export rows ✅
+- `_collect_export_rows` now reads `fm.submission_date_field` and `fm.submission_date_format` and writes the formatted `QuestionnaireSubmission.submission_date` into the row.
+- Format mapping: `date_ymd` → `%Y-%m-%d`, `datetime_ymd` → `%Y-%m-%d %H:%M`, `datetime_seconds_ymd` → `%Y-%m-%d %H:%M:%S` (via `_SUBMISSION_DATE_FORMATS` dict in `views.py`).
+- Field is only written if `submission_date_field`, a resolved format, and a non-null `submission_date` are all present.
+
+#### `RedcapFieldToItemMapping` — old submission date fields ✅
+- `submission_date_field` and `submission_date_format` removed from `RedcapFieldToItemMapping` model (migration `0022`).
+- `is_submission_date_field` extra field, `clean()` logic, and `save()` override removed from `RedcapFieldToItemMappingForm`.
 
 ---
 
 ### ⏳ Pending
 
-#### Step 5 — Date matching logic
-- Logic to match questionnaire submission date/time to REDCap visit date field not yet implemented.
-- UI for presenting closest date matches to the user not yet built.
-- Saving the matched instance (submission ↔ REDCap event/repeating instance) not yet implemented.
+#### Step 5 / Step 8 — Date-based submission-to-REDCap instance matching
+- **Purpose**: for repeating forms/events, determine which REDCap repeating instance corresponds to each SATHI questionnaire submission, based on the closest date match between the SATHI `submission_date` and the REDCap `redcap_date_mapping_field` value.
+- **Model needed**: a new model (e.g. `RedcapSubmissionInstanceMap`) to persist which submission maps to which `(redcap_event_name, redcap_repeat_instance)` pair, so the mapping is not recomputed on every export.
+- **Algorithm**: fetch existing REDCap records via PyCap for the relevant form; compute absolute time difference between each record's date field value and the submission date; present top matches to the user sorted by closeness.
+- **UI**: per-patient, per-questionnaire matching review screen where the user can confirm or override the automatically suggested instance.
+- **Non-repeating forms**: sequential assignment (first submission → first non-repeating form variant, etc.) as a simpler fallback.
+- This step is **prerequisite** for `redcap_repeat_instance` being correctly populated in the CSV/API export.
 
-#### Step 6 & 7 — Patient selection and study ID mapping
-- `RedcapStudyIDtoPatientIDMap` model exists for mapping SATHI patient IDs to REDCap study IDs.
-- `redcap_patient_ids` view and template exist for manual ID mapping.
-- Status: basic structure in place; automated matching logic not yet implemented.
+#### Export — `redcap_repeat_instance` population
+- Currently `redcap_repeat_instance` is written as an empty string in `_collect_export_rows`.
+- Once Step 5/8 matching is implemented, this should be filled from `RedcapSubmissionInstanceMap`.
 
-#### Step 8 — Submission-to-REDCap instance matching
-- Matching algorithm (closest date difference) not yet implemented.
-- UI for cross-verification and modification of matches not yet built.
-- Saving match results to the database not yet implemented.
+#### Export — per-patient export workflow
+- The original plan (step 6) calls for patient-level export selection.
+- Currently `_collect_export_rows` exports all patients with a study ID at once.
+- A patient-selector UI (similar to the patient list page, with Select2 or checkboxes) should be added to `redcap_export.html`.
 
-#### Step 9–11 — Export
-- Export type choice (API vs CSV) exists as `export_type` field (`ExportTypeChoices.MANUAL` default).
-- `redcap_export` view stub exists.
-- CSV generation with `redcap_repeating_instance`, `redcap_event_name`, wide format: **not yet implemented**.
-- API-based direct import to REDCap: **not yet implemented**.
-- Transaction logging for API exports: **not yet implemented**.
+#### Export — submission date column population
+- In `_collect_export_rows`, when `fm.submission_date_field` is set, write `sub.submission_date` formatted according to `fm.submission_date_format` into `row[fm.submission_date_field]`.
+- Format mapping: `date_ymd` → `%Y-%m-%d`, `datetime_ymd` → `%Y-%m-%d %H:%M`, `datetime_seconds_ymd` → `%Y-%m-%d %H:%M:%S`.
+
+#### Cleanup — remove legacy submission date fields from `RedcapFieldToItemMapping`
+- Create and apply a migration to drop `submission_date_field` and `submission_date_format` from `RedcapFieldToItemMapping`.
+- Remove the `is_submission_date_field` logic from `RedcapFieldToItemMappingForm` (this is now handled at the form-mapping level).

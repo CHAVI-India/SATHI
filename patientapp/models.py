@@ -386,8 +386,6 @@ class RedcapFieldToItemMapping(models.Model):
     redcap_form_to_questionnaire_mapping = models.ForeignKey(RedcapFormToQuestionnaireMapping, on_delete=models.CASCADE)
     redcap_field_name = models.CharField(max_length=1024)
     questionnaire_item = models.ForeignKey('promapp.QuestionnaireItem', on_delete=models.CASCADE)
-    submission_date_field = models.CharField(max_length=255, null=True, blank = True)
-    submission_date_format = models.CharField(max_length = 1024, null=True,blank=True, choices=SubmissionDateFormatChoices.choices, help_text="This is the type of date format that will be used to store the submission date in REDCap. The questionnaire submission date will have to be stored in this specific format for the export to work.")
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
