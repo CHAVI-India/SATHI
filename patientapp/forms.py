@@ -313,6 +313,7 @@ class RedcapFormToQuestionnaireMappingForm(forms.ModelForm):
 
         redcap_form_choices = [('', _('--- Select REDCap Form ---'))]
         redcap_field_choices = [('', _('--- Select REDCap Field ---'))]
+        self._date_fields_by_form = {}
 
         if project_redcap_mapping and project_redcap_mapping.redcap_project_info:
             info = project_redcap_mapping.redcap_project_info
@@ -326,13 +327,17 @@ class RedcapFormToQuestionnaireMappingForm(forms.ModelForm):
             for field in info.get('metadata', []):
                 fname = field.get('field_name', '')
                 flabel = field.get('field_label', fname)
+                fform = field.get('form_name', '')
+                validation = field.get('text_validation_type_or_show_slider_number', '')
                 if fname:
                     redcap_field_choices.append((fname, f"{flabel} ({fname})"))
+                    if validation and validation.startswith(('date_', 'datetime_')):
+                        self._date_fields_by_form.setdefault(fform, {})[fname] = validation
 
         self.fields['redcap_form_name'] = forms.ChoiceField(
             choices=redcap_form_choices,
             label=_('REDCap Form'),
-            widget=forms.Select(attrs={'class': SELECT_CLASS}),
+            widget=forms.Select(attrs={'class': SELECT_CLASS, 'id': 'id_redcap_form_name'}),
         )
         self.fields['redcap_date_mapping_field'] = forms.ChoiceField(
             choices=[('', _('--- None ---'))] + redcap_field_choices[1:],
@@ -341,12 +346,76 @@ class RedcapFormToQuestionnaireMappingForm(forms.ModelForm):
             widget=forms.Select(attrs={'class': SELECT_CLASS}),
         )
 
+        # Build choices from ALL date/datetime fields across all forms so that any
+        # submitted value passes ChoiceField's built-in validation. The clean() method
+        # enforces that the chosen field actually belongs to the selected form.
+        date_field_choices = [('', _('--- None (no submission date export) ---'))]
+        seen = set()
+        for form_fields in self._date_fields_by_form.values():
+            for fname, ftype in form_fields.items():
+                if fname not in seen:
+                    date_field_choices.append((fname, f"{fname} ({ftype})"))
+                    seen.add(fname)
+
+        self.fields['submission_date_field'] = forms.ChoiceField(
+            choices=date_field_choices,
+            required=False,
+            label=_('Submission Date Field'),
+            help_text=_('Select a date or datetime field in this REDCap form to receive the questionnaire submission date on export. The format is determined automatically from the REDCap field validation.'),
+            widget=forms.Select(attrs={'class': SELECT_CLASS, 'id': 'id_submission_date_field'}),
+        )
+
+    @staticmethod
+    def _normalise_date_format(validation):
+        """Map any REDCap date validation type to its canonical ymd export format."""
+        if validation.startswith('datetime_seconds_'):
+            return 'datetime_seconds_ymd'
+        if validation.startswith('datetime_'):
+            return 'datetime_ymd'
+        if validation.startswith('date_'):
+            return 'date_ymd'
+        return None
+
+    def clean(self):
+        cleaned_data = super().clean()
+        submission_date_field = cleaned_data.get('submission_date_field') or None
+        redcap_form_name = cleaned_data.get('redcap_form_name', '')
+
+        if submission_date_field:
+            form_date_fields = self._date_fields_by_form.get(redcap_form_name, {})
+            validation = form_date_fields.get(submission_date_field)
+            if not validation:
+                self.add_error('submission_date_field', _(
+                    '"%(field)s" is not a recognised date/datetime field for the selected form.'
+                ) % {'field': submission_date_field})
+            else:
+                resolved = self._normalise_date_format(validation)
+                if not resolved:
+                    self.add_error('submission_date_field', _(
+                        'The REDCap validation type "%(fmt)s" could not be mapped to an export format.'
+                    ) % {'fmt': validation})
+                else:
+                    cleaned_data['_resolved_submission_date_format'] = resolved
+        else:
+            cleaned_data['submission_date_field'] = None
+            cleaned_data['_resolved_submission_date_format'] = None
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.submission_date_field = self.cleaned_data.get('submission_date_field') or None
+        instance.submission_date_format = self.cleaned_data.get('_resolved_submission_date_format') or None
+        if commit:
+            instance.save()
+        return instance
+
     class Meta:
         model = RedcapFormToQuestionnaireMapping
         fields = [
             'redcap_form_name', 'redcap_event_name',
             'redcap_form_is_repeating', 'redcap_form_is_in_event', 'redcap_event_is_repeating',
-            'redcap_date_mapping_field', 'questionnaire',
+            'redcap_date_mapping_field', 'questionnaire', 'submission_date_field',
         ]
         labels = {
             'redcap_event_name': _('REDCap Event Name'),
@@ -364,9 +433,21 @@ class RedcapFormToQuestionnaireMappingForm(forms.ModelForm):
         }
 
 
+DATE_VALIDATION_PREFIXES = ('date_', 'datetime_')
+
+
 class RedcapFieldToItemMappingForm(forms.ModelForm):
+    is_submission_date_field = forms.BooleanField(
+        required=False,
+        label=_('Map submission date to this field'),
+        help_text=_('Check this if the questionnaire submission date/time should be exported to this REDCap field.'),
+        widget=forms.CheckboxInput(attrs={'class': CHECKBOX_CLASS}),
+    )
+
     def __init__(self, *args, project_redcap_mapping=None, form_mapping=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self._date_field_validation_map = {}
+        self._form_mapping = form_mapping
 
         redcap_field_choices = [('', _('--- Select Field ---'))]
         if project_redcap_mapping and project_redcap_mapping.redcap_project_info:
@@ -376,8 +457,13 @@ class RedcapFieldToItemMappingForm(forms.ModelForm):
                     continue
                 fname = field.get('field_name', '')
                 flabel = field.get('field_label', fname)
+                validation = field.get('text_validation_type_or_show_slider_number', '')
                 if fname:
-                    redcap_field_choices.append((fname, f"{flabel} ({fname})"))
+                    if validation and validation.startswith(DATE_VALIDATION_PREFIXES):
+                        self._date_field_validation_map[fname] = validation
+                        redcap_field_choices.append((fname, f"{flabel} ({fname}) \u2014 \U0001f4c5 {validation}"))
+                    else:
+                        redcap_field_choices.append((fname, f"{flabel} ({fname})"))
 
         self.fields['redcap_field_name'] = forms.ChoiceField(
             choices=redcap_field_choices,
@@ -390,6 +476,56 @@ class RedcapFieldToItemMappingForm(forms.ModelForm):
             self.fields['questionnaire_item'].queryset = QuestionnaireItem.objects.filter(
                 questionnaire=form_mapping.questionnaire
             ).select_related('item')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        redcap_field_name = cleaned_data.get('redcap_field_name')
+        is_submission_date = cleaned_data.get('is_submission_date_field', False)
+
+        if is_submission_date and redcap_field_name:
+            if self._form_mapping:
+                from .models import RedcapFieldToItemMapping
+                already_mapped = RedcapFieldToItemMapping.objects.filter(
+                    redcap_form_to_questionnaire_mapping=self._form_mapping,
+                    submission_date_field__isnull=False,
+                ).exclude(pk=self.instance.pk if self.instance.pk else None)
+                if already_mapped.exists():
+                    existing = already_mapped.first()
+                    self.add_error(
+                        'is_submission_date_field',
+                        _('A submission date field is already mapped to "%(field)s" for this form. Only one field can be designated as the submission date field per form mapping.') % {'field': existing.submission_date_field},
+                    )
+                    return cleaned_data
+
+            validation = self._date_field_validation_map.get(redcap_field_name)
+            if not validation:
+                self.add_error(
+                    'is_submission_date_field',
+                    _('The selected field is not a date/datetime field in REDCap. Only fields with date or datetime validation can be mapped to the submission date.'),
+                )
+            else:
+                from .models import SubmissionDateFormatChoices
+                valid_values = {c.value for c in SubmissionDateFormatChoices}
+                if validation not in valid_values:
+                    self.add_error(
+                        'is_submission_date_field',
+                        _('The date format "%(fmt)s" is not supported for export. Supported formats are: date_ymd, datetime_ymd, datetime_seconds_ymd.') % {'fmt': validation},
+                    )
+                else:
+                    cleaned_data['_resolved_submission_date_format'] = validation
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.cleaned_data.get('is_submission_date_field'):
+            instance.submission_date_field = instance.redcap_field_name
+            instance.submission_date_format = self.cleaned_data.get('_resolved_submission_date_format', '')
+        else:
+            instance.submission_date_field = None
+            instance.submission_date_format = None
+        if commit:
+            instance.save()
+        return instance
 
     class Meta:
         model = RedcapFieldToItemMapping

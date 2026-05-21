@@ -83,6 +83,28 @@
 
     </c-card>
 
+    <c-card title="{% trans 'Submission Date Mapping' %}" shadow="lg" padding="sm" class="mb-6">
+      <p class="text-xs text-gray-500 mb-4">{% trans "Select a date or datetime field in this REDCap form to receive the questionnaire submission date on export. The format is determined automatically from the REDCap field validation." %}</p>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">📅 {% trans "Submission Date Field" %}</label>
+        <select name="submission_date_field" id="id_submission_date_field"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm">
+          <option value="">--- {% trans "None (no submission date export)" %} ---</option>
+        </select>
+        <div id="submission_date_format_preview" class="mt-2 hidden">
+          <span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-100 border border-amber-300 text-xs font-mono text-amber-900">
+            📅 {% trans "Format" %}: <span id="submission_date_format_value"></span>
+          </span>
+        </div>
+        <p id="no_date_fields_msg" class="mt-2 text-xs text-gray-400 hidden">{% trans "No date or datetime fields detected in the selected form." %}</p>
+        {% if form.submission_date_field.errors %}
+          {% for error in form.submission_date_field.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </c-card>
+
     <div class="flex justify-end gap-3">
       <c-link_button href="{% url 'redcap_form_mappings' pk=project.pk mapping_pk=mapping.pk %}" variant="secondary">
         {% trans "Cancel" %}
@@ -123,17 +145,72 @@
     if (eventName) eventName.value = m.event_name || '';
   }
 
+  var dateFieldsByForm = {{ date_fields_by_form_json|default:"{}" |safe }};
+
+  function normaliseFormat(validation) {
+    if (validation.indexOf('datetime_seconds_') === 0) return 'datetime_seconds_ymd';
+    if (validation.indexOf('datetime_') === 0) return 'datetime_ymd';
+    if (validation.indexOf('date_') === 0) return 'date_ymd';
+    return validation;
+  }
+  var currentDateFieldValue = "{{ form.submission_date_field.value|default:'' }}";
+
+  var allDateFields = {};
+  Object.values(dateFieldsByForm).forEach(function(fields) {
+    Object.entries(fields).forEach(function(kv) { allDateFields[kv[0]] = kv[1]; });
+  });
+
+  function getDateFields(formName) {
+    return formName ? (dateFieldsByForm[formName] || {}) : allDateFields;
+  }
+
+  function updateSubmissionDateDropdown(formName, preserveValue) {
+    var sel = document.getElementById('id_submission_date_field');
+    var noMsg = document.getElementById('no_date_fields_msg');
+    if (!sel) return;
+    var fields = getDateFields(formName);
+    var entries = Object.entries(fields);
+    sel.innerHTML = '<option value="">--- {% trans "None (no submission date export)" %} ---</option>';
+    entries.forEach(function(kv) {
+      var opt = document.createElement('option');
+      opt.value = kv[0];
+      opt.textContent = kv[0] + ' (' + kv[1] + ' → ' + normaliseFormat(kv[1]) + ')';
+      if (preserveValue && kv[0] === preserveValue) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    if (entries.length === 1 && !preserveValue) sel.value = entries[0][0];
+    if (noMsg) noMsg.classList.toggle('hidden', entries.length > 0);
+    updateFormatPreview(formName);
+  }
+
+  function updateFormatPreview(formName) {
+    var sel = document.getElementById('id_submission_date_field');
+    var preview = document.getElementById('submission_date_format_preview');
+    var previewVal = document.getElementById('submission_date_format_value');
+    if (!sel || !preview || !previewVal) return;
+    var fmt = sel.value ? getDateFields(formName)[sel.value] : null;
+    if (fmt) { previewVal.textContent = normaliseFormat(fmt); preview.classList.remove('hidden'); }
+    else { preview.classList.add('hidden'); }
+  }
+
   var formSelect = document.getElementById('id_redcap_form_name');
   if (formSelect) {
-    formSelect.addEventListener('change', function() { applyMeta(this.value); });
-    // On edit: load badges from saved model values, don't overwrite event name
-    // On create: apply from meta immediately if a form is pre-selected
+    formSelect.addEventListener('change', function() {
+      applyMeta(this.value);
+      updateSubmissionDateDropdown(this.value, null);
+    });
     {% if action == 'create' %}
     if (formSelect.value) applyMeta(formSelect.value);
     {% else %}
-    // Edit mode: just wire up the change listener; saved values already shown via template
+    // Edit mode: saved values already shown via template
     {% endif %}
+    updateSubmissionDateDropdown(formSelect.value, currentDateFieldValue);
   }
+
+  var dateSel = document.getElementById('id_submission_date_field');
+  if (dateSel) dateSel.addEventListener('change', function() {
+    updateFormatPreview(formSelect ? formSelect.value : '');
+  });
 })();
 </script>
 {% endblock %}

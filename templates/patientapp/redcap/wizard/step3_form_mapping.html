@@ -24,6 +24,7 @@
         {% if fm.redcap_form_is_repeating %}<span class="text-xs text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">{% trans "Repeating" %}</span>{% endif %}
         {% if fm.redcap_form_is_in_event %}<span class="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{% trans "In Event" %}</span>{% endif %}
         {% if fm.redcap_event_name %}<span class="text-xs text-gray-500 font-mono">{{ fm.redcap_event_name }}</span>{% endif %}
+        {% if fm.submission_date_field %}<span class="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded font-mono" title="{% trans 'Submission date field' %}">📅 {{ fm.submission_date_field }}</span>{% endif %}
       </span>
       {% if edit_fm and edit_fm.pk == fm.pk %}
         <span class="text-xs text-amber-600 font-medium shrink-0 ml-2">{% trans "editing…" %}</span>
@@ -67,6 +68,21 @@
         {{ f.redcap_date_mapping_field }}
         <p class="mt-1 text-xs text-gray-500">{% trans "The field used to match the date of a questionnaire submission to a REDCap record. This may be in a different form. Must be a date or date-time field in REDCap." %}</p>
         {% for e in f.redcap_date_mapping_field.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div class="mb-3">
+        <label class="block text-xs font-medium text-gray-600 mb-1">📅 {% trans "Submission Date Field" %}</label>
+        <select name="edit-submission_date_field" id="id_edit_submission_date_field"
+          class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">--- {% trans "None" %} ---</option>
+        </select>
+        <div id="edit_submission_date_format_preview" class="mt-1 hidden">
+          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100 border border-amber-300 text-xs font-mono text-amber-900">
+            {% trans "Format" %}: <span id="edit_submission_date_format_value"></span>
+          </span>
+        </div>
+        <p id="edit_no_date_fields_msg" class="mt-1 text-xs text-gray-400 hidden">{% trans "No date or datetime fields in this form." %}</p>
+        <p class="mt-1 text-xs text-gray-500">{% trans "The questionnaire submission date/time will be exported to this field. Format is auto-detected from REDCap field validation." %}</p>
       </div>
 
       <div class="border border-amber-200 rounded-md bg-white p-3 mb-3">
@@ -141,6 +157,21 @@
       {% for e in form.redcap_date_mapping_field.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
     </div>
 
+    <div class="mb-3">
+      <label class="block text-xs font-medium text-gray-600 mb-1">📅 {% trans "Submission Date Field" %}</label>
+      <select name="submission_date_field" id="id_add_submission_date_field"
+        class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">--- {% trans "None" %} ---</option>
+      </select>
+      <div id="add_submission_date_format_preview" class="mt-1 hidden">
+        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100 border border-amber-300 text-xs font-mono text-amber-900">
+          {% trans "Format" %}: <span id="add_submission_date_format_value"></span>
+        </span>
+      </div>
+      <p id="add_no_date_fields_msg" class="mt-1 text-xs text-gray-400 hidden">{% trans "No date or datetime fields in this form." %}</p>
+      <p class="mt-1 text-xs text-gray-500">{% trans "The questionnaire submission date/time will be exported to this field. Format is auto-detected from REDCap field validation." %}</p>
+    </div>
+
     <div class="border border-gray-200 rounded-md bg-white p-3 mb-3">
       <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{% trans "Auto-detected from REDCap metadata" %}</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -180,6 +211,8 @@
 <script>
 (function() {
   var meta = {{ form_meta_json|default:"{}" |safe }};
+  var dateFieldsByForm = {{ date_fields_by_form_json|default:"{}" |safe }};
+  var editCurrentValue = "{{ edit_fm.submission_date_field|default:'' }}";
 
   function setBadge(badgeId, hiddenId, value) {
     var badge  = document.getElementById(badgeId);
@@ -204,18 +237,85 @@
     if (eventName) eventName.value = m.event_name || '';
   }
 
+  function normaliseFormat(validation) {
+    if (validation.indexOf('datetime_seconds_') === 0) return 'datetime_seconds_ymd';
+    if (validation.indexOf('datetime_') === 0) return 'datetime_ymd';
+    if (validation.indexOf('date_') === 0) return 'date_ymd';
+    return validation;
+  }
+
+  // Flatten all date fields across all forms for when no specific form is selected yet
+  var allDateFields = {};
+  Object.values(dateFieldsByForm).forEach(function(fields) {
+    Object.entries(fields).forEach(function(kv) { allDateFields[kv[0]] = kv[1]; });
+  });
+
+  function getDateFields(formName) {
+    return formName ? (dateFieldsByForm[formName] || {}) : allDateFields;
+  }
+
+  function updateSubmissionDateDropdown(selectId, noMsgId, previewId, previewValId, formName, preserveValue) {
+    var sel = document.getElementById(selectId);
+    var noMsg = document.getElementById(noMsgId);
+    if (!sel) return;
+    var fields = getDateFields(formName);
+    var entries = Object.entries(fields);
+    sel.innerHTML = '<option value="">--- {% trans "None" %} ---</option>';
+    entries.forEach(function(kv) {
+      var opt = document.createElement('option');
+      opt.value = kv[0];
+      opt.textContent = kv[0] + ' (' + kv[1] + ' → ' + normaliseFormat(kv[1]) + ')';
+      if (preserveValue && kv[0] === preserveValue) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    // Auto-select if exactly one option available and nothing preserved
+    if (entries.length === 1 && !preserveValue) sel.value = entries[0][0];
+    if (noMsg) noMsg.classList.toggle('hidden', entries.length > 0);
+    updateSubmissionDatePreview(selectId, previewId, previewValId, formName);
+  }
+
+  function updateSubmissionDatePreview(selectId, previewId, previewValId, formName) {
+    var sel = document.getElementById(selectId);
+    var preview = document.getElementById(previewId);
+    var previewVal = document.getElementById(previewValId);
+    if (!sel || !preview || !previewVal) return;
+    var fmt = sel.value ? getDateFields(formName)[sel.value] : null;
+    if (fmt) { previewVal.textContent = normaliseFormat(fmt); preview.classList.remove('hidden'); }
+    else { preview.classList.add('hidden'); }
+  }
+
   // Add form
   var addSel = document.getElementById('id_redcap_form_name');
   if (addSel) {
-    addSel.addEventListener('change', function() { applyMeta('add', this.value); });
+    // Always populate on load (shows all date fields if no form selected yet)
+    updateSubmissionDateDropdown('id_add_submission_date_field', 'add_no_date_fields_msg', 'add_submission_date_format_preview', 'add_submission_date_format_value', addSel.value, null);
     if (addSel.value) applyMeta('add', addSel.value);
+
+    addSel.addEventListener('change', function() {
+      applyMeta('add', this.value);
+      updateSubmissionDateDropdown('id_add_submission_date_field', 'add_no_date_fields_msg', 'add_submission_date_format_preview', 'add_submission_date_format_value', this.value, null);
+    });
+    var addDateSel = document.getElementById('id_add_submission_date_field');
+    if (addDateSel) addDateSel.addEventListener('change', function() {
+      updateSubmissionDatePreview('id_add_submission_date_field', 'add_submission_date_format_preview', 'add_submission_date_format_value', addSel.value);
+    });
   }
 
-  // Edit form — Django prefix='edit' gives id="id_edit-redcap_form_name"
-  var editSel = document.getElementById('id_edit-redcap_form_name');
+  // Edit form — use Django's rendered id (prefix='edit' → id_edit-redcap_form_name)
+  var editSel = document.getElementById('{{ edit_form.redcap_form_name.id_for_label|default:"id_edit-redcap_form_name" }}');
   if (editSel) {
-    editSel.addEventListener('change', function() { applyMeta('edit', this.value); });
+    // Always populate on load, pre-selecting the saved submission date field value
+    updateSubmissionDateDropdown('id_edit_submission_date_field', 'edit_no_date_fields_msg', 'edit_submission_date_format_preview', 'edit_submission_date_format_value', editSel.value, editCurrentValue);
     if (editSel.value) applyMeta('edit', editSel.value);
+
+    editSel.addEventListener('change', function() {
+      applyMeta('edit', this.value);
+      updateSubmissionDateDropdown('id_edit_submission_date_field', 'edit_no_date_fields_msg', 'edit_submission_date_format_preview', 'edit_submission_date_format_value', this.value, null);
+    });
+    var editDateSel = document.getElementById('id_edit_submission_date_field');
+    if (editDateSel) editDateSel.addEventListener('change', function() {
+      updateSubmissionDatePreview('id_edit_submission_date_field', 'edit_submission_date_format_preview', 'edit_submission_date_format_value', editSel.value);
+    });
   }
 })();
 </script>

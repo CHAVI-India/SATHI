@@ -320,9 +320,20 @@ class RedcapStudyIDtoPatientIDMap(models.Model):
         return f"{self.patient} - {self.redcap_study_id}"
 
 
+class SubmissionDateFormatChoices(models.TextChoices):
+    '''
+    These choices will be used to convert the submission date time to the correct format for the export. Note while the UI of REDCap allows several formats during export data is expected to be in three specific formats. If the DATE_YMD format is chosen then only date gets saved. 
+    '''
+    DATE_YMD = 'date_ymd', 'Date (Y-M-D)'
+    DATETIME_YMD = 'datetime_ymd', 'Datetime (Y-M-D H:M)'
+    DATETIME_SECONDS_YMD = 'datetime_seconds_ymd', 'Datetime w/ seconds (Y-M-D H:M:S)'
+
+
 class RedcapFormToQuestionnaireMapping(models.Model):
     '''
     This table will store the linkage between a REDCap form in a REDCap project and the questionnaire in CHAVI PROM. This linkage will be specfic to the project and therefore when when  the project is modified this linkage will be revised. 
+
+    Special note about mapping date of submission. In some REDCap forms there may be date or date time field that will be used for tracking the submission date. Data for this field will need to be obtained from the date_submitted field in the QuestionnaireSubmission model. A single field in the form which is a date or date time field should be allowed to be mapped to this value. The system will automatically detect the date / date time fields and check the date type field. In REDCap, the validation value is to be obtained from the JSON key in the project infromation. 
     '''
     project_redcap_mapping = models.ForeignKey(ProjectRedcapMapping, on_delete=models.CASCADE)
     redcap_form_name = models.CharField(max_length=1024)
@@ -332,6 +343,8 @@ class RedcapFormToQuestionnaireMapping(models.Model):
     redcap_event_is_repeating = models.BooleanField(default=False, help_text="This defines if the REDCap event is repeating. If there is a repeating event then all forms in the event will also repeat.")
     redcap_date_mapping_field = models.CharField(max_length=1024, blank=True, null=True, help_text="This is the field in the REDCap form that will be used to map the date to the questionnaire. Note that this field may exist in another form where the visit date is recorded.")
     questionnaire = models.ForeignKey('promapp.Questionnaire', on_delete=models.CASCADE, help_text="Link to the Questionnaire in the CHAVI PROM application.")
+    submission_date_field = models.CharField(max_length=255, null=True, blank = True)
+    submission_date_format = models.CharField(max_length = 1024, null=True,blank=True, choices=SubmissionDateFormatChoices.choices, help_text="This is the type of date format that will be used to store the submission date in REDCap. The questionnaire submission date will have to be stored in this specific format for the export to work.")    
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -359,20 +372,22 @@ class RedcapFormToQuestionnaireMapping(models.Model):
         return f"{self.redcap_form_name}-{self.questionnaire}"
 
 
-    
-    
+
 
 
 class RedcapFieldToItemMapping(models.Model):
     '''
     This table will store information about the mapping of REDCap fields to the Questionnaire Items in the CHAVI PROM questionnaire. Note that this linkage allows us to specify linkage of the same item to the multiple fields in REDCap. The linkage to the questionnaire item will point to the specific Item through the foreign key Questionnaire -> QuestionnaireItem -> Item (see promapp.models)
     When the export process will run, then the value stored for the specific item in the QuestionnaireSubmission will be used to populate the REDCap field data. The relationship traversal will be Questionnaire -> PatientQuestionnaire -> QuestionnaireSubmission -> QuestionnaireItemResponse where the field called response value stores the actual value that will be stored in the REDCap data export. (See promapp.models)
+    
 
     '''
 
     redcap_form_to_questionnaire_mapping = models.ForeignKey(RedcapFormToQuestionnaireMapping, on_delete=models.CASCADE)
     redcap_field_name = models.CharField(max_length=1024)
     questionnaire_item = models.ForeignKey('promapp.QuestionnaireItem', on_delete=models.CASCADE)
+    submission_date_field = models.CharField(max_length=255, null=True, blank = True)
+    submission_date_format = models.CharField(max_length = 1024, null=True,blank=True, choices=SubmissionDateFormatChoices.choices, help_text="This is the type of date format that will be used to store the submission date in REDCap. The questionnaire submission date will have to be stored in this specific format for the export to work.")
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 

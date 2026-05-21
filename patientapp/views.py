@@ -3088,6 +3088,7 @@ def redcap_setup_wizard(request, pk, mapping_pk):
                 'form': form_mapping_form,
                 'existing_form_mappings': existing_form_mappings,
                 'form_meta_json': json.dumps(_build_form_meta(mapping)),
+                'date_fields_by_form_json': json.dumps(form_mapping_form._date_fields_by_form),
             })
         return render(request, 'patientapp/redcap/wizard/step2_id_fields.html', {
             'mapping': mapping, 'project': project, 'form': form,
@@ -3135,6 +3136,7 @@ def redcap_setup_wizard(request, pk, mapping_pk):
             'edit_fm': edit_fm,
             'existing_form_mappings': existing_form_mappings,
             'form_meta_json': json.dumps(form_meta),
+            'date_fields_by_form_json': json.dumps(form_mapping_form._date_fields_by_form),
         })
 
     return HttpResponse(status=400)
@@ -3222,6 +3224,7 @@ def redcap_form_mapping_create(request, pk, mapping_pk):
         'title': _('Add Form Mapping'),
         'action': 'create',
         'form_meta_json': json.dumps(_build_form_meta(mapping)),
+        'date_fields_by_form_json': json.dumps(form._date_fields_by_form),
     })
 
 
@@ -3250,6 +3253,7 @@ def redcap_form_mapping_edit(request, pk, mapping_pk, fm_pk):
         'title': _('Edit Form Mapping'),
         'action': 'edit',
         'form_meta_json': json.dumps(_build_form_meta(mapping)),
+        'date_fields_by_form_json': json.dumps(form._date_fields_by_form),
     })
 
 
@@ -3278,15 +3282,34 @@ def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
                 field_map.save()
                 messages.success(request, _('Field mapping added.'))
             else:
+                err_date_fields = {}
+                if mapping.redcap_project_info:
+                    for _f in mapping.redcap_project_info.get('metadata', []):
+                        if _f.get('form_name') != fm.redcap_form_name:
+                            continue
+                        _v = _f.get('text_validation_type_or_show_slider_number', '')
+                        _n = _f.get('field_name', '')
+                        if _n and _v and _v.startswith(('date_', 'datetime_')):
+                            err_date_fields[_n] = _v
                 return render(request, 'patientapp/redcap/redcap_field_mappings.html', {
                     'project': project, 'mapping': mapping, 'fm': fm,
-                    'existing': existing, 'form': form,
+                    'existing': existing, 'form': form, 'date_fields': err_date_fields,
                 })
         elif action == 'delete':
             field_map_pk = request.POST.get('field_map_pk')
             RedcapFieldToItemMapping.objects.filter(pk=field_map_pk, redcap_form_to_questionnaire_mapping=fm).delete()
             messages.success(request, _('Field mapping removed.'))
         return redirect('redcap_field_mappings', pk=pk, mapping_pk=mapping_pk, fm_pk=fm_pk)
+
+    date_fields = {}
+    if mapping.redcap_project_info:
+        for field in mapping.redcap_project_info.get('metadata', []):
+            if field.get('form_name') != fm.redcap_form_name:
+                continue
+            validation = field.get('text_validation_type_or_show_slider_number', '')
+            fname = field.get('field_name', '')
+            if fname and validation and validation.startswith(('date_', 'datetime_')):
+                date_fields[fname] = validation
 
     form = RedcapFieldToItemMappingForm(project_redcap_mapping=mapping, form_mapping=fm)
     return render(request, 'patientapp/redcap/redcap_field_mappings.html', {
@@ -3295,6 +3318,7 @@ def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
         'fm': fm,
         'existing': existing,
         'form': form,
+        'date_fields': date_fields,
     })
 
 
