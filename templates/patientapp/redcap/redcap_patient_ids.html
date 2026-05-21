@@ -5,7 +5,9 @@
 {% block title %}{% trans "Patient ID Mapping" %} — {{ project.project_name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
+<div class="max-w-5xl mx-auto">
+
+  {# ── Header ── #}
   <div class="flex items-center justify-between mb-6">
     <div>
       <h1 class="text-2xl font-bold text-blue-700">{% trans "Patient → REDCap Study ID" %}</h1>
@@ -16,6 +18,7 @@
     </c-link_button>
   </div>
 
+  {# ── Flash messages ── #}
   {% if messages %}
     {% for message in messages %}
       <div class="mb-4 px-4 py-3 rounded border {% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %}">
@@ -24,34 +27,122 @@
     {% endfor %}
   {% endif %}
 
+  {# ── REDCap fetch error ── #}
+  {% if redcap_fetch_error %}
+  <div class="mb-4 px-4 py-3 rounded border bg-amber-50 border-amber-400 text-amber-800 text-sm">
+    <strong>{% trans "Could not fetch REDCap records:" %}</strong> {{ redcap_fetch_error }}
+    <p class="mt-1 text-xs text-amber-700">{% trans "REDCap IDs cannot be shown as a dropdown. You may still save manually entered values below, or fix the REDCap connection and reload." %}</p>
+  </div>
+  {% endif %}
+
   {% if rows %}
-  <form method="post">
+
+  {# ── Summary stats ── #}
+  {% with total=rows|length %}
+  <div class="grid grid-cols-3 gap-4 mb-6">
+    <c-card shadow="sm" padding="sm">
+      <p class="text-xs text-gray-500 uppercase font-medium">{% trans "Total patients" %}</p>
+      <p class="text-2xl font-bold text-gray-900 mt-1">{{ total }}</p>
+    </c-card>
+    <c-card shadow="sm" padding="sm">
+      <p class="text-xs text-gray-500 uppercase font-medium">{% trans "Mapped" %}</p>
+      <p class="mt-1"><span id="mapped-count" class="text-2xl font-bold text-green-600">{{ mapped_count }}</span></p>
+    </c-card>
+    <c-card shadow="sm" padding="sm">
+      <p class="text-xs text-gray-500 uppercase font-medium">{% trans "REDCap records" %}</p>
+      <p class="text-2xl font-bold text-blue-600 mt-1">{{ redcap_records|length }}{% if redcap_fetch_error %} <span class="text-sm text-amber-500">{% trans "(unavailable)" %}</span>{% endif %}</p>
+    </c-card>
+  </div>
+  {% endwith %}
+
+  {# ── Legend ── #}
+  {% if not redcap_fetch_error %}
+  <div class="mb-4 flex flex-wrap gap-4 text-xs text-gray-600 items-center">
+    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span> {% trans "Auto-matched" %}</span>
+    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block"></span> {% trans "Saved" %}</span>
+    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gray-300 inline-block"></span> {% trans "Unmatched" %}</span>
+    <span class="ml-2 text-gray-400">
+      {% trans "Dropdown:" %} <span class="font-mono">{{ primary_field }}</span>{% if secondary_field %} / <span class="font-mono">{{ secondary_field }}</span>{% endif %}
+    </span>
+  </div>
+  {% endif %}
+
+  {# ── Bulk-edit form (all rows) ── #}
+  <form method="post" id="bulk-form">
     {% csrf_token %}
-    <c-card shadow="md" padding="sm" class="mb-6">
-      <p class="text-sm text-gray-600 mb-4">
-        {% trans "Enter the REDCap Study ID (record_id) for each patient. Leave blank if not yet matched." %}
-      </p>
+    <input type="hidden" name="action" value="save">
+    <c-card shadow="md" padding="sm" class="mb-4">
       <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-gray-50">
+        <table class="min-w-full text-sm" id="mapping-table">
+          <thead class="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Patient" %}</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Patient ID" %}</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{% trans "REDCap Study ID" %}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Patient" %}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "SATHI ID" %}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "REDCap Study ID" %}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Status" %}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Actions" %}</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200">
+          <tbody class="divide-y divide-gray-100">
             {% for row in rows %}
-            <tr class="hover:bg-gray-50">
-              <td class="px-4 py-3 font-medium text-gray-900">{{ row.patient.name }}</td>
-              <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ row.patient.patient_id }}</td>
-              <td class="px-4 py-3">
-                <input
-                  type="text"
-                  name="study_id_{{ row.patient.pk }}"
-                  value="{{ row.redcap_study_id }}"
-                  class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="{% trans 'e.g. PT001' %}">
+            <tr class="hover:bg-gray-50 transition-colors {% if row.auto_matched %}bg-green-50 hover:bg-green-100{% elif row.redcap_study_id %}bg-blue-50 hover:bg-blue-100{% endif %}" data-mapped="{% if row.redcap_study_id %}1{% else %}0{% endif %}">
+
+              {# Patient name #}
+              <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{{ row.patient.name }}</td>
+
+              {# SATHI patient_id #}
+              <td class="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{{ row.patient.patient_id }}</td>
+
+              {# REDCap ID selector #}
+              <td class="px-4 py-3 min-w-[200px]">
+                {% if redcap_fetch_error %}
+                  <input type="text"
+                    name="study_id_{{ row.patient.pk }}"
+                    value="{{ row.redcap_study_id }}"
+                    class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="{% trans 'e.g. PT001' %}">
+                {% else %}
+                  <select name="study_id_{{ row.patient.pk }}"
+                    class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option value="">— {% trans "Not mapped" %} —</option>
+                    {% for rec in redcap_records %}
+                    <option value="{{ rec.primary }}" {% if rec.primary == row.redcap_study_id %}selected{% endif %}>
+                      {{ rec.primary }}{% if rec.secondary %} / {{ rec.secondary }}{% endif %}
+                    </option>
+                    {% endfor %}
+                  </select>
+                {% endif %}
+              </td>
+
+              {# Status badge #}
+              <td class="px-4 py-3 whitespace-nowrap">
+                {% if row.redcap_study_id %}
+                  {% if row.auto_matched %}
+                    <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ {% trans "Auto-matched" %}</span>
+                  {% else %}
+                    <span class="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">✓ {% trans "Saved" %}</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-xs text-gray-400">{% trans "Unmatched" %}</span>
+                {% endif %}
+              </td>
+
+              {# Per-row clear action #}
+              <td class="px-4 py-3 whitespace-nowrap">
+                {% if row.redcap_study_id %}
+                <form method="post" class="inline"
+                  onsubmit="return confirm('{% trans "Clear the REDCap ID mapping for this patient?" %}')">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="clear">
+                  <input type="hidden" name="patient_pk" value="{{ row.patient.pk }}">
+                  <button type="submit"
+                    class="text-xs text-red-600 hover:text-red-800 hover:underline font-medium">
+                    {% trans "Clear" %}
+                  </button>
+                </form>
+                {% else %}
+                  <span class="text-xs text-gray-300">—</span>
+                {% endif %}
               </td>
             </tr>
             {% endfor %}
@@ -60,14 +151,29 @@
       </div>
     </c-card>
 
-    <div class="flex justify-end gap-3">
-      <c-button type="submit" variant="primary">{% trans "Save ID Mappings" %}</c-button>
+    <div class="flex items-center justify-between">
+      <p class="text-xs text-gray-500">
+        <span id="mapped-summary"></span>
+      </p>
+      <div class="flex gap-3">
+        <c-button type="submit" variant="primary">{% trans "Save All Mappings" %}</c-button>
+      </div>
     </div>
   </form>
+
   {% else %}
     <c-card shadow="sm" padding="md">
       <p class="text-gray-500 text-center py-8">{% trans "No patients are enrolled in this project yet." %}</p>
     </c-card>
   {% endif %}
 </div>
+
+<script>
+(function () {
+  const rows = document.querySelectorAll('#mapping-table tbody tr');
+  const total = rows.length;
+  const summary = document.getElementById('mapped-summary');
+  if (summary) summary.textContent = `{{ mapped_count }} / ${total} {% trans "patients mapped" %}`;
+})();
+</script>
 {% endblock %}

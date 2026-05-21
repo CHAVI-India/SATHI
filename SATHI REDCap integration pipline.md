@@ -144,24 +144,20 @@ Implemented at the `RedcapFormToQuestionnaireMapping` level (not the individual 
 - **CSV export** (`_build_csv_export`): wide-format CSV with `record_id`, `redcap_event_name`, `redcap_repeat_instrument`, `redcap_repeat_instance`, and one column per mapped REDCap field. All submissions for all patients with a study ID mapping are included.
 - **API export** (`_run_api_export`): imports rows via PyCap `import_records()`.
 - **Transaction logging** (`RedcapDataExportLog`): records patient, user, form mapping, export type, start/end time, status (`pending/completed/incomplete/failed`), and raw response log. Last 50 logs shown on export page.
-- `submission_date_field` / `submission_date_format` written to model but **not yet used** in `_collect_export_rows` to populate the submission date column in the export.
+- `submission_date_field` / `submission_date_format` written to model and now used in `_collect_export_rows` to populate the submission date column.
 
----
-
-### 🔄 In Progress / Partially Done
-
-#### Submission date population in export rows ✅
-- `_collect_export_rows` now reads `fm.submission_date_field` and `fm.submission_date_format` and writes the formatted `QuestionnaireSubmission.submission_date` into the row.
-- Format mapping: `date_ymd` → `%Y-%m-%d`, `datetime_ymd` → `%Y-%m-%d %H:%M`, `datetime_seconds_ymd` → `%Y-%m-%d %H:%M:%S` (via `_SUBMISSION_DATE_FORMATS` dict in `views.py`).
+#### Submission date column in export
+- `_collect_export_rows` reads `fm.submission_date_field` and `fm.submission_date_format` and writes the formatted `QuestionnaireSubmission.submission_date` into the row.
+- Format mapping via `_SUBMISSION_DATE_FORMATS` dict: `date_ymd` → `%Y-%m-%d`, `datetime_ymd` → `%Y-%m-%d %H:%M`, `datetime_seconds_ymd` → `%Y-%m-%d %H:%M:%S`.
 - Field is only written if `submission_date_field`, a resolved format, and a non-null `submission_date` are all present.
 
-#### `RedcapFieldToItemMapping` — old submission date fields ✅
+#### Cleanup — `RedcapFieldToItemMapping` legacy submission date fields removed
 - `submission_date_field` and `submission_date_format` removed from `RedcapFieldToItemMapping` model (migration `0022`).
 - `is_submission_date_field` extra field, `clean()` logic, and `save()` override removed from `RedcapFieldToItemMappingForm`.
 
 ---
 
-### ⏳ Pending
+### ⏳ Pending / Next Steps
 
 #### Step 5 / Step 8 — Date-based submission-to-REDCap instance matching
 - **Purpose**: for repeating forms/events, determine which REDCap repeating instance corresponds to each SATHI questionnaire submission, based on the closest date match between the SATHI `submission_date` and the REDCap `redcap_date_mapping_field` value.

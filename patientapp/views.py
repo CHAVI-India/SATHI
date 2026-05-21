@@ -3334,29 +3334,95 @@ def redcap_patient_ids(request, pk, mapping_pk):
     patient_projects = PatientProject.objects.filter(project=project).select_related('patient')
 
     if request.method == 'POST':
-        for pp in patient_projects:
-            study_id_val = request.POST.get(f'study_id_{pp.patient.pk}', '').strip()
-            obj, _ = RedcapStudyIDtoPatientIDMap.objects.get_or_create(
+        action = request.POST.get('action', 'save')
+        if action == 'clear':
+            patient_pk = request.POST.get('patient_pk', '').strip()
+            RedcapStudyIDtoPatientIDMap.objects.filter(
                 project_redcap_mapping=mapping,
-                patient=pp.patient,
-            )
-            obj.redcap_study_id = study_id_val
-            obj.save(update_fields=['redcap_study_id', 'modified_at'])
-        messages.success(request, _('Patient ID mappings saved.'))
+                patient__pk=patient_pk,
+            ).delete()
+            messages.success(request, _('Patient ID mapping cleared.'))
+        else:
+            for pp in patient_projects:
+                study_id_val = request.POST.get(f'study_id_{pp.patient.pk}', '').strip()
+                obj, created = RedcapStudyIDtoPatientIDMap.objects.get_or_create(
+                    project_redcap_mapping=mapping,
+                    patient=pp.patient,
+                )
+                obj.redcap_study_id = study_id_val or None
+                obj.save(update_fields=['redcap_study_id', 'modified_at'])
+            messages.success(request, _('Patient ID mappings saved.'))
         return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+
+    # Fetch REDCap records to populate dropdown choices
+    redcap_records = []
+    redcap_fetch_error = None
+    primary_field = mapping.redcap_study_id_field or 'record_id'
+    secondary_field = mapping.redcap_secondary_id_field or ''
+    try:
+        import redcap as pycap
+        rc = pycap.Project(mapping.redcap_project_url, mapping.redcap_project_token)
+        fields_to_fetch = [primary_field]
+        if secondary_field:
+            fields_to_fetch.append(secondary_field)
+        raw_records = rc.export_records(fields=fields_to_fetch)
+        # Deduplicate by primary field (repeating instruments produce duplicate rows)
+        seen_ids = set()
+        for rec in raw_records:
+            rid = rec.get(primary_field, '').strip()
+            if rid and rid not in seen_ids:
+                seen_ids.add(rid)
+                redcap_records.append({
+                    'primary': rid,
+                    'secondary': rec.get(secondary_field, '').strip() if secondary_field else '',
+                })
+    except Exception as e:
+        redcap_fetch_error = str(e)
+
+    # Build a lookup set for fast auto-matching (lowercase)
+    primary_lookup = {r['primary'].lower(): r['primary'] for r in redcap_records}
+    secondary_lookup = {r['secondary'].lower(): r['primary'] for r in redcap_records if r['secondary']}
 
     id_maps = {
         m.patient_id: m.redcap_study_id
         for m in RedcapStudyIDtoPatientIDMap.objects.filter(project_redcap_mapping=mapping)
     }
-    rows = [
-        {'patient': pp.patient, 'redcap_study_id': id_maps.get(pp.patient.pk, '')}
-        for pp in patient_projects
-    ]
+
+    rows = []
+    for pp in patient_projects:
+        patient = pp.patient
+        existing = id_maps.get(patient.pk, '')
+        pid = (patient.patient_id or '').strip()
+        pid_lower = pid.lower()
+        # Auto-suggest: prefer existing saved value, then exact match on primary, then secondary
+        if existing:
+            suggested = existing
+            auto_matched = False
+        elif pid_lower in primary_lookup:
+            suggested = primary_lookup[pid_lower]
+            auto_matched = True
+        elif pid_lower in secondary_lookup:
+            suggested = secondary_lookup[pid_lower]
+            auto_matched = True
+        else:
+            suggested = ''
+            auto_matched = False
+        rows.append({
+            'patient': patient,
+            'redcap_study_id': suggested,
+            'auto_matched': auto_matched,
+        })
+
+    mapped_count = sum(1 for r in rows if r['redcap_study_id'])
     return render(request, 'patientapp/redcap/redcap_patient_ids.html', {
         'project': project,
         'mapping': mapping,
         'rows': rows,
+        'mapped_count': mapped_count,
+        'redcap_records': redcap_records,
+        'primary_field': primary_field,
+        'secondary_field': secondary_field,
+        'redcap_fetch_error': redcap_fetch_error,
     })
 
 
