@@ -67,99 +67,66 @@
   </div>
   {% endif %}
 
-  {# ── Bulk-edit form (all rows) ── #}
-  <form method="post" id="bulk-form">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="save">
-    <c-card shadow="md" padding="sm" class="mb-4">
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm" id="mapping-table">
-          <thead class="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Patient" %}</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "SATHI ID" %}</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "REDCap Study ID" %}</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Status" %}</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Actions" %}</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            {% for row in rows %}
-            <tr class="hover:bg-gray-50 transition-colors {% if row.auto_matched %}bg-green-50 hover:bg-green-100{% elif row.redcap_study_id %}bg-blue-50 hover:bg-blue-100{% endif %}" data-mapped="{% if row.redcap_study_id %}1{% else %}0{% endif %}">
-
-              {# Patient name #}
-              <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{{ row.patient.name }}</td>
-
-              {# SATHI patient_id #}
-              <td class="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{{ row.patient.patient_id }}</td>
-
-              {# REDCap ID selector #}
-              <td class="px-4 py-3 min-w-[200px]">
-                {% if redcap_fetch_error %}
-                  <input type="text"
-                    name="study_id_{{ row.patient.pk }}"
-                    value="{{ row.redcap_study_id }}"
-                    class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="{% trans 'e.g. PT001' %}">
+  {# ── Read-only table ── #}
+  <c-card shadow="md" padding="sm" class="mb-4">
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Patient" %}</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "SATHI ID" %}</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "REDCap Study ID" %}</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Status" %}</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Actions" %}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for row in rows %}
+          <tr class="hover:bg-gray-50 transition-colors {% if row.auto_matched %}bg-green-50 hover:bg-green-100{% elif row.redcap_study_id %}bg-blue-50 hover:bg-blue-100{% endif %}">
+            <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{{ row.patient.name }}</td>
+            <td class="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{{ row.patient.patient_id }}</td>
+            <td class="px-4 py-3 font-mono text-sm whitespace-nowrap">
+              {% if row.redcap_study_id %}
+                <span class="text-gray-800">{{ row.redcap_study_id }}</span>
+              {% else %}
+                <span class="text-gray-300 italic text-xs">{% trans "Not mapped" %}</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              {% if row.redcap_study_id %}
+                {% if row.auto_matched %}
+                  <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ {% trans "Auto-matched" %}</span>
                 {% else %}
-                  <select name="study_id_{{ row.patient.pk }}"
-                    class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    <option value="">— {% trans "Not mapped" %} —</option>
-                    {% for rec in redcap_records %}
-                    <option value="{{ rec.primary }}" {% if rec.primary == row.redcap_study_id %}selected{% endif %}>
-                      {{ rec.primary }}{% if rec.secondary %} / {{ rec.secondary }}{% endif %}
-                    </option>
-                    {% endfor %}
-                  </select>
+                  <span class="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">✓ {% trans "Saved" %}</span>
                 {% endif %}
-              </td>
-
-              {# Status badge #}
-              <td class="px-4 py-3 whitespace-nowrap">
+              {% else %}
+                <span class="text-xs text-gray-400">{% trans "Unmatched" %}</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <div class="flex items-center gap-3">
+                <button type="button"
+                  onclick="openModal('{{ row.patient.pk }}','{{ row.patient.name|escapejs }}','{{ row.patient.patient_id|escapejs }}','{{ row.redcap_study_id|escapejs }}')"
+                  class="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline">
+                  {% if row.redcap_study_id %}{% trans "Edit" %}{% else %}{% trans "Assign" %}{% endif %}
+                </button>
                 {% if row.redcap_study_id %}
-                  {% if row.auto_matched %}
-                    <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ {% trans "Auto-matched" %}</span>
-                  {% else %}
-                    <span class="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">✓ {% trans "Saved" %}</span>
-                  {% endif %}
-                {% else %}
-                  <span class="text-xs text-gray-400">{% trans "Unmatched" %}</span>
-                {% endif %}
-              </td>
-
-              {# Per-row clear action #}
-              <td class="px-4 py-3 whitespace-nowrap">
-                {% if row.redcap_study_id %}
-                <form method="post" class="inline"
-                  onsubmit="return confirm('{% trans "Clear the REDCap ID mapping for this patient?" %}')">
+                <form method="post" class="inline" onsubmit="return confirm('{% trans "Clear this mapping?" %}')">
                   {% csrf_token %}
                   <input type="hidden" name="action" value="clear">
                   <input type="hidden" name="patient_pk" value="{{ row.patient.pk }}">
-                  <button type="submit"
-                    class="text-xs text-red-600 hover:text-red-800 hover:underline font-medium">
-                    {% trans "Clear" %}
-                  </button>
+                  <button type="submit" class="text-xs font-medium text-red-500 hover:text-red-700 hover:underline">{% trans "Clear" %}</button>
                 </form>
-                {% else %}
-                  <span class="text-xs text-gray-300">—</span>
                 {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </c-card>
-
-    <div class="flex items-center justify-between">
-      <p class="text-xs text-gray-500">
-        <span id="mapped-summary"></span>
-      </p>
-      <div class="flex gap-3">
-        <c-button type="submit" variant="primary">{% trans "Save All Mappings" %}</c-button>
-      </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-  </form>
+  </c-card>
+  <p class="text-xs text-gray-500 text-right mb-2">{{ mapped_count }} / {{ rows|length }} {% trans "patients mapped" %}</p>
 
   {% else %}
     <c-card shadow="sm" padding="md">
@@ -168,12 +135,141 @@
   {% endif %}
 </div>
 
+{# ── Modal ── #}
+<div id="rc-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40" onclick="closeModal()"></div>
+  <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+
+    {# Header #}
+    <div class="flex items-start justify-between px-6 pt-5 pb-4 border-b border-gray-100">
+      <div>
+        <h2 class="text-base font-semibold text-gray-900">{% trans "Assign REDCap Study ID" %}</h2>
+        <p class="text-xs text-gray-500 mt-0.5" id="modal-subtitle"></p>
+      </div>
+      <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 ml-4">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    {# Form #}
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save">
+      <input type="hidden" name="modal_single" value="1">
+      <input type="hidden" name="modal_patient_pk" id="modal-patient-pk">
+
+      <div class="px-6 py-4 space-y-3">
+
+        {# Patient info block #}
+        <div class="bg-gray-50 rounded-lg px-4 py-3 text-sm">
+          <p class="text-xs text-gray-500 uppercase font-medium mb-1">{% trans "Patient" %}</p>
+          <p class="font-medium text-gray-900" id="modal-name"></p>
+          <p class="font-mono text-xs text-gray-500 mt-0.5" id="modal-pid"></p>
+        </div>
+
+        {# REDCap ID field #}
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            {% trans "REDCap Study ID" %}
+            <span class="font-normal text-gray-400 text-xs">({{ primary_field }}{% if secondary_field %} / {{ secondary_field }}{% endif %})</span>
+          </label>
+
+          {% if redcap_fetch_error %}
+            <input type="text" name="modal_study_id" id="modal-text-input"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="{% trans 'e.g. PT001' %}">
+            <p class="text-xs text-amber-600 mt-1">{% trans "REDCap unavailable — enter ID manually." %}</p>
+          {% else %}
+            <input type="hidden" name="modal_study_id" id="modal-hidden-val">
+            <input type="text" id="modal-search" autocomplete="off"
+              placeholder="{% trans 'Type to search…' %}"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2">
+            <div id="modal-listbox-wrap" class="border border-gray-300 rounded-md overflow-y-auto bg-white" style="max-height:160px">
+              <div id="modal-listbox" class="divide-y divide-gray-100">
+                <div class="px-3 py-2 text-sm text-gray-400 italic cursor-pointer hover:bg-gray-50" data-value="">— {% trans "Not mapped" %} —</div>
+                {% for rec in redcap_records %}
+                <div class="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50" data-value="{{ rec.primary }}">{{ rec.primary }}{% if rec.secondary %} <span class="text-gray-400">/ {{ rec.secondary }}</span>{% endif %}</div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {# Footer #}
+      <div class="flex justify-end gap-3 px-6 pb-5">
+        <button type="button" onclick="closeModal()"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">{% trans "Cancel" %}</button>
+        <button type="submit"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">{% trans "Save" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
-(function () {
-  const rows = document.querySelectorAll('#mapping-table tbody tr');
-  const total = rows.length;
-  const summary = document.getElementById('mapped-summary');
-  if (summary) summary.textContent = `{{ mapped_count }} / ${total} {% trans "patients mapped" %}`;
-})();
+{% if not redcap_fetch_error %}
+var _listbox = document.getElementById('modal-listbox');
+var _search  = document.getElementById('modal-search');
+var _hidden  = document.getElementById('modal-hidden-val');
+var _selected = null;
+
+_listbox.addEventListener('click', function (e) {
+  var item = e.target.closest('[data-value]');
+  if (!item) return;
+  if (_selected) _selected.classList.remove('bg-blue-600','text-white','hover:bg-blue-50');
+  item.classList.add('bg-blue-600','text-white');
+  item.classList.remove('hover:bg-blue-50');
+  _selected = item;
+  _hidden.value = item.dataset.value || '';
+  _search.value = item.dataset.value ? item.textContent.trim() : '';
+});
+
+_search.addEventListener('input', function () {
+  var q = this.value.toLowerCase();
+  Array.from(_listbox.querySelectorAll('[data-value]')).forEach(function (el) {
+    el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+
+function _setListboxValue(val) {
+  if (_selected) { _selected.classList.remove('bg-blue-600','text-white'); _selected = null; }
+  _hidden.value = val || '';
+  _search.value = '';
+  Array.from(_listbox.querySelectorAll('[data-value]')).forEach(function (el) { el.style.display = ''; });
+  if (val) {
+    var match = _listbox.querySelector('[data-value="' + val + '"]');
+    if (match) {
+      match.classList.add('bg-blue-600','text-white');
+      match.classList.remove('hover:bg-blue-50');
+      _selected = match;
+      _search.value = match.textContent.trim();
+      match.scrollIntoView({ block: 'nearest' });
+    }
+  }
+}
+{% endif %}
+
+function openModal(pk, name, pid, currentVal) {
+  document.getElementById('modal-patient-pk').value = pk;
+  document.getElementById('modal-name').textContent  = name;
+  document.getElementById('modal-pid').textContent   = pid;
+  document.getElementById('modal-subtitle').textContent = name;
+  {% if redcap_fetch_error %}
+    document.getElementById('modal-text-input').value = currentVal;
+  {% else %}
+    _setListboxValue(currentVal);
+    setTimeout(function () { _search.focus(); }, 50);
+  {% endif %}
+  document.getElementById('rc-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('rc-modal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
 </script>
 {% endblock %}

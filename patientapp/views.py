@@ -3342,16 +3342,20 @@ def redcap_patient_ids(request, pk, mapping_pk):
                 patient__pk=patient_pk,
             ).delete()
             messages.success(request, _('Patient ID mapping cleared.'))
-        else:
-            for pp in patient_projects:
-                study_id_val = request.POST.get(f'study_id_{pp.patient.pk}', '').strip()
-                obj, created = RedcapStudyIDtoPatientIDMap.objects.get_or_create(
-                    project_redcap_mapping=mapping,
-                    patient=pp.patient,
-                )
-                obj.redcap_study_id = study_id_val or None
-                obj.save(update_fields=['redcap_study_id', 'modified_at'])
-            messages.success(request, _('Patient ID mappings saved.'))
+        elif request.POST.get('modal_single'):
+            # Single-patient save from the modal dialog
+            patient_pk = request.POST.get('modal_patient_pk', '').strip()
+            study_id_val = request.POST.get('modal_study_id', '').strip()
+            from django.shortcuts import get_object_or_404 as _get404
+            from .models import Patient as _Patient
+            patient = _get404(_Patient, pk=patient_pk)
+            obj, created = RedcapStudyIDtoPatientIDMap.objects.get_or_create(
+                project_redcap_mapping=mapping,
+                patient=patient,
+            )
+            obj.redcap_study_id = study_id_val or None
+            obj.save(update_fields=['redcap_study_id', 'modified_at'])
+            messages.success(request, _('Patient ID mapping saved.'))
         return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
 
     # Fetch REDCap records to populate dropdown choices
