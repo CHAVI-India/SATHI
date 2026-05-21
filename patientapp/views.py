@@ -2879,7 +2879,7 @@ def redcap_mapping_create(request, pk):
             return redirect('redcap_project_dashboard', pk=pk)
     else:
         form = ProjectRedcapMappingForm()
-    return render(request, 'patientapp/redcap/redcap_mapping_form.html', {
+    return render(request, 'patientapp/redcap/redcap_project_config_form.html', {
         'form': form,
         'project': project,
         'title': _('Add REDCap Configuration'),
@@ -2903,7 +2903,7 @@ def redcap_mapping_edit(request, pk, mapping_pk):
             return redirect('redcap_project_dashboard', pk=pk)
     else:
         form = ProjectRedcapMappingForm(instance=mapping)
-    return render(request, 'patientapp/redcap/redcap_mapping_form.html', {
+    return render(request, 'patientapp/redcap/redcap_project_config_form.html', {
         'form': form,
         'project': project,
         'mapping': mapping,

@@ -91,8 +91,36 @@ All fetched via PyCap and stored in `redcap_project_info` (JSONField):
 
 #### Models
 - `RedcapFormToQuestionnaireMapping` — links a REDCap form to a CHAVI PROM questionnaire per project mapping, stores `redcap_event_name`, `redcap_form_is_repeating`, `redcap_form_is_in_event`, `redcap_event_is_repeating`, `redcap_date_mapping_field`.
+- `submission_date_field` (CharField, nullable) — the REDCap field within the mapped form that will receive the questionnaire submission date/time on export.
+- `submission_date_format` (CharField, nullable, choices from `SubmissionDateFormatChoices`) — the canonical export format derived automatically from the REDCap field's validation type (see format normalisation below). Stored as one of `date_ymd`, `datetime_ymd`, or `datetime_seconds_ymd`.
+- `SubmissionDateFormatChoices` — TextChoices class defining the supported export formats: `date_dmy/mdy/ymd`, `datetime_dmy/mdy/ymd`, `datetime_seconds_dmy/mdy/ymd`.
 - DB constraints: event cannot be repeating unless form is in an event; date mapping field required when form is in an event.
 - `redcap_data_access_group_used` boolean field on `ProjectRedcapMapping`, auto-populated on metadata fetch.
+
+#### Submission Date Mapping (form-level)
+Implemented at the `RedcapFormToQuestionnaireMapping` level (not the individual field mapping level) so that one submission date field is configured per questionnaire/form pair.
+
+**Form (`RedcapFormToQuestionnaireMappingForm`):**
+- `submission_date_field` ChoiceField dynamically populated from all date/datetime fields across all REDCap instruments (detected via `text_validation_type_or_show_slider_number` starting with `date_` or `datetime_`).
+- `_date_fields_by_form` dict built in `__init__` and passed to templates as `date_fields_by_form_json` for JS-driven filtering.
+- `_normalise_date_format(validation)` static method maps any REDCap validation type to its canonical ymd export format:
+  - `date_dmy / date_mdy / date_ymd` → `date_ymd`
+  - `datetime_dmy / datetime_mdy / datetime_ymd` → `datetime_ymd`
+  - `datetime_seconds_*` → `datetime_seconds_ymd`
+- `clean()` validates that the selected field belongs to the chosen REDCap form and resolves the normalised format into `_resolved_submission_date_format`.
+- `save()` writes `submission_date_field` and `submission_date_format` to the model instance.
+
+**Views:**
+- `redcap_form_mapping_create` and `redcap_form_mapping_edit` both pass `date_fields_by_form_json` to the template.
+- Wizard step 3 (`redcap_setup_wizard`, step `'3'`) also passes `date_fields_by_form_json` to `step3_form_mapping.html`.
+
+**Templates — UI behaviour (both wizard step 3 and standalone form mapping edit):**
+- Submission Date Mapping section rendered as a separate card below the main form details.
+- Dropdown (`<select name="submission_date_field">`) is JS-populated on page load — shows all date fields if no REDCap form is selected yet, filtered to the selected form's fields once a form is chosen.
+- If exactly one date field is available, it is auto-selected.
+- Format preview badge appears immediately showing the normalised export format (e.g. `date_ymd`).
+- Dropdown option labels show both the raw REDCap validation type and the normalised export format, e.g. `fieldname (date_dmy → date_ymd)`.
+- Existing form mappings list shows a 📅 amber badge with the configured `submission_date_field` name when set.
 
 ---
 
