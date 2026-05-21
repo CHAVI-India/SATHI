@@ -2969,7 +2969,7 @@ def _build_form_meta(mapping):
     instruments = info.get('instruments', [])
     events = info.get('events', [])
     repeating = info.get('repeating', [])
-    is_longitudinal = bool(info.get('project_info', {}).get('is_longitudinal'))
+    is_longitudinal = bool(int(info.get('project_info', {}).get('is_longitudinal') or 0))
 
     # Build set of repeating form names (entry has a non-empty form_name)
     repeating_forms = set()
@@ -3038,7 +3038,7 @@ def redcap_setup_wizard(request, pk, mapping_pk):
                 except Exception:
                     events = []
                 try:
-                    repeating = rc.export_repeating_instruments_and_events()
+                    repeating = rc.export_repeating_instruments_events()
                 except Exception:
                     repeating = []
                 info_payload = {
@@ -3094,28 +3094,45 @@ def redcap_setup_wizard(request, pk, mapping_pk):
         })
 
     if step == '3':
-        form_mapping_form = RedcapFormToQuestionnaireMappingForm(
-            request.POST if request.method == 'POST' else None,
-            project_redcap_mapping=mapping,
-        )
+        edit_pk = request.GET.get('edit') or request.POST.get('edit_fm_pk')
+        edit_fm = None
+        if edit_pk:
+            edit_fm = get_object_or_404(RedcapFormToQuestionnaireMapping, pk=edit_pk, project_redcap_mapping=mapping)
+
+        if edit_fm:
+            # Inline edit mode
+            edit_form = RedcapFormToQuestionnaireMappingForm(
+                request.POST if request.method == 'POST' else None,
+                instance=edit_fm,
+                project_redcap_mapping=mapping,
+                prefix='edit',
+            )
+            if request.method == 'POST' and edit_form.is_valid():
+                edit_form.save()
+                edit_fm = None
+                edit_form = None
+            form_mapping_form = RedcapFormToQuestionnaireMappingForm(project_redcap_mapping=mapping)
+        else:
+            edit_form = None
+            form_mapping_form = RedcapFormToQuestionnaireMappingForm(
+                request.POST if request.method == 'POST' else None,
+                project_redcap_mapping=mapping,
+            )
+            if request.method == 'POST' and form_mapping_form.is_valid():
+                fm = form_mapping_form.save(commit=False)
+                fm.project_redcap_mapping = mapping
+                fm.save()
+                form_mapping_form = RedcapFormToQuestionnaireMappingForm(project_redcap_mapping=mapping)
+
         existing_form_mappings = RedcapFormToQuestionnaireMapping.objects.filter(
             project_redcap_mapping=mapping
         )
-        if request.method == 'POST' and form_mapping_form.is_valid():
-            fm = form_mapping_form.save(commit=False)
-            fm.project_redcap_mapping = mapping
-            fm.save()
-            # Reload with fresh form
-            form_mapping_form = RedcapFormToQuestionnaireMappingForm(
-                project_redcap_mapping=mapping,
-            )
-            existing_form_mappings = RedcapFormToQuestionnaireMapping.objects.filter(
-                project_redcap_mapping=mapping
-            )
         form_meta = _build_form_meta(mapping)
         return render(request, 'patientapp/redcap/wizard/step3_form_mapping.html', {
             'mapping': mapping, 'project': project,
             'form': form_mapping_form,
+            'edit_form': edit_form,
+            'edit_fm': edit_fm,
             'existing_form_mappings': existing_form_mappings,
             'form_meta_json': json.dumps(form_meta),
         })

@@ -22,32 +22,65 @@
   <form method="post">
     {% csrf_token %}
     <c-card title="{% trans 'Form Mapping Details' %}" shadow="lg" padding="sm" class="mb-6">
-      <div class="space-y-5">
-        {% for field in form %}
+
+      {# Row 1: REDCap Form + Questionnaire #}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div>
-          <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-            {{ field.label }}
-            {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+          <label for="{{ form.redcap_form_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {% trans "REDCap Instrument / Form" %} <span class="text-red-500">*</span>
           </label>
-          {% if field.field.widget.input_type == 'checkbox' %}
-            <div class="flex items-center gap-2">
-              {{ field }}
-              <span class="text-sm text-gray-600">{{ field.help_text }}</span>
-            </div>
-          {% else %}
-            {{ field }}
-            {% if field.help_text %}
-              <p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>
-            {% endif %}
-          {% endif %}
-          {% if field.errors %}
-            {% for error in field.errors %}
-              <p class="mt-1 text-sm text-red-600">{{ error }}</p>
-            {% endfor %}
-          {% endif %}
+          {{ form.redcap_form_name }}
+          {% for e in form.redcap_form_name.errors %}<p class="mt-1 text-sm text-red-600">{{ e }}</p>{% endfor %}
         </div>
-        {% endfor %}
+        <div>
+          <label for="{{ form.questionnaire.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {% trans "CHAVI PROM Questionnaire" %} <span class="text-red-500">*</span>
+          </label>
+          {{ form.questionnaire }}
+          {% for e in form.questionnaire.errors %}<p class="mt-1 text-sm text-red-600">{{ e }}</p>{% endfor %}
+        </div>
       </div>
+
+      {# Row 2: Date Mapping Field #}
+      <div class="mb-4">
+        <label for="{{ form.redcap_date_mapping_field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {% trans "Date Mapping Field in REDCap" %}
+        </label>
+        {{ form.redcap_date_mapping_field }}
+        <p class="mt-1 text-xs text-gray-500">{% trans "The field in the REDCap form used to match the date of a questionnaire submission. This field may exist in another form where the visit date is recorded. Must be a date or date-time field type in REDCap." %}</p>
+        {% for e in form.redcap_date_mapping_field.errors %}<p class="mt-1 text-sm text-red-600">{{ e }}</p>{% endfor %}
+      </div>
+
+      {# Row 3: Auto-detected metadata (read-only display + hidden inputs) #}
+      <div class="border border-gray-200 rounded-md bg-gray-50 p-4">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{% trans "Auto-detected from REDCap metadata" %}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "REDCap Event Name" %}</label>
+            <input id="id_redcap_event_name" name="redcap_event_name"
+              class="w-full text-sm px-3 py-2 rounded border border-gray-200 bg-white text-gray-700 font-mono"
+              value="{{ form.redcap_event_name.value|default:'' }}" readonly>
+          </div>
+          <div class="flex flex-col gap-3 justify-center">
+            <div class="flex items-center gap-2">
+              <span id="badge_form_repeating" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:{% if fm.redcap_form_is_repeating %}#22c55e{% else %}#d1d5db{% endif %}"></span>
+              <span class="text-sm text-gray-600">{% trans "Form is a repeating form" %}</span>
+              <input type="hidden" id="hidden_form_is_repeating" name="redcap_form_is_repeating" value="{% if fm.redcap_form_is_repeating %}on{% endif %}">
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="badge_form_in_event" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:{% if fm.redcap_form_is_in_event %}#22c55e{% else %}#d1d5db{% endif %}"></span>
+              <span class="text-sm text-gray-600">{% trans "Form is part of an event" %}</span>
+              <input type="hidden" id="hidden_form_is_in_event" name="redcap_form_is_in_event" value="{% if fm.redcap_form_is_in_event %}on{% endif %}">
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="badge_event_repeating" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:{% if fm.redcap_event_is_repeating %}#22c55e{% else %}#d1d5db{% endif %}"></span>
+              <span class="text-sm text-gray-600">{% trans "Event is repeating" %}</span>
+              <input type="hidden" id="hidden_event_is_repeating" name="redcap_event_is_repeating" value="{% if fm.redcap_event_is_repeating %}on{% endif %}">
+            </div>
+          </div>
+        </div>
+      </div>
+
     </c-card>
 
     <div class="flex justify-end gap-3">
@@ -65,25 +98,42 @@
 {% block extra_js %}
 <script>
 (function() {
-  var meta = {{ form_meta_json|default:"{}" }};
-  var formSelect = document.getElementById('id_redcap_form_name');
-  if (!formSelect) return;
+  var meta = {{ form_meta_json|default:"{}" |safe }};
+
+  function setBadge(badgeId, hiddenId, value) {
+    var badge  = document.getElementById(badgeId);
+    var hidden = document.getElementById(hiddenId);
+    if (badge)  badge.style.background = value ? '#22c55e' : '#d1d5db';
+    if (hidden) hidden.value           = value ? 'on' : '';
+  }
 
   function applyMeta(formName) {
     var m = meta[formName];
-    if (!m) return;
-    var isRepeating    = document.getElementById('id_redcap_form_is_repeating');
-    var isInEvent      = document.getElementById('id_redcap_form_is_in_event');
-    var eventRepeating = document.getElementById('id_redcap_event_is_repeating');
-    var eventName      = document.getElementById('id_redcap_event_name');
-    if (isRepeating)    isRepeating.checked    = m.form_is_repeating;
-    if (isInEvent)      isInEvent.checked      = m.form_is_in_event;
-    if (eventRepeating) eventRepeating.checked = m.event_is_repeating;
-    if (eventName && eventName.value === '') eventName.value = m.event_name || '';
+    var eventName = document.getElementById('id_redcap_event_name');
+    if (!m) {
+      setBadge('badge_form_repeating',  'hidden_form_is_repeating',  false);
+      setBadge('badge_form_in_event',   'hidden_form_is_in_event',   false);
+      setBadge('badge_event_repeating', 'hidden_event_is_repeating', false);
+      if (eventName) eventName.value = '';
+      return;
+    }
+    setBadge('badge_form_repeating',  'hidden_form_is_repeating',  m.form_is_repeating);
+    setBadge('badge_form_in_event',   'hidden_form_is_in_event',   m.form_is_in_event);
+    setBadge('badge_event_repeating', 'hidden_event_is_repeating', m.event_is_repeating);
+    if (eventName) eventName.value = m.event_name || '';
   }
 
-  formSelect.addEventListener('change', function() { applyMeta(this.value); });
-  if (formSelect.value) applyMeta(formSelect.value);
+  var formSelect = document.getElementById('id_redcap_form_name');
+  if (formSelect) {
+    formSelect.addEventListener('change', function() { applyMeta(this.value); });
+    // On edit: load badges from saved model values, don't overwrite event name
+    // On create: apply from meta immediately if a form is pre-selected
+    {% if action == 'create' %}
+    if (formSelect.value) applyMeta(formSelect.value);
+    {% else %}
+    // Edit mode: just wire up the change listener; saved values already shown via template
+    {% endif %}
+  }
 })();
 </script>
 {% endblock %}

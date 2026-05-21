@@ -1,6 +1,6 @@
 {% load i18n %}
 
-{# Step indicator #}
+{# ── Step indicator ──────────────────────────────────────────────────────────── #}
 <div class="flex items-center gap-2 mb-5">
   <span class="flex items-center justify-center w-7 h-7 rounded-full bg-green-600 text-white text-xs font-bold">✓</span>
   <span class="flex-1 h-1 bg-green-200 rounded"></span>
@@ -10,90 +10,220 @@
 </div>
 <p class="text-xs text-gray-500 mb-4">{% trans "Step 3: Map REDCap forms to CHAVI PROM questionnaires. You can add multiple mappings." %}</p>
 
-{# Existing mappings #}
+{# ── Existing mappings list ──────────────────────────────────────────────────── #}
 {% if existing_form_mappings %}
 <div class="mb-4">
   <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{% trans "Configured Mappings" %}</p>
-  <div class="space-y-1 max-h-36 overflow-y-auto">
+  <div class="space-y-1 max-h-40 overflow-y-auto">
     {% for fm in existing_form_mappings %}
-    <div class="flex items-center justify-between px-3 py-2 bg-green-50 border border-green-100 rounded text-sm">
-      <span>
+    <div class="flex items-center justify-between px-3 py-2 {% if edit_fm and edit_fm.pk == fm.pk %}bg-amber-50 border border-amber-200{% else %}bg-green-50 border border-green-100{% endif %} rounded text-sm">
+      <span class="flex items-center gap-1.5 flex-wrap">
         <span class="font-mono text-xs text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">{{ fm.redcap_form_name }}</span>
-        <span class="text-gray-500 mx-1">→</span>
+        <span class="text-gray-500">→</span>
         <span class="text-gray-800">{{ fm.questionnaire }}</span>
+        {% if fm.redcap_form_is_repeating %}<span class="text-xs text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">{% trans "Repeating" %}</span>{% endif %}
+        {% if fm.redcap_form_is_in_event %}<span class="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{% trans "In Event" %}</span>{% endif %}
+        {% if fm.redcap_event_name %}<span class="text-xs text-gray-500 font-mono">{{ fm.redcap_event_name }}</span>{% endif %}
       </span>
-      {% if fm.redcap_form_is_repeating %}<span class="text-xs text-blue-600 ml-2">{% trans "Repeating" %}</span>{% endif %}
+      {% if edit_fm and edit_fm.pk == fm.pk %}
+        <span class="text-xs text-amber-600 font-medium shrink-0 ml-2">{% trans "editing…" %}</span>
+      {% else %}
+        <button type="button"
+          hx-get="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=3&edit={{ fm.pk }}"
+          hx-target="#wizard-body" hx-swap="innerHTML"
+          class="text-xs text-indigo-600 hover:underline shrink-0 ml-2">{% trans "Edit" %}</button>
+      {% endif %}
     </div>
     {% endfor %}
   </div>
 </div>
 {% endif %}
 
-{# Add new mapping form #}
+{# ── Inline edit panel (shown when Edit is clicked) ──────────────────────────── #}
+{% if edit_fm %}
+  {% with f=edit_form sv=edit_fm %}
+  <div class="bg-amber-50 rounded-lg p-4 mb-4 border border-amber-200">
+    <p class="text-sm font-medium text-amber-800 mb-3">{% trans "Edit Mapping" %} — <span class="font-mono text-xs">{{ edit_fm.redcap_form_name }}</span></p>
+    <form hx-post="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=3"
+          hx-target="#wizard-body" hx-swap="innerHTML">
+      {% csrf_token %}
+      <input type="hidden" name="edit_fm_pk" value="{{ edit_fm.pk }}">
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <div>
+          <label for="{{ f.redcap_form_name.id_for_label }}" class="block text-xs font-medium text-gray-600 mb-1">{% trans "REDCap Instrument / Form" %} <span class="text-red-500">*</span></label>
+          {{ f.redcap_form_name }}
+          {% for e in f.redcap_form_name.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+        </div>
+        <div>
+          <label for="{{ f.questionnaire.id_for_label }}" class="block text-xs font-medium text-gray-600 mb-1">{% trans "CHAVI PROM Questionnaire" %} <span class="text-red-500">*</span></label>
+          {{ f.questionnaire }}
+          {% for e in f.questionnaire.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="{{ f.redcap_date_mapping_field.id_for_label }}" class="block text-xs font-medium text-gray-600 mb-1">{% trans "Date Mapping Field in REDCap" %}</label>
+        {{ f.redcap_date_mapping_field }}
+        <p class="mt-1 text-xs text-gray-500">{% trans "The field used to match the date of a questionnaire submission to a REDCap record. This may be in a different form. Must be a date or date-time field in REDCap." %}</p>
+        {% for e in f.redcap_date_mapping_field.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div class="border border-amber-200 rounded-md bg-white p-3 mb-3">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{% trans "Auto-detected from REDCap metadata" %}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <p class="text-xs font-medium text-gray-600 mb-1">{% trans "REDCap Event Name" %}</p>
+            <input id="id_edit_event_name" name="redcap_event_name"
+              class="w-full text-sm px-2 py-1.5 rounded border border-gray-200 bg-gray-100 text-gray-700 font-mono"
+              value="{{ sv.redcap_event_name|default:'' }}" readonly>
+          </div>
+          <div class="flex flex-col gap-2 justify-center pt-4">
+            <div class="flex items-center gap-2">
+              <span id="badge_edit_repeating" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:{% if sv.redcap_form_is_repeating %}#22c55e{% else %}#d1d5db{% endif %}"></span>
+              <span class="text-xs text-gray-600">{% trans "Form is a repeating form" %}</span>
+              <input type="hidden" id="hidden_edit_form_is_repeating" name="redcap_form_is_repeating" value="{% if sv.redcap_form_is_repeating %}on{% endif %}">
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="badge_edit_in_event" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:{% if sv.redcap_form_is_in_event %}#22c55e{% else %}#d1d5db{% endif %}"></span>
+              <span class="text-xs text-gray-600">{% trans "Form is part of an event" %}</span>
+              <input type="hidden" id="hidden_edit_form_is_in_event" name="redcap_form_is_in_event" value="{% if sv.redcap_form_is_in_event %}on{% endif %}">
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="badge_edit_event_repeating" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:{% if sv.redcap_event_is_repeating %}#22c55e{% else %}#d1d5db{% endif %}"></span>
+              <span class="text-xs text-gray-600">{% trans "Event is repeating" %}</span>
+              <input type="hidden" id="hidden_edit_event_is_repeating" name="redcap_event_is_repeating" value="{% if sv.redcap_event_is_repeating %}on{% endif %}">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button type="button"
+          hx-get="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=3"
+          hx-target="#wizard-body" hx-swap="innerHTML"
+          class="flex-1 px-3 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
+          {% trans "Cancel" %}
+        </button>
+        <button type="submit" class="flex-1 px-3 py-2 text-sm rounded-md bg-amber-600 text-white hover:bg-amber-700">
+          {% trans "Save Changes" %}
+        </button>
+      </div>
+    </form>
+  </div>
+  {% endwith %}
+{% endif %}
+
+{# ── Add new mapping form (always shown) ────────────────────────────────────── #}
 <div class="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
   <p class="text-sm font-medium text-gray-700 mb-3">{% trans "Add Form Mapping" %}</p>
-  <form
-    hx-post="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=3"
-    hx-target="#wizard-body"
-    hx-swap="innerHTML">
+  <form hx-post="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=3"
+        hx-target="#wizard-body" hx-swap="innerHTML">
     {% csrf_token %}
+
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-      {% for field in form %}
-        {% if field.field.widget.input_type == 'checkbox' %}
-        <div class="flex items-center gap-2 col-span-1">
-          {{ field }}
-          <label for="{{ field.id_for_label }}" class="text-sm text-gray-700">{{ field.label }}</label>
-        </div>
-        {% else %}
-        <div class="col-span-1 {% if field.html_name == 'questionnaire' or field.html_name == 'redcap_form_name' %}sm:col-span-2{% endif %}">
-          <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-600 mb-1">
-            {{ field.label }}{% if field.field.required %} <span class="text-red-500">*</span>{% endif %}
-          </label>
-          {{ field }}
-          {% for error in field.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
-        </div>
-        {% endif %}
-      {% endfor %}
+      <div>
+        <label for="{{ form.redcap_form_name.id_for_label }}" class="block text-xs font-medium text-gray-600 mb-1">{% trans "REDCap Instrument / Form" %} <span class="text-red-500">*</span></label>
+        {{ form.redcap_form_name }}
+        {% for e in form.redcap_form_name.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+      </div>
+      <div>
+        <label for="{{ form.questionnaire.id_for_label }}" class="block text-xs font-medium text-gray-600 mb-1">{% trans "CHAVI PROM Questionnaire" %} <span class="text-red-500">*</span></label>
+        {{ form.questionnaire }}
+        {% for e in form.questionnaire.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+      </div>
     </div>
+
+    <div class="mb-3">
+      <label for="{{ form.redcap_date_mapping_field.id_for_label }}" class="block text-xs font-medium text-gray-600 mb-1">{% trans "Date Mapping Field in REDCap" %}</label>
+      {{ form.redcap_date_mapping_field }}
+      <p class="mt-1 text-xs text-gray-500">{% trans "The field used to match the date of a questionnaire submission to a REDCap record. This may be in a different form. Must be a date or date-time field in REDCap." %}</p>
+      {% for e in form.redcap_date_mapping_field.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+    </div>
+
+    <div class="border border-gray-200 rounded-md bg-white p-3 mb-3">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{% trans "Auto-detected from REDCap metadata" %}</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <p class="text-xs font-medium text-gray-600 mb-1">{% trans "REDCap Event Name" %}</p>
+          <input id="id_add_event_name" name="redcap_event_name"
+            class="w-full text-sm px-2 py-1.5 rounded border border-gray-200 bg-gray-100 text-gray-700 font-mono"
+            value="" readonly>
+        </div>
+        <div class="flex flex-col gap-2 justify-center pt-4">
+          <div class="flex items-center gap-2">
+            <span id="badge_add_repeating" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#d1d5db"></span>
+            <span class="text-xs text-gray-600">{% trans "Form is a repeating form" %}</span>
+            <input type="hidden" id="hidden_add_form_is_repeating" name="redcap_form_is_repeating" value="">
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="badge_add_in_event" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#d1d5db"></span>
+            <span class="text-xs text-gray-600">{% trans "Form is part of an event" %}</span>
+            <input type="hidden" id="hidden_add_form_is_in_event" name="redcap_form_is_in_event" value="">
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="badge_add_event_repeating" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#d1d5db"></span>
+            <span class="text-xs text-gray-600">{% trans "Event is repeating" %}</span>
+            <input type="hidden" id="hidden_add_event_is_repeating" name="redcap_event_is_repeating" value="">
+          </div>
+        </div>
+      </div>
+    </div>
+
     <button type="submit" class="w-full px-3 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700">
       + {% trans "Add Mapping" %}
     </button>
   </form>
 </div>
 
+{# ── JS: auto-fill on form select for both panels ───────────────────────────── #}
 <script>
 (function() {
-  var meta = {{ form_meta_json|default:"{}" }};
-  var formSelect = document.getElementById('id_redcap_form_name');
-  if (!formSelect) return;
+  var meta = {{ form_meta_json|default:"{}" |safe }};
 
-  function applyMeta(formName) {
-    var m = meta[formName];
-    if (!m) return;
-    var isRepeating   = document.getElementById('id_redcap_form_is_repeating');
-    var isInEvent     = document.getElementById('id_redcap_form_is_in_event');
-    var eventRepeating= document.getElementById('id_redcap_event_is_repeating');
-    var eventName     = document.getElementById('id_redcap_event_name');
-    if (isRepeating)    isRepeating.checked    = m.form_is_repeating;
-    if (isInEvent)      isInEvent.checked      = m.form_is_in_event;
-    if (eventRepeating) eventRepeating.checked = m.event_is_repeating;
-    if (eventName)      eventName.value        = m.event_name || '';
+  function setBadge(badgeId, hiddenId, value) {
+    var badge  = document.getElementById(badgeId);
+    var hidden = document.getElementById(hiddenId);
+    if (badge)  badge.style.background = value ? '#22c55e' : '#d1d5db';
+    if (hidden) hidden.value           = value ? 'on' : '';
   }
 
-  formSelect.addEventListener('change', function() {
-    applyMeta(this.value);
-  });
+  function applyMeta(prefix, formName) {
+    var m = meta[formName];
+    var eventName = document.getElementById('id_' + prefix + '_event_name');
+    if (!m) {
+      setBadge('badge_' + prefix + '_repeating',       'hidden_' + prefix + '_form_is_repeating',  false);
+      setBadge('badge_' + prefix + '_in_event',        'hidden_' + prefix + '_form_is_in_event',   false);
+      setBadge('badge_' + prefix + '_event_repeating', 'hidden_' + prefix + '_event_is_repeating', false);
+      if (eventName) eventName.value = '';
+      return;
+    }
+    setBadge('badge_' + prefix + '_repeating',       'hidden_' + prefix + '_form_is_repeating',  m.form_is_repeating);
+    setBadge('badge_' + prefix + '_in_event',        'hidden_' + prefix + '_form_is_in_event',   m.form_is_in_event);
+    setBadge('badge_' + prefix + '_event_repeating', 'hidden_' + prefix + '_event_is_repeating', m.event_is_repeating);
+    if (eventName) eventName.value = m.event_name || '';
+  }
 
-  // Apply immediately if a value is already selected (e.g. after validation error)
-  if (formSelect.value) applyMeta(formSelect.value);
+  // Add form
+  var addSel = document.getElementById('id_redcap_form_name');
+  if (addSel) {
+    addSel.addEventListener('change', function() { applyMeta('add', this.value); });
+    if (addSel.value) applyMeta('add', addSel.value);
+  }
+
+  // Edit form — Django prefix='edit' gives id="id_edit-redcap_form_name"
+  var editSel = document.getElementById('id_edit-redcap_form_name');
+  if (editSel) {
+    editSel.addEventListener('change', function() { applyMeta('edit', this.value); });
+    if (editSel.value) applyMeta('edit', editSel.value);
+  }
 })();
 </script>
 
 <div class="flex justify-between pt-2 border-t border-gray-100">
   <button type="button"
     hx-get="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=2"
-    hx-target="#wizard-body"
-    hx-swap="innerHTML"
+    hx-target="#wizard-body" hx-swap="innerHTML"
     class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
     ← {% trans "Back" %}
   </button>
