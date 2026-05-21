@@ -24,6 +24,11 @@
     <link rel="stylesheet" href="{% static 'src/output.css' %}">
     
     <script src="{% static 'django_htmx/htmx.min.js' %}"></script>
+    <script>
+        document.addEventListener('htmx:configRequest', function(evt) {
+            evt.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+    </script>
     <!-- Website traffic monitoring -->
     <script defer src="https://traffic.chavi.ai/script.js" data-website-id="e2b4c57b-fcd8-4966-ace9-993681d25a30"></script>
     

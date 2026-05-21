@@ -96,6 +96,7 @@
             </div>
             {% endif %}
             {% if user.is_staff %}
+            <a href="{% url 'project_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% translate "Projects" %}</a>
             <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% translate "Admin" %}</a>
             {% endif %}
             <a href="/docs/" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium" target="_blank">{% translate "Documentation" %}</a>
@@ -291,6 +292,7 @@
       </div>
       {% endif %}
       {% if user.is_staff %}
+      <a href="{% url 'project_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% translate "Projects" %}</a>
       <a href="{% url 'admin:index' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% translate "Admin" %}</a>
       {% endif %}
       <a href="/docs/" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium" target="_blank">{% translate "Documentation" %}</a>

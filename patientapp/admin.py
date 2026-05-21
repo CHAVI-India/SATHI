@@ -72,3 +72,33 @@ class ProjectAdmin(admin.ModelAdmin):
 @admin.register(PatientProject)
 class PatientProjectAdmin(admin.ModelAdmin):
     list_display = ['patient', 'project', 'date_patient_enrolled_in_project', 'date_patient_exited_from_project', 'created_date', 'modified_date']
+
+@admin.register(ProjectRedcapMapping)
+class ProjectRedcapMappingAdmin(admin.ModelAdmin):
+    list_display = ['project', 'redcap_project_url', 'export_type', 'redcap_project_token_allows_import', 'redcap_project_token_allows_export', 'date_redcap_project_info_updated', 'created_date', 'modified_date']
+    list_filter = ['export_type', 'redcap_project_token_allows_import', 'redcap_project_token_allows_export']
+    readonly_fields = ['created_date', 'modified_date', 'date_redcap_project_info_updated', 'redcap_record_count', 'redcap_project_info']
+
+@admin.register(RedcapStudyIDtoPatientIDMap)
+class RedcapStudyIDtoPatientIDMapAdmin(admin.ModelAdmin):
+    list_display = ['patient', 'project_redcap_mapping', 'redcap_study_id', 'created_at', 'modified_at']
+    list_filter = ['project_redcap_mapping']
+    readonly_fields = ['created_at', 'modified_at']
+
+@admin.register(RedcapFormToQuestionnaireMapping)
+class RedcapFormToQuestionnaireMappingAdmin(admin.ModelAdmin):
+    list_display = ['redcap_form_name', 'project_redcap_mapping', 'questionnaire', 'redcap_form_is_repeating', 'redcap_form_is_in_event', 'redcap_event_is_repeating', 'created_at', 'modified_at']
+    list_filter = ['project_redcap_mapping', 'redcap_form_is_repeating', 'redcap_form_is_in_event', 'redcap_event_is_repeating']
+    readonly_fields = ['created_at', 'modified_at']
+
+@admin.register(RedcapFieldToItemMapping)
+class RedcapFieldToItemMappingAdmin(admin.ModelAdmin):
+    list_display = ['redcap_field_name', 'redcap_form_to_questionnaire_mapping', 'questionnaire_item', 'created_at', 'modified_at']
+    list_filter = ['redcap_form_to_questionnaire_mapping']
+    readonly_fields = ['created_at', 'modified_at']
+
+@admin.register(RedcapDataExportLog)
+class RedcapDataExportLogAdmin(admin.ModelAdmin):
+    list_display = ['patient', 'redcap_form_to_questionnaire_mapping', 'user_exporting_data', 'export_type', 'export_status', 'datetime_export_start', 'datetime_export_completed']
+    list_filter = ['export_type', 'export_status']
+    readonly_fields = ['created_at', 'modified_at']

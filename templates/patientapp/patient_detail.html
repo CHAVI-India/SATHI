@@ -267,6 +267,11 @@
                             </div>
                         </div>
                         <div class="flex space-x-2">
+                            {% if request.user.is_staff %}
+                            <c-link_button href="{% url 'redcap_project_dashboard' pk=patient_project.project.pk %}" variant="outline" size="sm">
+                                {% trans "REDCap" %}
+                            </c-link_button>
+                            {% endif %}
                             {% if perms.patientapp.change_patientproject %}
                             <c-edit_button href="{% url 'patient_project_update' patient_project.id %}" target="_blank" size="sm">
                                 {% trans "Edit" %}

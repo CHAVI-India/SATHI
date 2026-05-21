@@ -11,8 +11,19 @@ from django.db import transaction, IntegrityError
 from django.db.models import Q, Count, Max
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
-from .models import Patient, Diagnosis, DiagnosisList, Treatment, Institution, GenderChoices, TreatmentType, TreatmentIntentChoices, Project, PatientProject
-from .forms import PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm, DiagnosisListForm, ProjectForm, PatientProjectForm
+from .models import (
+    Patient, Diagnosis, DiagnosisList, Treatment, Institution, GenderChoices,
+    TreatmentType, TreatmentIntentChoices, Project, PatientProject,
+    ProjectRedcapMapping, RedcapFormToQuestionnaireMapping,
+    RedcapFieldToItemMapping, RedcapStudyIDtoPatientIDMap,
+    RedcapDataExportLog, ExportTypeChoices, ExportStatusChoices,
+)
+from .forms import (
+    PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm,
+    DiagnosisListForm, ProjectForm, PatientProjectForm,
+    ProjectRedcapMappingForm, RedcapIDFieldsForm, RedcapFormToQuestionnaireMappingForm,
+    RedcapFieldToItemMappingForm, RedcapStudyIDMapForm,
+)
 from promapp.models import *
 from .utils import (
     ConstructScoreData, calculate_percentage, create_item_response_plot, get_patient_start_date, 
@@ -23,6 +34,8 @@ from .utils import (
     check_patient_access, get_accessible_patient_or_404, InstitutionFilterMixin
 )
 import logging
+import csv
+from django.http import HttpResponse
 from bokeh.resources import Resources  # Serve Bokeh from local static files
 from patientapp.utils import get_filtered_patients_for_aggregation
 from django.core.cache import cache
@@ -2753,6 +2766,18 @@ def patient_project_delete(request, pk):
 
 
 @login_required
+def project_list(request):
+    """List all projects (staff only)."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    projects = Project.objects.all().order_by('project_name')
+    return render(request, 'patientapp/project_list.html', {
+        'projects': projects,
+    })
+
+
+@login_required
 def project_create(request):
     """
     Create a new project (staff only).
@@ -2811,4 +2836,615 @@ def project_update(request, pk):
     })
 
 
+# ---------------------------------------------------------------------------
+# REDCap Integration Views
+# ---------------------------------------------------------------------------
+
+def _staff_required(request):
+    """Return redirect response if user is not staff, else None."""
+    if not request.user.is_staff:
+        messages.error(request, _('You do not have permission to access REDCap configuration.'))
+        return redirect('index')
+    return None
+
+
+@login_required
+def redcap_project_dashboard(request, pk):
+    """List all ProjectRedcapMappings for a given Project."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mappings = ProjectRedcapMapping.objects.filter(project=project).order_by('-created_date')
+    return render(request, 'patientapp/redcap/redcap_dashboard.html', {
+        'project': project,
+        'mappings': mappings,
+    })
+
+
+@login_required
+def redcap_mapping_create(request, pk):
+    """Create a new ProjectRedcapMapping for a Project."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    if request.method == 'POST':
+        form = ProjectRedcapMappingForm(request.POST)
+        if form.is_valid():
+            mapping = form.save(commit=False)
+            mapping.project = project
+            mapping.save()
+            messages.success(request, _('REDCap configuration created. Please fetch project metadata next.'))
+            return redirect('redcap_project_dashboard', pk=pk)
+    else:
+        form = ProjectRedcapMappingForm()
+    return render(request, 'patientapp/redcap/redcap_mapping_form.html', {
+        'form': form,
+        'project': project,
+        'title': _('Add REDCap Configuration'),
+        'action': 'create',
+    })
+
+
+@login_required
+def redcap_mapping_edit(request, pk, mapping_pk):
+    """Edit an existing ProjectRedcapMapping."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+    if request.method == 'POST':
+        form = ProjectRedcapMappingForm(request.POST, instance=mapping)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('REDCap configuration updated.'))
+            return redirect('redcap_project_dashboard', pk=pk)
+    else:
+        form = ProjectRedcapMappingForm(instance=mapping)
+    return render(request, 'patientapp/redcap/redcap_mapping_form.html', {
+        'form': form,
+        'project': project,
+        'mapping': mapping,
+        'title': _('Edit REDCap Configuration'),
+        'action': 'edit',
+    })
+
+
+@login_required
+def redcap_id_fields(request, pk, mapping_pk):
+    """Select Study ID and Secondary ID fields from fetched REDCap metadata."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+    if not mapping.redcap_project_info:
+        messages.warning(request, _('Please fetch REDCap metadata first before selecting ID fields.'))
+        return redirect('redcap_project_dashboard', pk=pk)
+    if request.method == 'POST':
+        form = RedcapIDFieldsForm(request.POST, instance=mapping)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('ID field mappings saved.'))
+            return redirect('redcap_project_dashboard', pk=pk)
+    else:
+        form = RedcapIDFieldsForm(instance=mapping)
+    return render(request, 'patientapp/redcap/redcap_id_fields_form.html', {
+        'form': form,
+        'project': project,
+        'mapping': mapping,
+    })
+
+
+@login_required
+def redcap_wizard_page(request, pk, mapping_pk):
+    """Full-page wrapper for the REDCap setup wizard."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+    return render(request, 'patientapp/redcap/redcap_wizard.html', {
+        'project': project,
+        'mapping': mapping,
+    })
+
+
+def _build_form_meta(mapping):
+    """
+    Build a dict keyed by instrument_name with pre-derived flags and event name
+    for auto-filling the form mapping form.
+
+    Structure per form:
+    {
+      "form_is_repeating": bool,   # form appears in repeating list with a form_name
+      "form_is_in_event": bool,    # project is longitudinal (has events)
+      "event_is_repeating": bool,  # form's event appears in repeating list with empty form_name
+      "event_name": str,           # unique_event_name of the first event this form is in
+    }
+    """
+    info = (mapping.redcap_project_info or {})
+    instruments = info.get('instruments', [])
+    events = info.get('events', [])
+    repeating = info.get('repeating', [])
+    is_longitudinal = bool(info.get('project_info', {}).get('is_longitudinal'))
+
+    # Build set of repeating form names (entry has a non-empty form_name)
+    repeating_forms = set()
+    repeating_events = set()  # event_names where the whole event repeats (form_name == "")
+    for r in repeating:
+        fn = r.get('form_name', '')
+        en = r.get('event_name', '')
+        if fn:
+            repeating_forms.add(fn)
+        elif en:
+            repeating_events.add(en)
+
+    # Build map: form_name → list of event unique_names that include this form
+    # REDCap instruments_event_mappings is not directly available via basic PyCap export,
+    # so we infer: for longitudinal projects use the first event as default event name.
+    # If the project has only one event, that applies to all forms.
+    first_event = events[0].get('unique_event_name', '') if events else ''
+
+    result = {}
+    for inst in instruments:
+        name = inst.get('instrument_name', '')
+        if not name:
+            continue
+        form_is_repeating = name in repeating_forms
+        form_is_in_event = is_longitudinal and bool(events)
+        event_is_repeating = bool(repeating_events) and form_is_in_event
+        # Use first event name as default; user can change if multi-arm
+        event_name = first_event if form_is_in_event else ''
+        result[name] = {
+            'form_is_repeating': form_is_repeating,
+            'form_is_in_event': form_is_in_event,
+            'event_is_repeating': event_is_repeating,
+            'event_name': event_name,
+        }
+    return result
+
+
+@login_required
+def redcap_setup_wizard(request, pk, mapping_pk):
+    """Multi-step modal wizard: fetch metadata → ID fields → form mappings."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+
+    step = request.GET.get('step', '1')
+
+    if step == '1':
+        # Trigger metadata fetch via POST, show result; or just show step 1 shell on GET
+        if request.method == 'POST':
+            error = None
+            try:
+                import redcap as pycap
+                rc = pycap.Project(mapping.redcap_project_url, mapping.redcap_project_token)
+                project_info = rc.export_project_info()
+                instruments = rc.export_instruments()
+                metadata = rc.export_metadata()
+                record_count = len(rc.export_records(fields=[rc.def_field]))
+                try:
+                    dags = rc.export_dags()
+                except Exception:
+                    dags = []
+                try:
+                    events = rc.export_events() if project_info.get('is_longitudinal') else []
+                except Exception:
+                    events = []
+                try:
+                    repeating = rc.export_repeating_instruments_and_events()
+                except Exception:
+                    repeating = []
+                info_payload = {
+                    'project_info': project_info,
+                    'instruments': instruments,
+                    'metadata': metadata,
+                    'dags': dags,
+                    'events': events,
+                    'repeating': repeating,
+                }
+                mapping.redcap_project_info = info_payload
+                mapping.redcap_record_count = record_count
+                mapping.date_redcap_project_info_updated = timezone.now().date()
+                mapping.redcap_data_access_group_used = bool(dags)
+                mapping.save(update_fields=[
+                    'redcap_project_info', 'redcap_record_count',
+                    'date_redcap_project_info_updated', 'redcap_data_access_group_used',
+                    'modified_date',
+                ])
+            except Exception as e:
+                error = str(e)
+            info_json = json.dumps(mapping.redcap_project_info, indent=2, ensure_ascii=False) if mapping.redcap_project_info else ''
+            return render(request, 'patientapp/redcap/wizard/step1_result.html', {
+                'mapping': mapping, 'project': project, 'error': error, 'info_json': info_json,
+            })
+        info_json = json.dumps(mapping.redcap_project_info, indent=2, ensure_ascii=False) if mapping.redcap_project_info else ''
+        return render(request, 'patientapp/redcap/wizard/step1_result.html', {
+            'mapping': mapping, 'project': project, 'error': None, 'info_json': info_json,
+        })
+
+    if step == '2':
+        form = RedcapIDFieldsForm(
+            request.POST if request.method == 'POST' else None,
+            instance=mapping,
+        )
+        if request.method == 'POST' and form.is_valid():
+            form.save()
+            # Advance to step 3
+            form_mapping_form = RedcapFormToQuestionnaireMappingForm(
+                project_redcap_mapping=mapping,
+            )
+            existing_form_mappings = RedcapFormToQuestionnaireMapping.objects.filter(
+                project_redcap_mapping=mapping
+            )
+            return render(request, 'patientapp/redcap/wizard/step3_form_mapping.html', {
+                'mapping': mapping, 'project': project,
+                'form': form_mapping_form,
+                'existing_form_mappings': existing_form_mappings,
+                'form_meta_json': json.dumps(_build_form_meta(mapping)),
+            })
+        return render(request, 'patientapp/redcap/wizard/step2_id_fields.html', {
+            'mapping': mapping, 'project': project, 'form': form,
+        })
+
+    if step == '3':
+        form_mapping_form = RedcapFormToQuestionnaireMappingForm(
+            request.POST if request.method == 'POST' else None,
+            project_redcap_mapping=mapping,
+        )
+        existing_form_mappings = RedcapFormToQuestionnaireMapping.objects.filter(
+            project_redcap_mapping=mapping
+        )
+        if request.method == 'POST' and form_mapping_form.is_valid():
+            fm = form_mapping_form.save(commit=False)
+            fm.project_redcap_mapping = mapping
+            fm.save()
+            # Reload with fresh form
+            form_mapping_form = RedcapFormToQuestionnaireMappingForm(
+                project_redcap_mapping=mapping,
+            )
+            existing_form_mappings = RedcapFormToQuestionnaireMapping.objects.filter(
+                project_redcap_mapping=mapping
+            )
+        form_meta = _build_form_meta(mapping)
+        return render(request, 'patientapp/redcap/wizard/step3_form_mapping.html', {
+            'mapping': mapping, 'project': project,
+            'form': form_mapping_form,
+            'existing_form_mappings': existing_form_mappings,
+            'form_meta_json': json.dumps(form_meta),
+        })
+
+    return HttpResponse(status=400)
+
+
+@login_required
+def redcap_fetch_metadata(request, pk, mapping_pk):
+    """HTMX POST: call PyCap to fetch project metadata and store in redcap_project_info."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    error = None
+    try:
+        import redcap as pycap
+        rc = pycap.Project(mapping.redcap_project_url, mapping.redcap_project_token)
+        project_info = rc.export_project_info()
+        instruments = rc.export_instruments()
+        metadata = rc.export_metadata()
+        record_count = len(rc.export_records(fields=[rc.def_field]))
+
+        info_payload = {
+            'project_info': project_info,
+            'instruments': instruments,
+            'metadata': metadata,
+        }
+        mapping.redcap_project_info = info_payload
+        mapping.redcap_record_count = record_count
+        mapping.date_redcap_project_info_updated = timezone.now().date()
+        mapping.save(update_fields=['redcap_project_info', 'redcap_record_count', 'date_redcap_project_info_updated', 'modified_date'])
+    except Exception as e:
+        error = str(e)
+
+    return render(request, 'patientapp/redcap/partials/metadata_status.html', {
+        'mapping': mapping,
+        'error': error,
+        'project': project,
+    })
+
+
+@login_required
+def redcap_form_mappings(request, pk, mapping_pk):
+    """List RedcapFormToQuestionnaireMapping entries for a ProjectRedcapMapping."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+    form_mappings = RedcapFormToQuestionnaireMapping.objects.filter(
+        project_redcap_mapping=mapping
+    ).select_related('questionnaire').order_by('redcap_form_name')
+    return render(request, 'patientapp/redcap/redcap_form_mappings.html', {
+        'project': project,
+        'mapping': mapping,
+        'form_mappings': form_mappings,
+    })
+
+
+@login_required
+def redcap_form_mapping_create(request, pk, mapping_pk):
+    """Create a RedcapFormToQuestionnaireMapping."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+    if request.method == 'POST':
+        form = RedcapFormToQuestionnaireMappingForm(request.POST, project_redcap_mapping=mapping)
+        if form.is_valid():
+            fm = form.save(commit=False)
+            fm.project_redcap_mapping = mapping
+            fm.save()
+            messages.success(request, _('Form mapping created.'))
+            return redirect('redcap_form_mappings', pk=pk, mapping_pk=mapping_pk)
+    else:
+        form = RedcapFormToQuestionnaireMappingForm(project_redcap_mapping=mapping)
+    return render(request, 'patientapp/redcap/redcap_form_mapping_form.html', {
+        'form': form,
+        'project': project,
+        'mapping': mapping,
+        'title': _('Add Form Mapping'),
+        'action': 'create',
+        'form_meta_json': json.dumps(_build_form_meta(mapping)),
+    })
+
+
+@login_required
+def redcap_form_mapping_edit(request, pk, mapping_pk, fm_pk):
+    """Edit a RedcapFormToQuestionnaireMapping."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+    fm = get_object_or_404(RedcapFormToQuestionnaireMapping, pk=fm_pk, project_redcap_mapping=mapping)
+    if request.method == 'POST':
+        form = RedcapFormToQuestionnaireMappingForm(request.POST, instance=fm, project_redcap_mapping=mapping)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Form mapping updated.'))
+            return redirect('redcap_form_mappings', pk=pk, mapping_pk=mapping_pk)
+    else:
+        form = RedcapFormToQuestionnaireMappingForm(instance=fm, project_redcap_mapping=mapping)
+    return render(request, 'patientapp/redcap/redcap_form_mapping_form.html', {
+        'form': form,
+        'project': project,
+        'mapping': mapping,
+        'fm': fm,
+        'title': _('Edit Form Mapping'),
+        'action': 'edit',
+        'form_meta_json': json.dumps(_build_form_meta(mapping)),
+    })
+
+
+@login_required
+def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
+    """Create/edit RedcapFieldToItemMapping entries for a form mapping."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+    fm = get_object_or_404(RedcapFormToQuestionnaireMapping, pk=fm_pk, project_redcap_mapping=mapping)
+    existing = RedcapFieldToItemMapping.objects.filter(
+        redcap_form_to_questionnaire_mapping=fm
+    ).select_related('questionnaire_item__item')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'add':
+            form = RedcapFieldToItemMappingForm(
+                request.POST, project_redcap_mapping=mapping, form_mapping=fm
+            )
+            if form.is_valid():
+                field_map = form.save(commit=False)
+                field_map.redcap_form_to_questionnaire_mapping = fm
+                field_map.save()
+                messages.success(request, _('Field mapping added.'))
+            else:
+                return render(request, 'patientapp/redcap/redcap_field_mappings.html', {
+                    'project': project, 'mapping': mapping, 'fm': fm,
+                    'existing': existing, 'form': form,
+                })
+        elif action == 'delete':
+            field_map_pk = request.POST.get('field_map_pk')
+            RedcapFieldToItemMapping.objects.filter(pk=field_map_pk, redcap_form_to_questionnaire_mapping=fm).delete()
+            messages.success(request, _('Field mapping removed.'))
+        return redirect('redcap_field_mappings', pk=pk, mapping_pk=mapping_pk, fm_pk=fm_pk)
+
+    form = RedcapFieldToItemMappingForm(project_redcap_mapping=mapping, form_mapping=fm)
+    return render(request, 'patientapp/redcap/redcap_field_mappings.html', {
+        'project': project,
+        'mapping': mapping,
+        'fm': fm,
+        'existing': existing,
+        'form': form,
+    })
+
+
+@login_required
+def redcap_patient_ids(request, pk, mapping_pk):
+    """Map patients in the project to their REDCap study IDs."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+
+    patient_projects = PatientProject.objects.filter(project=project).select_related('patient')
+
+    if request.method == 'POST':
+        for pp in patient_projects:
+            study_id_val = request.POST.get(f'study_id_{pp.patient.pk}', '').strip()
+            obj, _ = RedcapStudyIDtoPatientIDMap.objects.get_or_create(
+                project_redcap_mapping=mapping,
+                patient=pp.patient,
+            )
+            obj.redcap_study_id = study_id_val
+            obj.save(update_fields=['redcap_study_id', 'modified_at'])
+        messages.success(request, _('Patient ID mappings saved.'))
+        return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+
+    id_maps = {
+        m.patient_id: m.redcap_study_id
+        for m in RedcapStudyIDtoPatientIDMap.objects.filter(project_redcap_mapping=mapping)
+    }
+    rows = [
+        {'patient': pp.patient, 'redcap_study_id': id_maps.get(pp.patient.pk, '')}
+        for pp in patient_projects
+    ]
+    return render(request, 'patientapp/redcap/redcap_patient_ids.html', {
+        'project': project,
+        'mapping': mapping,
+        'rows': rows,
+    })
+
+
+@login_required
+def redcap_export(request, pk, mapping_pk):
+    """Trigger a CSV download or API export for the selected form mappings."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+    form_mappings = RedcapFormToQuestionnaireMapping.objects.filter(
+        project_redcap_mapping=mapping
+    ).prefetch_related('redcapfieldtoitemmapping_set__questionnaire_item__item')
+    logs = RedcapDataExportLog.objects.filter(
+        redcap_form_to_questionnaire_mapping__project_redcap_mapping=mapping
+    ).select_related('patient', 'user_exporting_data').order_by('-created_at')[:50]
+
+    if request.method == 'POST':
+        selected_fm_ids = request.POST.getlist('form_mapping_ids')
+        export_type = request.POST.get('export_type', ExportTypeChoices.MANUAL)
+        selected_fms = form_mappings.filter(pk__in=selected_fm_ids)
+
+        id_map = {
+            m.patient_id: m.redcap_study_id
+            for m in RedcapStudyIDtoPatientIDMap.objects.filter(project_redcap_mapping=mapping)
+            if m.redcap_study_id
+        }
+
+        if export_type == ExportTypeChoices.MANUAL:
+            return _build_csv_export(request, mapping, selected_fms, id_map)
+        else:
+            return _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map)
+
+    return render(request, 'patientapp/redcap/redcap_export.html', {
+        'project': project,
+        'mapping': mapping,
+        'form_mappings': form_mappings,
+        'logs': logs,
+        'ExportTypeChoices': ExportTypeChoices,
+    })
+
+
+def _collect_export_rows(mapping, selected_fms, id_map):
+    """Build list of dicts for REDCap import (wide format, one row per submission)."""
+    from promapp.models import QuestionnaireSubmission, QuestionnaireItemResponse
+    rows = []
+    for fm in selected_fms:
+        field_maps = list(fm.redcapfieldtoitemmapping_set.select_related('questionnaire_item'))
+        if not field_maps:
+            continue
+        submissions = QuestionnaireSubmission.objects.filter(
+            patient_questionnaire__questionnaire=fm.questionnaire,
+            patient__in=id_map.keys(),
+        ).select_related('patient', 'patient_questionnaire').order_by('patient', 'submission_date')
+
+        for sub in submissions:
+            study_id = id_map.get(sub.patient_id)
+            if not study_id:
+                continue
+            row = {mapping.redcap_study_id_field or 'record_id': study_id}
+            if fm.redcap_form_is_in_event and fm.redcap_event_name:
+                row['redcap_event_name'] = fm.redcap_event_name
+            if fm.redcap_form_is_repeating or fm.redcap_event_is_repeating:
+                row['redcap_repeat_instrument'] = fm.redcap_form_name
+                row['redcap_repeat_instance'] = ''
+
+            responses = {
+                r.questionnaire_item_id: r.response_value
+                for r in QuestionnaireItemResponse.objects.filter(questionnaire_submission=sub)
+            }
+            for fm_field in field_maps:
+                row[fm_field.redcap_field_name] = responses.get(fm_field.questionnaire_item_id, '')
+            rows.append(row)
+    return rows
+
+
+def _build_csv_export(request, mapping, selected_fms, id_map):
+    """Return a CSV HttpResponse."""
+    rows = _collect_export_rows(mapping, selected_fms, id_map)
+    if not rows:
+        messages.warning(request, _('No data found for the selected form mappings.'))
+        return redirect(request.path)
+
+    all_keys = []
+    seen = set()
+    for row in rows:
+        for k in row:
+            if k not in seen:
+                all_keys.append(k)
+                seen.add(k)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="redcap_export_{mapping.project.project_name}.csv"'
+    writer = csv.DictWriter(response, fieldnames=all_keys, extrasaction='ignore')
+    writer.writeheader()
+    writer.writerows(rows)
+    return response
+
+
+def _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map):
+    """Export via REDCap API using PyCap and log results."""
+    import redcap as pycap
+    rows = _collect_export_rows(mapping, selected_fms, id_map)
+    if not rows:
+        messages.warning(request, _('No data found for the selected form mappings.'))
+        return redirect(request.path)
+
+    for fm in selected_fms:
+        log = RedcapDataExportLog.objects.create(
+            redcap_form_to_questionnaire_mapping=fm,
+            user_exporting_data=request.user,
+            export_type=ExportTypeChoices.AUTOMATIC,
+            datetime_export_start=timezone.now(),
+            export_status=ExportStatusChoices.PENDING,
+        )
+        try:
+            rc = pycap.Project(mapping.redcap_project_url, mapping.redcap_project_token)
+            fm_rows = [r for r in rows if fm.redcap_form_name in r.get('redcap_repeat_instrument', fm.redcap_form_name)]
+            response_data = rc.import_records(fm_rows)
+            log.export_status = ExportStatusChoices.COMPLETED
+            log.export_log = str(response_data)
+        except Exception as e:
+            log.export_status = ExportStatusChoices.FAILED
+            log.export_log = str(e)
+        finally:
+            log.datetime_export_completed = timezone.now()
+            log.save(update_fields=['export_status', 'export_log', 'datetime_export_completed', 'modified_at'])
+
+    messages.success(request, _('API export completed. Check the log below for details.'))
+    return redirect('redcap_export', pk=pk, mapping_pk=mapping_pk)
 

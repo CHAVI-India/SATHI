@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% trans "Form Mappings" %} — {{ project.project_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-blue-700">{% trans "Form → Questionnaire Mappings" %}</h1>
+      <p class="text-gray-500 mt-1">{{ project.project_name }} / {{ mapping.redcap_project_url }}</p>
+    </div>
+    <div class="flex gap-2">
+      <c-link_button href="{% url 'redcap_project_dashboard' pk=project.pk %}" variant="secondary" size="sm">
+        ← {% trans "Back" %}
+      </c-link_button>
+      <c-link_button href="{% url 'redcap_form_mapping_create' pk=project.pk mapping_pk=mapping.pk %}" variant="primary">
+        {% trans "Add Form Mapping" %}
+      </c-link_button>
+    </div>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-4 px-4 py-3 rounded border {% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if not mapping.redcap_project_info %}
+    <div class="mb-4 px-4 py-3 rounded border bg-yellow-50 border-yellow-300 text-yellow-800 text-sm">
+      ⚠ {% trans "REDCap metadata has not been fetched yet. Go back and click 'Fetch Metadata' to load forms and fields from REDCap before adding mappings." %}
+    </div>
+  {% endif %}
+
+  {% if form_mappings %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow-sm border border-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "REDCap Form" %}</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Questionnaire" %}</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Event" %}</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Flags" %}</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for fm in form_mappings %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ fm.redcap_form_name }}</td>
+          <td class="px-4 py-3 text-sm text-gray-700">{{ fm.questionnaire }}</td>
+          <td class="px-4 py-3 text-sm text-gray-600">{{ fm.redcap_event_name|default:"—" }}</td>
+          <td class="px-4 py-3 text-sm">
+            <div class="flex flex-wrap gap-1">
+              {% if fm.redcap_form_is_repeating %}
+                <span class="px-1.5 py-0.5 rounded text-xs bg-purple-100 text-purple-700">{% trans "Repeating" %}</span>
+              {% endif %}
+              {% if fm.redcap_form_is_in_event %}
+                <span class="px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700">{% trans "In Event" %}</span>
+              {% endif %}
+              {% if fm.redcap_event_is_repeating %}
+                <span class="px-1.5 py-0.5 rounded text-xs bg-indigo-100 text-indigo-700">{% trans "Repeating Event" %}</span>
+              {% endif %}
+            </div>
+          </td>
+          <td class="px-4 py-3 text-sm">
+            <div class="flex gap-2">
+              <c-link_button href="{% url 'redcap_form_mapping_edit' pk=project.pk mapping_pk=mapping.pk fm_pk=fm.pk %}" variant="outline" size="sm">
+                {% trans "Edit" %}
+              </c-link_button>
+              <c-link_button href="{% url 'redcap_field_mappings' pk=project.pk mapping_pk=mapping.pk fm_pk=fm.pk %}" variant="secondary" size="sm">
+                {% trans "Field Mappings" %}
+              </c-link_button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <c-card shadow="sm" padding="md">
+      <p class="text-gray-500 text-center py-8">{% trans "No form mappings yet. Click 'Add Form Mapping' to create one." %}</p>
+    </c-card>
+  {% endif %}
+</div>
+{% endblock %}

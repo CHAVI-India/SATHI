@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% trans "Field Mappings" %} — {{ fm.redcap_form_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-blue-700">{% trans "Field → Item Mappings" %}</h1>
+      <p class="text-gray-500 mt-1">
+        {{ project.project_name }} / <span class="font-medium">{{ fm.redcap_form_name }}</span>
+        → {{ fm.questionnaire }}
+      </p>
+    </div>
+    <c-link_button href="{% url 'redcap_form_mappings' pk=project.pk mapping_pk=mapping.pk %}" variant="secondary" size="sm">
+      ← {% trans "Back" %}
+    </c-link_button>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-4 px-4 py-3 rounded border {% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Existing Mappings -->
+    <c-card title="{% trans 'Current Mappings' %}" shadow="md" padding="sm">
+      {% if existing %}
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200">
+              <th class="pb-2 text-left font-medium text-gray-500">{% trans "REDCap Field" %}</th>
+              <th class="pb-2 text-left font-medium text-gray-500">{% trans "CHAVI Item" %}</th>
+              <th class="pb-2"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for fm_field in existing %}
+            <tr>
+              <td class="py-2 pr-3 font-mono text-xs text-indigo-700">{{ fm_field.redcap_field_name }}</td>
+              <td class="py-2 pr-3 text-gray-700 text-xs">{{ fm_field.questionnaire_item }}</td>
+              <td class="py-2 text-right">
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="field_map_pk" value="{{ fm_field.pk }}">
+                  <button type="submit" class="text-xs text-red-600 hover:text-red-800 font-medium">{% trans "Remove" %}</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-gray-400 text-sm py-4 text-center">{% trans "No field mappings yet." %}</p>
+      {% endif %}
+    </c-card>
+
+    <!-- Add Mapping Form -->
+    <c-card title="{% trans 'Add Field Mapping' %}" shadow="md" padding="sm">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add">
+        <div class="space-y-4">
+          {% for field in form %}
+          <div>
+            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ field.label }}
+              {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+            </label>
+            {{ field }}
+            {% if field.errors %}
+              {% for error in field.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        <div class="mt-5 flex justify-end">
+          <c-button type="submit" variant="primary">{% trans "Add Mapping" %}</c-button>
+        </div>
+      </form>
+    </c-card>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% load i18n %}
+
+{# Step indicator #}
+<div class="flex items-center gap-2 mb-5">
+  <span class="flex items-center justify-center w-7 h-7 rounded-full bg-green-600 text-white text-xs font-bold">✓</span>
+  <span class="flex-1 h-1 bg-green-200 rounded"></span>
+  <span class="flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold">2</span>
+  <span class="flex-1 h-1 bg-gray-200 rounded"></span>
+  <span class="flex items-center justify-center w-7 h-7 rounded-full bg-gray-200 text-gray-500 text-xs font-bold">3</span>
+</div>
+<p class="text-xs text-gray-500 mb-5">{% trans "Step 2: Select how REDCap identifies records for this project." %}</p>
+
+<form
+  hx-post="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=2"
+  hx-target="#wizard-body"
+  hx-swap="innerHTML">
+  {% csrf_token %}
+  <div class="space-y-4 mb-5">
+    {% for field in form %}
+    <div>
+      <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+        {{ field.label }}
+        {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+      </label>
+      {{ field }}
+      {% if field.help_text %}<p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>{% endif %}
+      {% for error in field.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="flex justify-between pt-2 border-t border-gray-100">
+    <button type="button"
+      hx-get="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=1"
+      hx-target="#wizard-body"
+      hx-swap="innerHTML"
+      class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
+      ← {% trans "Back" %}
+    </button>
+    <button type="submit" class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700">
+      {% trans "Save & Next: Form Mappings →" %}
+    </button>
+  </div>
+</form>

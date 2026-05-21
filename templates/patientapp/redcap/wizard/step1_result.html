@@ -1,0 +1,192 @@
+{% load i18n %}
+
+{% if error %}
+<div class="p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
+  <div class="flex items-start gap-3">
+    <svg class="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+    </svg>
+    <div>
+      <p class="font-semibold text-red-700">{% trans "Fetch failed" %}</p>
+      <p class="text-sm text-red-600 mt-1">{{ error }}</p>
+    </div>
+  </div>
+</div>
+<div class="flex justify-end gap-2 pt-2">
+  <button type="button" onclick="document.getElementById('wizard-modal-{{ mapping.pk }}').classList.add('hidden')" class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">{% trans "Close" %}</button>
+  <button
+    hx-post="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=1"
+    hx-target="#wizard-body"
+    hx-swap="innerHTML"
+    class="px-4 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700">
+    {% trans "Retry" %}
+  </button>
+</div>
+
+{% elif mapping.redcap_project_info %}
+{% with info=mapping.redcap_project_info %}
+
+{# Step indicator #}
+<div class="flex items-center gap-2 mb-5">
+  <span class="flex items-center justify-center w-7 h-7 rounded-full bg-green-600 text-white text-xs font-bold">✓</span>
+  <span class="flex-1 h-1 bg-green-200 rounded"></span>
+  <span class="flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold">2</span>
+  <span class="flex-1 h-1 bg-gray-200 rounded"></span>
+  <span class="flex items-center justify-center w-7 h-7 rounded-full bg-gray-200 text-gray-500 text-xs font-bold">3</span>
+</div>
+<p class="text-xs text-gray-500 mb-4">{% trans "Step 1: Metadata fetched" %} → {% trans "Step 2: ID Fields" %} → {% trans "Step 3: Form Mappings" %}</p>
+
+{# Summary cards #}
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+  <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+    <p class="text-2xl font-bold text-blue-700">{{ mapping.redcap_record_count|default:"—" }}</p>
+    <p class="text-xs text-blue-600 mt-1">{% trans "Records" %}</p>
+  </div>
+  <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-center">
+    <p class="text-2xl font-bold text-indigo-700">{{ info.instruments|length }}</p>
+    <p class="text-xs text-indigo-600 mt-1">{% trans "Forms" %}</p>
+  </div>
+  <div class="bg-purple-50 border border-purple-100 rounded-lg p-3 text-center">
+    <p class="text-2xl font-bold text-purple-700">{{ info.metadata|length }}</p>
+    <p class="text-xs text-purple-600 mt-1">{% trans "Fields" %}</p>
+  </div>
+  <div class="bg-teal-50 border border-teal-100 rounded-lg p-3 text-center">
+    <p class="text-2xl font-bold text-teal-700">{{ info.events|length }}</p>
+    <p class="text-xs text-teal-600 mt-1">{% trans "Events" %}</p>
+  </div>
+</div>
+
+{# Project info #}
+{% with pi=info.project_info %}
+<div class="bg-gray-50 rounded-lg p-3 mb-4 text-sm space-y-1">
+  <div class="flex justify-between"><span class="text-gray-500">{% trans "Project title" %}:</span><span class="font-medium text-gray-800">{{ pi.project_title|default:"—" }}</span></div>
+  <div class="flex justify-between"><span class="text-gray-500">{% trans "Language" %}:</span><span class="font-medium text-gray-800">{{ pi.project_language|default:"—" }}</span></div>
+  <div class="flex justify-between"><span class="text-gray-500">{% trans "In production" %}:</span><span class="font-medium text-gray-800">{% if pi.in_production %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</span></div>
+  <div class="flex justify-between"><span class="text-gray-500">{% trans "Longitudinal" %}:</span><span class="font-medium text-gray-800">{% if pi.is_longitudinal %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</span></div>
+  <div class="flex justify-between"><span class="text-gray-500">{% trans "Data Access Groups" %}:</span>
+    {% if mapping.redcap_data_access_group_used %}
+      <span class="inline-flex items-center gap-1 text-green-700 font-medium"><span class="w-2 h-2 rounded-full bg-green-500"></span>{% trans "Yes — DAGs in use" %}</span>
+    {% else %}
+      <span class="inline-flex items-center gap-1 text-gray-500"><span class="w-2 h-2 rounded-full bg-gray-300"></span>{% trans "No DAGs" %}</span>
+    {% endif %}
+  </div>
+</div>
+{% endwith %}
+
+{# Forms list #}
+<div class="mb-4">
+  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{% trans "Instruments (Forms)" %}</p>
+  <div class="max-h-32 overflow-y-auto space-y-1">
+    {% for inst in info.instruments %}
+    <div class="flex items-center gap-2 px-2 py-1 bg-white border border-gray-100 rounded text-sm">
+      <span class="w-2 h-2 rounded-full bg-indigo-400 shrink-0"></span>
+      <span class="text-gray-800">{{ inst.instrument_label }}</span>
+      <span class="text-gray-400 text-xs ml-auto font-mono">{{ inst.instrument_name }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{# Events — only shown for longitudinal projects #}
+{% if info.events %}
+<div class="mb-4">
+  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{% trans "Events" %}</p>
+  <div class="max-h-28 overflow-y-auto space-y-1">
+    {% for ev in info.events %}
+    <div class="flex items-center gap-2 px-2 py-1 bg-white border border-gray-100 rounded text-sm">
+      <span class="w-2 h-2 rounded-full bg-teal-400 shrink-0"></span>
+      <span class="text-gray-800">{{ ev.event_name }}</span>
+      <span class="text-gray-400 text-xs ml-auto font-mono">{{ ev.unique_event_name }}</span>
+      <span class="text-gray-300 text-xs">arm {{ ev.arm_num }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{# Data Access Groups #}
+{% if info.dags %}
+<div class="mb-4">
+  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{% trans "Data Access Groups" %}</p>
+  <div class="max-h-28 overflow-y-auto space-y-1">
+    {% for dag in info.dags %}
+    <div class="flex items-center gap-2 px-2 py-1 bg-white border border-gray-100 rounded text-sm">
+      <span class="w-2 h-2 rounded-full bg-orange-400 shrink-0"></span>
+      <span class="text-gray-800">{{ dag.data_access_group_name }}</span>
+      <span class="text-gray-400 text-xs ml-auto font-mono">{{ dag.unique_group_name }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% else %}
+<p class="text-xs text-gray-400 mb-4">{% trans "No Data Access Groups configured." %}</p>
+{% endif %}
+
+{# Raw JSON payload toggle + Re-fetch side by side #}
+<div class="mb-4">
+  <div class="flex items-center justify-between gap-4">
+    <button type="button" onclick="this.closest('.mb-4').querySelector('.json-panel').classList.toggle('hidden')" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
+      <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+      {% trans "View raw JSON payload" %}
+    </button>
+    <button
+      hx-post="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=1"
+      hx-target="#wizard-body"
+      hx-swap="innerHTML"
+      hx-indicator="#refetch-spinner"
+      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 whitespace-nowrap shrink-0">
+      <svg id="refetch-spinner" class="htmx-indicator animate-spin h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+      </svg>
+      <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>
+      {% trans "Re-fetch Metadata" %}
+    </button>
+  </div>
+  <div class="json-panel hidden mt-2">
+    <pre class="text-xs rounded-lg p-4 overflow-x-auto max-h-64 overflow-y-auto whitespace-pre-wrap break-words leading-relaxed" style="background:#111827;color:#4ade80;">{{ info_json }}</pre>
+  </div>
+</div>
+
+<div class="flex items-center justify-between pt-3 mt-2 border-t border-gray-100">
+  <a href="{% url 'redcap_project_dashboard' pk=project.pk %}" class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">{% trans "Back" %}</a>
+  <button
+    hx-get="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=2"
+    hx-target="#wizard-body"
+    hx-swap="innerHTML"
+    class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700">
+    {% trans "Next: ID Fields →" %}
+  </button>
+</div>
+{% endwith %}
+
+{% else %}
+{# No metadata yet — show fetch prompt #}
+<div class="flex flex-col items-center justify-center py-8 gap-4">
+  <svg class="w-12 h-12 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7z"/>
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6M12 9v6"/>
+  </svg>
+  <p class="text-gray-600 text-sm text-center">{% trans "Click below to connect to REDCap and fetch project information." %}</p>
+  <div id="fetch-loading" class="htmx-indicator flex items-center gap-2 text-indigo-600 text-sm">
+    <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+    </svg>
+    {% trans "Fetching from REDCap…" %}
+  </div>
+  <div class="flex justify-between w-full pt-2 border-t border-gray-100">
+    <a href="{% url 'redcap_project_dashboard' pk=project.pk %}" class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">{% trans "Back" %}</a>
+    <button
+      hx-post="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=1"
+      hx-target="#wizard-body"
+      hx-swap="innerHTML"
+      hx-indicator="#fetch-loading"
+      class="px-4 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700">
+      {% trans "Fetch Metadata" %}
+    </button>
+  </div>
+</div>
+{% endif %}

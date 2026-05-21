@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% trans "Export Data" %} — {{ project.project_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-blue-700">{% trans "Export to REDCap" %}</h1>
+      <p class="text-gray-500 mt-1">{{ project.project_name }} / {{ mapping.redcap_project_url }}</p>
+    </div>
+    <c-link_button href="{% url 'redcap_project_dashboard' pk=project.pk %}" variant="secondary" size="sm">
+      ← {% trans "Back" %}
+    </c-link_button>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-4 px-4 py-3 rounded border {% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if not form_mappings %}
+    <div class="mb-4 px-4 py-3 rounded border bg-yellow-50 border-yellow-300 text-yellow-800 text-sm">
+      ⚠ {% trans "No form mappings configured yet. Please set up form and field mappings first." %}
+    </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <c-card title="{% trans 'Select Forms to Export' %}" shadow="md" padding="sm" class="mb-6">
+      <div class="space-y-3">
+        {% for fm in form_mappings %}
+        <label class="flex items-start gap-3 p-3 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer">
+          <input type="checkbox" name="form_mapping_ids" value="{{ fm.pk }}"
+            class="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 rounded">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900">
+              <span class="font-mono text-indigo-700">{{ fm.redcap_form_name }}</span>
+              → {{ fm.questionnaire }}
+            </p>
+            <div class="flex flex-wrap gap-2 mt-1 text-xs text-gray-500">
+              {% if fm.redcap_event_name %}<span>{% trans "Event" %}: {{ fm.redcap_event_name }}</span>{% endif %}
+              {% if fm.redcap_form_is_repeating %}<span class="text-purple-600">{% trans "Repeating form" %}</span>{% endif %}
+              {% if fm.redcap_event_is_repeating %}<span class="text-indigo-600">{% trans "Repeating event" %}</span>{% endif %}
+              <span>{{ fm.redcapfieldtoitemmapping_set.count }} {% trans "field mappings" %}</span>
+            </div>
+          </div>
+        </label>
+        {% empty %}
+          <p class="text-gray-400 text-sm py-4 text-center">{% trans "No form mappings available." %}</p>
+        {% endfor %}
+      </div>
+    </c-card>
+
+    <c-card title="{% trans 'Export Method' %}" shadow="md" padding="sm" class="mb-6">
+      <div class="space-y-3">
+        <label class="flex items-start gap-3 p-3 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer">
+          <input type="radio" name="export_type" value="{{ ExportTypeChoices.MANUAL }}" checked
+            class="mt-0.5 h-4 w-4 text-blue-600 border-gray-300">
+          <div>
+            <p class="text-sm font-medium text-gray-900">{% trans "Manual CSV Export" %}</p>
+            <p class="text-xs text-gray-500 mt-0.5">{% trans "Download a CSV file formatted for REDCap import. You will upload it manually in REDCap." %}</p>
+          </div>
+        </label>
+        {% if mapping.redcap_project_token_allows_import %}
+        <label class="flex items-start gap-3 p-3 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer">
+          <input type="radio" name="export_type" value="{{ ExportTypeChoices.AUTOMATIC }}"
+            class="mt-0.5 h-4 w-4 text-blue-600 border-gray-300">
+          <div>
+            <p class="text-sm font-medium text-gray-900">{% trans "Direct API Export" %}</p>
+            <p class="text-xs text-gray-500 mt-0.5">{% trans "Push data directly to REDCap via API. Requires an API token with import privileges." %}</p>
+          </div>
+        </label>
+        {% else %}
+        <div class="p-3 rounded-md border border-gray-100 bg-gray-50">
+          <p class="text-sm text-gray-400">{% trans "Direct API export is disabled — the configured API token does not have import privileges." %}</p>
+        </div>
+        {% endif %}
+      </div>
+    </c-card>
+
+    <div class="flex justify-end gap-3 mb-10">
+      <c-button type="submit" variant="primary">{% trans "Run Export" %}</c-button>
+    </div>
+  </form>
+
+  <!-- Export Log -->
+  {% if logs %}
+  <c-card title="{% trans 'Recent Export Log' %}" shadow="sm" padding="sm">
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">{% trans "Date" %}</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">{% trans "Form" %}</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">{% trans "Patient" %}</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">{% trans "Type" %}</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">{% trans "Status" %}</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">{% trans "By" %}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for log in logs %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-3 py-2 text-gray-600 text-xs">{{ log.created_at|date:"d M Y H:i" }}</td>
+            <td class="px-3 py-2 font-mono text-xs text-indigo-700">{{ log.redcap_form_to_questionnaire_mapping.redcap_form_name }}</td>
+            <td class="px-3 py-2 text-gray-700">{{ log.patient|default:"—" }}</td>
+            <td class="px-3 py-2">
+              <span class="px-1.5 py-0.5 rounded text-xs {% if log.export_type == 'automatic' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+                {{ log.get_export_type_display }}
+              </span>
+            </td>
+            <td class="px-3 py-2">
+              <span class="px-1.5 py-0.5 rounded text-xs
+                {% if log.export_status == 'completed' %}bg-green-100 text-green-700
+                {% elif log.export_status == 'failed' %}bg-red-100 text-red-700
+                {% elif log.export_status == 'pending' %}bg-yellow-100 text-yellow-700
+                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                {{ log.get_export_status_display|default:log.export_status }}
+              </span>
+            </td>
+            <td class="px-3 py-2 text-gray-600 text-xs">{{ log.user_exporting_data.username }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </c-card>
+  {% endif %}
+
+</div>
+{% endblock %}

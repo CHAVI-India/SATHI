@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% trans "REDCap Setup Wizard" %} — {{ project.project_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+
+  {# Page header #}
+  <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
+    <div>
+      <h1 class="text-2xl font-bold text-blue-700">{% trans "REDCap Setup Wizard" %}</h1>
+      <p class="text-sm text-gray-500 mt-1">{{ project.project_name }} / <span class="font-mono text-xs">{{ mapping.redcap_project_url }}</span></p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button
+        hx-post="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=1"
+        hx-target="#wizard-body"
+        hx-swap="innerHTML"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        {% trans "Re-fetch Metadata" %}
+      </button>
+      <c-link_button href="{% url 'redcap_project_dashboard' pk=project.pk %}" variant="secondary" size="sm">
+        ← {% trans "Back to Dashboard" %}
+      </c-link_button>
+    </div>
+  </div>
+
+  {# Wizard content — HTMX target #}
+  <div id="wizard-body" class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+    {# Initial loading state — immediately replaced by HTMX #}
+    <div class="flex items-center justify-center py-16 text-gray-400 gap-3"
+      hx-get="{% url 'redcap_setup_wizard' pk=project.pk mapping_pk=mapping.pk %}?step=1"
+      hx-trigger="load"
+      hx-target="#wizard-body"
+      hx-swap="innerHTML">
+      <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+      </svg>
+      {% trans "Loading…" %}
+    </div>
+  </div>
+
+  {# Scroll wizard-body into view after every HTMX swap #}
+  <script>
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+      if (evt.detail.target && evt.detail.target.id === 'wizard-body') {
+        const el = document.getElementById('wizard-body');
+        if (el) {
+          const top = el.getBoundingClientRect().top + window.scrollY - 24;
+          window.scrollTo({ top: top, behavior: 'smooth' });
+        }
+      }
+    });
+  </script>
+
+</div>
+{% endblock %}

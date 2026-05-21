@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% trans "Projects" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-blue-700">{% trans "Projects" %}</h1>
+    {% if request.user.is_staff %}
+    <c-link_button href="{% url 'project_create' %}" variant="primary">
+      {% trans "Create Project" %}
+    </c-link_button>
+    {% endif %}
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-4 px-4 py-3 rounded border {% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if projects %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow-sm border border-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Project Name" %}</th>
+          <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Created" %}</th>
+          <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for project in projects %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-5 py-3 font-medium text-gray-900">{{ project.project_name }}</td>
+          <td class="px-5 py-3 text-sm text-gray-500">{{ project.created_date|date:"d M Y" }}</td>
+          <td class="px-5 py-3">
+            <div class="flex gap-2">
+              <c-link_button href="{% url 'redcap_project_dashboard' pk=project.pk %}" variant="primary" size="sm">
+                {% trans "REDCap" %}
+              </c-link_button>
+              <c-link_button href="{% url 'project_update' pk=project.pk %}" variant="outline" size="sm">
+                {% trans "Edit" %}
+              </c-link_button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <c-card shadow="sm" padding="md">
+      <p class="text-gray-500 text-center py-8">{% trans "No projects yet. Create one to get started." %}</p>
+    </c-card>
+  {% endif %}
+</div>
+{% endblock %}

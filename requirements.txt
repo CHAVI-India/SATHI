@@ -53,6 +53,7 @@ phonenumbers==9.0.30
 pillow==12.2.0
 pip-check-updates==0.28.0
 psycopg2-binary==2.9.12
+pycap==2.7.0
 pycparser==3.0
 pydantic==2.13.4
 pydantic_core==2.46.4
@@ -70,6 +71,7 @@ rich==15.0.0
 roman-numerals==4.1.0
 sarvamai==0.1.28
 scipy==1.17.1
+semantic-version==2.10.0
 six==1.17.0
 snowballstemmer==3.0.1
 soupsieve==2.8.3

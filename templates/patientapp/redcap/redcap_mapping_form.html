@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{{ title }} — {{ project.project_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-blue-700">{{ title }}</h1>
+    <p class="text-gray-500 mt-1">{{ project.project_name }}</p>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-4 px-4 py-3 rounded border {% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <c-card title="{% trans 'REDCap Connection' %}" shadow="lg" padding="sm" class="mb-6">
+      <div class="space-y-5">
+        {% for field in form %}
+        <div>
+          <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ field.label }}
+            {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+          </label>
+          {% if field.field.widget.input_type == 'checkbox' %}
+            <div class="flex items-center gap-2">
+              {{ field }}
+              <span class="text-sm text-gray-600">{{ field.help_text }}</span>
+            </div>
+          {% else %}
+            {{ field }}
+            {% if field.html_name == 'redcap_project_token' and action == 'edit' %}
+              <p class="mt-1 text-xs text-green-600">✓ {% trans "Token already saved — leave blank to keep it unchanged." %}</p>
+            {% elif field.help_text %}
+              <p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>
+            {% endif %}
+          {% endif %}
+          {% if field.errors %}
+            {% for error in field.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </c-card>
+
+    <div class="flex justify-end gap-3">
+      <c-link_button href="{% url 'redcap_project_dashboard' pk=project.pk %}" variant="secondary">
+        {% trans "Cancel" %}
+      </c-link_button>
+      <c-button type="submit" variant="primary">
+        {% if action == 'create' %}{% trans "Create Configuration" %}{% else %}{% trans "Save Changes" %}{% endif %}
+      </c-button>
+    </div>
+  </form>
+</div>
+{% endblock %}
