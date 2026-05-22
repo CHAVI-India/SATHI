@@ -33,6 +33,54 @@
   <form method="post">
     {% csrf_token %}
 
+    {% if unmatched_warnings %}
+    <div class="mb-6 rounded-md border border-orange-300 bg-orange-50 p-4">
+      <p class="text-sm font-semibold text-orange-800 mb-2">⚠ {% trans "Unmatched submissions detected" %}</p>
+      <p class="text-xs text-orange-700 mb-3">{% blocktrans %}The following submissions belong to repeating or event-based forms but have not been matched to a REDCap instance. Exporting them will leave redcap_repeat_instance blank, which may cause data errors in REDCap. Use the Match link to resolve them first, then return here to export.{% endblocktrans %}</p>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-xs">
+          <thead class="bg-orange-100">
+            <tr>
+              <th class="px-3 py-1.5 text-left text-orange-700 font-medium">{% trans "Patient" %}</th>
+              <th class="px-3 py-1.5 text-left text-orange-700 font-medium">{% trans "Form" %}</th>
+              <th class="px-3 py-1.5 text-left text-orange-700 font-medium">{% trans "Submission Date" %}</th>
+              <th class="px-3 py-1.5 text-left text-orange-700 font-medium">{% trans "Action" %}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-orange-200">
+            {% for w in unmatched_warnings %}
+            <tr class="bg-white">
+              <td class="px-3 py-1.5 text-gray-800">{{ w.patient.name }}</td>
+              <td class="px-3 py-1.5 font-mono text-indigo-700">{{ w.fm.redcap_form_name }}</td>
+              <td class="px-3 py-1.5 text-gray-600">{{ w.submission_date|date:"d M Y H:i" }}</td>
+              <td class="px-3 py-1.5">
+                <a href="{{ w.match_url }}" target="_blank" class="text-blue-600 hover:underline text-xs">{% trans "Match →" %}</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if show_unmatched_confirm %}
+      {# Re-inject the previous POST selections so submitting the confirm doesn't lose them #}
+      {% for fmid in selected_fm_ids %}<input type="hidden" name="form_mapping_ids" value="{{ fmid }}">{% endfor %}
+      {% for ppk in selected_patient_pks %}<input type="hidden" name="patient_pks" value="{{ ppk }}">{% endfor %}
+      <input type="hidden" name="export_type" value="{{ selected_export_type }}">
+      <div class="mt-4 flex items-start gap-2 border-t border-orange-200 pt-3">
+        <input type="checkbox" name="confirm_unmatched" id="confirm_unmatched" value="1"
+          class="mt-0.5 h-4 w-4 text-orange-600 border-gray-300 rounded">
+        <label for="confirm_unmatched" class="text-xs text-orange-800">
+          {% trans "I understand that unmatched submissions will be exported with a blank repeat instance. I want to proceed anyway." %}
+        </label>
+      </div>
+      <div class="mt-3 flex justify-end gap-3">
+        <a href="{{ request.path }}" class="text-xs text-gray-500 hover:underline self-center">{% trans "Cancel" %}</a>
+        <c-button type="submit" variant="danger">{% trans "Proceed with Export" %}</c-button>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
     <c-card title="{% trans 'Select Forms to Export' %}" shadow="md" padding="sm" class="mb-6">
       <div class="space-y-3">
         {% for fm in form_mappings %}
@@ -87,29 +135,43 @@
     </c-card>
 
     <c-card title="{% trans 'Export Method' %}" shadow="md" padding="sm" class="mb-6">
+      {# Export type is determined by the REDCap configuration (mapping.export_type). #}
+      <input type="hidden" name="export_type" value="{{ mapping.export_type }}">
       <div class="space-y-3">
-        <label class="flex items-start gap-3 p-3 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer">
-          <input type="radio" name="export_type" value="{{ ExportTypeChoices.MANUAL }}" checked
-            class="mt-0.5 h-4 w-4 text-blue-600 border-gray-300">
+        {# Manual CSV — active when configured as manual #}
+        <div class="flex items-start gap-3 p-3 rounded-md border {% if mapping.export_type == ExportTypeChoices.MANUAL %}border-blue-400 bg-blue-50{% else %}border-gray-100 bg-gray-50 opacity-50{% endif %}">
+          <div class="mt-0.5 h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0
+            {% if mapping.export_type == ExportTypeChoices.MANUAL %}border-blue-600{% else %}border-gray-300{% endif %}">
+            {% if mapping.export_type == ExportTypeChoices.MANUAL %}
+            <div class="h-2 w-2 rounded-full bg-blue-600"></div>
+            {% endif %}
+          </div>
           <div>
-            <p class="text-sm font-medium text-gray-900">{% trans "Manual CSV Export" %}</p>
+            <p class="text-sm font-medium {% if mapping.export_type == ExportTypeChoices.MANUAL %}text-gray-900{% else %}text-gray-400{% endif %}">{% trans "Manual CSV Export" %}</p>
             <p class="text-xs text-gray-500 mt-0.5">{% trans "Download a CSV file formatted for REDCap import. You will upload it manually in REDCap." %}</p>
           </div>
-        </label>
-        {% if mapping.redcap_project_token_allows_import %}
-        <label class="flex items-start gap-3 p-3 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer">
-          <input type="radio" name="export_type" value="{{ ExportTypeChoices.AUTOMATIC }}"
-            class="mt-0.5 h-4 w-4 text-blue-600 border-gray-300">
-          <div>
-            <p class="text-sm font-medium text-gray-900">{% trans "Direct API Export" %}</p>
-            <p class="text-xs text-gray-500 mt-0.5">{% trans "Push data directly to REDCap via API. Requires an API token with import privileges." %}</p>
-          </div>
-        </label>
-        {% else %}
-        <div class="p-3 rounded-md border border-gray-100 bg-gray-50">
-          <p class="text-sm text-gray-400">{% trans "Direct API export is disabled — the configured API token does not have import privileges." %}</p>
         </div>
-        {% endif %}
+        {# API export — active when configured as automatic and token allows import #}
+        <div class="flex items-start gap-3 p-3 rounded-md border {% if mapping.export_type == ExportTypeChoices.AUTOMATIC and mapping.redcap_project_token_allows_import %}border-blue-400 bg-blue-50{% else %}border-gray-100 bg-gray-50 opacity-50{% endif %}">
+          <div class="mt-0.5 h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0
+            {% if mapping.export_type == ExportTypeChoices.AUTOMATIC and mapping.redcap_project_token_allows_import %}border-blue-600{% else %}border-gray-300{% endif %}">
+            {% if mapping.export_type == ExportTypeChoices.AUTOMATIC and mapping.redcap_project_token_allows_import %}
+            <div class="h-2 w-2 rounded-full bg-blue-600"></div>
+            {% endif %}
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-medium {% if mapping.export_type == ExportTypeChoices.AUTOMATIC %}text-gray-900{% else %}text-gray-400{% endif %}">{% trans "Direct API Export" %}</p>
+            <p class="text-xs text-gray-500 mt-0.5">{% trans "Push data directly to REDCap via API. Requires an API token with import privileges." %}</p>
+            {% if mapping.export_type == ExportTypeChoices.AUTOMATIC and not mapping.redcap_project_token_allows_import %}
+            <p class="text-xs text-red-500 mt-1">⚠ {% trans "API export is configured but the token does not have import privileges. Please update the REDCap configuration." %}</p>
+            {% endif %}
+          </div>
+        </div>
+        <p class="text-xs text-gray-400">
+          {% trans "Export method is set in the" %}
+          <a href="{% url 'redcap_mapping_edit' pk=project.pk mapping_pk=mapping.pk %}"
+            class="text-blue-500 hover:underline">{% trans "REDCap configuration" %}</a>.
+        </p>
       </div>
     </c-card>
 
@@ -131,6 +193,7 @@
             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">{% trans "Type" %}</th>
             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">{% trans "Status" %}</th>
             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">{% trans "By" %}</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">{% trans "Actions" %}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
@@ -154,6 +217,12 @@
               </span>
             </td>
             <td class="px-3 py-2 text-gray-600 text-xs">{{ log.user_exporting_data.username }}</td>
+            <td class="px-3 py-2">
+              {% if log.patient %}
+              <a href="{% url 'redcap_match_submissions' pk=project.pk mapping_pk=mapping.pk patient_pk=log.patient.pk %}"
+                class="text-xs text-blue-600 hover:underline" title="{% trans 'Go to match page for this patient' %}">{% trans "Match →" %}</a>
+              {% else %}—{% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>

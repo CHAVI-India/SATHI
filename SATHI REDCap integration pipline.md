@@ -279,6 +279,64 @@ All PyCap calls have been extracted from `views.py` into `patientapp/redcap_util
 - Empty state message if no patients have a study ID assigned yet.
 - Vanilla JS in `{% block extra_js %}` wires the two toggle buttons.
 
+#### Export — unmatched submission safety warning ✅
+
+Pre-export and at-export detection of submissions belonging to repeating/event forms that have no `RedcapInstanceToSubmissionMapping` row.
+
+**View (`patientapp/views.py` → `redcap_export`):**
+- `_get_unmatched_warnings(fms_qs, patient_id_set)` helper: iterates form mappings that have any of `redcap_form_is_in_event`, `redcap_form_is_repeating`, or `redcap_event_is_repeating` set; for each, queries submissions for the given patients, fetches matched submission IDs in one query, and returns a list of `{patient, fm, submission_date, match_url}` dicts for any gaps.
+- On **GET**: runs against all form mappings + all mapped patients → `unmatched_warnings` passed to template (shown as a passive advisory table).
+- On **POST** (first submit, no `confirm_unmatched`): re-runs scoped to the selected forms + selected patients. If any unmatched found, re-renders with `show_unmatched_confirm=True` and re-injects `form_mapping_ids`, `patient_pks`, `export_type` as hidden inputs so no selections are lost.
+- On **POST** (second submit, `confirm_unmatched` checked): skips the gate and proceeds with export.
+
+**Template (`redcap_export.html`):**
+- Orange warning card appears above the form cards whenever `unmatched_warnings` is non-empty.
+- Table columns: Patient | Form | Submission Date | Action ("Match →" opens match page in new tab).
+- When `show_unmatched_confirm` is set (after first submit attempt): confirm checkbox + "Proceed with Export" (danger) + "Cancel" link appear inside the warning card. Hidden inputs preserve prior selections.
+- No warning shown when all submissions are matched.
+
+#### Export — pre-flight validation ✅
+
+Guards added to the POST handler in `redcap_export`:
+- Hard error (redirect + message) if no `form_mapping_ids` are submitted.
+- Non-blocking `messages.warning` if any selected fm has zero field mappings — export proceeds but user is alerted.
+
+#### Export — log table "Match →" link ✅
+
+Added **Actions** column to the Recent Export Log table in `redcap_export.html`. Each row with a `patient` FK set shows a "Match →" link pointing to `redcap_match_submissions` for that patient, opening in the same tab.
+
+#### Export — REDCap dashboard per-fm matching status ✅
+
+`redcap_project_dashboard` view now:
+- Pre-fetches `RedcapStudyIDtoPatientIDMap` rows per mapping to determine the patient set.
+- For each `RedcapFormToQuestionnaireMapping`, counts total submissions and matched `RedcapInstanceToSubmissionMapping` rows.
+- Attaches `m.fm_stats = [{fm, total, matched}]` directly to each mapping object (avoids Django template dict-key-lookup limitation).
+
+Dashboard card now shows a **"Form Mapping Status"** section per mapping:
+- 🟢 `✓ X/Y matched` — all matched
+- 🟡 `X/Y matched` — partial
+- 🔴 `0/Y matched` — none matched
+- Grey `No submissions` — no submissions exist yet
+- "Match →" link to Patient IDs page per row.
+
+#### Export — method driven by `ProjectRedcapMapping.export_type` ✅
+
+The "Export Method" card in `redcap_export.html` no longer shows interactive radio buttons. The export type is driven entirely by `mapping.export_type`:
+- A `<input type="hidden" name="export_type">` carries the configured value.
+- Both options rendered as read-only display items — the active one highlighted (blue border + filled dot), the inactive one dimmed (`opacity-50`).
+- Extra warning shown if `export_type == AUTOMATIC` but `redcap_project_token_allows_import` is `False`.
+- Link to the REDCap configuration edit page so users know where to change it.
+
+#### Export — per-patient log entries ✅
+
+**Bug:** `_build_csv_export` created no log entries at all. `_run_api_export` created one log entry per form mapping with `patient=None` — the `log` variable was overwritten on each iteration of the patient loop, so only the last patient's log was updated with status.
+
+**Fix (`patientapp/views.py`):**
+- Both `_build_csv_export` and `_run_api_export` now create **one `RedcapDataExportLog` entry per patient per form mapping**.
+- Both functions build `patient_map = {pk: Patient}` from `id_map` keys and query which patients have submissions for each fm.
+- **CSV**: log entries built as a list and written via `bulk_create` after the CSV response is constructed. All entries have `export_status=COMPLETED`.
+- **API**: log entries created individually (PENDING) before the API call; after success/failure all entries for that fm are updated together with the same status, log text, and completion timestamp — no more single-variable overwrite bug.
+
 ---
 
 ## 🔧 Corrections & Bug Fixes
@@ -294,6 +352,44 @@ All PyCap calls have been extracted from `views.py` into `patientapp/redcap_util
 - **`forms.py`**: Updated `redcap_date_mapping_field` `help_text` to match — explains the visit-date proximity matching purpose, that the field is optional, and that it may belong to a different REDCap form.
 - **`redcap_form_mapping_form.html`**: Wrapped the field in a container (`#date_mapping_field_section`) that is hidden by default. Shown via JS only when `applyMeta` detects any of the three flags is `True`. In edit mode, visibility is restored from saved Django model flags. A blue info box explains the purpose in plain language.
 - **`wizard/step3_form_mapping.html`**: Same treatment for both the "Add" (`#add_date_mapping_section`) and "Edit" (`#edit_date_mapping_section`) panels. `toggleDateSection(prefix, show)` helper added to the shared `applyMeta` JS function.
+
+#### Date-proximity matching — algorithm review and fixes ✅
+
+**How matching works (`redcap_match_submissions`):**
+
+When `redcap_date_mapping_field` is configured on a `RedcapFormToQuestionnaireMapping`, the matching page uses a two-pass algorithm to auto-suggest which REDCap event/instance each questionnaire submission belongs to.
+
+**Two REDCap API calls per form mapping:**
+1. **Call 1** — fetches all existing `(event_name, repeat_instance)` pairs for the questionnaire form for this patient → `event_to_instances`.
+2. **Call 2** — fetches the date field values across all events/instances via `fetch_field_values_for_record` → `event_to_date`.
+
+**Pass 1 — event assignment (per unconfirmed submission):**
+- For each unmatched submission, iterates all `rc_instances` entries that have a date string.
+- Parses each REDCap date (datetime or date-only) and computes `abs(submission_date - rc_date)` in seconds.
+- Picks the event/instance with the **smallest delta**.
+- **30-day threshold**: if the closest date is more than 30 days away, no suggestion is made — falls back to `fm.redcap_event_name` or the first available event. The user must manually assign.
+- If `redcap_date_mapping_field` is not set at all, all submissions default to the configured event name and the user reviews manually.
+
+**Pass 2 — instance numbering:**
+- Only runs if `redcap_form_is_repeating` or `redcap_event_is_repeating` is `True`.
+- First builds `existing_max = {event: max_instance}` from the REDCap instances already fetched.
+- Starts the per-event counter from `existing_max[event]` (not from 0), so new suggestions start at `max + 1` and never collide with instances already present in REDCap.
+- Submissions sorted ascending by `submission_date` — earlier submissions get lower instance numbers within the same event.
+
+**Bugs fixed in this review:**
+
+1. **`fetch_field_values_for_record` repeated-event overwrite (`redcap_utils.py`):**
+   - Old: returned `{event_name: date_str}` — for repeating events with multiple instances, each loop iteration overwrote the previous, keeping only the last instance's date.
+   - Fix: returns `{(event_name, instance_int_or_None): date_str}` — each `(event, instance)` pair gets its own entry. Non-repeating events use `(event, None)` as key.
+   - The combine step in `views.py` looks up `(ev, inst)` first, then falls back to `(ev, None)` for non-repeating contexts.
+
+2. **Pass 2 started instance counter from 1 regardless of existing REDCap data:**
+   - Old: `event_counter = {}` → first suggestion always got instance 1, colliding with existing REDCap records.
+   - Fix: `event_counter = dict(existing_max)` → counter starts from the highest existing instance per event.
+
+3. **No threshold on date proximity (pre-existing):**
+   - Old: any submission was always matched to *some* event, even if 6 months away.
+   - Fix: `_MATCH_THRESHOLD_SECONDS = 30 * 86400`. If no match within 30 days, falls back to configured default event rather than silently assigning a distant one.
 
 #### PyCap refactor — missing `primary_field` / `secondary_field` variables ✅
 **Issue:** After extracting inline PyCap calls into `redcap_utils.py`, `primary_field` and `secondary_field` local variables (previously defined inside the old fetch block) were silently removed from `redcap_patient_ids`. These were still passed in the template context, causing a `NameError`.

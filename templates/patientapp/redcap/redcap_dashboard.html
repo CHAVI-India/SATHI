@@ -87,6 +87,32 @@
             {% endif %}
           </div>
         </div>
+
+        {% if m.fm_stats %}
+        <div class="mt-3 pt-3 border-t border-gray-100">
+          <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Form Mapping Status" %}</p>
+          <div class="space-y-1.5">
+            {% for stat in m.fm_stats %}
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-mono text-indigo-700 truncate mr-2">{{ stat.fm.redcap_form_name }}</span>
+              <span class="shrink-0 flex items-center gap-1.5">
+                {% if stat.total == 0 %}
+                  <span class="px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{% trans "No submissions" %}</span>
+                {% elif stat.matched == stat.total %}
+                  <span class="px-1.5 py-0.5 rounded bg-green-100 text-green-700">✓ {{ stat.matched }}/{{ stat.total }} {% trans "matched" %}</span>
+                {% elif stat.matched == 0 %}
+                  <span class="px-1.5 py-0.5 rounded bg-red-100 text-red-700">{{ stat.matched }}/{{ stat.total }} {% trans "matched" %}</span>
+                {% else %}
+                  <span class="px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700">{{ stat.matched }}/{{ stat.total }} {% trans "matched" %}</span>
+                {% endif %}
+                <a href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=m.pk %}"
+                  class="text-blue-500 hover:underline">{% trans "Match →" %}</a>
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
       </c-card>
 
       {% endfor %}

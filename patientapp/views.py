@@ -2862,8 +2862,31 @@ def redcap_project_dashboard(request, pk):
     guard = _staff_required(request)
     if guard:
         return guard
+    from promapp.models import QuestionnaireSubmission as _QS
     project = get_object_or_404(Project, pk=pk)
     mappings = ProjectRedcapMapping.objects.filter(project=project).order_by('-created_date')
+
+    # Attach fm_stats directly to each mapping object for easy template access.
+    mappings = list(mappings)
+    for m in mappings:
+        patient_ids = set(
+            RedcapStudyIDtoPatientIDMap.objects.filter(project_redcap_mapping=m)
+            .exclude(redcap_study_id='').values_list('patient_id', flat=True)
+        )
+        fms = RedcapFormToQuestionnaireMapping.objects.filter(project_redcap_mapping=m)
+        fm_stats = []
+        for fm in fms:
+            total = _QS.objects.filter(
+                patient_questionnaire__questionnaire=fm.questionnaire,
+                patient__in=patient_ids,
+            ).count() if patient_ids else 0
+            matched = RedcapInstanceToSubmissionMapping.objects.filter(
+                redcap_form=fm,
+                questionnaire_submission__patient__in=patient_ids,
+            ).count() if patient_ids else 0
+            fm_stats.append({'fm': fm, 'total': total, 'matched': matched})
+        m.fm_stats = fm_stats
+
     return render(request, 'patientapp/redcap/redcap_dashboard.html', {
         'project': project,
         'mappings': mappings,
@@ -3485,9 +3508,13 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
                 )
 
                 # --- Combine: one entry per (event, instance) with its date ---
+                # event_to_date is keyed by (event_name, instance_int_or_None)
                 for ev, instances in event_to_instances.items():
-                    date_str = event_to_date.get(ev, '')
                     for inst in instances:
+                        date_str = (
+                            event_to_date.get((ev, inst), '')  # repeating: per-instance key
+                            or event_to_date.get((ev, None), '')  # non-repeating fallback
+                        )
                         rc_instances.append({
                             'event': ev,
                             'instance': inst,
@@ -3529,6 +3556,7 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
                 })
             else:
                 # Date-proximity: find the event whose date is closest to submission_date
+                _MATCH_THRESHOLD_SECONDS = 30 * 86400  # 30 days — no suggestion beyond this
                 best_event = fm.redcap_event_name or (available_events[0] if available_events else '')
                 if rc_instances and fm.redcap_date_mapping_field:
                     best_delta = None
@@ -3542,7 +3570,7 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
                                     delta = abs((sub.submission_date.replace(tzinfo=None) - rc_dt.replace(tzinfo=None)).total_seconds())
                                 else:
                                     delta = abs((sub.submission_date.date() - rc_dt).days * 86400)
-                                if best_delta is None or delta < best_delta:
+                                if delta <= _MATCH_THRESHOLD_SECONDS and (best_delta is None or delta < best_delta):
                                     best_delta = delta
                                     best_event = inst['event']
                         except Exception:
@@ -3557,8 +3585,16 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
 
         # Pass 2 — auto-increment instance numbers per event for unconfirmed rows,
         # ordering within each event by submission_date (already sorted ascending).
+        # Start from max existing REDCap instance for that event + 1 to avoid collisions.
         if fm.redcap_form_is_repeating or fm.redcap_event_is_repeating:
-            event_counter = {}
+            # Build max existing instance per event from rc_instances
+            existing_max = {}
+            for rc in rc_instances:
+                ev = rc['event']
+                inst = rc['instance']
+                if inst is not None:
+                    existing_max[ev] = max(existing_max.get(ev, 0), inst)
+            event_counter = dict(existing_max)  # start counters from existing max
             for row in sub_rows:
                 if not row['confirmed'] and row['suggested_instance'] is None:
                     ev = row['suggested_event']
@@ -3633,10 +3669,44 @@ def redcap_export(request, pk, mapping_pk):
         if m.redcap_study_id
     ]
 
+    from promapp.models import QuestionnaireSubmission as _QS
+
+    patient_ids_with_mapping = {m.patient_id for m in study_id_maps if m.redcap_study_id}
+
+    # Build unmatched warnings: submissions for repeating/event forms with no instance mapping.
+    # Only meaningful for forms where instance/event assignment matters.
+    def _get_unmatched_warnings(fms_qs, patient_id_set):
+        warnings = []
+        for fm in fms_qs:
+            if not (fm.redcap_form_is_in_event or fm.redcap_form_is_repeating or fm.redcap_event_is_repeating):
+                continue
+            subs = _QS.objects.filter(
+                patient_questionnaire__questionnaire=fm.questionnaire,
+                patient__in=patient_id_set,
+            ).select_related('patient').order_by('patient', 'submission_date')
+            matched_ids = set(
+                RedcapInstanceToSubmissionMapping.objects.filter(
+                    redcap_form=fm,
+                    questionnaire_submission__in=subs,
+                ).values_list('questionnaire_submission_id', flat=True)
+            )
+            for sub in subs:
+                if sub.pk not in matched_ids:
+                    warnings.append({
+                        'patient': sub.patient,
+                        'fm': fm,
+                        'submission_date': sub.submission_date,
+                        'match_url': reverse('redcap_match_submissions', kwargs={
+                            'pk': pk, 'mapping_pk': mapping_pk, 'patient_pk': sub.patient.pk,
+                        }),
+                    })
+        return warnings
+
     if request.method == 'POST':
         selected_fm_ids = request.POST.getlist('form_mapping_ids')
         selected_patient_pks = request.POST.getlist('patient_pks')
         export_type = request.POST.get('export_type', ExportTypeChoices.MANUAL)
+        confirm_unmatched = request.POST.get('confirm_unmatched')
         selected_fms = form_mappings.filter(pk__in=selected_fm_ids)
 
         full_id_map = {
@@ -3658,14 +3728,48 @@ def redcap_export(request, pk, mapping_pk):
         else:
             id_map = full_id_map
 
+        if not selected_fm_ids:
+            messages.error(request, _('Please select at least one form mapping to export.'))
+            return redirect(request.path)
+
         if not id_map:
             messages.error(request, _('No patients selected or no mapped patients found.'))
             return redirect(request.path)
+
+        # Warn if any selected fm has no field mappings (export would produce empty rows)
+        empty_fms = [fm for fm in selected_fms if not fm.redcapfieldtoitemmapping_set.exists()]
+        if empty_fms:
+            names = ', '.join(fm.redcap_form_name for fm in empty_fms)
+            messages.warning(request, _(
+                'The following form mappings have no field mappings configured and will produce empty rows: %(names)s'
+            ) % {'names': names})
+
+        # Gate: if any unmatched submissions exist and user has not confirmed, redisplay with warning
+        if not confirm_unmatched:
+            unmatched = _get_unmatched_warnings(selected_fms, set(id_map.keys()))
+            if unmatched:
+                unmatched_warnings = unmatched
+                return render(request, 'patientapp/redcap/redcap_export.html', {
+                    'project': project,
+                    'mapping': mapping,
+                    'form_mappings': form_mappings,
+                    'mappable_patients': mappable_patients,
+                    'logs': logs,
+                    'ExportTypeChoices': ExportTypeChoices,
+                    'unmatched_warnings': unmatched_warnings,
+                    # Re-inject POST selections so the form re-renders correctly
+                    'selected_fm_ids': selected_fm_ids,
+                    'selected_patient_pks': selected_patient_pks,
+                    'selected_export_type': export_type,
+                    'show_unmatched_confirm': True,
+                })
 
         if export_type == ExportTypeChoices.MANUAL:
             return _build_csv_export(request, mapping, selected_fms, id_map)
         else:
             return _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map)
+
+    unmatched_warnings = _get_unmatched_warnings(form_mappings, patient_ids_with_mapping)
 
     return render(request, 'patientapp/redcap/redcap_export.html', {
         'project': project,
@@ -3674,6 +3778,7 @@ def redcap_export(request, pk, mapping_pk):
         'mappable_patients': mappable_patients,
         'logs': logs,
         'ExportTypeChoices': ExportTypeChoices,
+        'unmatched_warnings': unmatched_warnings,
     })
 
 
@@ -3748,7 +3853,7 @@ def _collect_export_rows(mapping, selected_fms, id_map):
 
 
 def _build_csv_export(request, mapping, selected_fms, id_map):
-    """Return a CSV HttpResponse."""
+    """Return a CSV HttpResponse and log the export."""
     rows = _collect_export_rows(mapping, selected_fms, id_map)
     if not rows:
         messages.warning(request, _('No data found for the selected form mappings.'))
@@ -3763,10 +3868,41 @@ def _build_csv_export(request, mapping, selected_fms, id_map):
                 seen.add(k)
 
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="redcap_export_{mapping.project.project_name}.csv"'
+    filename = f'redcap_export_{mapping.project.project_name}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     writer = csv.DictWriter(response, fieldnames=all_keys, extrasaction='ignore')
     writer.writeheader()
     writer.writerows(rows)
+
+    # Log one entry per patient per fm
+    from promapp.models import QuestionnaireSubmission as _QS
+    patient_map = {p.pk: p for p in Patient.objects.filter(pk__in=id_map.keys())}
+    now = timezone.now()
+    log_entries = []
+    for fm in selected_fms:
+        if not fm.redcapfieldtoitemmapping_set.exists():
+            continue
+        # Only log for patients who actually have submissions for this fm
+        patient_ids_with_subs = set(
+            _QS.objects.filter(
+                patient_questionnaire__questionnaire=fm.questionnaire,
+                patient__in=id_map.keys(),
+            ).values_list('patient_id', flat=True)
+        )
+        for patient_id in patient_ids_with_subs:
+            patient = patient_map.get(patient_id)
+            log_entries.append(RedcapDataExportLog(
+                redcap_form_to_questionnaire_mapping=fm,
+                patient=patient,
+                user_exporting_data=request.user,
+                export_type=ExportTypeChoices.MANUAL,
+                datetime_export_start=now,
+                datetime_export_completed=now,
+                export_status=ExportStatusChoices.COMPLETED,
+                export_log=f'CSV export: {filename}',
+            ))
+    RedcapDataExportLog.objects.bulk_create(log_entries)
+
     return response
 
 
@@ -3777,24 +3913,41 @@ def _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map):
         messages.warning(request, _('No data found for the selected form mappings.'))
         return redirect(request.path)
 
+    from promapp.models import QuestionnaireSubmission as _QS
+    patient_map = {p.pk: p for p in Patient.objects.filter(pk__in=id_map.keys())}
     for fm in selected_fms:
-        log = RedcapDataExportLog.objects.create(
-            redcap_form_to_questionnaire_mapping=fm,
-            user_exporting_data=request.user,
-            export_type=ExportTypeChoices.AUTOMATIC,
-            datetime_export_start=timezone.now(),
-            export_status=ExportStatusChoices.PENDING,
+        patient_ids_with_subs = set(
+            _QS.objects.filter(
+                patient_questionnaire__questionnaire=fm.questionnaire,
+                patient__in=id_map.keys(),
+            ).values_list('patient_id', flat=True)
         )
+        patients_for_fm = [patient_map.get(pid) for pid in patient_ids_with_subs] or [None]
+        # Create one pending log per patient before the API call
+        logs = [
+            RedcapDataExportLog.objects.create(
+                redcap_form_to_questionnaire_mapping=fm,
+                patient=patient,
+                user_exporting_data=request.user,
+                export_type=ExportTypeChoices.AUTOMATIC,
+                datetime_export_start=timezone.now(),
+                export_status=ExportStatusChoices.PENDING,
+            )
+            for patient in patients_for_fm
+        ]
         try:
             fm_rows = [r for r in rows if fm.redcap_form_name in r.get('redcap_repeat_instrument', fm.redcap_form_name)]
             response_data = redcap_import_records(mapping, fm_rows)
-            log.export_status = ExportStatusChoices.COMPLETED
-            log.export_log = str(response_data)
+            final_status = ExportStatusChoices.COMPLETED
+            log_text = str(response_data)
         except Exception as e:
-            log.export_status = ExportStatusChoices.FAILED
-            log.export_log = str(e)
-        finally:
-            log.datetime_export_completed = timezone.now()
+            final_status = ExportStatusChoices.FAILED
+            log_text = str(e)
+        completed_at = timezone.now()
+        for log in logs:
+            log.export_status = final_status
+            log.export_log = log_text
+            log.datetime_export_completed = completed_at
             log.save(update_fields=['export_status', 'export_log', 'datetime_export_completed', 'modified_at'])
 
     messages.success(request, _('API export completed. Check the log below for details.'))

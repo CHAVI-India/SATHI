@@ -140,10 +140,12 @@ def fetch_field_values_for_record(mapping, record_id: str, field_name: str,
                                    form_name: str,
                                    events_filter: list = None) -> dict:
     """
-    Fetch a single date/value field across all events for a patient.
+    Fetch a single date/value field across all events (and instances) for a patient.
 
-    Returns: {event_name: field_value_str} — one entry per event that has a
-    non-empty value for field_name.
+    Returns: {(event_name, instance_int_or_None): field_value_str}
+    For non-repeating events instance_int_or_None is None.
+    For repeating events/forms each instance gets its own entry, preventing
+    last-write-wins overwrite when multiple instances share an event name.
 
     Raises: any PyCap / requests exception on failure.
     """
@@ -154,13 +156,15 @@ def fetch_field_values_for_record(mapping, record_id: str, field_name: str,
         extra_fields=[field_name],
         events_filter=events_filter,
     )
-    event_to_value = {}
+    result = {}
     for rec in raw:
         ev = rec.get('redcap_event_name', '')
+        raw_inst = rec.get('redcap_repeat_instance', '')
+        inst = int(raw_inst) if str(raw_inst).isdigit() else None
         val = rec.get(field_name, '').strip()
         if val:
-            event_to_value[ev] = val
-    return event_to_value
+            result[(ev, inst)] = val
+    return result
 
 
 # ---------------------------------------------------------------------------
