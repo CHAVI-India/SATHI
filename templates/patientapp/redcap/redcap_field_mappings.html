@@ -179,7 +179,7 @@
     </h2>
 
     {% if enriched_existing %}
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
       <table class="min-w-full text-sm">
         <thead class="bg-gray-50 border-b border-gray-200">
           <tr>
@@ -280,10 +280,9 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="edit_mapping">
                 <input type="hidden" name="field_map_pk" value="{{ fm_field.pk }}">
-                {# Row 1: item picker + transform #}
-                <div class="flex flex-wrap gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                   <select name="new_questionnaire_item"
-                    class="flex-1 min-w-0 px-2 py-1.5 text-sm border border-amber-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    class="flex-1 min-w-48 px-2 py-1.5 text-sm border border-amber-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-400">
                     {% for qi in qi_list %}
                     <option value="{{ qi.pk }}"
                       {% if qi.pk == fm_field.questionnaire_item.pk|stringformat:'s' %}selected{% endif %}>
@@ -303,16 +302,13 @@
                     </option>
                     {% endfor %}
                   </select>
-                </div>
-                {# Row 2: action buttons #}
-                <div class="flex gap-2 justify-end">
                   <button type="submit"
-                    class="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-md hover:bg-amber-700 font-medium">
+                    class="shrink-0 px-3 py-1.5 text-xs bg-amber-600 text-white rounded-md hover:bg-amber-700 font-medium">
                     {% trans "Save" %}
                   </button>
                   <button type="button"
                     onclick="toggleEditRow('{{ fm_field.pk }}')"
-                    class="px-3 py-1.5 text-xs border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50">
+                    class="shrink-0 px-3 py-1.5 text-xs border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50">
                     {% trans "Cancel" %}
                   </button>
                 </div>
