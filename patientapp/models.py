@@ -271,13 +271,15 @@ class ExportTypeChoices(models.TextChoices):
 class ProjectRedcapMapping (models.Model):
     '''
     This table will map a REDCap project to the a specific CHAVI PROM Project allowing data of patients in CHAVI PROM to be exported to REDCap. Users can configure this mapping in the admin panel. Using PyCap, the project information will be stored as a JSON mapping in the database table. The project information may be updated also at a later date. 
+
+    
     '''
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     redcap_project_url = models.URLField()
     redcap_project_token = secured_fields.EncryptedTextField()
     redcap_project_token_allows_import = models.BooleanField(default=False, help_text="Select if the token allows data to be imported into REDCap. Most default API tokens do not allow this so please check your API key settings in REDCap.")
     redcap_project_token_allows_export = models.BooleanField(default=True, help_text="Select if the token allows data to be exported from REDCap. Most default API tokens allow export so this is enabled by default.")
-    redcap_project_info = models.JSONField(null=True, blank=True, help_text="This is the project information that will be automatically extracted from REDCap after the project settings are filled.")
+    redcap_project_info = models.JSONField(null=True,blank=True)
     date_redcap_project_info_updated = models.DateField(null=True, blank=True)
     redcap_record_count = models.IntegerField(null=True, blank=True, help_text="This is the record count that will be automatically extracted from REDCap after the project settings are filled.")
     export_type = models.CharField(max_length=12, choices=ExportTypeChoices.choices, default=ExportTypeChoices.MANUAL)
@@ -295,7 +297,8 @@ class ProjectRedcapMapping (models.Model):
         ]
 
     def __str__(self):
-        return f"{self.project.project_name} - {self.redcap_project_url}"
+        return f"{self.project} - {self.redcap_project_url}"
+
 
 
 class RedcapStudyIDtoPatientIDMap(models.Model):
@@ -305,7 +308,7 @@ class RedcapStudyIDtoPatientIDMap(models.Model):
     '''
     project_redcap_mapping = models.ForeignKey(ProjectRedcapMapping, null=True, blank=True, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
-    redcap_study_id = models.CharField(max_length=1024, null=True, blank=True, help_text="Mapped Study ID from REDCap")
+    redcap_study_id = secured_fields.EncryptedCharField(max_length=1024, null=True, blank=True, help_text="Mapped Study ID from REDCap")
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -332,8 +335,8 @@ class SubmissionDateFormatChoices(models.TextChoices):
 class RedcapFormToQuestionnaireMapping(models.Model):
     '''
     This table will store the linkage between a REDCap form in a REDCap project and the questionnaire in CHAVI PROM. This linkage will be specfic to the project and therefore when when  the project is modified this linkage will be revised. 
-
     Special note about mapping date of submission. In some REDCap forms there may be date or date time field that will be used for tracking the submission date. Data for this field will need to be obtained from the date_submitted field in the QuestionnaireSubmission model. A single field in the form which is a date or date time field should be allowed to be mapped to this value. The system will automatically detect the date / date time fields and check the date type field. In REDCap, the validation value is to be obtained from the JSON key in the project infromation. 
+
     '''
     project_redcap_mapping = models.ForeignKey(ProjectRedcapMapping, on_delete=models.CASCADE)
     redcap_form_name = models.CharField(max_length=1024)
@@ -413,6 +416,31 @@ class ExportStatusChoices(models.TextChoices):
     COMPLETED = 'completed', 'Completed'
     INCOMPLETE = 'incomplete', 'Incomplete'
     FAILED = 'failed', 'Failed'
+
+
+class RedcapInstanceToSubmissionMapping(models.Model):
+    '''
+    This model will store the mapping between questionnaire submission instances and the REDCap data that will be created when the data is exported to REDCap.
+    This model will grant access to several sets of information through relationships already existing in the models 
+    1. Questionnaire submission -> User -> Patient ID -> Mapped REDCap study ID
+    2. Redcap form to questionnaire mapping -> Redcap form name, redcap event type and most importantly the redcap_date_mapping field which will allow us to map the submissions to specific events in a longitudinal project automatically.
+    '''
+    questionnaire_submission = models.ForeignKey('promapp.QuestionnaireSubmission', on_delete=models.CASCADE, help_text= "Specific instance of the questionnaire submission that will be exported to the REDCap form. Note that the questionnaire submission is linked to the user which in turn links to a patient. Hence the patient is implicitly linked through this relationship.")
+    redcap_form = models.ForeignKey(RedcapFormToQuestionnaireMapping, on_delete=models.CASCADE, help_text= "Specific REDCap form that the questionnaire submission will be exported to. Note that the question to item matching is being done through the RedcapFieldToItemMapping model. Submission date mapping to specific field for noting the date of quality of life will be done using the relationship between the QuestionnaireSubmission model and the RedcapFormToQuestionnaireMapping model here.")
+    data_access_group = models.CharField(max_length=1024, null=True, blank=True, help_text= "Data access group for the questionnaire submission.")
+    redcap_patient_id = secured_fields.EncryptedCharField(max_length=1024, null=True, blank=True, help_text= "Encrypted REDCap patient ID for the questionnaire submission. Note that as this is an identifying data it is being stored as an encrypted character field.")
+    redcap_event_name = models.CharField(max_length=1024, null=True,blank=True, help_text = " Recap event name if this data will be exported into a longitudinal project with events and arms")
+    redcap_repeat_instance = models.PositiveIntegerField(null=True, blank=True, help_text = "Repeat instance if this data will be exported into a longitudinal project with events and arms")
+    redcap_repeat_event = models.PositiveIntegerField(null=True,blank=True, help_text = "ID of the REDCap repeat event it is applicable")
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "REDCap Submission Instance Mapping"
+        verbose_name_plural = "REDCap Submission Instance Mappings"
+
+    def __str__(self):
+        return f"{self.questionnaire_submission} → {self.redcap_form}"
 
 
 class RedcapDataExportLog(models.Model):

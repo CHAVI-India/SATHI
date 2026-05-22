@@ -135,8 +135,27 @@ Implemented at the `RedcapFormToQuestionnaireMapping` level (not the individual 
 
 #### Steps 6 & 7 — Patient selection and study ID mapping
 - `RedcapStudyIDtoPatientIDMap` model maps a SATHI `Patient` to a REDCap `redcap_study_id` per `ProjectRedcapMapping`.
-- `redcap_patient_ids` view shows all patients linked to the project and allows bulk saving of REDCap study IDs via a single form POST.
-- Template (`redcap_patient_ids.html`) renders an editable table with one text input per patient.
+- `redcap_patient_ids` view fetches REDCap records via PyCap using `redcap_study_id_field` (primary) and `redcap_secondary_id_field` (optional secondary), deduplicates by primary ID, and auto-matches SATHI `patient_id` against both primary and secondary REDCap IDs (case-insensitive).
+- POST handling supports two actions:
+  - `action=save` + `modal_single=1`: saves a single patient's mapping from the modal dialog (fields: `modal_patient_pk`, `modal_study_id`).
+  - `action=clear` + `patient_pk`: deletes the mapping for a single patient.
+- Context passed to template: `rows` (list of dicts with `patient`, `redcap_study_id`, `auto_matched`), `mapped_count`, `redcap_records` (list of `{primary, secondary}` dicts), `primary_field`, `secondary_field`, `redcap_fetch_error`.
+
+**UI (`redcap_patient_ids.html`):**
+- Summary stat cards: Total patients enrolled, Mapped count (server-rendered), REDCap records count.
+- Legend: Auto-matched (green), Saved (blue), Unmatched (grey).
+- Read-only table: patient name, SATHI ID, current mapped REDCap ID, status badge, actions.
+  - Auto-matched rows highlighted green; saved (manual) rows highlighted blue.
+  - **Edit / Assign** button per row opens a modal dialog for that patient.
+  - **Clear** button (with confirmation) posts `action=clear` for mapped rows only.
+- **Modal dialog** (single patient at a time):
+  - Header shows patient name; read-only patient info block shows name + SATHI ID.
+  - Search input (`#modal-search`) filters the listbox in real-time.
+  - Scrollable div-based listbox (`#modal-listbox`, `max-height: 160px`) — no native `<select>` dropdown popup, no z-index/positioning issues.
+  - Hidden input (`#modal-hidden-val`) carries the selected value on submit.
+  - Falls back to a plain text input when `redcap_fetch_error` is set.
+  - Closes on Cancel, backdrop click, or Escape key.
+- Mapped count displayed as `X / Y patients mapped` below the table (server-rendered, no JS dependency).
 
 #### Steps 9–11 — Export (initial implementation)
 - `redcap_export` view and `redcap_export.html` template: UI to select form mappings and trigger export.
@@ -175,11 +194,3 @@ Implemented at the `RedcapFormToQuestionnaireMapping` level (not the individual 
 - The original plan (step 6) calls for patient-level export selection.
 - Currently `_collect_export_rows` exports all patients with a study ID at once.
 - A patient-selector UI (similar to the patient list page, with Select2 or checkboxes) should be added to `redcap_export.html`.
-
-#### Export — submission date column population
-- In `_collect_export_rows`, when `fm.submission_date_field` is set, write `sub.submission_date` formatted according to `fm.submission_date_format` into `row[fm.submission_date_field]`.
-- Format mapping: `date_ymd` → `%Y-%m-%d`, `datetime_ymd` → `%Y-%m-%d %H:%M`, `datetime_seconds_ymd` → `%Y-%m-%d %H:%M:%S`.
-
-#### Cleanup — remove legacy submission date fields from `RedcapFieldToItemMapping`
-- Create and apply a migration to drop `submission_date_field` and `submission_date_format` from `RedcapFieldToItemMapping`.
-- Remove the `is_submission_date_field` logic from `RedcapFieldToItemMappingForm` (this is now handled at the form-mapping level).
