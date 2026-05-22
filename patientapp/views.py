@@ -2870,8 +2870,9 @@ def redcap_project_dashboard(request, pk):
     mappings = list(mappings)
     for m in mappings:
         patient_ids = set(
-            RedcapStudyIDtoPatientIDMap.objects.filter(project_redcap_mapping=m)
-            .exclude(redcap_study_id='').values_list('patient_id', flat=True)
+            row.patient_id
+            for row in RedcapStudyIDtoPatientIDMap.objects.filter(project_redcap_mapping=m)
+            if row.redcap_study_id  # filter in Python — EncryptedCharField can't do SQL lookups
         )
         fms = RedcapFormToQuestionnaireMapping.objects.filter(project_redcap_mapping=m)
         fm_stats = []
