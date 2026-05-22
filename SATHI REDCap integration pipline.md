@@ -174,21 +174,65 @@ Implemented at the `RedcapFormToQuestionnaireMapping` level (not the individual 
 - `submission_date_field` and `submission_date_format` removed from `RedcapFieldToItemMapping` model (migration `0022`).
 - `is_submission_date_field` extra field, `clean()` logic, and `save()` override removed from `RedcapFieldToItemMappingForm`.
 
+#### Step 5 / Step 8 — `RedcapInstanceToSubmissionMapping` model ✅
+- Model `RedcapInstanceToSubmissionMapping` created and migrated.
+- **Fields:**
+  - `questionnaire_submission` FK → `promapp.QuestionnaireSubmission` (CASCADE): the specific SATHI submission. Links to user → patient, so patient is implicit via this chain.
+  - `redcap_form` FK → `RedcapFormToQuestionnaireMapping` (CASCADE): provides `redcap_form_name`, event flags, and `redcap_date_mapping_field`.
+  - `data_access_group` CharField (nullable): DAG for the submission.
+  - `redcap_patient_id` `EncryptedCharField` (nullable): resolved REDCap study ID, stored encrypted.
+  - `redcap_event_name` CharField (nullable): specific REDCap event this submission maps to.
+  - `redcap_repeat_instance` PositiveIntegerField (nullable): repeat instance number.
+  - `redcap_repeat_event` PositiveIntegerField (nullable): repeating event ID if applicable.
+  - `created_at` / `modified_at` auto timestamps.
+
+#### Security changes to existing models
+- `RedcapStudyIDtoPatientIDMap.redcap_study_id` changed to `secured_fields.EncryptedCharField` — decrypts transparently in Python; no view/form changes needed as it is never used in an ORM filter lookup.
+- `RedcapInstanceToSubmissionMapping.redcap_patient_id` stored as `EncryptedCharField` from the start.
+- `redcap_project_info` remains a plain `models.JSONField` (encryption attempt reverted due to migration complexity with existing data).
+
+---
+
+#### Step 5 / Step 8 — Matching UI and algorithm ✅
+
+**URL**: `projects/<pk>/redcap/<mapping_pk>/patient-ids/<patient_pk>/match/` → `redcap_match_submissions`
+
+**Entry point**: Patient IDs page — mapped rows now show **Edit | Match | Clear**. "Match" is only shown when a study ID is already assigned.
+
+**View logic (`redcap_match_submissions`):**
+- Guards: patient must be enrolled in project and have a study ID mapped; redirects with error message otherwise.
+- Builds `_metadata_field_to_form` lookup from `redcap_project_info['metadata']` — resolves which REDCap form actually owns `redcap_date_mapping_field` (it may differ from the questionnaire form).
+- For each `RedcapFormToQuestionnaireMapping` under this project, skips forms with no submissions for this patient.
+- **Two PyCap calls per form mapping:**
+  1. Fetch questionnaire form (`fm.redcap_form_name`) records for this patient → build `event_to_instances = {event_name: [instance_ints]}` (all existing instances across all events).
+  2. Fetch date-field form (`date_field_form_name`) records for this patient → build `event_to_date = {event_name: date_str}` (one date per event).
+  3. Combine → `rc_instances` list of `{event, instance, date_str}`.
+- **Two-pass suggestion for unconfirmed rows (submissions ordered by date ascending):**
+  - Pass 1: for each submission, find the event whose date is closest to `submission_date` (absolute delta in seconds); default to `fm.redcap_event_name` or first available event if no date data.
+  - Pass 2: within each event, auto-increment instance counter (earliest submission for that event = 1, next = 2, etc.).
+- Existing `RedcapInstanceToSubmissionMapping` rows loaded as "Saved" and pre-populate event/instance; these are still editable.
+- **Available events** for dropdown built from `redcap_project_info['events']` (preferred, authoritative order); fallback to events seen in `rc_instances`, then `fm.redcap_event_name`.
+- POST: `get_or_create` + `save` per (submission, form_mapping) pair — idempotent, supports re-editing.
+
+**Template (`redcap_match_submissions.html`):**
+- One card per form mapping showing questionnaire name, REDCap form, event, repeating flags, and date field.
+- Table columns: Submission date | Event name (dropdown) | Repeat instance (number input) | Status.
+- Event column: `<select>` populated from `available_events` — prevents typos, constrained to valid event names.
+- Instance column: editable number input, auto-filled by server-side suggestion; user can override.
+- Status badge: "✓ Saved" (green) for previously confirmed rows, "⚡ Suggested" (amber) for new auto-suggestions.
+- Collapsible reference table showing all available REDCap instances with their event name and date field value — column header shows `field_name (form_name)` resolved from metadata.
+- **JS (`recalcInstances`)**: on any event dropdown change, recalculates all instance numbers for that form card sequentially in DOM order (= submission date order), grouped by event name. Applies to all rows including previously saved ones.
+
 ---
 
 ### ⏳ Pending / Next Steps
 
-#### Step 5 / Step 8 — Date-based submission-to-REDCap instance matching
-- **Purpose**: for repeating forms/events, determine which REDCap repeating instance corresponds to each SATHI questionnaire submission, based on the closest date match between the SATHI `submission_date` and the REDCap `redcap_date_mapping_field` value.
-- **Model needed**: a new model (e.g. `RedcapSubmissionInstanceMap`) to persist which submission maps to which `(redcap_event_name, redcap_repeat_instance)` pair, so the mapping is not recomputed on every export.
-- **Algorithm**: fetch existing REDCap records via PyCap for the relevant form; compute absolute time difference between each record's date field value and the submission date; present top matches to the user sorted by closeness.
-- **UI**: per-patient, per-questionnaire matching review screen where the user can confirm or override the automatically suggested instance.
-- **Non-repeating forms**: sequential assignment (first submission → first non-repeating form variant, etc.) as a simpler fallback.
-- This step is **prerequisite** for `redcap_repeat_instance` being correctly populated in the CSV/API export.
-
 #### Export — `redcap_repeat_instance` population
 - Currently `redcap_repeat_instance` is written as an empty string in `_collect_export_rows`.
-- Once Step 5/8 matching is implemented, this should be filled from `RedcapSubmissionInstanceMap`.
+- Now that `RedcapInstanceToSubmissionMapping` is populated, this should be filled by looking up `(questionnaire_submission, redcap_form_to_questionnaire_mapping)` and reading `redcap_repeat_instance` and `redcap_event_name`.
+
+#### Export — `redcap_event_name` population
+- Similarly, `redcap_event_name` in the export row should come from `RedcapInstanceToSubmissionMapping` rather than `fm.redcap_event_name` directly, since different submissions may map to different events.
 
 #### Export — per-patient export workflow
 - The original plan (step 6) calls for patient-level export selection.

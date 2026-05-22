@@ -111,6 +111,10 @@
                   {% if row.redcap_study_id %}{% trans "Edit" %}{% else %}{% trans "Assign" %}{% endif %}
                 </button>
                 {% if row.redcap_study_id %}
+                <a href="{% url 'redcap_match_submissions' pk=project.pk mapping_pk=mapping.pk patient_pk=row.patient.pk %}"
+                   class="text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:underline">
+                  {% trans "Match" %}
+                </a>
                 <form method="post" class="inline" onsubmit="return confirm('{% trans "Clear this mapping?" %}')">
                   {% csrf_token %}
                   <input type="hidden" name="action" value="clear">

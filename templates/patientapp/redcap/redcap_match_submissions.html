@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% trans "Match Submissions" %} — {{ patient.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+  {# ── Header ── #}
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-blue-700">{% trans "Match Submissions → REDCap Instances" %}</h1>
+      <p class="text-gray-500 mt-1">
+        {{ patient.name }}
+        <span class="font-mono text-xs text-gray-400 ml-2">{{ patient.patient_id }}</span>
+        <span class="ml-3 text-xs text-gray-400">{% trans "REDCap ID:" %} <span class="font-mono text-gray-600">{{ redcap_study_id }}</span></span>
+      </p>
+    </div>
+    <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}" variant="secondary" size="sm">
+      ← {% trans "Back" %}
+    </c-link_button>
+  </div>
+
+  {# ── Flash messages ── #}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-4 px-4 py-3 rounded border {% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if not fm_data %}
+    <c-card shadow="sm" padding="md">
+      <p class="text-gray-500 text-center py-8">{% trans "No questionnaire submissions found for any mapped form for this patient." %}</p>
+    </c-card>
+  {% else %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    {% for entry in fm_data %}
+    {% with fm=entry.fm sub_rows=entry.sub_rows rc_instances=entry.rc_instances fetch_error=entry.fetch_error date_field_form_name=entry.date_field_form_name available_events=entry.available_events %}
+    <c-card shadow="md" padding="sm" class="mb-6">
+
+      {# Form mapping header #}
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+        <div>
+          <h2 class="text-base font-semibold text-gray-900">{{ fm.questionnaire.name }}</h2>
+          <p class="text-xs text-gray-500 mt-0.5">
+            {% trans "REDCap form:" %} <span class="font-mono">{{ fm.redcap_form_name }}</span>
+            {% if fm.redcap_event_name %}
+              · {% trans "Event:" %} <span class="font-mono">{{ fm.redcap_event_name }}</span>
+            {% endif %}
+            {% if fm.redcap_form_is_repeating %}
+              · <span class="text-blue-600">{% trans "Repeating form" %}</span>
+            {% endif %}
+            {% if fm.redcap_event_is_repeating %}
+              · <span class="text-purple-600">{% trans "Repeating event" %}</span>
+            {% endif %}
+            {% if fm.redcap_date_mapping_field %}
+              · {% trans "Date field:" %} <span class="font-mono">{{ fm.redcap_date_mapping_field }}</span>
+            {% endif %}
+          </p>
+        </div>
+        <span class="text-xs text-gray-400">{{ sub_rows|length }} {% trans "submission(s)" %}</span>
+      </div>
+
+      {# Fetch error warning #}
+      {% if fetch_error %}
+      <div class="mb-3 px-3 py-2 rounded bg-amber-50 border border-amber-300 text-amber-800 text-xs">
+        <strong>{% trans "Could not fetch REDCap instances:" %}</strong> {{ fetch_error }}
+        <br>{% trans "Auto-suggestions unavailable. You may enter instance numbers manually or use sequential assignment." %}
+      </div>
+      {% endif %}
+
+      {# No date field notice #}
+      {% if not fm.redcap_date_mapping_field and not fetch_error %}
+      <div class="mb-3 px-3 py-2 rounded bg-blue-50 border border-blue-200 text-blue-700 text-xs">
+        {% trans "No date mapping field configured for this form. Sequential assignment is used as the default suggestion." %}
+      </div>
+      {% endif %}
+
+      {# Submissions table #}
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Submission date" %}</th>
+              {% if fm.redcap_form_is_in_event %}
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Event name" %}</th>
+              {% endif %}
+              {% if fm.redcap_form_is_repeating or fm.redcap_event_is_repeating %}
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Repeat instance" %}</th>
+              {% endif %}
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Status" %}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for row in sub_rows %}
+            <tr class="hover:bg-gray-50">
+
+              {# Submission date #}
+              <td class="px-4 py-3 whitespace-nowrap text-gray-700">
+                {{ row.submission.submission_date|date:"Y-m-d H:i" }}
+              </td>
+
+              {# Event name dropdown — only for longitudinal projects #}
+              {% if fm.redcap_form_is_in_event %}
+              <td class="px-4 py-3">
+                <select name="event_{{ fm.pk }}_{{ row.submission.pk }}"
+                  data-fm="{{ fm.pk }}"
+                  data-confirmed="{% if row.confirmed %}1{% else %}0{% endif %}"
+                  class="rc-event-select w-full px-2 py-1.5 border border-gray-300 rounded text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                  {% for ev in available_events %}
+                    <option value="{{ ev }}" {% if ev == row.suggested_event %}selected{% endif %}>{{ ev }}</option>
+                  {% empty %}
+                    <option value="{{ row.suggested_event }}">{{ row.suggested_event }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+              {% endif %}
+
+              {# Repeat instance input #}
+              {% if fm.redcap_form_is_repeating or fm.redcap_event_is_repeating %}
+              <td class="px-4 py-3">
+                <input type="number" min="1"
+                  name="instance_{{ fm.pk }}_{{ row.submission.pk }}"
+                  data-fm="{{ fm.pk }}"
+                  data-confirmed="{% if row.confirmed %}1{% else %}0{% endif %}"
+                  value="{{ row.suggested_instance|default:'' }}"
+                  class="rc-instance-input w-24 px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="1">
+              </td>
+              {% endif %}
+
+              {# Hidden inputs for non-repeating forms so POST still captures them #}
+              {% if not fm.redcap_form_is_in_event %}
+                <input type="hidden" name="event_{{ fm.pk }}_{{ row.submission.pk }}" value="{{ row.suggested_event }}">
+              {% endif %}
+              {% if not fm.redcap_form_is_repeating and not fm.redcap_event_is_repeating %}
+                <input type="hidden" name="instance_{{ fm.pk }}_{{ row.submission.pk }}" value="">
+              {% endif %}
+
+              {# Status badge #}
+              <td class="px-4 py-3 whitespace-nowrap">
+                {% if row.confirmed %}
+                  <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ {% trans "Saved" %}</span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">⚡ {% trans "Suggested" %}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {# Available REDCap instances reference (collapsible) #}
+      {% if rc_instances %}
+      <details class="mt-3">
+        <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-700">{% trans "Available REDCap instances for reference" %} ({{ rc_instances|length }})</summary>
+        <div class="mt-2 overflow-x-auto">
+          <p class="text-xs text-gray-400 mb-1">
+            {% trans "Date field:" %} <span class="font-mono text-gray-600">{{ fm.redcap_date_mapping_field }}</span>
+            · {% trans "from form:" %} <span class="font-mono text-gray-600">{{ date_field_form_name }}</span>
+          </p>
+          <table class="min-w-full text-xs border border-gray-200 rounded">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-3 py-1.5 text-left font-medium text-gray-500">{% trans "Instance" %}</th>
+                <th class="px-3 py-1.5 text-left font-medium text-gray-500">{% trans "Event" %}</th>
+                <th class="px-3 py-1.5 text-left font-medium text-gray-500"><span class="font-mono">{{ fm.redcap_date_mapping_field }}</span> <span class="text-gray-400">({{ date_field_form_name }})</span></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              {% for inst in rc_instances %}
+              <tr class="hover:bg-gray-50">
+                <td class="px-3 py-1.5 font-mono">{{ inst.instance|default:"—" }}</td>
+                <td class="px-3 py-1.5 font-mono">{{ inst.event|default:"—" }}</td>
+                <td class="px-3 py-1.5">{{ inst.date_str|default:"—" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </details>
+      {% endif %}
+
+    </c-card>
+    {% endwith %}
+    {% endfor %}
+
+    <div class="flex justify-end gap-3 mt-2">
+      <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}" variant="secondary">
+        {% trans "Cancel" %}
+      </c-link_button>
+      <c-button type="submit" variant="primary">{% trans "Save Matches" %}</c-button>
+    </div>
+
+  </form>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  function recalcInstances(fmPk) {
+    const selects = Array.from(
+      document.querySelectorAll(`.rc-event-select[data-fm="${fmPk}"]`)
+    );
+    const inputs = Array.from(
+      document.querySelectorAll(`.rc-instance-input[data-fm="${fmPk}"]`)
+    );
+    if (!inputs.length) return;
+
+    const eventCounters = {};
+    selects.forEach((sel, i) => {
+      const input = inputs[i];
+      if (!input) return;
+      const ev = sel.value;
+      eventCounters[ev] = (eventCounters[ev] || 0) + 1;
+      input.value = eventCounters[ev];
+    });
+  }
+
+  document.querySelectorAll('.rc-event-select').forEach(sel => {
+    sel.addEventListener('change', () => recalcInstances(sel.dataset.fm));
+  });
+})();
+</script>
+{% endblock %}

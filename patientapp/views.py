@@ -17,6 +17,7 @@ from .models import (
     ProjectRedcapMapping, RedcapFormToQuestionnaireMapping,
     RedcapFieldToItemMapping, RedcapStudyIDtoPatientIDMap,
     RedcapDataExportLog, ExportTypeChoices, ExportStatusChoices,
+    RedcapInstanceToSubmissionMapping,
 )
 from .forms import (
     PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm,
@@ -3427,6 +3428,237 @@ def redcap_patient_ids(request, pk, mapping_pk):
         'primary_field': primary_field,
         'secondary_field': secondary_field,
         'redcap_fetch_error': redcap_fetch_error,
+    })
+
+
+@login_required
+def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
+    """Per-patient submission → REDCap instance matching review and save."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+    patient = get_object_or_404(Patient, pk=patient_pk)
+
+    # Patient must be enrolled in this project
+    if not PatientProject.objects.filter(project=project, patient=patient).exists():
+        messages.error(request, _('Patient is not enrolled in this project.'))
+        return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+
+    # Patient must have a study ID mapped
+    study_id_map = RedcapStudyIDtoPatientIDMap.objects.filter(
+        project_redcap_mapping=mapping, patient=patient
+    ).first()
+    if not study_id_map or not study_id_map.redcap_study_id:
+        messages.error(request, _('Please assign a REDCap study ID to this patient before matching submissions.'))
+        return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+
+    redcap_study_id = study_id_map.redcap_study_id
+
+    from promapp.models import QuestionnaireSubmission
+
+    form_mappings = RedcapFormToQuestionnaireMapping.objects.filter(
+        project_redcap_mapping=mapping
+    )
+
+    # Build per-form-mapping data: submissions + REDCap instances + existing matches
+    fm_data = []
+    fetch_errors = {}
+
+    # Build a lookup: field_name -> form_name from REDCap metadata
+    _metadata_field_to_form = {}
+    if mapping.redcap_project_info:
+        for _f in mapping.redcap_project_info.get('metadata', []):
+            _fname = _f.get('field_name', '')
+            _fform = _f.get('form_name', '')
+            if _fname:
+                _metadata_field_to_form[_fname] = _fform
+
+    for fm in form_mappings:
+        submissions = list(
+            QuestionnaireSubmission.objects.filter(
+                patient=patient,
+                patient_questionnaire__questionnaire=fm.questionnaire,
+            ).order_by('submission_date')
+        )
+        if not submissions:
+            continue
+
+        # Load existing confirmed matches for this patient + form mapping
+        existing_matches = {
+            m.questionnaire_submission_id: m
+            for m in RedcapInstanceToSubmissionMapping.objects.filter(
+                questionnaire_submission__in=submissions,
+                redcap_form=fm,
+            )
+        }
+
+        # Resolve which form actually owns the date mapping field from metadata
+        date_field_form_name = _metadata_field_to_form.get(fm.redcap_date_mapping_field or '', '') or fm.redcap_form_name
+
+        # Fetch REDCap instances for this patient — two separate calls:
+        #   1. Questionnaire form records → all (event, repeat_instance) pairs
+        #   2. Date field form records → (event, date_value) per event
+        # Then: match submission → closest date → event → instance from call 1.
+        rc_instances = []   # final list: {event, instance, date_str}
+        fetch_error = None
+        if fm.redcap_date_mapping_field:
+            try:
+                import redcap as pycap
+                primary_field = mapping.redcap_study_id_field or 'record_id'
+                rc = pycap.Project(mapping.redcap_project_url, mapping.redcap_project_token)
+
+                # --- Call 1: all instances of the questionnaire form ---
+                q_kwargs = {
+                    'records': [redcap_study_id],
+                    'fields': [primary_field],
+                    'forms': [fm.redcap_form_name],
+                }
+                q_raw = rc.export_records(**q_kwargs)
+                # Build: event_name -> list of repeat_instance numbers
+                event_to_instances = {}
+                for rec in q_raw:
+                    ev = rec.get('redcap_event_name', '')
+                    inst = rec.get('redcap_repeat_instance', '')
+                    inst_int = int(inst) if str(inst).isdigit() else None
+                    event_to_instances.setdefault(ev, []).append(inst_int)
+
+                # --- Call 2: date field form records across all events ---
+                d_kwargs = {
+                    'records': [redcap_study_id],
+                    'fields': [primary_field, fm.redcap_date_mapping_field],
+                    'forms': [date_field_form_name],
+                }
+                d_raw = rc.export_records(**d_kwargs)
+                # Build: event_name -> date_str (one date per event)
+                event_to_date = {}
+                for rec in d_raw:
+                    ev = rec.get('redcap_event_name', '')
+                    date_str = rec.get(fm.redcap_date_mapping_field, '').strip()
+                    if date_str:
+                        event_to_date[ev] = date_str
+
+                # --- Combine: one entry per (event, instance) with its date ---
+                for ev, instances in event_to_instances.items():
+                    date_str = event_to_date.get(ev, '')
+                    for inst in instances:
+                        rc_instances.append({
+                            'event': ev,
+                            'instance': inst,
+                            'date_str': date_str,
+                        })
+
+            except Exception as e:
+                fetch_error = str(e)
+                fetch_errors[fm.pk] = fetch_error
+
+        # Build ordered list of unique event names for the dropdown.
+        # Prefer order from project_info events; fall back to rc_instances order.
+        from django.utils.dateparse import parse_datetime, parse_date
+        _pi_events = (mapping.redcap_project_info or {}).get('events', [])
+        if _pi_events:
+            available_events = [e.get('unique_event_name', '') for e in _pi_events if e.get('unique_event_name')]
+        else:
+            seen_evs = []
+            for _r in rc_instances:
+                if _r['event'] and _r['event'] not in seen_evs:
+                    seen_evs.append(_r['event'])
+            available_events = seen_evs or ([fm.redcap_event_name] if fm.redcap_event_name else [])
+
+        # Build per-submission suggestion rows.
+        # Two-pass approach for auto-increment:
+        #   Pass 1 — assign best event to each unconfirmed submission
+        #   Pass 2 — within each event, number instances sequentially by submission_date
+        sub_rows = []
+        for sub in submissions:
+            existing = existing_matches.get(sub.pk)
+            confirmed = existing is not None
+            if existing:
+                sub_rows.append({
+                    'submission': sub,
+                    'suggested_event': existing.redcap_event_name or '',
+                    'suggested_instance': existing.redcap_repeat_instance,
+                    'confirmed': True,
+                    'existing': existing,
+                })
+            else:
+                # Date-proximity: find the event whose date is closest to submission_date
+                best_event = fm.redcap_event_name or (available_events[0] if available_events else '')
+                if rc_instances and fm.redcap_date_mapping_field:
+                    best_delta = None
+                    for inst in rc_instances:
+                        if not inst['date_str']:
+                            continue
+                        try:
+                            rc_dt = parse_datetime(inst['date_str']) or parse_date(inst['date_str'])
+                            if rc_dt:
+                                if hasattr(rc_dt, 'date'):
+                                    delta = abs((sub.submission_date.replace(tzinfo=None) - rc_dt.replace(tzinfo=None)).total_seconds())
+                                else:
+                                    delta = abs((sub.submission_date.date() - rc_dt).days * 86400)
+                                if best_delta is None or delta < best_delta:
+                                    best_delta = delta
+                                    best_event = inst['event']
+                        except Exception:
+                            continue
+                sub_rows.append({
+                    'submission': sub,
+                    'suggested_event': best_event,
+                    'suggested_instance': None,  # filled in pass 2
+                    'confirmed': False,
+                    'existing': None,
+                })
+
+        # Pass 2 — auto-increment instance numbers per event for unconfirmed rows,
+        # ordering within each event by submission_date (already sorted ascending).
+        if fm.redcap_form_is_repeating or fm.redcap_event_is_repeating:
+            event_counter = {}
+            for row in sub_rows:
+                if not row['confirmed'] and row['suggested_instance'] is None:
+                    ev = row['suggested_event']
+                    event_counter[ev] = event_counter.get(ev, 0) + 1
+                    row['suggested_instance'] = event_counter[ev]
+
+        fm_data.append({
+            'fm': fm,
+            'sub_rows': sub_rows,
+            'rc_instances': rc_instances,
+            'fetch_error': fetch_error,
+            'date_field_form_name': date_field_form_name,
+            'available_events': available_events,
+        })
+
+    if request.method == 'POST':
+        for fm_entry in fm_data:
+            fm = fm_entry['fm']
+            for row in fm_entry['sub_rows']:
+                sub = row['submission']
+                key_event = f'event_{fm.pk}_{sub.pk}'
+                key_instance = f'instance_{fm.pk}_{sub.pk}'
+                event_val = request.POST.get(key_event, '').strip()
+                instance_val = request.POST.get(key_instance, '').strip()
+                instance_int = int(instance_val) if instance_val.isdigit() else None
+
+                obj, _created = RedcapInstanceToSubmissionMapping.objects.get_or_create(
+                    questionnaire_submission=sub,
+                    redcap_form=fm,
+                )
+                obj.redcap_patient_id = redcap_study_id
+                obj.redcap_event_name = event_val or None
+                obj.redcap_repeat_instance = instance_int
+                obj.data_access_group = mapping.redcap_data_access_group_used and '' or None
+                obj.save()
+
+        messages.success(request, _('Submission matches saved.'))
+        return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+
+    return render(request, 'patientapp/redcap/redcap_match_submissions.html', {
+        'project': project,
+        'mapping': mapping,
+        'patient': patient,
+        'redcap_study_id': redcap_study_id,
+        'fm_data': fm_data,
     })
 
 
