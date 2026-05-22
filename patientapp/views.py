@@ -3330,6 +3330,10 @@ def redcap_patient_ids(request, pk, mapping_pk):
             messages.success(request, _('Patient ID mapping saved.'))
         return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
 
+    # Field names used for display in the template
+    primary_field = mapping.redcap_study_id_field or 'record_id'
+    secondary_field = mapping.redcap_secondary_id_field or ''
+
     # Fetch REDCap records to populate dropdown choices
     redcap_records = []
     redcap_fetch_error = None

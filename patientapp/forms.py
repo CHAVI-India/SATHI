@@ -343,6 +343,14 @@ class RedcapFormToQuestionnaireMappingForm(forms.ModelForm):
             choices=[('', _('--- None ---'))] + redcap_field_choices[1:],
             required=False,
             label=_('Date Mapping Field in REDCap'),
+            help_text=_(
+                'Optional. Only relevant when the form is part of an event, a repeating form, or a repeating event. '
+                'When set, the system uses this field\'s existing date value in REDCap to automatically suggest which '
+                'questionnaire submission corresponds to which event or instance. '
+                'For example, if a visit form records the visit date and your quality-of-life form is in the same event, '
+                'assigning the visit date field here lets the system match submissions by date proximity. '
+                'This field may belong to a different REDCap form — the system resolves the correct form from metadata.'
+            ),
             widget=forms.Select(attrs={'class': SELECT_CLASS}),
         )
 

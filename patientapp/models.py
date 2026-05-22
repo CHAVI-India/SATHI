@@ -344,7 +344,7 @@ class RedcapFormToQuestionnaireMapping(models.Model):
     redcap_form_is_repeating = models.BooleanField(default=False, help_text="This defines if the REDCap form is a repeating form. Repeating form data has to be handled differently from non-repeating forms.")
     redcap_form_is_in_event = models.BooleanField(default=False, help_text="This defines if the REDCap form is a part of an event in a longitudinal project. For these forms the event name needs to be a part of the export file.")
     redcap_event_is_repeating = models.BooleanField(default=False, help_text="This defines if the REDCap event is repeating. If there is a repeating event then all forms in the event will also repeat.")
-    redcap_date_mapping_field = models.CharField(max_length=1024, blank=True, null=True, help_text="This is the field in the REDCap form that will be used to map the date to the questionnaire. Note that this field may exist in another form where the visit date is recorded.")
+    redcap_date_mapping_field = models.CharField(max_length=1024, blank=True, null=True, help_text="As the quality of life data will be imported into REDCap, the system will not know which dates should be matched with which event if the form is repeating form or a part of a event or both. In such a situation, we allow the use of a secondary field whose data is already present in the REDCap database to automatically map the questionnaire submission date. For example, if the patient has an event with two forms - one for quality of life and one for a general visit, and the date of the visit is recorded while the quality of life data is to be imported from this application, then assigning this date field in the visit form will allow the system to automatically suggest which submission will map to a specific event. Note that this field is optional and has been provided to reduce the manual data matching required. This is the field in the REDCap form that will be used to map the date to the questionnaire. Note that this field may exist in another form where the visit date is recorded.")
     questionnaire = models.ForeignKey('promapp.Questionnaire', on_delete=models.CASCADE, help_text="Link to the Questionnaire in the CHAVI PROM application.")
     submission_date_field = models.CharField(max_length=255, null=True, blank = True)
     submission_date_format = models.CharField(max_length = 1024, null=True,blank=True, choices=SubmissionDateFormatChoices.choices, help_text="This is the type of date format that will be used to store the submission date in REDCap. The questionnaire submission date will have to be stored in this specific format for the export to work.")    
@@ -361,9 +361,17 @@ class RedcapFormToQuestionnaireMapping(models.Model):
                 violation_error_message="Event cannot be repeating if form is not in an event."
             ),
             CheckConstraint(
-                condition=Q(redcap_form_is_in_event=False) | Q(redcap_date_mapping_field__isnull=False, redcap_date_mapping_field__gt=''),
-                name='%(app_label)s_%(class)s_date_mapping_required_for_events',
-                violation_error_message="Date mapping field is required when form is in an event."
+                condition=(
+                    Q(redcap_date_mapping_field__isnull=True) | Q(redcap_date_mapping_field='') |
+                    Q(redcap_form_is_in_event=True) |
+                    Q(redcap_form_is_repeating=True) |
+                    Q(redcap_event_is_repeating=True)
+                ),
+                name='%(app_label)s_%(class)s_date_mapping_only_for_repeating_or_event',
+                violation_error_message=(
+                    "A date mapping field can only be set when the form is part of an event, "
+                    "is a repeating form, or the event is repeating."
+                ),
             ),
             models.UniqueConstraint(
                 fields=['project_redcap_mapping', 'redcap_form_name', 'questionnaire'],

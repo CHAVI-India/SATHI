@@ -245,6 +245,8 @@ All PyCap calls have been extracted from `views.py` into `patientapp/redcap_util
 - `redcap_match_submissions` → `fetch_form_instances` + `fetch_field_values_for_record`
 - `_run_api_export` → `import_records`
 
+**Bug fix post-refactor:** `redcap_patient_ids` passed `primary_field` and `secondary_field` to the template context. These variables had been defined inside the old inline PyCap block and were silently removed during extraction. Fixed by restoring them directly from `mapping.redcap_study_id_field` and `mapping.redcap_secondary_id_field` before the fetch call.
+
 ---
 
 ### ⏳ Pending / Next Steps
@@ -260,3 +262,24 @@ All PyCap calls have been extracted from `views.py` into `patientapp/redcap_util
 - The original plan (step 6) calls for patient-level export selection.
 - Currently `_collect_export_rows` exports all patients with a study ID at once.
 - A patient-selector UI (similar to the patient list page, with Select2 or checkboxes) should be added to `redcap_export.html`.
+
+---
+
+## 🔧 Corrections & Bug Fixes
+
+#### `redcap_date_mapping_field` — constraint, UX, and help text ✅
+**Issue:** The original `CheckConstraint` enforced that `redcap_date_mapping_field` was *required* when `redcap_form_is_in_event=True`. This was too strict — the field is optional and its purpose was not clearly communicated to users. The constraint was removed, but no replacement guidance was in place.
+
+**Fixes applied:**
+- **`models.py`**: Replaced the "required when in event" constraint with a softer "only allowed when relevant" constraint:
+  - `redcap_date_mapping_field` may only be non-empty when at least one of `redcap_form_is_in_event`, `redcap_form_is_repeating`, or `redcap_event_is_repeating` is `True`.
+  - Migration applied.
+  - Updated `help_text` to clearly explain the purpose of the field.
+- **`forms.py`**: Updated `redcap_date_mapping_field` `help_text` to match — explains the visit-date proximity matching purpose, that the field is optional, and that it may belong to a different REDCap form.
+- **`redcap_form_mapping_form.html`**: Wrapped the field in a container (`#date_mapping_field_section`) that is hidden by default. Shown via JS only when `applyMeta` detects any of the three flags is `True`. In edit mode, visibility is restored from saved Django model flags. A blue info box explains the purpose in plain language.
+- **`wizard/step3_form_mapping.html`**: Same treatment for both the "Add" (`#add_date_mapping_section`) and "Edit" (`#edit_date_mapping_section`) panels. `toggleDateSection(prefix, show)` helper added to the shared `applyMeta` JS function.
+
+#### PyCap refactor — missing `primary_field` / `secondary_field` variables ✅
+**Issue:** After extracting inline PyCap calls into `redcap_utils.py`, `primary_field` and `secondary_field` local variables (previously defined inside the old fetch block) were silently removed from `redcap_patient_ids`. These were still passed in the template context, causing a `NameError`.
+
+**Fix:** Restored both variables directly from `mapping.redcap_study_id_field` and `mapping.redcap_secondary_id_field` before the `fetch_patient_id_records` call.
