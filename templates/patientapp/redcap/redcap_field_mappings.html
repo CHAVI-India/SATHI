@@ -276,43 +276,40 @@
               <p class="text-xs text-amber-700 mt-0.5">{% trans "editing…" %}</p>
             </td>
             <td class="px-4 py-3 align-middle" colspan="2">
-              <form method="post" class="space-y-2">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="edit_mapping">
-                <input type="hidden" name="field_map_pk" value="{{ fm_field.pk }}">
-                <div class="flex flex-wrap items-center gap-2">
-                  <select name="new_questionnaire_item"
-                    class="flex-1 min-w-48 px-2 py-1.5 text-sm border border-amber-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-400">
-                    {% for qi in qi_list %}
-                    <option value="{{ qi.pk }}"
-                      {% if qi.pk == fm_field.questionnaire_item.pk|stringformat:'s' %}selected{% endif %}>
-                      Q{{ qi.number }}: {{ qi.name }}
-                    </option>
-                    {% endfor %}
-                  </select>
-                  <select name="response_transform"
-                    class="w-44 shrink-0 px-2 py-1.5 text-xs border border-amber-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                    title="{% trans 'Response transform' %}">
-                    {% for val, label in transform_choices %}
-                    <option value="{{ val }}"
-                      {% if val == row.response_transform %}selected
-                      {% elif row.response_transform == 'none' and val == row.suggested_transform %}selected
-                      {% endif %}>
-                      {{ label }}{% if val == row.suggested_transform %} ✦{% endif %}
-                    </option>
-                    {% endfor %}
-                  </select>
-                  <button type="submit"
-                    class="shrink-0 px-3 py-1.5 text-xs bg-amber-600 text-white rounded-md hover:bg-amber-700 font-medium">
-                    {% trans "Save" %}
-                  </button>
-                  <button type="button"
-                    onclick="toggleEditRow('{{ fm_field.pk }}')"
-                    class="shrink-0 px-3 py-1.5 text-xs border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50">
-                    {% trans "Cancel" %}
-                  </button>
-                </div>
-              </form>
+              <div class="w-full flex gap-2 mb-2">
+                <select name="new_questionnaire_item" form="edit_form_{{ fm_field.pk }}"
+                  class="flex-1 min-w-0 px-2 py-1.5 text-sm border border-amber-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                  {% for qi in qi_list %}
+                  <option value="{{ qi.pk }}"
+                    {% if qi.pk == fm_field.questionnaire_item.pk|stringformat:'s' %}selected{% endif %}>
+                    Q{{ qi.number }}: {{ qi.name }}
+                  </option>
+                  {% endfor %}
+                </select>
+                <select name="response_transform" form="edit_form_{{ fm_field.pk }}"
+                  class="w-44 shrink-0 px-2 py-1.5 text-xs border border-amber-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  title="{% trans 'Response transform' %}">
+                  {% for val, label in transform_choices %}
+                  <option value="{{ val }}"
+                    {% if val == row.response_transform %}selected
+                    {% elif row.response_transform == 'none' and val == row.suggested_transform %}selected
+                    {% endif %}>
+                    {{ label }}{% if val == row.suggested_transform %} ✦{% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="w-full flex gap-2">
+                <button type="submit" form="edit_form_{{ fm_field.pk }}"
+                  class="px-4 py-1.5 text-xs bg-amber-600 text-white rounded-md hover:bg-amber-700 font-medium">
+                  {% trans "Save" %}
+                </button>
+                <button type="button"
+                  onclick="toggleEditRow('{{ fm_field.pk }}')"
+                  class="px-4 py-1.5 text-xs border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50">
+                  {% trans "Cancel" %}
+                </button>
+              </div>
             </td>
           </tr>
           {% endwith %}
@@ -320,6 +317,16 @@
         </tbody>
       </table>
     </div>
+    {# Out-of-table forms for edit rows (forms cannot be nested inside <table>) #}
+    {% for row in enriched_existing %}
+    {% with fm_field=row.obj %}
+    <form id="edit_form_{{ fm_field.pk }}" method="post" class="hidden">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_mapping">
+      <input type="hidden" name="field_map_pk" value="{{ fm_field.pk }}">
+    </form>
+    {% endwith %}
+    {% endfor %}
     {% else %}
     <p class="text-gray-400 text-sm py-4 text-center border border-dashed border-gray-200 rounded-lg">
       {% trans "No field mappings saved yet. Use the table above to create them." %}
