@@ -19,6 +19,13 @@ from .models import (
     RedcapDataExportLog, ExportTypeChoices, ExportStatusChoices,
     RedcapInstanceToSubmissionMapping,
 )
+from .redcap_utils import (
+    fetch_project_metadata,
+    fetch_patient_id_records,
+    fetch_form_instances,
+    fetch_field_values_for_record,
+    import_records as redcap_import_records,
+)
 from .forms import (
     PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm,
     DiagnosisListForm, ProjectForm, PatientProjectForm,
@@ -3024,36 +3031,11 @@ def redcap_setup_wizard(request, pk, mapping_pk):
         if request.method == 'POST':
             error = None
             try:
-                import redcap as pycap
-                rc = pycap.Project(mapping.redcap_project_url, mapping.redcap_project_token)
-                project_info = rc.export_project_info()
-                instruments = rc.export_instruments()
-                metadata = rc.export_metadata()
-                record_count = len(rc.export_records(fields=[rc.def_field]))
-                try:
-                    dags = rc.export_dags()
-                except Exception:
-                    dags = []
-                try:
-                    events = rc.export_events() if project_info.get('is_longitudinal') else []
-                except Exception:
-                    events = []
-                try:
-                    repeating = rc.export_repeating_instruments_events()
-                except Exception:
-                    repeating = []
-                info_payload = {
-                    'project_info': project_info,
-                    'instruments': instruments,
-                    'metadata': metadata,
-                    'dags': dags,
-                    'events': events,
-                    'repeating': repeating,
-                }
+                info_payload, record_count = fetch_project_metadata(mapping)
                 mapping.redcap_project_info = info_payload
                 mapping.redcap_record_count = record_count
                 mapping.date_redcap_project_info_updated = timezone.now().date()
-                mapping.redcap_data_access_group_used = bool(dags)
+                mapping.redcap_data_access_group_used = bool(info_payload.get('dags'))
                 mapping.save(update_fields=[
                     'redcap_project_info', 'redcap_record_count',
                     'date_redcap_project_info_updated', 'redcap_data_access_group_used',
@@ -3156,18 +3138,7 @@ def redcap_fetch_metadata(request, pk, mapping_pk):
 
     error = None
     try:
-        import redcap as pycap
-        rc = pycap.Project(mapping.redcap_project_url, mapping.redcap_project_token)
-        project_info = rc.export_project_info()
-        instruments = rc.export_instruments()
-        metadata = rc.export_metadata()
-        record_count = len(rc.export_records(fields=[rc.def_field]))
-
-        info_payload = {
-            'project_info': project_info,
-            'instruments': instruments,
-            'metadata': metadata,
-        }
+        info_payload, record_count = fetch_project_metadata(mapping)
         mapping.redcap_project_info = info_payload
         mapping.redcap_record_count = record_count
         mapping.date_redcap_project_info_updated = timezone.now().date()
@@ -3362,25 +3333,8 @@ def redcap_patient_ids(request, pk, mapping_pk):
     # Fetch REDCap records to populate dropdown choices
     redcap_records = []
     redcap_fetch_error = None
-    primary_field = mapping.redcap_study_id_field or 'record_id'
-    secondary_field = mapping.redcap_secondary_id_field or ''
     try:
-        import redcap as pycap
-        rc = pycap.Project(mapping.redcap_project_url, mapping.redcap_project_token)
-        fields_to_fetch = [primary_field]
-        if secondary_field:
-            fields_to_fetch.append(secondary_field)
-        raw_records = rc.export_records(fields=fields_to_fetch)
-        # Deduplicate by primary field (repeating instruments produce duplicate rows)
-        seen_ids = set()
-        for rec in raw_records:
-            rid = rec.get(primary_field, '').strip()
-            if rid and rid not in seen_ids:
-                seen_ids.add(rid)
-                redcap_records.append({
-                    'primary': rid,
-                    'secondary': rec.get(secondary_field, '').strip() if secondary_field else '',
-                })
+        redcap_records = fetch_patient_id_records(mapping)
     except Exception as e:
         redcap_fetch_error = str(e)
 
@@ -3505,18 +3459,12 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
         fetch_error = None
         if fm.redcap_date_mapping_field:
             try:
-                import redcap as pycap
-                primary_field = mapping.redcap_study_id_field or 'record_id'
-                rc = pycap.Project(mapping.redcap_project_url, mapping.redcap_project_token)
-
                 # --- Call 1: all instances of the questionnaire form ---
-                q_kwargs = {
-                    'records': [redcap_study_id],
-                    'fields': [primary_field],
-                    'forms': [fm.redcap_form_name],
-                }
-                q_raw = rc.export_records(**q_kwargs)
-                # Build: event_name -> list of repeat_instance numbers
+                q_raw = fetch_form_instances(
+                    mapping,
+                    record_id=redcap_study_id,
+                    form_name=fm.redcap_form_name,
+                )
                 event_to_instances = {}
                 for rec in q_raw:
                     ev = rec.get('redcap_event_name', '')
@@ -3524,20 +3472,13 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
                     inst_int = int(inst) if str(inst).isdigit() else None
                     event_to_instances.setdefault(ev, []).append(inst_int)
 
-                # --- Call 2: date field form records across all events ---
-                d_kwargs = {
-                    'records': [redcap_study_id],
-                    'fields': [primary_field, fm.redcap_date_mapping_field],
-                    'forms': [date_field_form_name],
-                }
-                d_raw = rc.export_records(**d_kwargs)
-                # Build: event_name -> date_str (one date per event)
-                event_to_date = {}
-                for rec in d_raw:
-                    ev = rec.get('redcap_event_name', '')
-                    date_str = rec.get(fm.redcap_date_mapping_field, '').strip()
-                    if date_str:
-                        event_to_date[ev] = date_str
+                # --- Call 2: date field values across all events ---
+                event_to_date = fetch_field_values_for_record(
+                    mapping,
+                    record_id=redcap_study_id,
+                    field_name=fm.redcap_date_mapping_field,
+                    form_name=date_field_form_name,
+                )
 
                 # --- Combine: one entry per (event, instance) with its date ---
                 for ev, instances in event_to_instances.items():
@@ -3773,7 +3714,6 @@ def _build_csv_export(request, mapping, selected_fms, id_map):
 
 def _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map):
     """Export via REDCap API using PyCap and log results."""
-    import redcap as pycap
     rows = _collect_export_rows(mapping, selected_fms, id_map)
     if not rows:
         messages.warning(request, _('No data found for the selected form mappings.'))
@@ -3788,9 +3728,8 @@ def _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map):
             export_status=ExportStatusChoices.PENDING,
         )
         try:
-            rc = pycap.Project(mapping.redcap_project_url, mapping.redcap_project_token)
             fm_rows = [r for r in rows if fm.redcap_form_name in r.get('redcap_repeat_instrument', fm.redcap_form_name)]
-            response_data = rc.import_records(fm_rows)
+            response_data = redcap_import_records(mapping, fm_rows)
             log.export_status = ExportStatusChoices.COMPLETED
             log.export_log = str(response_data)
         except Exception as e:

@@ -223,6 +223,28 @@ Implemented at the `RedcapFormToQuestionnaireMapping` level (not the individual 
 - Collapsible reference table showing all available REDCap instances with their event name and date field value — column header shows `field_name (form_name)` resolved from metadata.
 - **JS (`recalcInstances`)**: on any event dropdown change, recalculates all instance numbers for that form card sequentially in DOM order (= submission date order), grouped by event name. Applies to all rows including previously saved ones.
 
+#### REDCap API utility layer ✅
+
+All PyCap calls have been extracted from `views.py` into `patientapp/redcap_utils.py`. `views.py` no longer contains any `import redcap` statements.
+
+**File**: `patientapp/redcap_utils.py`
+
+| Function | Purpose |
+|---|---|
+| `get_redcap_project(mapping)` | Instantiates and returns a `pycap.Project` from a `ProjectRedcapMapping`. |
+| `fetch_project_metadata(mapping)` | Full metadata fetch: `project_info`, `instruments`, `metadata`, `dags`, `events`, `repeating`. Returns `(info_payload, record_count)`. |
+| `fetch_patient_id_records(mapping)` | Exports all records with primary/secondary ID fields; deduplicates by primary. Returns `[{primary, secondary}]`. |
+| `fetch_form_instances(mapping, record_id, form_name, ...)` | Exports all records for a specific patient and form across all events. Returns raw PyCap record list. |
+| `fetch_field_values_for_record(mapping, record_id, field_name, form_name, ...)` | Fetches a single field across all events for a patient. Returns `{event_name: value_str}`. |
+| `import_records(mapping, rows)` | Imports a list of record dicts into REDCap via PyCap. Returns PyCap response. |
+
+**Views refactored:**
+- `redcap_project_setup` → `fetch_project_metadata`
+- `redcap_fetch_metadata` (HTMX) → `fetch_project_metadata`
+- `redcap_patient_ids` → `fetch_patient_id_records`
+- `redcap_match_submissions` → `fetch_form_instances` + `fetch_field_values_for_record`
+- `_run_api_export` → `import_records`
+
 ---
 
 ### ⏳ Pending / Next Steps
