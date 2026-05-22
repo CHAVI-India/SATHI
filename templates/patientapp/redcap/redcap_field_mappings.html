@@ -301,12 +301,12 @@
               </div>
               <div class="w-full flex gap-2">
                 <button type="submit" form="edit_form_{{ fm_field.pk }}"
-                  class="px-4 py-1.5 text-xs bg-amber-600 text-white rounded-md hover:bg-amber-700 font-medium">
+                  class="inline-flex items-center justify-center font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 px-3 py-1.5 text-sm">
                   {% trans "Save" %}
                 </button>
                 <button type="button"
                   onclick="toggleEditRow('{{ fm_field.pk }}')"
-                  class="px-4 py-1.5 text-xs border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50">
+                  class="inline-flex items-center justify-center font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-blue-500 px-3 py-1.5 text-sm">
                   {% trans "Cancel" %}
                 </button>
               </div>
