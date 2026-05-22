@@ -4073,6 +4073,7 @@ def _collect_export_rows(mapping, selected_fms, id_map):
 
             inst_mapping = instance_map.get(sub.pk)
 
+            event_name = None
             if fm.redcap_form_is_in_event:
                 event_name = (
                     inst_mapping.redcap_event_name
@@ -4083,12 +4084,35 @@ def _collect_export_rows(mapping, selected_fms, id_map):
                     row['redcap_event_name'] = event_name
 
             if fm.redcap_form_is_repeating or fm.redcap_event_is_repeating:
-                row['redcap_repeat_instrument'] = fm.redcap_form_name
-                row['redcap_repeat_instance'] = (
-                    inst_mapping.redcap_repeat_instance
-                    if inst_mapping and inst_mapping.redcap_repeat_instance is not None
-                    else ''
-                )
+                # For mixed projects check the per-submission event against project_info.
+                # If the instrument is NOT repeating in this specific event, blank the fields.
+                _repeating_list = (mapping.redcap_project_info or {}).get('repeating', [])
+                if _repeating_list and event_name:
+                    _repeating_instruments = {
+                        (e.get('event_name', '').strip(), e.get('form_name', '').strip())
+                        for e in _repeating_list if e.get('form_name', '').strip()
+                    }
+                    _repeating_events = {
+                        e.get('event_name', '').strip()
+                        for e in _repeating_list if not e.get('form_name', '').strip()
+                    }
+                    _is_repeating = (
+                        (event_name, fm.redcap_form_name) in _repeating_instruments
+                        or event_name in _repeating_events
+                    )
+                else:
+                    _is_repeating = True  # no project-info data or no event → trust fm flags
+
+                if _is_repeating:
+                    row['redcap_repeat_instrument'] = fm.redcap_form_name
+                    row['redcap_repeat_instance'] = (
+                        inst_mapping.redcap_repeat_instance
+                        if inst_mapping and inst_mapping.redcap_repeat_instance is not None
+                        else ''
+                    )
+                else:
+                    row['redcap_repeat_instrument'] = ''
+                    row['redcap_repeat_instance'] = ''
 
             if fm.submission_date_field and date_fmt and sub.submission_date:
                 row[fm.submission_date_field] = sub.submission_date.strftime(date_fmt)
