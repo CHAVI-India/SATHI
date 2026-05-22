@@ -279,22 +279,32 @@ class ProjectRedcapMappingForm(forms.ModelForm):
 class RedcapIDFieldsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        field_choices = [('', _('--- Select Field ---'))]
         instance = kwargs.get('instance')
+        # Build grouped choices: [(form_name, [(field_name, field_name), ...]), ...]
+        # Labels are field_name only — field labels can contain rich text/HTML.
+        grouped = {}  # form_name -> [(value, label)]
+        flat = []     # flat list for secondary (no optgroup blank)
         if instance and instance.redcap_project_info:
             for field in instance.redcap_project_info.get('metadata', []):
                 fname = field.get('field_name', '')
-                flabel = field.get('field_label', fname)
+                fform = field.get('form_name', '') or _('(unknown form)')
                 if fname:
-                    field_choices.append((fname, f"{flabel} ({fname})"))
+                    grouped.setdefault(fform, []).append((fname, fname))
+                    flat.append((fname, fname))
+        grouped_choices = [('', _('--- Select Field ---'))] + [
+            (form_name, opts) for form_name, opts in grouped.items()
+        ]
+        secondary_choices = [('', _('--- None ---'))] + [
+            (form_name, opts) for form_name, opts in grouped.items()
+        ]
         self.fields['redcap_study_id_field'] = forms.ChoiceField(
-            choices=field_choices,
+            choices=grouped_choices,
             label=_('Study ID Field'),
             help_text=_('The REDCap field used as the primary record/study identifier.'),
             widget=forms.Select(attrs={'class': SELECT_CLASS}),
         )
         self.fields['redcap_secondary_id_field'] = forms.ChoiceField(
-            choices=[('', _('--- None ---'))] + field_choices[1:],
+            choices=secondary_choices,
             required=False,
             label=_('Secondary ID Field'),
             help_text=_('Optional secondary identifier (e.g. when auto-numbering is used in REDCap).'),
@@ -312,8 +322,8 @@ class RedcapFormToQuestionnaireMappingForm(forms.ModelForm):
         self._project_redcap_mapping = project_redcap_mapping
 
         redcap_form_choices = [('', _('--- Select REDCap Form ---'))]
-        redcap_field_choices = [('', _('--- Select REDCap Field ---'))]
         self._date_fields_by_form = {}
+        _date_mapping_grouped = {}
 
         if project_redcap_mapping and project_redcap_mapping.redcap_project_info:
             info = project_redcap_mapping.redcap_project_info
@@ -324,15 +334,22 @@ class RedcapFormToQuestionnaireMappingForm(forms.ModelForm):
                 if name and name not in forms_seen:
                     redcap_form_choices.append((name, f"{label} ({name})"))
                     forms_seen.add(name)
+            # Group fields by form for redcap_date_mapping_field grouped choices
+            _date_mapping_grouped = {}  # form_name -> [(fname, fname)]
             for field in info.get('metadata', []):
                 fname = field.get('field_name', '')
-                flabel = field.get('field_label', fname)
-                fform = field.get('form_name', '')
+                fform = field.get('form_name', '') or _('(unknown form)')
                 validation = field.get('text_validation_type_or_show_slider_number', '')
                 if fname:
-                    redcap_field_choices.append((fname, f"{flabel} ({fname})"))
+                    # Date mapping field: all fields, grouped by form, name-only labels
+                    _date_mapping_grouped.setdefault(fform, []).append((fname, fname))
                     if validation and validation.startswith(('date_', 'datetime_')):
                         self._date_fields_by_form.setdefault(fform, {})[fname] = validation
+
+        # Build grouped choices for redcap_date_mapping_field
+        date_mapping_grouped_choices = [('', _('--- None ---'))] + [
+            (form_name, opts) for form_name, opts in _date_mapping_grouped.items()
+        ]
 
         self.fields['redcap_form_name'] = forms.ChoiceField(
             choices=redcap_form_choices,
@@ -340,7 +357,7 @@ class RedcapFormToQuestionnaireMappingForm(forms.ModelForm):
             widget=forms.Select(attrs={'class': SELECT_CLASS, 'id': 'id_redcap_form_name'}),
         )
         self.fields['redcap_date_mapping_field'] = forms.ChoiceField(
-            choices=[('', _('--- None ---'))] + redcap_field_choices[1:],
+            choices=date_mapping_grouped_choices,
             required=False,
             label=_('Date Mapping Field in REDCap'),
             help_text=_(

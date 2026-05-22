@@ -277,19 +277,38 @@
     var sel = document.getElementById(selectId);
     var noMsg = document.getElementById(noMsgId);
     if (!sel) return;
-    var fields = getDateFields(formName);
-    var entries = Object.entries(fields);
     sel.innerHTML = '<option value="">--- {% trans "None" %} ---</option>';
-    entries.forEach(function(kv) {
-      var opt = document.createElement('option');
-      opt.value = kv[0];
-      opt.textContent = kv[0] + ' (' + kv[1] + ' → ' + normaliseFormat(kv[1]) + ')';
-      if (preserveValue && kv[0] === preserveValue) opt.selected = true;
-      sel.appendChild(opt);
-    });
-    // Auto-select if exactly one option available and nothing preserved
-    if (entries.length === 1 && !preserveValue) sel.value = entries[0][0];
-    if (noMsg) noMsg.classList.toggle('hidden', entries.length > 0);
+    var totalCount = 0;
+    if (formName) {
+      // Single form selected: flat list
+      var fields = dateFieldsByForm[formName] || {};
+      var entries = Object.entries(fields);
+      entries.forEach(function(kv) {
+        var opt = document.createElement('option');
+        opt.value = kv[0];
+        opt.textContent = kv[0] + ' (' + normaliseFormat(kv[1]) + ')';
+        if (preserveValue && kv[0] === preserveValue) opt.selected = true;
+        sel.appendChild(opt);
+        totalCount++;
+      });
+      if (entries.length === 1 && !preserveValue) sel.value = entries[0][0];
+    } else {
+      // No form selected: show all grouped by form name
+      Object.entries(dateFieldsByForm).forEach(function(fv) {
+        var grp = document.createElement('optgroup');
+        grp.label = fv[0];
+        Object.entries(fv[1]).forEach(function(kv) {
+          var opt = document.createElement('option');
+          opt.value = kv[0];
+          opt.textContent = kv[0] + ' (' + normaliseFormat(kv[1]) + ')';
+          if (preserveValue && kv[0] === preserveValue) opt.selected = true;
+          grp.appendChild(opt);
+          totalCount++;
+        });
+        sel.appendChild(grp);
+      });
+    }
+    if (noMsg) noMsg.classList.toggle('hidden', totalCount > 0);
     updateSubmissionDatePreview(selectId, previewId, previewValId, formName);
   }
 
