@@ -3256,65 +3256,153 @@ def redcap_form_mapping_edit(request, pk, mapping_pk, fm_pk):
 @login_required
 def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
     """Create/edit RedcapFieldToItemMapping entries for a form mapping."""
+    import difflib, html, re as _re
     guard = _staff_required(request)
     if guard:
         return guard
     project = get_object_or_404(Project, pk=pk)
     mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
     fm = get_object_or_404(RedcapFormToQuestionnaireMapping, pk=fm_pk, project_redcap_mapping=mapping)
-    existing = RedcapFieldToItemMapping.objects.filter(
-        redcap_form_to_questionnaire_mapping=fm
-    ).select_related('questionnaire_item__item')
+
+    def _get_existing():
+        return RedcapFieldToItemMapping.objects.filter(
+            redcap_form_to_questionnaire_mapping=fm
+        ).select_related('questionnaire_item__item')
 
     if request.method == 'POST':
         action = request.POST.get('action')
-        if action == 'add':
-            form = RedcapFieldToItemMappingForm(
-                request.POST, project_redcap_mapping=mapping, form_mapping=fm
+
+        if action == 'bulk_save':
+            from promapp.models import QuestionnaireItem as _QI
+            already_mapped_fields = set(
+                RedcapFieldToItemMapping.objects.filter(
+                    redcap_form_to_questionnaire_mapping=fm
+                ).values_list('redcap_field_name', flat=True)
             )
-            if form.is_valid():
-                field_map = form.save(commit=False)
-                field_map.redcap_form_to_questionnaire_mapping = fm
-                field_map.save()
-                messages.success(request, _('Field mapping added.'))
-            else:
-                err_date_fields = {}
-                if mapping.redcap_project_info:
-                    for _f in mapping.redcap_project_info.get('metadata', []):
-                        if _f.get('form_name') != fm.redcap_form_name:
-                            continue
-                        _v = _f.get('text_validation_type_or_show_slider_number', '')
-                        _n = _f.get('field_name', '')
-                        if _n and _v and _v.startswith(('date_', 'datetime_')):
-                            err_date_fields[_n] = _v
-                return render(request, 'patientapp/redcap/redcap_field_mappings.html', {
-                    'project': project, 'mapping': mapping, 'fm': fm,
-                    'existing': existing, 'form': form, 'date_fields': err_date_fields,
-                })
+            already_mapped_items = set(
+                RedcapFieldToItemMapping.objects.filter(
+                    redcap_form_to_questionnaire_mapping=fm
+                ).values_list('questionnaire_item_id', flat=True)
+            )
+            created = 0
+            skipped = 0
+            for key, qi_pk in request.POST.items():
+                if not key.startswith('map__') or not qi_pk:
+                    continue
+                redcap_field = key[5:]  # strip 'map__'
+                if redcap_field in already_mapped_fields:
+                    skipped += 1
+                    continue
+                try:
+                    qi = _QI.objects.get(pk=qi_pk, questionnaire=fm.questionnaire)
+                except _QI.DoesNotExist:
+                    continue
+                if str(qi.pk) in [str(x) for x in already_mapped_items]:
+                    skipped += 1
+                    continue
+                RedcapFieldToItemMapping.objects.create(
+                    redcap_form_to_questionnaire_mapping=fm,
+                    redcap_field_name=redcap_field,
+                    questionnaire_item=qi,
+                )
+                already_mapped_fields.add(redcap_field)
+                already_mapped_items.add(str(qi.pk))
+                created += 1
+            if created:
+                messages.success(request, _(f'{created} field mapping(s) saved.'))
+            if skipped:
+                messages.warning(request, _(f'{skipped} row(s) skipped (already mapped or duplicate).'))
+
         elif action == 'delete':
             field_map_pk = request.POST.get('field_map_pk')
-            RedcapFieldToItemMapping.objects.filter(pk=field_map_pk, redcap_form_to_questionnaire_mapping=fm).delete()
+            RedcapFieldToItemMapping.objects.filter(
+                pk=field_map_pk, redcap_form_to_questionnaire_mapping=fm
+            ).delete()
             messages.success(request, _('Field mapping removed.'))
+
         return redirect('redcap_field_mappings', pk=pk, mapping_pk=mapping_pk, fm_pk=fm_pk)
 
-    date_fields = {}
+    # ── Build REDCap field list for this form ────────────────────────────────
+    redcap_fields = []  # [{name, label, label_plain, field_type, validation}]
     if mapping.redcap_project_info:
         for field in mapping.redcap_project_info.get('metadata', []):
             if field.get('form_name') != fm.redcap_form_name:
                 continue
-            validation = field.get('text_validation_type_or_show_slider_number', '')
             fname = field.get('field_name', '')
-            if fname and validation and validation.startswith(('date_', 'datetime_')):
-                date_fields[fname] = validation
+            if not fname:
+                continue
+            raw_label = field.get('field_label', fname)
+            # Strip HTML tags for fuzzy matching and display fallback
+            label_plain = _re.sub(r'<[^>]+>', '', html.unescape(raw_label)).strip() or fname
+            redcap_fields.append({
+                'name': fname,
+                'label': raw_label,
+                'label_plain': label_plain,
+                'field_type': field.get('field_type', ''),
+                'validation': field.get('text_validation_type_or_show_slider_number', ''),
+            })
 
-    form = RedcapFieldToItemMappingForm(project_redcap_mapping=mapping, form_mapping=fm)
+    # ── Build questionnaire items list ──────────────────────────────────────
+    from promapp.models import QuestionnaireItem as _QI
+    qi_qs = _QI.objects.filter(
+        questionnaire=fm.questionnaire
+    ).select_related('item').order_by('question_number')
+
+    qi_list = []  # [{pk, number, name}]
+    for qi in qi_qs:
+        item_name = (
+            qi.item.safe_translation_getter('name', any_language=True)
+            if hasattr(qi.item, 'safe_translation_getter')
+            else str(qi.item)
+        ) or str(qi.item)
+        qi_list.append({'pk': str(qi.pk), 'number': qi.question_number, 'name': item_name})
+
+    # ── Fuzzy match each REDCap field to best questionnaire item ────────────
+    already_mapped_fields = set(
+        _get_existing().values_list('redcap_field_name', flat=True)
+    )
+    qi_names = [q['name'] for q in qi_list]
+
+    def _best_match(field_name, label_plain):
+        if not qi_names:
+            return None
+        # Score against both field_name and label_plain, take best
+        scores = []
+        for qi in qi_list:
+            s1 = difflib.SequenceMatcher(None, field_name.lower(), qi['name'].lower()).ratio()
+            s2 = difflib.SequenceMatcher(None, label_plain.lower(), qi['name'].lower()).ratio()
+            # Also try word-level overlap
+            rc_words = set(field_name.lower().replace('_', ' ').split())
+            qi_words = set(qi['name'].lower().split())
+            word_overlap = len(rc_words & qi_words) / max(len(rc_words | qi_words), 1)
+            scores.append((max(s1, s2, word_overlap), qi['pk']))
+        scores.sort(key=lambda x: -x[0])
+        best_score, best_pk = scores[0]
+        return best_pk if best_score >= 0.25 else None
+
+    suggestion_rows = []  # only unmapped fields
+    for rf in redcap_fields:
+        if rf['name'] in already_mapped_fields:
+            continue
+        suggested_pk = _best_match(rf['name'], rf['label_plain'])
+        suggestion_rows.append({
+            'name': rf['name'],
+            'label': rf['label'],
+            'label_plain': rf['label_plain'],
+            'field_type': rf['field_type'],
+            'validation': rf['validation'],
+            'suggested_pk': suggested_pk or '',
+        })
+
+    existing = _get_existing()
     return render(request, 'patientapp/redcap/redcap_field_mappings.html', {
         'project': project,
         'mapping': mapping,
         'fm': fm,
         'existing': existing,
-        'form': form,
-        'date_fields': date_fields,
+        'suggestion_rows': suggestion_rows,
+        'qi_list': qi_list,
+        'qi_list_json': json.dumps(qi_list),
     })
 
 
