@@ -3313,6 +3313,32 @@ def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
             if skipped:
                 messages.warning(request, _(f'{skipped} row(s) skipped (already mapped or duplicate).'))
 
+        elif action == 'edit_mapping':
+            from promapp.models import QuestionnaireItem as _QI
+            field_map_pk = request.POST.get('field_map_pk')
+            new_qi_pk = request.POST.get('new_questionnaire_item')
+            try:
+                field_map = RedcapFieldToItemMapping.objects.get(
+                    pk=field_map_pk, redcap_form_to_questionnaire_mapping=fm
+                )
+                new_qi = _QI.objects.get(pk=new_qi_pk, questionnaire=fm.questionnaire)
+                # Check the new item isn't already mapped to a different field
+                conflict = RedcapFieldToItemMapping.objects.filter(
+                    redcap_form_to_questionnaire_mapping=fm,
+                    questionnaire_item=new_qi,
+                ).exclude(pk=field_map_pk).first()
+                if conflict:
+                    messages.error(request, _(
+                        f'"{new_qi}" is already mapped to field "{conflict.redcap_field_name}". '
+                        'Remove that mapping first.'
+                    ))
+                else:
+                    field_map.questionnaire_item = new_qi
+                    field_map.save(update_fields=['questionnaire_item', 'modified_at'])
+                    messages.success(request, _('Mapping updated.'))
+            except (RedcapFieldToItemMapping.DoesNotExist, _QI.DoesNotExist):
+                messages.error(request, _('Invalid mapping or questionnaire item.'))
+
         elif action == 'delete':
             field_map_pk = request.POST.get('field_map_pk')
             RedcapFieldToItemMapping.objects.filter(
