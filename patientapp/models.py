@@ -386,6 +386,15 @@ class RedcapFormToQuestionnaireMapping(models.Model):
 
 
 
+class ResponseTransformChoices(models.TextChoices):
+    NONE        = 'none',        'No transform (use as-is)'
+    TO_INT      = 'to_int',      'Integer (e.g. 1.00 → 1)'
+    TO_FLOAT    = 'to_float',    'Float / decimal (e.g. 1 → 1.0)'
+    TO_FLOAT_2  = 'to_float_2',  'Float 2 dp (e.g. 1 → 1.00)'
+    ROUND_INT   = 'round_int',   'Round to nearest integer (e.g. 1.6 → 2)'
+    STRIP_ZEROS = 'strip_zeros', 'Strip trailing zeros (e.g. 1.00 → 1, 1.50 → 1.5)'
+
+
 class RedcapFieldToItemMapping(models.Model):
     '''
     This table will store information about the mapping of REDCap fields to the Questionnaire Items in the CHAVI PROM questionnaire. Note that this linkage allows us to specify linkage of the same item to the multiple fields in REDCap. The linkage to the questionnaire item will point to the specific Item through the foreign key Questionnaire -> QuestionnaireItem -> Item (see promapp.models)
@@ -397,6 +406,16 @@ class RedcapFieldToItemMapping(models.Model):
     redcap_form_to_questionnaire_mapping = models.ForeignKey(RedcapFormToQuestionnaireMapping, on_delete=models.CASCADE)
     redcap_field_name = models.CharField(max_length=1024)
     questionnaire_item = models.ForeignKey('promapp.QuestionnaireItem', on_delete=models.CASCADE)
+    response_transform = models.CharField(
+        max_length=20,
+        choices=ResponseTransformChoices.choices,
+        default=ResponseTransformChoices.NONE,
+        help_text=(
+            "How to coerce the stored response_value string before writing to REDCap. "
+            "Use 'Integer' when REDCap expects a whole number (radio/dropdown codes, integer fields). "
+            "Use 'Strip trailing zeros' to remove unnecessary decimal places (e.g. 1.00 → 1)."
+        ),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 

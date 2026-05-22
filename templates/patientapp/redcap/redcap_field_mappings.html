@@ -75,11 +75,41 @@
 
             {# Left: REDCap field #}
             <div class="pr-4">
-              <div class="font-mono text-xs text-indigo-700 bg-indigo-50 inline-block px-1.5 py-0.5 rounded mb-1">{{ row.name }}</div>
-              {% if row.field_type %}
-                <span class="ml-1 text-xs text-gray-400">({{ row.field_type }}{% if row.validation %}, {{ row.validation }}{% endif %})</span>
+              <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                <span class="font-mono text-xs text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">{{ row.name }}</span>
+                {# Field type badge #}
+                {% if row.field_type == 'radio' or row.field_type == 'dropdown' or row.field_type == 'checkbox' %}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">{{ row.field_type }}</span>
+                {% elif row.field_type == 'text' %}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                    text{% if row.validation %} / {{ row.validation }}{% endif %}
+                  </span>
+                {% elif row.field_type == 'yesno' or row.field_type == 'truefalse' %}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">{{ row.field_type }}</span>
+                {% elif row.field_type == 'calc' %}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-medium">calc</span>
+                {% elif row.field_type == 'slider' %}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium">slider</span>
+                {% elif row.field_type %}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">{{ row.field_type }}</span>
+                {% endif %}
+              </div>
+              <div class="text-sm text-gray-700 leading-snug mt-0.5 whitespace-normal break-words">{{ row.label_plain }}</div>
+              {# REDCap expected values — choices or type hint #}
+              {% if row.choices %}
+                <details class="mt-1">
+                  <summary class="text-xs text-purple-600 cursor-pointer select-none hover:text-purple-800">
+                    {% trans "REDCap expects code" %} ({{ row.choices|length }} {% trans "options" %})
+                  </summary>
+                  <div class="mt-1 text-xs bg-purple-50 border border-purple-100 rounded p-2 space-y-0.5 max-h-32 overflow-y-auto">
+                    {% for choice in row.choices %}
+                      <div><span class="font-mono font-semibold text-purple-800">{{ choice.code }}</span> = {{ choice.label }}</div>
+                    {% endfor %}
+                  </div>
+                </details>
+              {% elif row.field_info_summary %}
+                <div class="mt-1 text-xs text-gray-500 italic">{% trans "Expects" %}: {{ row.field_info_summary }}</div>
               {% endif %}
-              <div class="text-sm text-gray-700 leading-snug mt-1 whitespace-normal break-words max-w-xs">{{ row.label_plain }}</div>
             </div>
 
             {# Arrow #}
@@ -103,6 +133,24 @@
               {% else %}
                 <p class="mt-0.5 text-xs text-gray-400">{% trans "No confident match — please select manually" %}</p>
               {% endif %}
+              {# Response transform with auto-suggestion #}
+              <div class="mt-2">
+                <label class="block text-xs text-gray-500 mb-0.5">
+                  {% trans "Response transform" %}
+                  {% if row.suggested_transform and row.suggested_transform != 'none' %}
+                    <span class="ml-1 text-teal-600 font-normal">✦ {% trans "auto-suggested" %}</span>
+                  {% endif %}
+                </label>
+                <select name="transform__{{ row.name }}"
+                  class="w-full px-2 py-1 text-xs border {% if row.suggested_transform and row.suggested_transform != 'none' %}border-teal-400 bg-teal-50{% else %}border-gray-200 bg-white{% endif %} rounded text-gray-700 focus:outline-none focus:ring-1 focus:ring-teal-400">
+                  {% for val, label in transform_choices %}
+                  <option value="{{ val }}"
+                    {% if val == row.suggested_transform %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
             </div>
 
           </div>
@@ -127,10 +175,10 @@
   {# ── Existing (saved) mappings ───────────────────────────────────────────── #}
   <div>
     <h2 class="text-base font-semibold text-gray-800 mb-3">{% trans "Saved Mappings" %}
-      <span class="ml-1 text-xs font-normal text-gray-400">({{ existing|length }})</span>
+      <span class="ml-1 text-xs font-normal text-gray-400">({{ enriched_existing|length }})</span>
     </h2>
 
-    {% if existing %}
+    {% if enriched_existing %}
     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
       <table class="min-w-full text-sm">
         <thead class="bg-gray-50 border-b border-gray-200">
@@ -141,15 +189,67 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100" id="existing_mappings_tbody">
-          {% for fm_field in existing %}
+          {% for row in enriched_existing %}
+          {% with fm_field=row.obj %}
           {# ── Display row ── #}
           <tr class="hover:bg-gray-50 existing-display-row" id="row_display_{{ fm_field.pk }}">
             <td class="px-4 py-3 align-top">
-              <span class="font-mono text-xs text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">{{ fm_field.redcap_field_name }}</span>
+              <div class="flex flex-wrap items-center gap-1.5 mb-0.5">
+                <span class="font-mono text-xs text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">{{ fm_field.redcap_field_name }}</span>
+                {# Field type badge #}
+                {% if row.field_type == 'radio' or row.field_type == 'dropdown' or row.field_type == 'checkbox' %}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">{{ row.field_type }}</span>
+                {% elif row.field_type == 'text' %}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                    text{% if row.validation %} / {{ row.validation }}{% endif %}
+                  </span>
+                {% elif row.field_type == 'yesno' or row.field_type == 'truefalse' %}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">{{ row.field_type }}</span>
+                {% elif row.field_type == 'calc' %}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-medium">calc</span>
+                {% elif row.field_type == 'slider' %}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium">slider</span>
+                {% elif row.field_type %}
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">{{ row.field_type }}</span>
+                {% endif %}
+              </div>
+              {# Choices or type hint #}
+              {% if row.choices %}
+                <details class="mt-0.5">
+                  <summary class="text-xs text-purple-600 cursor-pointer select-none hover:text-purple-800">
+                    {% trans "REDCap codes" %} ({{ row.choices|length }})
+                  </summary>
+                  <div class="mt-1 text-xs bg-purple-50 border border-purple-100 rounded p-2 space-y-0.5 max-h-28 overflow-y-auto">
+                    {% for choice in row.choices %}
+                      <div><span class="font-mono font-semibold text-purple-800">{{ choice.code }}</span> = {{ choice.label }}</div>
+                    {% endfor %}
+                  </div>
+                </details>
+              {% elif row.field_info_summary %}
+                <div class="text-xs text-gray-500 italic mt-0.5">{{ row.field_info_summary }}</div>
+              {% endif %}
             </td>
             <td class="px-4 py-3 align-top text-gray-700 text-xs leading-snug">
-              <span class="font-medium">Q{{ fm_field.questionnaire_item.question_number }}:</span>
-              {{ fm_field.questionnaire_item.item }}
+              <div><span class="font-medium">Q{{ fm_field.questionnaire_item.question_number }}:</span>
+              {{ fm_field.questionnaire_item.item }}</div>
+              {% if row.response_transform and row.response_transform != 'none' %}
+                <div class="mt-0.5 flex flex-wrap items-center gap-1">
+                  <span class="inline-block text-xs px-1.5 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-200">
+                    ⚙ {{ row.response_transform_label }}
+                  </span>
+                  {# Warn if saved transform differs from current suggestion #}
+                  {% if row.suggested_transform and row.suggested_transform != row.response_transform %}
+                    <span class="inline-block text-xs px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200"
+                      title="Suggested: {{ row.suggested_transform }}">⚠ {% trans "suggestion differs" %}</span>
+                  {% endif %}
+                </div>
+              {% elif row.suggested_transform and row.suggested_transform != 'none' %}
+                <div class="mt-0.5">
+                  <span class="inline-block text-xs px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                    ⚠ {% trans "no transform set — suggested" %}: {{ row.suggested_transform }}
+                  </span>
+                </div>
+              {% endif %}
             </td>
             <td class="px-4 py-3 text-right align-top whitespace-nowrap">
               <button type="button"
@@ -189,6 +289,18 @@
                   </option>
                   {% endfor %}
                 </select>
+                <select name="response_transform"
+                  class="px-2 py-1.5 text-xs border border-amber-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  title="{% trans 'Response transform' %}">
+                  {% for val, label in transform_choices %}
+                  <option value="{{ val }}"
+                    {% if val == row.response_transform %}selected
+                    {% elif row.response_transform == 'none' and val == row.suggested_transform %}selected
+                    {% endif %}>
+                    {{ label }}{% if val == row.suggested_transform %} ✦{% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
                 <button type="submit"
                   class="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-md hover:bg-amber-700 font-medium whitespace-nowrap">
                   {% trans "Save" %}
@@ -201,6 +313,7 @@
               </form>
             </td>
           </tr>
+          {% endwith %}
           {% endfor %}
         </tbody>
       </table>

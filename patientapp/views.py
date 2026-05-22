@@ -3286,6 +3286,8 @@ def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
             )
             created = 0
             skipped = 0
+            from patientapp.models import ResponseTransformChoices as _RTC
+            valid_transforms = {v for v, _ in _RTC.choices}
             for key, qi_pk in request.POST.items():
                 if not key.startswith('map__') or not qi_pk:
                     continue
@@ -3300,10 +3302,14 @@ def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
                 if str(qi.pk) in [str(x) for x in already_mapped_items]:
                     skipped += 1
                     continue
+                transform = request.POST.get(f'transform__{redcap_field}', _RTC.NONE)
+                if transform not in valid_transforms:
+                    transform = _RTC.NONE
                 RedcapFieldToItemMapping.objects.create(
                     redcap_form_to_questionnaire_mapping=fm,
                     redcap_field_name=redcap_field,
                     questionnaire_item=qi,
+                    response_transform=transform,
                 )
                 already_mapped_fields.add(redcap_field)
                 already_mapped_items.add(str(qi.pk))
@@ -3315,8 +3321,14 @@ def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
 
         elif action == 'edit_mapping':
             from promapp.models import QuestionnaireItem as _QI
+            from patientapp.models import ResponseTransformChoices as _RTC
             field_map_pk = request.POST.get('field_map_pk')
             new_qi_pk = request.POST.get('new_questionnaire_item')
+            new_transform = request.POST.get('response_transform', _RTC.NONE)
+            # Validate transform value
+            valid_transforms = {v for v, _ in _RTC.choices}
+            if new_transform not in valid_transforms:
+                new_transform = _RTC.NONE
             try:
                 field_map = RedcapFieldToItemMapping.objects.get(
                     pk=field_map_pk, redcap_form_to_questionnaire_mapping=fm
@@ -3334,7 +3346,8 @@ def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
                     ))
                 else:
                     field_map.questionnaire_item = new_qi
-                    field_map.save(update_fields=['questionnaire_item', 'modified_at'])
+                    field_map.response_transform = new_transform
+                    field_map.save(update_fields=['questionnaire_item', 'response_transform', 'modified_at'])
                     messages.success(request, _('Mapping updated.'))
             except (RedcapFieldToItemMapping.DoesNotExist, _QI.DoesNotExist):
                 messages.error(request, _('Invalid mapping or questionnaire item.'))
@@ -3349,7 +3362,47 @@ def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
         return redirect('redcap_field_mappings', pk=pk, mapping_pk=mapping_pk, fm_pk=fm_pk)
 
     # ── Build REDCap field list for this form ────────────────────────────────
-    redcap_fields = []  # [{name, label, label_plain, field_type, validation}]
+    CHOICE_FIELD_TYPES = {'radio', 'dropdown', 'checkbox'}
+    from patientapp.models import ResponseTransformChoices as _RTC
+
+    def _parse_choices(raw_choices):
+        """Parse 'code, label | code, label | ...' into [{code, label}, ...]."""
+        if not raw_choices:
+            return []
+        choices = []
+        for part in raw_choices.split('|'):
+            part = part.strip()
+            if ',' in part:
+                code, _, label = part.partition(',')
+                choices.append({'code': code.strip(), 'label': label.strip()})
+        return choices
+
+    def _suggest_transform(ftype, validation, choices):
+        """Infer the most appropriate ResponseTransformChoice for a REDCap field."""
+        if ftype in CHOICE_FIELD_TYPES:
+            # Choice codes are almost always integers (1, 2, 3 …); suggest to_int
+            # unless any code contains a decimal point
+            all_int_codes = all(
+                c['code'].lstrip('-').isdigit() for c in choices if c['code']
+            )
+            return _RTC.TO_INT if all_int_codes else _RTC.STRIP_ZEROS
+        if ftype in ('yesno', 'truefalse'):
+            return _RTC.TO_INT
+        if ftype == 'text':
+            if validation in ('integer', 'number'):
+                return _RTC.TO_INT
+            if validation in ('number_2dp',):
+                return _RTC.TO_FLOAT_2
+            if validation and validation.startswith('number'):
+                return _RTC.STRIP_ZEROS
+        if ftype == 'calc':
+            return _RTC.STRIP_ZEROS
+        if ftype == 'slider':
+            # slider validation is either empty or 'number'
+            return _RTC.TO_INT if not validation else _RTC.STRIP_ZEROS
+        return _RTC.NONE
+
+    redcap_fields = []  # [{name, label_plain, field_type, validation, choices, field_info_summary}]
     if mapping.redcap_project_info:
         for field in mapping.redcap_project_info.get('metadata', []):
             if field.get('form_name') != fm.redcap_form_name:
@@ -3358,14 +3411,43 @@ def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
             if not fname:
                 continue
             raw_label = field.get('field_label', fname)
-            # Strip HTML tags for fuzzy matching and display fallback
             label_plain = _re.sub(r'<[^>]+>', '', html.unescape(raw_label)).strip() or fname
+            ftype = field.get('field_type', '')
+            validation = field.get('text_validation_type_or_show_slider_number', '')
+            raw_choices = field.get('select_choices_or_calculations', '')
+            choices = _parse_choices(raw_choices) if ftype in CHOICE_FIELD_TYPES else []
+
+            # Build a human-readable summary of what REDCap expects for this field
+            if ftype in CHOICE_FIELD_TYPES:
+                field_info_summary = 'codes: ' + ', '.join(
+                    f'{c["code"]}={c["label"]}' for c in choices[:5]
+                ) + (' …' if len(choices) > 5 else '')
+            elif ftype == 'text' and validation:
+                field_info_summary = f'text / {validation}'
+            elif ftype == 'text':
+                field_info_summary = 'free text'
+            elif ftype == 'yesno':
+                field_info_summary = '1=Yes, 0=No'
+            elif ftype == 'truefalse':
+                field_info_summary = '1=True, 0=False'
+            elif ftype == 'slider':
+                field_info_summary = f'slider{(" / " + validation) if validation else ""}'
+            elif ftype == 'calc':
+                field_info_summary = 'calculated field'
+            elif ftype == 'notes':
+                field_info_summary = 'long text'
+            else:
+                field_info_summary = ftype or '—'
+
             redcap_fields.append({
                 'name': fname,
                 'label': raw_label,
                 'label_plain': label_plain,
-                'field_type': field.get('field_type', ''),
-                'validation': field.get('text_validation_type_or_show_slider_number', ''),
+                'field_type': ftype,
+                'validation': validation,
+                'choices': choices,
+                'field_info_summary': field_info_summary,
+                'suggested_transform': _suggest_transform(ftype, validation, choices),
             })
 
     # ── Build questionnaire items list ──────────────────────────────────────
@@ -3406,6 +3488,9 @@ def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
         best_score, best_pk = scores[0]
         return best_pk if best_score >= 0.25 else None
 
+    # Lookup dict for template use in saved-mappings section
+    redcap_field_info = {rf['name']: rf for rf in redcap_fields}
+
     suggestion_rows = []  # only unmapped fields
     for rf in redcap_fields:
         if rf['name'] in already_mapped_fields:
@@ -3417,18 +3502,42 @@ def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
             'label_plain': rf['label_plain'],
             'field_type': rf['field_type'],
             'validation': rf['validation'],
+            'choices': rf['choices'],
+            'field_info_summary': rf['field_info_summary'],
             'suggested_pk': suggested_pk or '',
+            'suggested_transform': rf['suggested_transform'],
         })
 
-    existing = _get_existing()
+    from patientapp.models import ResponseTransformChoices as _RTC
+    # Enrich existing mappings with REDCap field metadata for display
+    existing_qs = _get_existing()
+    enriched_existing = []
+    for em in existing_qs:
+        fi = redcap_field_info.get(em.redcap_field_name, {})
+        enriched_existing.append({
+            'obj': em,
+            'field_type': fi.get('field_type', ''),
+            'validation': fi.get('validation', ''),
+            'choices': fi.get('choices', []),
+            'field_info_summary': fi.get('field_info_summary', ''),
+            'response_transform': em.response_transform,
+            'response_transform_label': em.get_response_transform_display(),
+            'suggested_transform': fi.get('suggested_transform', _RTC.NONE),
+        })
+
+    transform_choices = _RTC.choices
+
     return render(request, 'patientapp/redcap/redcap_field_mappings.html', {
         'project': project,
         'mapping': mapping,
         'fm': fm,
-        'existing': existing,
+        'existing': existing_qs,
+        'enriched_existing': enriched_existing,
         'suggestion_rows': suggestion_rows,
         'qi_list': qi_list,
         'qi_list_json': json.dumps(qi_list),
+        'transform_choices': transform_choices,
+        'transform_none_value': _RTC.NONE,
     })
 
 
@@ -3904,6 +4013,33 @@ _SUBMISSION_DATE_FORMATS = {
 }
 
 
+def _apply_response_transform(raw, transform):
+    """Coerce a raw response_value string to the format REDCap expects."""
+    from patientapp.models import ResponseTransformChoices as _RT
+    if raw is None or raw == '':
+        return raw
+    t = transform or _RT.NONE
+    if t == _RT.NONE:
+        return raw
+    try:
+        if t == _RT.TO_INT:
+            return str(int(float(raw)))
+        if t == _RT.ROUND_INT:
+            return str(int(round(float(raw))))
+        if t == _RT.TO_FLOAT:
+            return str(float(raw))
+        if t == _RT.TO_FLOAT_2:
+            return f'{float(raw):.2f}'
+        if t == _RT.STRIP_ZEROS:
+            f = float(raw)
+            # Remove trailing zeros: format to enough precision then strip
+            result = f'{f:.10f}'.rstrip('0').rstrip('.')
+            return result
+    except (ValueError, TypeError):
+        pass
+    return raw
+
+
 def _collect_export_rows(mapping, selected_fms, id_map):
     """Build list of dicts for REDCap import (wide format, one row per submission)."""
     from promapp.models import QuestionnaireSubmission, QuestionnaireItemResponse
@@ -3962,7 +4098,8 @@ def _collect_export_rows(mapping, selected_fms, id_map):
                 for r in QuestionnaireItemResponse.objects.filter(questionnaire_submission=sub)
             }
             for fm_field in field_maps:
-                row[fm_field.redcap_field_name] = responses.get(fm_field.questionnaire_item_id, '')
+                raw = responses.get(fm_field.questionnaire_item_id, '')
+                row[fm_field.redcap_field_name] = _apply_response_transform(raw, fm_field.response_transform)
             rows.append(row)
     return rows
 
