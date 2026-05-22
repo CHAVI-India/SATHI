@@ -3622,16 +3622,45 @@ def redcap_export(request, pk, mapping_pk):
         redcap_form_to_questionnaire_mapping__project_redcap_mapping=mapping
     ).select_related('patient', 'user_exporting_data').order_by('-created_at')[:50]
 
+    # Build list of patients who have a study ID mapped — used for patient selection UI
+    study_id_maps = list(
+        RedcapStudyIDtoPatientIDMap.objects.filter(project_redcap_mapping=mapping)
+        .select_related('patient')
+    )
+    mappable_patients = [
+        {'patient': m.patient, 'redcap_study_id': m.redcap_study_id}
+        for m in study_id_maps
+        if m.redcap_study_id
+    ]
+
     if request.method == 'POST':
         selected_fm_ids = request.POST.getlist('form_mapping_ids')
+        selected_patient_pks = request.POST.getlist('patient_pks')
         export_type = request.POST.get('export_type', ExportTypeChoices.MANUAL)
         selected_fms = form_mappings.filter(pk__in=selected_fm_ids)
 
-        id_map = {
+        full_id_map = {
             m.patient_id: m.redcap_study_id
-            for m in RedcapStudyIDtoPatientIDMap.objects.filter(project_redcap_mapping=mapping)
+            for m in study_id_maps
             if m.redcap_study_id
         }
+
+        # Filter to only selected patients; if none explicitly chosen, export all mapped
+        if selected_patient_pks:
+            import uuid as _uuid
+            selected_pks = set()
+            for raw in selected_patient_pks:
+                try:
+                    selected_pks.add(_uuid.UUID(str(raw)))
+                except (ValueError, AttributeError):
+                    pass
+            id_map = {pk: sid for pk, sid in full_id_map.items() if pk in selected_pks}
+        else:
+            id_map = full_id_map
+
+        if not id_map:
+            messages.error(request, _('No patients selected or no mapped patients found.'))
+            return redirect(request.path)
 
         if export_type == ExportTypeChoices.MANUAL:
             return _build_csv_export(request, mapping, selected_fms, id_map)
@@ -3642,6 +3671,7 @@ def redcap_export(request, pk, mapping_pk):
         'project': project,
         'mapping': mapping,
         'form_mappings': form_mappings,
+        'mappable_patients': mappable_patients,
         'logs': logs,
         'ExportTypeChoices': ExportTypeChoices,
     })
@@ -3667,6 +3697,16 @@ def _collect_export_rows(mapping, selected_fms, id_map):
             patient__in=id_map.keys(),
         ).select_related('patient', 'patient_questionnaire').order_by('patient', 'submission_date')
 
+        # Pre-fetch per-submission instance mappings for this form mapping.
+        # Key: questionnaire_submission_id → RedcapInstanceToSubmissionMapping obj
+        instance_map = {
+            obj.questionnaire_submission_id: obj
+            for obj in RedcapInstanceToSubmissionMapping.objects.filter(
+                redcap_form=fm,
+                questionnaire_submission__in=submissions,
+            )
+        }
+
         date_fmt = _SUBMISSION_DATE_FORMATS.get(fm.submission_date_format) if fm.submission_date_format else None
 
         for sub in submissions:
@@ -3674,11 +3714,25 @@ def _collect_export_rows(mapping, selected_fms, id_map):
             if not study_id:
                 continue
             row = {mapping.redcap_study_id_field or 'record_id': study_id}
-            if fm.redcap_form_is_in_event and fm.redcap_event_name:
-                row['redcap_event_name'] = fm.redcap_event_name
+
+            inst_mapping = instance_map.get(sub.pk)
+
+            if fm.redcap_form_is_in_event:
+                event_name = (
+                    inst_mapping.redcap_event_name
+                    if inst_mapping and inst_mapping.redcap_event_name
+                    else fm.redcap_event_name
+                )
+                if event_name:
+                    row['redcap_event_name'] = event_name
+
             if fm.redcap_form_is_repeating or fm.redcap_event_is_repeating:
                 row['redcap_repeat_instrument'] = fm.redcap_form_name
-                row['redcap_repeat_instance'] = ''
+                row['redcap_repeat_instance'] = (
+                    inst_mapping.redcap_repeat_instance
+                    if inst_mapping and inst_mapping.redcap_repeat_instance is not None
+                    else ''
+                )
 
             if fm.submission_date_field and date_fmt and sub.submission_date:
                 row[fm.submission_date_field] = sub.submission_date.strftime(date_fmt)

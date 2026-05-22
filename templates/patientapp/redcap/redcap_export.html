@@ -58,6 +58,34 @@
       </div>
     </c-card>
 
+    <c-card title="{% trans 'Select Patients to Export' %}" shadow="md" padding="sm" class="mb-6">
+      {% if mappable_patients %}
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-xs text-gray-500">{% blocktrans count n=mappable_patients|length %}{{ n }} patient with a REDCap study ID mapped.{% plural %}{{ n }} patients with a REDCap study ID mapped.{% endblocktrans %} {% trans "Leave all unchecked to export all." %}</p>
+        <div class="flex gap-2">
+          <button type="button" id="btn-select-all" class="text-xs text-blue-600 hover:underline">{% trans "Select All" %}</button>
+          <span class="text-gray-300">|</span>
+          <button type="button" id="btn-deselect-all" class="text-xs text-gray-500 hover:underline">{% trans "Deselect All" %}</button>
+        </div>
+      </div>
+      <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-md divide-y divide-gray-100" id="patient-checklist">
+        {% for row in mappable_patients %}
+        <label class="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer">
+          <input type="checkbox" name="patient_pks" value="{{ row.patient.pk }}"
+            class="patient-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded">
+          <span class="flex-1 min-w-0">
+            <span class="text-sm font-medium text-gray-800">{{ row.patient.name }}</span>
+            <span class="ml-2 text-xs text-gray-400 font-mono">SATHI: {{ row.patient.patient_id }}</span>
+          </span>
+          <span class="text-xs font-mono text-indigo-600 shrink-0">{{ row.redcap_study_id }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-sm text-gray-400 py-3 text-center">{% trans "No patients with a REDCap study ID mapping found. Please assign study IDs on the Patient IDs page first." %}</p>
+      {% endif %}
+    </c-card>
+
     <c-card title="{% trans 'Export Method' %}" shadow="md" padding="sm" class="mb-6">
       <div class="space-y-3">
         <label class="flex items-start gap-3 p-3 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer">
@@ -135,4 +163,18 @@
   {% endif %}
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var btnAll = document.getElementById('btn-select-all');
+  var btnNone = document.getElementById('btn-deselect-all');
+  function setAll(checked) {
+    document.querySelectorAll('.patient-checkbox').forEach(function (cb) { cb.checked = checked; });
+  }
+  if (btnAll)  btnAll.addEventListener('click',  function () { setAll(true); });
+  if (btnNone) btnNone.addEventListener('click', function () { setAll(false); });
+})();
+</script>
 {% endblock %}

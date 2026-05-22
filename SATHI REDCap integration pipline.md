@@ -251,17 +251,33 @@ All PyCap calls have been extracted from `views.py` into `patientapp/redcap_util
 
 ### ⏳ Pending / Next Steps
 
-#### Export — `redcap_repeat_instance` population
-- Currently `redcap_repeat_instance` is written as an empty string in `_collect_export_rows`.
-- Now that `RedcapInstanceToSubmissionMapping` is populated, this should be filled by looking up `(questionnaire_submission, redcap_form_to_questionnaire_mapping)` and reading `redcap_repeat_instance` and `redcap_event_name`.
+#### Export — per-submission `redcap_event_name` + `redcap_repeat_instance` from `RedcapInstanceToSubmissionMapping` ✅
 
-#### Export — `redcap_event_name` population
-- Similarly, `redcap_event_name` in the export row should come from `RedcapInstanceToSubmissionMapping` rather than `fm.redcap_event_name` directly, since different submissions may map to different events.
+`_collect_export_rows` now reads per-submission event and instance values from `RedcapInstanceToSubmissionMapping` instead of using the form-mapping-level defaults.
 
-#### Export — per-patient export workflow
-- The original plan (step 6) calls for patient-level export selection.
-- Currently `_collect_export_rows` exports all patients with a study ID at once.
-- A patient-selector UI (similar to the patient list page, with Select2 or checkboxes) should be added to `redcap_export.html`.
+**Implementation (`patientapp/views.py` → `_collect_export_rows`):**
+- For each `fm` (form mapping), pre-fetches all `RedcapInstanceToSubmissionMapping` rows for that `fm` + the current submission queryset in a single DB query → `instance_map = {submission_id: obj}`.
+- **`redcap_event_name`**: uses `inst_mapping.redcap_event_name` if present; falls back to `fm.redcap_event_name` (e.g. submissions not yet matched).
+- **`redcap_repeat_instance`**: uses `inst_mapping.redcap_repeat_instance` if present and non-null; falls back to `''` for unmatched submissions.
+- Fallback behaviour ensures export still produces a row for submissions without a confirmed match (with empty instance), rather than silently dropping them.
+
+#### Export — per-patient export workflow ✅
+
+`redcap_export` now supports explicit patient selection before export.
+
+**View (`patientapp/views.py` → `redcap_export`):**
+- Pre-fetches all `RedcapStudyIDtoPatientIDMap` rows with `select_related('patient')` on both GET and POST (single shared queryset).
+- Builds `mappable_patients = [{patient, redcap_study_id}]` and passes it to the template on GET.
+- On POST: reads `patient_pks` checkbox list. If any are checked, filters `id_map` to only those patients (UUID-safe parsing). If none are checked, falls back to exporting all mapped patients.
+- Returns an error message and redirects if the resulting `id_map` is empty (no valid patients).
+
+**Template (`redcap_export.html`):**
+- New **"Select Patients to Export"** card inserted between the form mappings card and export method card.
+- Scrollable checklist (`max-h-64`) — one row per mapped patient showing name, SATHI ID (monospace), and REDCap study ID.
+- **Select All / Deselect All** buttons for convenience.
+- Pluralised count hint: *"N patients mapped. Leave all unchecked to export all."*
+- Empty state message if no patients have a study ID assigned yet.
+- Vanilla JS in `{% block extra_js %}` wires the two toggle buttons.
 
 ---
 
