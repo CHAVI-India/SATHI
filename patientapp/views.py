@@ -4084,8 +4084,8 @@ def _collect_export_rows(mapping, selected_fms, id_map):
                     row['redcap_event_name'] = event_name
 
             if fm.redcap_form_is_repeating or fm.redcap_event_is_repeating:
-                # For mixed projects check the per-submission event against project_info.
-                # If the instrument is NOT repeating in this specific event, blank the fields.
+                # Determine per-submission whether the instrument or the event is repeating,
+                # using project_info['repeating'] keyed against this submission's event.
                 _repeating_list = (mapping.redcap_project_info or {}).get('repeating', [])
                 if _repeating_list and event_name:
                     _repeating_instruments = {
@@ -4096,21 +4096,29 @@ def _collect_export_rows(mapping, selected_fms, id_map):
                         e.get('event_name', '').strip()
                         for e in _repeating_list if not e.get('form_name', '').strip()
                     }
-                    _is_repeating = (
-                        (event_name, fm.redcap_form_name) in _repeating_instruments
-                        or event_name in _repeating_events
-                    )
+                    _instrument_repeats = (event_name, fm.redcap_form_name) in _repeating_instruments
+                    _event_repeats = event_name in _repeating_events
                 else:
-                    _is_repeating = True  # no project-info data or no event → trust fm flags
+                    # No project-info data or no event context — fall back to fm flags
+                    _instrument_repeats = fm.redcap_form_is_repeating
+                    _event_repeats = fm.redcap_event_is_repeating
 
-                if _is_repeating:
+                _instance_val = (
+                    inst_mapping.redcap_repeat_instance
+                    if inst_mapping and inst_mapping.redcap_repeat_instance is not None
+                    else ''
+                )
+
+                if _instrument_repeats:
+                    # Repeating instrument: both fields populated
                     row['redcap_repeat_instrument'] = fm.redcap_form_name
-                    row['redcap_repeat_instance'] = (
-                        inst_mapping.redcap_repeat_instance
-                        if inst_mapping and inst_mapping.redcap_repeat_instance is not None
-                        else ''
-                    )
+                    row['redcap_repeat_instance'] = _instance_val
+                elif _event_repeats:
+                    # Repeating event: instrument field is blank, instance still required
+                    row['redcap_repeat_instrument'] = ''
+                    row['redcap_repeat_instance'] = _instance_val
                 else:
+                    # Non-repeating in this event (mixed project): both fields blank
                     row['redcap_repeat_instrument'] = ''
                     row['redcap_repeat_instance'] = ''
 
