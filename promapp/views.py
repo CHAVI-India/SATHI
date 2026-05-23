@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, permission_required
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView, TemplateView, View
 from django.urls import reverse_lazy, reverse
+from urllib.parse import quote, urlparse
 from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
@@ -1157,6 +1158,7 @@ class LikertScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
                 )
                 
                 translation_status = []
+                list_params = self.request.GET.urlencode()
                 for lang_code, lang_name in settings.LANGUAGES:
                     has_translation = lang_code in existing_translations
                     # Check if translation has content (not just empty strings)
@@ -1169,11 +1171,15 @@ class LikertScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
                     else:
                         has_content = False
                         
+                    translation_url = reverse('likert_scale_response_option_translation', args=[option.id]) + f'?language={lang_code}'
+                    if list_params:
+                        back_url = reverse('likert_scale_list') + '?' + list_params
+                        translation_url += '&next=' + quote(back_url, safe='')
                     translation_status.append({
                         'language_code': lang_code,
                         'language_name': lang_name,
                         'has_translation': has_translation and has_content,
-                        'url': reverse('likert_scale_response_option_translation', args=[option.id]) + f'?language={lang_code}'
+                        'url': translation_url
                     })
                 
                 options_with_translation_status.append({
@@ -3749,6 +3755,11 @@ class LikertScaleResponseOptionTranslationView(LoginRequiredMixin, PermissionReq
         return redirect(self.get_success_url())
 
     def get_success_url(self):
+        next_url = self.request.GET.get('next')
+        if next_url:
+            parsed = urlparse(next_url)
+            if not parsed.netloc or parsed.netloc == self.request.get_host():
+                return next_url
         return reverse('likert_scale_list')
     
 class LikertScaleResponseOptionTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
