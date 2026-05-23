@@ -97,10 +97,11 @@
 {% endif %}
 
 <!-- Pagination -->
-{% if range_scales %}
+{% if is_paginated %}
 <c-paginator 
   :page_obj="page_obj" 
   :is_paginated="is_paginated" 
   preserve_params="true"
+  hx_target="#range-scales-table"
   class="mt-6" />
 {% endif %} 
