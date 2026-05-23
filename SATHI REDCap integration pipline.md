@@ -395,3 +395,41 @@ When `redcap_date_mapping_field` is configured on a `RedcapFormToQuestionnaireMa
 **Issue:** After extracting inline PyCap calls into `redcap_utils.py`, `primary_field` and `secondary_field` local variables (previously defined inside the old fetch block) were silently removed from `redcap_patient_ids`. These were still passed in the template context, causing a `NameError`.
 
 **Fix:** Restored both variables directly from `mapping.redcap_study_id_field` and `mapping.redcap_secondary_id_field` before the `fetch_patient_id_records` call.
+
+---
+
+#### Export — mixed-project repeating instrument/event handling ✅
+
+**Issue:** Projects with a mixed structure (some events repeating, others not, or some instruments repeating only in specific events) were not handled correctly during export. `_collect_export_rows` used the `RedcapFormToQuestionnaireMapping` flags (`redcap_form_is_repeating`, `redcap_event_is_repeating`) which are form-level, not per-event. This meant:
+- A form marked as repeating would always emit `redcap_repeat_instrument` / `redcap_repeat_instance`, even for events in which it does not repeat.
+- REDCap rejects rows where these columns have values for non-repeating events.
+- Additionally, when the **entire event** repeats (not just one instrument), `redcap_repeat_instrument` must be **blank** but `redcap_repeat_instance` must still be populated — the old code set `redcap_repeat_instrument` to `fm.redcap_form_name` in both cases.
+
+**Fix (`patientapp/views.py` → `_collect_export_rows`):**
+- `event_name` is now resolved per-submission (from `inst_mapping.redcap_event_name` or `fm.redcap_event_name`) before the repeating check, so it is available for lookup.
+- The `redcap_project_info['repeating']` list is parsed inline into two sets:
+  - `_repeating_instruments`: `{(event_name, form_name)}` — entries that have a non-empty `form_name`.
+  - `_repeating_events`: `{event_name}` — entries that have an empty `form_name` (whole event repeats).
+- Three distinct cases handled per submission:
+
+| Condition | `redcap_repeat_instrument` | `redcap_repeat_instance` |
+|---|---|---|
+| `_instrument_repeats` — `(event_name, form_name)` in `_repeating_instruments` | `form_name` | instance number |
+| `_event_repeats` — `event_name` in `_repeating_events` | `""` (blank) | instance number |
+| Neither (non-repeating event in mixed project) | `""` (blank) | `""` (blank) |
+
+- **Fallback**: if `redcap_project_info['repeating']` is empty or no `event_name` is available, falls back to the original `fm` flag behaviour (`fm.redcap_form_is_repeating` / `fm.redcap_event_is_repeating`) to preserve backwards compatibility with simple single-event projects.
+
+---
+
+#### Matching — Pass 1 discarded matched instance number ✅
+
+**Issue:** In `redcap_match_submissions`, Pass 1 (date-proximity) correctly identified the closest REDCap event **and** instance for each submission, but only stored `best_event` — the matched `inst['instance']` was discarded. Pass 2 then treated the row as having no instance (`suggested_instance is None`) and incremented the per-event counter, producing a suggestion one higher than the actual match.
+
+**Example:** `additional_visits_arm_1` had existing instances 1 (2024-11-14) and 2 (2026-03-18). A submission with date 2026-03-18 correctly matched event instance 2 in Pass 1, but Pass 2 incremented from `existing_max = 2` to `3`.
+
+**Fix (`patientapp/views.py` → `redcap_match_submissions`):**
+- Pass 1 now also captures `best_instance = inst['instance']` alongside `best_event` when a date match is found.
+- `suggested_instance` is initialised to `None`; if Pass 1 finds a match, it is set to the matched instance integer.
+- Pass 2 already guards with `if row['suggested_instance'] is None` — rows where Pass 1 found a direct match are skipped entirely.
+- Rows with no date match (e.g. no `redcap_date_mapping_field` configured, or submission beyond the 30-day threshold) still go through Pass 2 and receive an auto-incremented instance starting from `existing_max + 1`.
