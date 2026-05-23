@@ -30,7 +30,7 @@
                         {{ patient.gender|default:"—" }}
                     </span>
                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {{ patient.questionnaire_count }} {% translate "Qs" %}
+                        {{ patient.questionnaire_count }} {% translate "Questionnaires" %}
                     </span>
                     {% if patient.institution %}
                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
@@ -44,15 +44,15 @@
             <div class="flex flex-wrap gap-2 lg:flex-shrink-0">
                 {% if patient.id %}
                 <c-view_button href="{% url 'patient_detail' patient.id %}" size="sm">
-                    {% translate "View" %}
+                    {% translate "View Details" %}
                 </c-view_button>
                 {% if perms.patientapp.view_patient and perms.promapp.add_patientquestionnaire %}
                 <c-link_button href="{% url 'patient_questionnaire_management' patient.id %}" variant="success" size="sm">
-                    {% translate "Manage" %}
+                    {% translate "Manage Questionnaires" %}
                 </c-link_button>
                 {% endif %}
                 <c-link_button href="{% url 'prom_review' patient.id %}" variant="info" size="sm" onclick="showPromReviewLoader(event)">
-                    {% translate "Responses" %}
+                    {% translate "View Responses" %}
                 </c-link_button>
                 {% else %}
                 <span class="text-sm text-gray-500">No ID available</span>
