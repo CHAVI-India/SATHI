@@ -3779,9 +3779,10 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
                     'existing': existing,
                 })
             else:
-                # Date-proximity: find the event whose date is closest to submission_date
+                # Date-proximity: find the rc_instance whose date is closest to submission_date
                 _MATCH_THRESHOLD_SECONDS = 30 * 86400  # 30 days — no suggestion beyond this
                 best_event = fm.redcap_event_name or (available_events[0] if available_events else '')
+                best_instance = None  # if set, skip Pass 2 auto-increment for this row
                 if rc_instances and fm.redcap_date_mapping_field:
                     best_delta = None
                     for inst in rc_instances:
@@ -3797,12 +3798,13 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
                                 if delta <= _MATCH_THRESHOLD_SECONDS and (best_delta is None or delta < best_delta):
                                     best_delta = delta
                                     best_event = inst['event']
+                                    best_instance = inst['instance']  # use this instance directly
                         except Exception:
                             continue
                 sub_rows.append({
                     'submission': sub,
                     'suggested_event': best_event,
-                    'suggested_instance': None,  # filled in pass 2
+                    'suggested_instance': best_instance,  # None → filled by Pass 2; int → skip Pass 2
                     'confirmed': False,
                     'existing': None,
                 })
