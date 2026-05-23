@@ -1091,6 +1091,48 @@ class LikertScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
             elif created_filter == 'older':
                 month_ago = now - timedelta(days=30)
                 queryset = queryset.filter(created_date__lt=month_ago)
+        
+        # Apply missing translation filter if provided
+        missing_translation = self.request.GET.get('missing_translation')
+        if missing_translation and missing_translation != 'all':
+            # Find scales that have at least one option missing a translation
+            # for the specified language (no row in translations table, or empty option_text)
+            fully_translated_ids = LikertScale.objects.filter(
+                likertscaleresponseoption__isnull=False
+            ).exclude(
+                likertscaleresponseoption__translations__language_code=missing_translation,
+                likertscaleresponseoption__translations__option_text__isnull=False,
+            ).exclude(
+                likertscaleresponseoption__translations__language_code=missing_translation,
+                likertscaleresponseoption__translations__option_text='',
+            ).values_list('id', flat=True)
+            # Scales with no options at all are also considered missing translations
+            scales_with_options = LikertScale.objects.filter(
+                likertscaleresponseoption__isnull=False
+            ).values_list('id', flat=True)
+            # Get scales that have options but at least one option is missing the translation
+            translated_option_scale_ids = LikertScaleResponseOption.objects.filter(
+                translations__language_code=missing_translation,
+                translations__option_text__isnull=False,
+            ).exclude(
+                translations__option_text=''
+            ).values_list('likert_scale_id', flat=True).distinct()
+            # Scales with options where ALL options have the translation
+            all_options_translated_ids = set()
+            for scale_id in set(scales_with_options):
+                option_ids = LikertScaleResponseOption.objects.filter(
+                    likert_scale_id=scale_id
+                ).values_list('id', flat=True)
+                translated_ids = LikertScaleResponseOption.objects.filter(
+                    id__in=option_ids,
+                    translations__language_code=missing_translation,
+                    translations__option_text__isnull=False,
+                ).exclude(
+                    translations__option_text=''
+                ).values_list('id', flat=True)
+                if set(option_ids) == set(translated_ids):
+                    all_options_translated_ids.add(scale_id)
+            queryset = queryset.exclude(id__in=all_options_translated_ids)
             
         return queryset.order_by('-created_date')
     
@@ -1165,6 +1207,10 @@ class LikertScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         
         # Create filters for the search component
+        language_options = [
+            {'value': lang_code, 'label': f'Missing {lang_name} translation'}
+            for lang_code, lang_name in settings.LANGUAGES
+        ]
         context['likert_scale_filters'] = [
             {
                 'type': 'select',
@@ -1189,6 +1235,14 @@ class LikertScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
                     {'value': 'month', 'label': 'This month'},
                     {'value': 'older', 'label': 'Older than 30 days'}
                 ]
+            },
+            {
+                'type': 'select',
+                'name': 'missing_translation',
+                'label': 'Translation status',
+                'all_label': 'All languages',
+                'selected': self.request.GET.get('missing_translation', 'all'),
+                'options': language_options
             }
         ]
         
