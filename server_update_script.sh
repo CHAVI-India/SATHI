@@ -37,8 +37,20 @@ npm run tailwind:build
 echo "Collecting Static Files"
 python manage.py collectstatic --noinput
 
+
 # Restart Gunicorn installed using Supervisor
 
 echo "Restarting Gunicorn"
 sudo supervisorctl restart all
 
+# Server package updates
+
+sudo apt update
+echo "Server package updates completed"
+
+sudo apt upgrade -y
+echo "Server packages upgraded"
+
+# Print timestamp
+
+echo "Time now: $(date)"
