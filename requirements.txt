@@ -56,7 +56,7 @@ psycopg2-binary==2.9.12
 pycap==2.7.0
 pycparser==3.0
 pydantic==2.13.4
-pydantic_core==2.46.4
+pydantic_core==2.47.0
 Pygments==2.20.0
 pymemcache==4.0.0
 pypng==0.20220715.0
