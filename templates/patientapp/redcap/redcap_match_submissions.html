@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load cotton %}
+{% load prom_filters %}
 
 {% block title %}{% trans "Match Submissions" %} — {{ patient.name }}{% endblock %}
 
@@ -87,6 +88,9 @@
         <table class="min-w-full text-sm">
           <thead class="bg-gray-50 border-b border-gray-200">
             <tr>
+              <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                <input type="checkbox" id="select_all_{{ fm.pk }}" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" onchange="toggleAll('{{ fm.pk }}', this.checked)">
+              </th>
               <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Submission date" %}</th>
               {% if fm.redcap_form_is_in_event %}
               <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Event name" %}</th>
@@ -99,7 +103,14 @@
           </thead>
           <tbody class="divide-y divide-gray-100">
             {% for row in sub_rows %}
-            <tr class="hover:bg-gray-50">
+            <tr class="hover:bg-gray-50" data-submission-id="{{ row.submission.pk }}">
+
+              {# Checkbox to include in save #}
+              <td class="px-2 py-3 whitespace-nowrap">
+                <input type="checkbox" name="include_{{ fm.pk }}_{{ row.submission.pk }}"
+                  class="submission-checkbox-{{ fm.pk }} rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  {% if not row.confirmed %}checked{% endif %}>
+              </td>
 
               {# Submission date #}
               <td class="px-4 py-3 whitespace-nowrap text-gray-700">
@@ -114,7 +125,11 @@
                   data-confirmed="{% if row.confirmed %}1{% else %}0{% endif %}"
                   class="rc-event-select w-full px-2 py-1.5 border border-gray-300 rounded text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                   {% for ev in available_events %}
-                    <option value="{{ ev }}" {% if ev == row.suggested_event %}selected{% endif %}>{{ ev }}</option>
+                    {% with event_date=entry.event_dates|get_item:ev %}
+                    <option value="{{ ev }}" {% if ev == row.suggested_event %}selected{% endif %}>
+                      {{ ev }}{% if event_date %} — {{ event_date }}{% endif %}
+                    </option>
+                    {% endwith %}
                   {% empty %}
                     <option value="{{ row.suggested_event }}">{{ row.suggested_event }}</option>
                   {% endfor %}
@@ -196,7 +211,7 @@
       <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}" variant="secondary">
         {% trans "Cancel" %}
       </c-link_button>
-      <c-button type="submit" variant="primary">{% trans "Save Matches" %}</c-button>
+      <c-button type="submit" variant="primary">{% trans "Save Selected Matches" %}</c-button>
     </div>
 
   </form>
@@ -208,19 +223,19 @@
 <script>
 (function () {
   function recalcInstances(fmPk) {
-    const selects = Array.from(
-      document.querySelectorAll(`.rc-event-select[data-fm="${fmPk}"]`)
-    );
-    const inputs = Array.from(
-      document.querySelectorAll(`.rc-instance-input[data-fm="${fmPk}"]`)
-    );
-    if (!inputs.length) return;
+    const rows = Array.from(
+      document.querySelectorAll(`tr[data-submission-id]`)
+    ).filter(row => {
+      const checkbox = row.querySelector('input[type="checkbox"]');
+      return checkbox && checkbox.name && checkbox.name.includes(`_${fmPk}_`);
+    });
 
     const eventCounters = {};
-    selects.forEach((sel, i) => {
-      const input = inputs[i];
-      if (!input) return;
-      const ev = sel.value;
+    rows.forEach(row => {
+      const select = row.querySelector('.rc-event-select');
+      const input = row.querySelector('.rc-instance-input');
+      if (!select || !input) return;
+      const ev = select.value;
       eventCounters[ev] = (eventCounters[ev] || 0) + 1;
       input.value = eventCounters[ev];
     });
@@ -229,6 +244,13 @@
   document.querySelectorAll('.rc-event-select').forEach(sel => {
     sel.addEventListener('change', () => recalcInstances(sel.dataset.fm));
   });
+
+  // Toggle all checkboxes for a form mapping
+  window.toggleAll = function(fmPk, checked) {
+    document.querySelectorAll(`.submission-checkbox-${fmPk}`).forEach(cb => {
+      cb.checked = checked;
+    });
+  };
 })();
 </script>
 {% endblock %}

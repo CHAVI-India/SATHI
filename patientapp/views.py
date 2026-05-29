@@ -3794,6 +3794,14 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
                     event_counter[ev] = event_counter.get(ev, 0) + 1
                     row['suggested_instance'] = event_counter[ev]
 
+        # Build event -> date mapping for display in dropdown
+        event_dates = {}
+        for rc in rc_instances:
+            ev = rc.get('event')
+            date_str = rc.get('date_str')
+            if ev and date_str and not event_dates.get(ev):
+                event_dates[ev] = date_str
+
         fm_data.append({
             'fm': fm,
             'sub_rows': sub_rows,
@@ -3801,13 +3809,21 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
             'fetch_error': fetch_error,
             'date_field_form_name': date_field_form_name,
             'available_events': available_events,
+            'event_dates': event_dates,
         })
 
     if request.method == 'POST':
+        saved_count = 0
         for fm_entry in fm_data:
             fm = fm_entry['fm']
             for row in fm_entry['sub_rows']:
                 sub = row['submission']
+
+                # Only process if checkbox is checked
+                key_include = f'include_{fm.pk}_{sub.pk}'
+                if request.POST.get(key_include) != 'on':
+                    continue
+
                 key_event = f'event_{fm.pk}_{sub.pk}'
                 key_instance = f'instance_{fm.pk}_{sub.pk}'
                 event_val = request.POST.get(key_event, '').strip()
@@ -3823,8 +3839,12 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
                 obj.redcap_repeat_instance = instance_int
                 obj.data_access_group = mapping.redcap_data_access_group_used and '' or None
                 obj.save()
+                saved_count += 1
 
-        messages.success(request, _('Submission matches saved.'))
+        if saved_count > 0:
+            messages.success(request, _('{count} submission match(es) saved.').format(count=saved_count))
+        else:
+            messages.info(request, _('No submissions were selected to save.'))
         return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
 
     return render(request, 'patientapp/redcap/redcap_match_submissions.html', {
