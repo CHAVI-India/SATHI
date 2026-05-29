@@ -3884,42 +3884,10 @@ def redcap_export(request, pk, mapping_pk):
 
     from promapp.models import QuestionnaireSubmission as _QS
 
-    patient_ids_with_mapping = {m.patient_id for m in study_id_maps if m.redcap_study_id}
-
-    # Build unmatched warnings: submissions for repeating/event forms with no instance mapping.
-    # Only meaningful for forms where instance/event assignment matters.
-    def _get_unmatched_warnings(fms_qs, patient_id_set):
-        warnings = []
-        for fm in fms_qs:
-            if not (fm.redcap_form_is_in_event or fm.redcap_form_is_repeating or fm.redcap_event_is_repeating):
-                continue
-            subs = _QS.objects.filter(
-                patient_questionnaire__questionnaire=fm.questionnaire,
-                patient__in=patient_id_set,
-            ).select_related('patient').order_by('patient', 'submission_date')
-            matched_ids = set(
-                RedcapInstanceToSubmissionMapping.objects.filter(
-                    redcap_form=fm,
-                    questionnaire_submission__in=subs,
-                ).values_list('questionnaire_submission_id', flat=True)
-            )
-            for sub in subs:
-                if sub.pk not in matched_ids:
-                    warnings.append({
-                        'patient': sub.patient,
-                        'fm': fm,
-                        'submission_date': sub.submission_date,
-                        'match_url': reverse('redcap_match_submissions', kwargs={
-                            'pk': pk, 'mapping_pk': mapping_pk, 'patient_pk': sub.patient.pk,
-                        }),
-                    })
-        return warnings
-
     if request.method == 'POST':
         selected_fm_ids = request.POST.getlist('form_mapping_ids')
         selected_patient_pks = request.POST.getlist('patient_pks')
         export_type = request.POST.get('export_type', ExportTypeChoices.MANUAL)
-        confirm_unmatched = request.POST.get('confirm_unmatched')
         selected_fms = form_mappings.filter(pk__in=selected_fm_ids)
 
         full_id_map = {
@@ -3957,32 +3925,13 @@ def redcap_export(request, pk, mapping_pk):
                 'The following form mappings have no field mappings configured and will produce empty rows: %(names)s'
             ) % {'names': names})
 
-        # Gate: if any unmatched submissions exist and user has not confirmed, redisplay with warning
-        if not confirm_unmatched:
-            unmatched = _get_unmatched_warnings(selected_fms, set(id_map.keys()))
-            if unmatched:
-                unmatched_warnings = unmatched
-                return render(request, 'patientapp/redcap/redcap_export.html', {
-                    'project': project,
-                    'mapping': mapping,
-                    'form_mappings': form_mappings,
-                    'mappable_patients': mappable_patients,
-                    'logs': logs,
-                    'ExportTypeChoices': ExportTypeChoices,
-                    'unmatched_warnings': unmatched_warnings,
-                    # Re-inject POST selections so the form re-renders correctly
-                    'selected_fm_ids': selected_fm_ids,
-                    'selected_patient_pks': selected_patient_pks,
-                    'selected_export_type': export_type,
-                    'show_unmatched_confirm': True,
-                })
+        # Note: Unmatched submissions (for repeating/event forms without instance mapping)
+        # are automatically excluded from the export in _collect_export_rows()
 
         if export_type == ExportTypeChoices.MANUAL:
             return _build_csv_export(request, mapping, selected_fms, id_map)
         else:
             return _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map)
-
-    unmatched_warnings = _get_unmatched_warnings(form_mappings, patient_ids_with_mapping)
 
     return render(request, 'patientapp/redcap/redcap_export.html', {
         'project': project,
@@ -3991,7 +3940,6 @@ def redcap_export(request, pk, mapping_pk):
         'mappable_patients': mappable_patients,
         'logs': logs,
         'ExportTypeChoices': ExportTypeChoices,
-        'unmatched_warnings': unmatched_warnings,
     })
 
 
@@ -4110,6 +4058,13 @@ def _collect_export_rows(mapping, selected_fms, id_map):
                     # Non-repeating in this event (mixed project): both fields blank
                     row['redcap_repeat_instrument'] = ''
                     row['redcap_repeat_instance'] = ''
+
+            # Skip submissions that require instance mapping but don't have one
+            # (This filters out unmatched submissions for repeating/event forms)
+            _is_repeating = fm.redcap_form_is_repeating or fm.redcap_event_is_repeating
+            _is_in_event = fm.redcap_form_is_in_event
+            if (_is_repeating or _is_in_event) and inst_mapping is None:
+                continue
 
             if fm.submission_date_field and date_fmt and sub.submission_date:
                 row[fm.submission_date_field] = sub.submission_date.strftime(date_fmt)

@@ -33,53 +33,6 @@
   <form method="post">
     {% csrf_token %}
 
-    {% if unmatched_warnings %}
-    <div class="mb-6 rounded-md border border-orange-300 bg-orange-50 p-4">
-      <p class="text-sm font-semibold text-orange-800 mb-2">⚠ {% trans "Unmatched submissions detected" %}</p>
-      <p class="text-xs text-orange-700 mb-3">{% blocktrans %}The following submissions belong to repeating or event-based forms but have not been matched to a REDCap instance. Exporting them will leave redcap_repeat_instance blank, which may cause data errors in REDCap. Use the Match link to resolve them first, then return here to export.{% endblocktrans %}</p>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-xs">
-          <thead class="bg-orange-100">
-            <tr>
-              <th class="px-3 py-1.5 text-left text-orange-700 font-medium">{% trans "Patient" %}</th>
-              <th class="px-3 py-1.5 text-left text-orange-700 font-medium">{% trans "Form" %}</th>
-              <th class="px-3 py-1.5 text-left text-orange-700 font-medium">{% trans "Submission Date" %}</th>
-              <th class="px-3 py-1.5 text-left text-orange-700 font-medium">{% trans "Action" %}</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-orange-200">
-            {% for w in unmatched_warnings %}
-            <tr class="bg-white">
-              <td class="px-3 py-1.5 text-gray-800">{{ w.patient.name }}</td>
-              <td class="px-3 py-1.5 font-mono text-indigo-700">{{ w.fm.redcap_form_name }}</td>
-              <td class="px-3 py-1.5 text-gray-600">{{ w.submission_date|date:"d M Y H:i" }}</td>
-              <td class="px-3 py-1.5">
-                <a href="{{ w.match_url }}" target="_blank" class="text-blue-600 hover:underline text-xs">{% trans "Match →" %}</a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% if show_unmatched_confirm %}
-      {# Re-inject the previous POST selections so submitting the confirm doesn't lose them #}
-      {% for fmid in selected_fm_ids %}<input type="hidden" name="form_mapping_ids" value="{{ fmid }}">{% endfor %}
-      {% for ppk in selected_patient_pks %}<input type="hidden" name="patient_pks" value="{{ ppk }}">{% endfor %}
-      <input type="hidden" name="export_type" value="{{ selected_export_type }}">
-      <div class="mt-4 flex items-start gap-2 border-t border-orange-200 pt-3">
-        <input type="checkbox" name="confirm_unmatched" id="confirm_unmatched" value="1"
-          class="mt-0.5 h-4 w-4 text-orange-600 border-gray-300 rounded">
-        <label for="confirm_unmatched" class="text-xs text-orange-800">
-          {% trans "I understand that unmatched submissions will be exported with a blank repeat instance. I want to proceed anyway." %}
-        </label>
-      </div>
-      <div class="mt-3 flex justify-end gap-3">
-        <a href="{{ request.path }}" class="text-xs text-gray-500 hover:underline self-center">{% trans "Cancel" %}</a>
-        <c-button type="submit" variant="danger">{% trans "Proceed with Export" %}</c-button>
-      </div>
-      {% endif %}
-    </div>
-    {% endif %}
 
     <c-card title="{% trans 'Select Forms to Export' %}" shadow="md" padding="sm" class="mb-6">
       <div class="space-y-3">
