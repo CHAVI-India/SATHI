@@ -1337,7 +1337,7 @@ def prom_review_construct_plot(request, pk, construct_id):
         patient_filter_max_age=max_age_value
     )
     
-    # Calculate aggregated statistics with caching
+    # Calculate aggregated statistics (no caching - aggregation intervals are patient-specific)
     aggregated_statistics = None
     aggregation_metadata = None
     if aggregated_patients and historical_scores:
@@ -1348,72 +1348,39 @@ def prom_review_construct_plot(request, pk, construct_id):
                 get_patient_start_date_for_aggregation
             )
             
-            # Generate cache key for aggregation (population-level, not patient-specific)
-            cache_key_params = {
-                'construct_id': str(construct_id),
-                'start_date_ref': start_date_reference,
-                'time_interval': time_interval,
-                'agg_type': aggregation_type,
-                'gender': patient_filter_gender or 'all',
-                'diagnosis': patient_filter_diagnosis or 'all',
-                'treatment': patient_filter_treatment or 'all',
-                'min_age': str(min_age_value) if min_age_value else 'none',
-                'max_age': str(max_age_value) if max_age_value else 'none',
-                'max_time_int': str(max_time_interval_value) if max_time_interval_value else 'none',
-            }
-            cache_key_base = json.dumps(cache_key_params, sort_keys=True)
-            cache_key_hash = hashlib.md5(cache_key_base.encode()).hexdigest()
-            cache_key = f"agg_{cache_key_hash}"
+            # Get reference time intervals from this patient's scores (patient-specific)
+            reference_intervals = []
+            for score_obj in historical_scores:
+                interval_value = calculate_time_interval_value(
+                    score_obj.questionnaire_submission.submission_date,
+                    patient_start_date,
+                    time_interval
+                )
+                if interval_value not in reference_intervals:
+                    reference_intervals.append(interval_value)
+            reference_intervals.sort()
             
-            # Try to get from cache
-            cached_result = cache.get(cache_key)
-            if cached_result:
-                cache_logger.info(f"Cache HIT for aggregation: {cache_key} (construct: {construct.name})")
-                aggregated_statistics = cached_result.get('statistics')
-                aggregation_metadata = cached_result.get('metadata')
-            else:
-                cache_logger.info(f"Cache MISS for aggregation: {cache_key} (construct: {construct.name})")
+            # Check patients with requested start date type
+            patients_with_requested_start_date = 0
+            for agg_patient in aggregated_patients:
+                patient_start_date_agg = get_patient_start_date_for_aggregation(agg_patient, start_date_reference)
+                if patient_start_date_agg:
+                    patients_with_requested_start_date += 1
+            
+            if patients_with_requested_start_date > 0:
+                aggregated_data, aggregation_metadata = aggregate_construct_scores_by_time_interval(
+                    construct=construct,
+                    patients_queryset=aggregated_patients,
+                    start_date_reference=start_date_reference,
+                    time_interval=time_interval,
+                    max_time_interval_filter=max_time_interval_value,
+                    reference_time_intervals=reference_intervals
+                )
                 
-                # Get reference time intervals
-                reference_intervals = []
-                for score_obj in historical_scores:
-                    interval_value = calculate_time_interval_value(
-                        score_obj.questionnaire_submission.submission_date,
-                        patient_start_date,
-                        time_interval
+                if aggregated_data:
+                    aggregated_statistics = calculate_aggregation_statistics(
+                        aggregated_data, aggregation_type
                     )
-                    if interval_value not in reference_intervals:
-                        reference_intervals.append(interval_value)
-                reference_intervals.sort()
-                
-                # Check patients with requested start date type
-                patients_with_requested_start_date = 0
-                for agg_patient in aggregated_patients:
-                    patient_start_date_agg = get_patient_start_date_for_aggregation(agg_patient, start_date_reference)
-                    if patient_start_date_agg:
-                        patients_with_requested_start_date += 1
-                
-                if patients_with_requested_start_date > 0:
-                    aggregated_data, aggregation_metadata = aggregate_construct_scores_by_time_interval(
-                        construct=construct,
-                        patients_queryset=aggregated_patients,
-                        start_date_reference=start_date_reference,
-                        time_interval=time_interval,
-                        max_time_interval_filter=max_time_interval_value,
-                        reference_time_intervals=reference_intervals
-                    )
-                    
-                    if aggregated_data:
-                        aggregated_statistics = calculate_aggregation_statistics(
-                            aggregated_data, aggregation_type
-                        )
-                        
-                        # Cache the result for 1 hour (3600 seconds)
-                        cache.set(cache_key, {
-                            'statistics': aggregated_statistics,
-                            'metadata': aggregation_metadata
-                        }, 3600)
-                        cache_logger.info(f"Cached aggregation result: {cache_key} (TTL: 1 hour)")
         except Exception as e:
             logger.error(f"Error calculating aggregated data for construct {construct.name}: {e}")
     
