@@ -24,7 +24,7 @@
             <c-edit_button href="{% url 'item_update' item.id %}" size="sm">
               {% translate "Edit" %}
             </c-edit_button>
-            <c-create_translations_button href="{% url 'item_translation' item.id %}?language={{ current_language }}" target="_blank" rel="noopener noreferrer" size="sm">
+            <c-create_translations_button href="{% url 'item_translation' item.id %}?language={{ current_language }}{% if list_params %}&next={% url 'item_list' %}%3F{{ list_params|urlencode }}{% endif %}" target="_blank" rel="noopener noreferrer" size="sm">
               {% translate "Translate" %}
             </c-create_translations_button>
           </div>
@@ -99,7 +99,7 @@
                   language_code="{{ lang_code }}"
                   language_name="{{ lang_name }}"
                   has_translation="{% if lang_code in available_langs %}true{% else %}false{% endif %}"
-                  url="{% url 'item_translation' item.id %}?language={{ lang_code }}"
+                  url="{% url 'item_translation' item.id %}?language={{ lang_code }}{% if list_params %}&next={% url 'item_list' %}%3F{{ list_params|urlencode }}{% endif %}"
                   size="sm">
                 </c-translation_indicator>
               {% endwith %}

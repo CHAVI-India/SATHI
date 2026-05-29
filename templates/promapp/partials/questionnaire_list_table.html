@@ -17,7 +17,7 @@
             <c-edit_button href="{% url 'questionnaire_update' questionnaire.id %}" title="{% translate 'Edit questionnaire' %}">
               {% translate "Edit" %}
             </c-edit_button>
-            <c-create_translations_button href="{% url 'questionnaire_translation' questionnaire.id %}" title="{% translate 'Manage translations' %}">
+            <c-create_translations_button href="{% url 'questionnaire_translation' questionnaire.id %}{% if list_params %}?next={% url 'questionnaire_list' %}%3F{{ list_params|urlencode }}{% endif %}" title="{% translate 'Manage translations' %}">
               {% translate "Translate" %}
             </c-create_translations_button>
           </div>
@@ -36,7 +36,7 @@
                   language_code="{{ status.language_code }}"
                   language_name="{{ status.language_name }}"
                   :has_translation="status.has_translation"
-                  url="{% url 'questionnaire_translation' questionnaire.id %}?language={{ status.language_code }}"
+                  url="{% url 'questionnaire_translation' questionnaire.id %}?language={{ status.language_code }}{% if list_params %}&next={% url 'questionnaire_list' %}%3F{{ list_params|urlencode }}{% endif %}"
                   size="sm" />
             {% endfor %}
           </div>

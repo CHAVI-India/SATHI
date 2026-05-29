@@ -75,6 +75,20 @@ class QuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
                 queryset = queryset.filter(questionnaire_answer_interval=0)
             elif answer_interval == 'has_interval':
                 queryset = queryset.filter(questionnaire_answer_interval__gt=0)
+        
+        # Apply missing translation filter if provided
+        missing_translation = self.request.GET.get('missing_translation')
+        if missing_translation and missing_translation != 'all':
+            translated_name_ids = Questionnaire.objects.filter(
+                translations__language_code=missing_translation,
+                translations__name__isnull=False,
+            ).exclude(translations__name='').values_list('id', flat=True)
+            translated_desc_ids = Questionnaire.objects.filter(
+                translations__language_code=missing_translation,
+                translations__description__isnull=False,
+            ).exclude(translations__description='').values_list('id', flat=True)
+            translated_ids = set(list(translated_name_ids) + list(translated_desc_ids))
+            queryset = queryset.exclude(id__in=translated_ids)
             
         return queryset.distinct('id').order_by('id', 'translations__name')
 
@@ -83,7 +97,14 @@ class QuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
         context['search_query'] = self.request.GET.get('search', '')
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
         
+        # Pass list params so templates can build 'next' URLs for translation redirects
+        context['list_params'] = self.request.GET.urlencode()
+        
         # Create filters for the search component
+        language_options = [
+            {'value': lang_code, 'label': f'Missing {lang_name} translation'}
+            for lang_code, lang_name in settings.LANGUAGES
+        ]
         context['questionnaire_filters'] = [
             {
                 'type': 'select',
@@ -106,6 +127,14 @@ class QuestionnaireListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
                     {'value': 'has_interval', 'label': 'Has interval'}
                 ],
                 'trigger': 'hx-trigger="change"'
+            },
+            {
+                'type': 'select',
+                'name': 'missing_translation',
+                'label': 'Translation status',
+                'all_label': 'All languages',
+                'selected': self.request.GET.get('missing_translation', 'all'),
+                'options': language_options
             }
         ]
         
@@ -502,6 +531,17 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
             
         if search:
             queryset = queryset.filter(translations__name__icontains=search)
+        
+        # Apply missing translation filter if provided
+        missing_translation = self.request.GET.get('missing_translation')
+        if missing_translation and missing_translation != 'all':
+            translated_ids = Item.objects.filter(
+                translations__language_code=missing_translation,
+                translations__name__isnull=False,
+            ).exclude(
+                translations__name=''
+            ).values_list('id', flat=True)
+            queryset = queryset.exclude(id__in=translated_ids)
             
         # Use distinct() with id to prevent duplicates while keeping all fields
         return queryset.distinct('id').order_by('id', 'translations__name')
@@ -537,6 +577,23 @@ class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         
         # Flag to determine if we're responding to an HTMX request
         context['is_htmx'] = bool(self.request.META.get('HTTP_HX_REQUEST'))
+        
+        # Pass list params so templates can build 'next' URLs for translation redirects
+        context['list_params'] = self.request.GET.urlencode()
+        
+        # Add missing_translation filter to item_filters if not already present
+        language_options = [
+            {'value': lang_code, 'label': f'Missing {lang_name} translation'}
+            for lang_code, lang_name in settings.LANGUAGES
+        ]
+        context['item_translation_filter'] = {
+            'type': 'select',
+            'name': 'missing_translation',
+            'label': 'Translation status',
+            'all_label': 'All languages',
+            'selected': self.request.GET.get('missing_translation', 'all'),
+            'options': language_options
+        }
         
         return context
     
@@ -1377,6 +1434,17 @@ class RangeScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
                 queryset = queryset.exclude(increment__isnull=True)
             elif has_increment == 'no':
                 queryset = queryset.filter(increment__isnull=True)
+        
+        # Apply missing translation filter if provided
+        missing_translation = self.request.GET.get('missing_translation')
+        if missing_translation and missing_translation != 'all':
+            translated_ids = RangeScale.objects.filter(
+                translations__language_code=missing_translation,
+            ).filter(
+                models.Q(translations__min_value_text__isnull=False, translations__min_value_text__gt='') |
+                models.Q(translations__max_value_text__isnull=False, translations__max_value_text__gt='')
+            ).values_list('id', flat=True)
+            queryset = queryset.exclude(id__in=translated_ids)
             
         return queryset.order_by('-created_date')
     
@@ -1391,7 +1459,14 @@ class RangeScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         # Add current language to context for translation links
         context['current_language'] = get_language()
         
+        # Pass list params so templates can build 'next' URLs for translation redirects
+        context['list_params'] = self.request.GET.urlencode()
+        
         # Create filters for the search component
+        language_options = [
+            {'value': lang_code, 'label': f'Missing {lang_name} translation'}
+            for lang_code, lang_name in settings.LANGUAGES
+        ]
         context['range_scale_filters'] = [
             {
                 'type': 'select',
@@ -1415,6 +1490,14 @@ class RangeScaleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
                     {'value': 'no', 'label': 'No increment'}
                 ],
                 'trigger': 'hx-trigger="change"'
+            },
+            {
+                'type': 'select',
+                'name': 'missing_translation',
+                'label': 'Translation status',
+                'all_label': 'All languages',
+                'selected': self.request.GET.get('missing_translation', 'all'),
+                'options': language_options
             }
         ]
         
@@ -3350,6 +3433,11 @@ class ItemTranslationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
         return redirect(self.get_success_url())
 
     def get_success_url(self):
+        next_url = self.request.GET.get('next')
+        if next_url:
+            parsed = urlparse(next_url)
+            if not parsed.netloc or parsed.netloc == self.request.get_host():
+                return next_url
         language = self.request.GET.get('language', settings.LANGUAGE_CODE)
         return reverse('item_translation', kwargs={'pk': self.object.pk}) + f'?language={language}'
 
@@ -3553,6 +3641,11 @@ class QuestionnaireTranslationView(LoginRequiredMixin, PermissionRequiredMixin, 
         return redirect(self.get_success_url())
 
     def get_success_url(self):
+        next_url = self.request.GET.get('next')
+        if next_url:
+            parsed = urlparse(next_url)
+            if not parsed.netloc or parsed.netloc == self.request.get_host():
+                return next_url
         return reverse('questionnaire_translation_list')
 
 class QuestionnaireTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -3931,6 +4024,11 @@ class RangeScaleTranslationView(LoginRequiredMixin, PermissionRequiredMixin, Upd
         return redirect(self.get_success_url())
 
     def get_success_url(self):
+        next_url = self.request.GET.get('next')
+        if next_url:
+            parsed = urlparse(next_url)
+            if not parsed.netloc or parsed.netloc == self.request.get_host():
+                return next_url
         return reverse('range_scale_list')
 
 class RangeScaleTranslationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
