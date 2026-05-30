@@ -35,6 +35,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">login_required</span><span class="p">,</span> <span class="n">permission_required</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.views.generic</span><span class="w"> </span><span class="kn">import</span> <span class="n">ListView</span><span class="p">,</span> <span class="n">CreateView</span><span class="p">,</span> <span class="n">UpdateView</span><span class="p">,</span> <span class="n">DetailView</span><span class="p">,</span> <span class="n">DeleteView</span><span class="p">,</span> <span class="n">TemplateView</span><span class="p">,</span> <span class="n">View</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.urls</span><span class="w"> </span><span class="kn">import</span> <span class="n">reverse_lazy</span><span class="p">,</span> <span class="n">reverse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">quote</span><span class="p">,</span> <span class="n">urlparse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.http</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpResponse</span><span class="p">,</span> <span class="n">JsonResponse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.template.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">render_to_string</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">UserPassesTestMixin</span><span class="p">,</span> <span class="n">PermissionRequiredMixin</span>
@@ -46,7 +47,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">translation</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.html</span><span class="w"> </span><span class="kn">import</span> <span class="n">escape</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.http</span><span class="w"> </span><span class="kn">import</span> <span class="n">url_has_allowed_host_and_scheme</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Questionnaire</span><span class="p">,</span> <span class="n">Item</span><span class="p">,</span> <span class="n">QuestionnaireItem</span><span class="p">,</span> <span class="n">LikertScale</span><span class="p">,</span> <span class="n">RangeScale</span><span class="p">,</span> <span class="n">ConstructScale</span><span class="p">,</span> <span class="n">ResponseTypeChoices</span><span class="p">,</span> <span class="n">LikertScaleResponseOption</span><span class="p">,</span> <span class="n">PatientQuestionnaire</span><span class="p">,</span> <span class="n">QuestionnaireItemResponse</span><span class="p">,</span> <span class="n">Patient</span><span class="p">,</span> <span class="n">QuestionnaireItemRule</span><span class="p">,</span> <span class="n">QuestionnaireItemRuleGroup</span><span class="p">,</span> <span class="n">QuestionnaireSubmission</span><span class="p">,</span> <span class="n">QuestionnaireConstructScore</span><span class="p">,</span> <span class="n">CompositeConstructScaleScoring</span><span class="p">,</span> <span class="n">QuestionnairePatientSchedule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">promapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span> 
+<span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Project</span><span class="p">,</span> <span class="n">Patient</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.forms</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">QuestionnaireForm</span><span class="p">,</span> <span class="n">ItemForm</span><span class="p">,</span> <span class="n">QuestionnaireItemForm</span><span class="p">,</span> 
     <span class="n">LikertScaleForm</span><span class="p">,</span> <span class="n">LikertScaleResponseOptionFormSet</span><span class="p">,</span>
@@ -69,7 +71,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.conf</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">translation</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patient</span>
 
 <span class="c1"># Create your views here.</span>
 
@@ -111,6 +112,20 @@
                 <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">questionnaire_answer_interval</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">answer_interval</span> <span class="o">==</span> <span class="s1">&#39;has_interval&#39;</span><span class="p">:</span>
                 <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">questionnaire_answer_interval__gt</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        
+        <span class="c1"># Apply missing translation filter if provided</span>
+        <span class="n">missing_translation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;missing_translation&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">missing_translation</span> <span class="ow">and</span> <span class="n">missing_translation</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+            <span class="n">translated_name_ids</span> <span class="o">=</span> <span class="n">Questionnaire</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">translations__language_code</span><span class="o">=</span><span class="n">missing_translation</span><span class="p">,</span>
+                <span class="n">translations__name__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">translations__name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">translated_desc_ids</span> <span class="o">=</span> <span class="n">Questionnaire</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">translations__language_code</span><span class="o">=</span><span class="n">missing_translation</span><span class="p">,</span>
+                <span class="n">translations__description__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">translations__description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">translated_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">translated_name_ids</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">translated_desc_ids</span><span class="p">))</span>
+            <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">id__in</span><span class="o">=</span><span class="n">translated_ids</span><span class="p">)</span>
             
         <span class="k">return</span> <span class="n">queryset</span><span class="o">.</span><span class="n">distinct</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;translations__name&#39;</span><span class="p">)</span></div>
 
@@ -122,7 +137,14 @@
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;search_query&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;search&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;is_htmx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTP_HX_REQUEST&#39;</span><span class="p">))</span>
         
+        <span class="c1"># Pass list params so templates can build &#39;next&#39; URLs for translation redirects</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;list_params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">urlencode</span><span class="p">()</span>
+        
         <span class="c1"># Create filters for the search component</span>
+        <span class="n">language_options</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">lang_code</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Missing </span><span class="si">{</span><span class="n">lang_name</span><span class="si">}</span><span class="s1"> translation&#39;</span><span class="p">}</span>
+            <span class="k">for</span> <span class="n">lang_code</span><span class="p">,</span> <span class="n">lang_name</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">LANGUAGES</span>
+        <span class="p">]</span>
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;questionnaire_filters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">{</span>
                 <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;select&#39;</span><span class="p">,</span>
@@ -145,6 +167,14 @@
                     <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;has_interval&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Has interval&#39;</span><span class="p">}</span>
                 <span class="p">],</span>
                 <span class="s1">&#39;trigger&#39;</span><span class="p">:</span> <span class="s1">&#39;hx-trigger=&quot;change&quot;&#39;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;select&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;missing_translation&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Translation status&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;all_label&#39;</span><span class="p">:</span> <span class="s1">&#39;All languages&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;selected&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;missing_translation&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="n">language_options</span>
             <span class="p">}</span>
         <span class="p">]</span>
         
@@ -574,6 +604,17 @@
             
         <span class="k">if</span> <span class="n">search</span><span class="p">:</span>
             <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">translations__name__icontains</span><span class="o">=</span><span class="n">search</span><span class="p">)</span>
+        
+        <span class="c1"># Apply missing translation filter if provided</span>
+        <span class="n">missing_translation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;missing_translation&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">missing_translation</span> <span class="ow">and</span> <span class="n">missing_translation</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+            <span class="n">translated_ids</span> <span class="o">=</span> <span class="n">Item</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">translations__language_code</span><span class="o">=</span><span class="n">missing_translation</span><span class="p">,</span>
+                <span class="n">translations__name__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span>
+                <span class="n">translations__name</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">id__in</span><span class="o">=</span><span class="n">translated_ids</span><span class="p">)</span>
             
         <span class="c1"># Use distinct() with id to prevent duplicates while keeping all fields</span>
         <span class="k">return</span> <span class="n">queryset</span><span class="o">.</span><span class="n">distinct</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;translations__name&#39;</span><span class="p">)</span></div>
@@ -612,6 +653,23 @@
         
         <span class="c1"># Flag to determine if we&#39;re responding to an HTMX request</span>
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;is_htmx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTP_HX_REQUEST&#39;</span><span class="p">))</span>
+        
+        <span class="c1"># Pass list params so templates can build &#39;next&#39; URLs for translation redirects</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;list_params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">urlencode</span><span class="p">()</span>
+        
+        <span class="c1"># Add missing_translation filter to item_filters if not already present</span>
+        <span class="n">language_options</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">lang_code</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Missing </span><span class="si">{</span><span class="n">lang_name</span><span class="si">}</span><span class="s1"> translation&#39;</span><span class="p">}</span>
+            <span class="k">for</span> <span class="n">lang_code</span><span class="p">,</span> <span class="n">lang_name</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">LANGUAGES</span>
+        <span class="p">]</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;item_translation_filter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;select&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;missing_translation&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Translation status&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;all_label&#39;</span><span class="p">:</span> <span class="s1">&#39;All languages&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;selected&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;missing_translation&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="n">language_options</span>
+        <span class="p">}</span>
         
         <span class="k">return</span> <span class="n">context</span></div>
 
@@ -1215,6 +1273,48 @@
             <span class="k">elif</span> <span class="n">created_filter</span> <span class="o">==</span> <span class="s1">&#39;older&#39;</span><span class="p">:</span>
                 <span class="n">month_ago</span> <span class="o">=</span> <span class="n">now</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
                 <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">created_date__lt</span><span class="o">=</span><span class="n">month_ago</span><span class="p">)</span>
+        
+        <span class="c1"># Apply missing translation filter if provided</span>
+        <span class="n">missing_translation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;missing_translation&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">missing_translation</span> <span class="ow">and</span> <span class="n">missing_translation</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+            <span class="c1"># Find scales that have at least one option missing a translation</span>
+            <span class="c1"># for the specified language (no row in translations table, or empty option_text)</span>
+            <span class="n">fully_translated_ids</span> <span class="o">=</span> <span class="n">LikertScale</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">likertscaleresponseoption__isnull</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span>
+                <span class="n">likertscaleresponseoption__translations__language_code</span><span class="o">=</span><span class="n">missing_translation</span><span class="p">,</span>
+                <span class="n">likertscaleresponseoption__translations__option_text__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span>
+                <span class="n">likertscaleresponseoption__translations__language_code</span><span class="o">=</span><span class="n">missing_translation</span><span class="p">,</span>
+                <span class="n">likertscaleresponseoption__translations__option_text</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># Scales with no options at all are also considered missing translations</span>
+            <span class="n">scales_with_options</span> <span class="o">=</span> <span class="n">LikertScale</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">likertscaleresponseoption__isnull</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># Get scales that have options but at least one option is missing the translation</span>
+            <span class="n">translated_option_scale_ids</span> <span class="o">=</span> <span class="n">LikertScaleResponseOption</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">translations__language_code</span><span class="o">=</span><span class="n">missing_translation</span><span class="p">,</span>
+                <span class="n">translations__option_text__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span>
+                <span class="n">translations__option_text</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;likert_scale_id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+            <span class="c1"># Scales with options where ALL options have the translation</span>
+            <span class="n">all_options_translated_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">scale_id</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">scales_with_options</span><span class="p">):</span>
+                <span class="n">option_ids</span> <span class="o">=</span> <span class="n">LikertScaleResponseOption</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                    <span class="n">likert_scale_id</span><span class="o">=</span><span class="n">scale_id</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">translated_ids</span> <span class="o">=</span> <span class="n">LikertScaleResponseOption</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                    <span class="n">id__in</span><span class="o">=</span><span class="n">option_ids</span><span class="p">,</span>
+                    <span class="n">translations__language_code</span><span class="o">=</span><span class="n">missing_translation</span><span class="p">,</span>
+                    <span class="n">translations__option_text__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span>
+                    <span class="n">translations__option_text</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">option_ids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">translated_ids</span><span class="p">):</span>
+                    <span class="n">all_options_translated_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">scale_id</span><span class="p">)</span>
+            <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">id__in</span><span class="o">=</span><span class="n">all_options_translated_ids</span><span class="p">)</span>
             
         <span class="k">return</span> <span class="n">queryset</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;-created_date&#39;</span><span class="p">)</span></div>
 
@@ -1242,6 +1342,7 @@
                 <span class="p">)</span>
                 
                 <span class="n">translation_status</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">list_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">urlencode</span><span class="p">()</span>
                 <span class="k">for</span> <span class="n">lang_code</span><span class="p">,</span> <span class="n">lang_name</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">LANGUAGES</span><span class="p">:</span>
                     <span class="n">has_translation</span> <span class="o">=</span> <span class="n">lang_code</span> <span class="ow">in</span> <span class="n">existing_translations</span>
                     <span class="c1"># Check if translation has content (not just empty strings)</span>
@@ -1254,11 +1355,15 @@
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">has_content</span> <span class="o">=</span> <span class="kc">False</span>
                         
+                    <span class="n">translation_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;likert_scale_response_option_translation&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">option</span><span class="o">.</span><span class="n">id</span><span class="p">])</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;?language=</span><span class="si">{</span><span class="n">lang_code</span><span class="si">}</span><span class="s1">&#39;</span>
+                    <span class="k">if</span> <span class="n">list_params</span><span class="p">:</span>
+                        <span class="n">back_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;likert_scale_list&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;?&#39;</span> <span class="o">+</span> <span class="n">list_params</span>
+                        <span class="n">translation_url</span> <span class="o">+=</span> <span class="s1">&#39;&amp;next=&#39;</span> <span class="o">+</span> <span class="n">quote</span><span class="p">(</span><span class="n">back_url</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
                     <span class="n">translation_status</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
                         <span class="s1">&#39;language_code&#39;</span><span class="p">:</span> <span class="n">lang_code</span><span class="p">,</span>
                         <span class="s1">&#39;language_name&#39;</span><span class="p">:</span> <span class="n">lang_name</span><span class="p">,</span>
                         <span class="s1">&#39;has_translation&#39;</span><span class="p">:</span> <span class="n">has_translation</span> <span class="ow">and</span> <span class="n">has_content</span><span class="p">,</span>
-                        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;likert_scale_response_option_translation&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">option</span><span class="o">.</span><span class="n">id</span><span class="p">])</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;?language=</span><span class="si">{</span><span class="n">lang_code</span><span class="si">}</span><span class="s1">&#39;</span>
+                        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">translation_url</span>
                     <span class="p">})</span>
                 
                 <span class="n">options_with_translation_status</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
@@ -1292,6 +1397,10 @@
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;is_htmx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTP_HX_REQUEST&#39;</span><span class="p">))</span>
         
         <span class="c1"># Create filters for the search component</span>
+        <span class="n">language_options</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">lang_code</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Missing </span><span class="si">{</span><span class="n">lang_name</span><span class="si">}</span><span class="s1"> translation&#39;</span><span class="p">}</span>
+            <span class="k">for</span> <span class="n">lang_code</span><span class="p">,</span> <span class="n">lang_name</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">LANGUAGES</span>
+        <span class="p">]</span>
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;likert_scale_filters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">{</span>
                 <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;select&#39;</span><span class="p">,</span>
@@ -1316,6 +1425,14 @@
                     <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;This month&#39;</span><span class="p">},</span>
                     <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;older&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Older than 30 days&#39;</span><span class="p">}</span>
                 <span class="p">]</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;select&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;missing_translation&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Translation status&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;all_label&#39;</span><span class="p">:</span> <span class="s1">&#39;All languages&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;selected&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;missing_translation&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="n">language_options</span>
             <span class="p">}</span>
         <span class="p">]</span>
         
@@ -1456,6 +1573,17 @@
                 <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">increment__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">has_increment</span> <span class="o">==</span> <span class="s1">&#39;no&#39;</span><span class="p">:</span>
                 <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">increment__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="c1"># Apply missing translation filter if provided</span>
+        <span class="n">missing_translation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;missing_translation&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">missing_translation</span> <span class="ow">and</span> <span class="n">missing_translation</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+            <span class="n">translated_ids</span> <span class="o">=</span> <span class="n">RangeScale</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">translations__language_code</span><span class="o">=</span><span class="n">missing_translation</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">models</span><span class="o">.</span><span class="n">Q</span><span class="p">(</span><span class="n">translations__min_value_text__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">translations__min_value_text__gt</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">|</span>
+                <span class="n">models</span><span class="o">.</span><span class="n">Q</span><span class="p">(</span><span class="n">translations__max_value_text__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">translations__max_value_text__gt</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">id__in</span><span class="o">=</span><span class="n">translated_ids</span><span class="p">)</span>
             
         <span class="k">return</span> <span class="n">queryset</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;-created_date&#39;</span><span class="p">)</span></div>
 
@@ -1473,7 +1601,14 @@
         <span class="c1"># Add current language to context for translation links</span>
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;current_language&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_language</span><span class="p">()</span>
         
+        <span class="c1"># Pass list params so templates can build &#39;next&#39; URLs for translation redirects</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;list_params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">urlencode</span><span class="p">()</span>
+        
         <span class="c1"># Create filters for the search component</span>
+        <span class="n">language_options</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">lang_code</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Missing </span><span class="si">{</span><span class="n">lang_name</span><span class="si">}</span><span class="s1"> translation&#39;</span><span class="p">}</span>
+            <span class="k">for</span> <span class="n">lang_code</span><span class="p">,</span> <span class="n">lang_name</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">LANGUAGES</span>
+        <span class="p">]</span>
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;range_scale_filters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">{</span>
                 <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;select&#39;</span><span class="p">,</span>
@@ -1497,6 +1632,14 @@
                     <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;no&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;No increment&#39;</span><span class="p">}</span>
                 <span class="p">],</span>
                 <span class="s1">&#39;trigger&#39;</span><span class="p">:</span> <span class="s1">&#39;hx-trigger=&quot;change&quot;&#39;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;select&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;missing_translation&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;Translation status&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;all_label&#39;</span><span class="p">:</span> <span class="s1">&#39;All languages&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;selected&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;missing_translation&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="n">language_options</span>
             <span class="p">}</span>
         <span class="p">]</span>
         
@@ -2696,6 +2839,136 @@
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;search_query&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;search&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;is_htmx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTP_HX_REQUEST&#39;</span><span class="p">))</span>
         
+        <span class="c1"># Get projects that have patient assignments</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Project</span><span class="p">,</span> <span class="n">PatientProject</span>
+        <span class="n">projects_with_assignments</span> <span class="o">=</span> <span class="n">Project</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">patientproject__patient__isnull</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;project_name&#39;</span><span class="p">)</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;projects&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">projects_with_assignments</span>
+        
+        <span class="k">return</span> <span class="n">context</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ProjectExportListView">
+<a class="viewcode-back" href="../../developer/api_reference.html#promapp.views.ProjectExportListView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProjectExportListView</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">PermissionRequiredMixin</span><span class="p">,</span> <span class="n">ListView</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;View for listing projects available for export.&quot;&quot;&quot;</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Project</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s1">&#39;promapp/project_export_list.html&#39;</span>
+    <span class="n">context_object_name</span> <span class="o">=</span> <span class="s1">&#39;projects&#39;</span>
+    <span class="n">permission_required</span> <span class="o">=</span> <span class="s1">&#39;patientapp.view_project&#39;</span>
+    <span class="n">paginate_by</span> <span class="o">=</span> <span class="mi">25</span>
+
+<div class="viewcode-block" id="ProjectExportListView.get_queryset">
+<a class="viewcode-back" href="../../developer/api_reference.html#promapp.views.ProjectExportListView.get_queryset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return only projects that have patients with questionnaire submissions.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">PatientProject</span><span class="p">,</span> <span class="n">Patient</span>
+        
+        <span class="c1"># Get projects that have patients who have submitted questionnaires</span>
+        <span class="n">projects_with_responses</span> <span class="o">=</span> <span class="n">Project</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">patientproject__patient__questionnairesubmission__isnull</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;project_name&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Apply search filter if provided</span>
+        <span class="n">search</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;search&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">search</span><span class="p">:</span>
+            <span class="n">projects_with_responses</span> <span class="o">=</span> <span class="n">projects_with_responses</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">project_name__icontains</span><span class="o">=</span><span class="n">search</span>
+            <span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">projects_with_responses</span></div>
+
+
+<div class="viewcode-block" id="ProjectExportListView.get_context_data">
+<a class="viewcode-back" href="../../developer/api_reference.html#promapp.views.ProjectExportListView.get_context_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;search_query&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;search&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;is_htmx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTP_HX_REQUEST&#39;</span><span class="p">))</span>
+        
+        <span class="c1"># For each project, get patient count and questionnaire count</span>
+        <span class="n">projects_with_stats</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">project</span> <span class="ow">in</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;projects&#39;</span><span class="p">]:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">PatientProject</span>
+            <span class="n">patient_count</span> <span class="o">=</span> <span class="n">PatientProject</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+            
+            <span class="c1"># Get questionnaires that have submissions from patients in this project</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">promapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuestionnaireSubmission</span>
+            <span class="n">questionnaires_with_submissions</span> <span class="o">=</span> <span class="n">QuestionnaireSubmission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">patient__patientproject__project</span><span class="o">=</span><span class="n">project</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;patient_questionnaire__questionnaire&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+            
+            <span class="n">projects_with_stats</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">project</span><span class="p">,</span>
+                <span class="s1">&#39;patient_count&#39;</span><span class="p">:</span> <span class="n">patient_count</span><span class="p">,</span>
+                <span class="s1">&#39;questionnaire_count&#39;</span><span class="p">:</span> <span class="n">questionnaires_with_submissions</span><span class="p">,</span>
+            <span class="p">})</span>
+            
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;projects_with_stats&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">projects_with_stats</span>
+        
+        <span class="k">return</span> <span class="n">context</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ProjectQuestionnaireExportListView">
+<a class="viewcode-back" href="../../developer/api_reference.html#promapp.views.ProjectQuestionnaireExportListView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProjectQuestionnaireExportListView</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">PermissionRequiredMixin</span><span class="p">,</span> <span class="n">ListView</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;View for listing questionnaires available for export for a specific project.&quot;&quot;&quot;</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Questionnaire</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s1">&#39;promapp/project_questionnaire_export_list.html&#39;</span>
+    <span class="n">context_object_name</span> <span class="o">=</span> <span class="s1">&#39;questionnaires&#39;</span>
+    <span class="n">permission_required</span> <span class="o">=</span> <span class="s1">&#39;promapp.view_questionnaire&#39;</span>
+    <span class="n">paginate_by</span> <span class="o">=</span> <span class="mi">25</span>
+
+<div class="viewcode-block" id="ProjectQuestionnaireExportListView.get_queryset">
+<a class="viewcode-back" href="../../developer/api_reference.html#promapp.views.ProjectQuestionnaireExportListView.get_queryset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return only questionnaires that have submissions from patients in this project.&quot;&quot;&quot;</span>
+        <span class="n">project_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project_id&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Project</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">project_id</span><span class="p">)</span>
+        
+        <span class="c1"># Get questionnaires that have submissions from patients in this project</span>
+        <span class="n">questionnaires_with_submissions</span> <span class="o">=</span> <span class="n">QuestionnaireSubmission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">patient__patientproject__project</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;patient_questionnaire__questionnaire&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+        
+        <span class="n">queryset</span> <span class="o">=</span> <span class="n">Questionnaire</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">id__in</span><span class="o">=</span><span class="n">questionnaires_with_submissions</span><span class="p">)</span>
+        
+        <span class="c1"># Apply search filter if provided</span>
+        <span class="n">search</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;search&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">search</span><span class="p">:</span>
+            <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">translations__name__icontains</span><span class="o">=</span><span class="n">search</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">queryset</span><span class="o">.</span><span class="n">distinct</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;translations__name&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ProjectQuestionnaireExportListView.get_context_data">
+<a class="viewcode-back" href="../../developer/api_reference.html#promapp.views.ProjectQuestionnaireExportListView.get_context_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;search_query&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;search&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;is_htmx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTP_HX_REQUEST&#39;</span><span class="p">))</span>
+        
+        <span class="c1"># For each questionnaire, get submission count from patients in this project</span>
+        <span class="n">questionnaires_with_stats</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">questionnaire</span> <span class="ow">in</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;questionnaires&#39;</span><span class="p">]:</span>
+            <span class="n">submission_count</span> <span class="o">=</span> <span class="n">QuestionnaireSubmission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">patient_questionnaire__questionnaire</span><span class="o">=</span><span class="n">questionnaire</span><span class="p">,</span>
+                <span class="n">patient__patientproject__project</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+            
+            <span class="n">questionnaires_with_stats</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;questionnaire&#39;</span><span class="p">:</span> <span class="n">questionnaire</span><span class="p">,</span>
+                <span class="s1">&#39;submission_count&#39;</span><span class="p">:</span> <span class="n">submission_count</span><span class="p">,</span>
+            <span class="p">})</span>
+            
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;questionnaires_with_stats&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">questionnaires_with_stats</span>
+        
         <span class="k">return</span> <span class="n">context</span></div>
 </div>
 
@@ -2726,6 +2999,16 @@
         <span class="c1"># Filter patients by institution if user is not admin</span>
         <span class="n">queryset</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">id__in</span><span class="o">=</span><span class="n">patient_ids</span><span class="p">)</span>
         
+        <span class="c1"># Apply project filter if provided</span>
+        <span class="n">project_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">project_id</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">PatientProject</span>
+            <span class="c1"># Filter patients to only those assigned to the specified project</span>
+            <span class="n">project_patient_ids</span> <span class="o">=</span> <span class="n">PatientProject</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">project_id</span><span class="o">=</span><span class="n">project_id</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;patient&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">id__in</span><span class="o">=</span><span class="n">project_patient_ids</span><span class="p">)</span>
+        
         <span class="c1"># If user is not admin, filter by their institution</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
             <span class="c1"># Assuming there&#39;s a relationship between user and institution</span>
@@ -2752,7 +3035,16 @@
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;search_query&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;search&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;is_htmx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTP_HX_REQUEST&#39;</span><span class="p">))</span>
         
-        <span class="c1"># For each patient, get the number of submissions they have for this questionnaire</span>
+        <span class="c1"># Add project filter information</span>
+        <span class="n">project_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">project_id</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Project</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">context</span><span class="p">[</span><span class="s1">&#39;selected_project&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Project</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">project_id</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">Project</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+                <span class="n">context</span><span class="p">[</span><span class="s1">&#39;selected_project&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># For each patient, get the number of submissions they have for this questionnaire and their projects</span>
         <span class="n">patients_with_submission_count</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">patient</span> <span class="ow">in</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;patients&#39;</span><span class="p">]:</span>
             <span class="n">submission_count</span> <span class="o">=</span> <span class="n">QuestionnaireSubmission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
@@ -2760,9 +3052,16 @@
                 <span class="n">patient_questionnaire__questionnaire</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">questionnaire</span>
             <span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
             
+            <span class="c1"># Get patient&#39;s projects</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">PatientProject</span>
+            <span class="n">patient_projects</span> <span class="o">=</span> <span class="n">PatientProject</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">patient</span><span class="o">=</span><span class="n">patient</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;project__project_name&#39;</span><span class="p">)</span>
+            
             <span class="n">patients_with_submission_count</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
                 <span class="s1">&#39;patient&#39;</span><span class="p">:</span> <span class="n">patient</span><span class="p">,</span>
                 <span class="s1">&#39;submission_count&#39;</span><span class="p">:</span> <span class="n">submission_count</span><span class="p">,</span>
+                <span class="s1">&#39;projects&#39;</span><span class="p">:</span> <span class="n">patient_projects</span><span class="p">,</span>
             <span class="p">})</span>
             
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;patients_with_submission_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">patients_with_submission_count</span>
@@ -2827,6 +3126,16 @@
     <span class="k">if</span> <span class="n">patient_id</span><span class="p">:</span>
         <span class="n">patient</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Patient</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">patient_id</span><span class="p">)</span>
         <span class="n">submissions_query</span> <span class="o">=</span> <span class="n">submissions_query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">patient</span><span class="o">=</span><span class="n">patient</span><span class="p">)</span>
+        
+    <span class="c1"># Filter by project if specified</span>
+    <span class="n">project_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">project_id</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">PatientProject</span>
+        <span class="c1"># Get patients assigned to the specified project</span>
+        <span class="n">project_patient_ids</span> <span class="o">=</span> <span class="n">PatientProject</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">project_id</span><span class="o">=</span><span class="n">project_id</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;patient&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">submissions_query</span> <span class="o">=</span> <span class="n">submissions_query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">patient__id__in</span><span class="o">=</span><span class="n">project_patient_ids</span><span class="p">)</span>
         
     <span class="c1"># Filter by institution if user is not admin</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
@@ -3509,6 +3818,11 @@
 <div class="viewcode-block" id="ItemTranslationView.get_success_url">
 <a class="viewcode-back" href="../../developer/api_reference.html#promapp.views.ItemTranslationView.get_success_url">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_success_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;next&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">parsed</span><span class="o">.</span><span class="n">netloc</span> <span class="ow">or</span> <span class="n">parsed</span><span class="o">.</span><span class="n">netloc</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">get_host</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">next_url</span>
         <span class="n">language</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;language&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LANGUAGE_CODE</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;item_translation&#39;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;pk&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">pk</span><span class="p">})</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;?language=</span><span class="si">{</span><span class="n">language</span><span class="si">}</span><span class="s1">&#39;</span></div>
 </div>
@@ -3739,6 +4053,11 @@
 <div class="viewcode-block" id="QuestionnaireTranslationView.get_success_url">
 <a class="viewcode-back" href="../../developer/api_reference.html#promapp.views.QuestionnaireTranslationView.get_success_url">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_success_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;next&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">parsed</span><span class="o">.</span><span class="n">netloc</span> <span class="ow">or</span> <span class="n">parsed</span><span class="o">.</span><span class="n">netloc</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">get_host</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">next_url</span>
         <span class="k">return</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;questionnaire_translation_list&#39;</span><span class="p">)</span></div>
 </div>
 
@@ -3968,6 +4287,11 @@
 <div class="viewcode-block" id="LikertScaleResponseOptionTranslationView.get_success_url">
 <a class="viewcode-back" href="../../developer/api_reference.html#promapp.views.LikertScaleResponseOptionTranslationView.get_success_url">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_success_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;next&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">parsed</span><span class="o">.</span><span class="n">netloc</span> <span class="ow">or</span> <span class="n">parsed</span><span class="o">.</span><span class="n">netloc</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">get_host</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">next_url</span>
         <span class="k">return</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;likert_scale_list&#39;</span><span class="p">)</span></div>
 </div>
 
@@ -4166,6 +4490,11 @@
 <div class="viewcode-block" id="RangeScaleTranslationView.get_success_url">
 <a class="viewcode-back" href="../../developer/api_reference.html#promapp.views.RangeScaleTranslationView.get_success_url">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_success_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;next&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">parsed</span><span class="o">.</span><span class="n">netloc</span> <span class="ow">or</span> <span class="n">parsed</span><span class="o">.</span><span class="n">netloc</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">get_host</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">next_url</span>
         <span class="k">return</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;range_scale_list&#39;</span><span class="p">)</span></div>
 </div>
 

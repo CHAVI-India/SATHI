@@ -36,6 +36,17 @@
 
 <span class="n">register</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">Library</span><span class="p">()</span>
 
+<div class="viewcode-block" id="get_item">
+<a class="viewcode-back" href="../../../developer/api_reference.html#promapp.templatetags.prom_filters.get_item">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">filter</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_item</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get an item from a dictionary by key&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">dictionary</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">dictionary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="subtract">
 <a class="viewcode-back" href="../../../developer/api_reference.html#promapp.templatetags.prom_filters.subtract">[docs]</a>
 <span class="nd">@register</span><span class="o">.</span><span class="n">filter</span>

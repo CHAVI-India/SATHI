@@ -56,8 +56,10 @@ urlpatterns = [
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/form-mappings/', views.redcap_form_mappings, name='redcap_form_mappings'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/form-mappings/create/', views.redcap_form_mapping_create, name='redcap_form_mapping_create'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/form-mappings/<int:fm_pk>/edit/', views.redcap_form_mapping_edit, name='redcap_form_mapping_edit'),
+    path('projects/<uuid:pk>/redcap/<int:mapping_pk>/form-mappings/<int:fm_pk>/delete/', views.redcap_form_mapping_delete, name='redcap_form_mapping_delete'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/form-mappings/<int:fm_pk>/field-mappings/', views.redcap_field_mappings, name='redcap_field_mappings'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/patient-ids/', views.redcap_patient_ids, name='redcap_patient_ids'),
+    path('projects/<uuid:pk>/redcap/<int:mapping_pk>/patient-ids/<uuid:patient_pk>/delete/', views.redcap_patient_id_delete, name='redcap_patient_id_delete'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/patient-ids/<uuid:patient_pk>/match/', views.redcap_match_submissions, name='redcap_match_submissions'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/export/', views.redcap_export, name='redcap_export'),
 ]

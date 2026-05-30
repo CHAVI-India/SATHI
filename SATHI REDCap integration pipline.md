@@ -279,21 +279,19 @@ All PyCap calls have been extracted from `views.py` into `patientapp/redcap_util
 - Empty state message if no patients have a study ID assigned yet.
 - Vanilla JS in `{% block extra_js %}` wires the two toggle buttons.
 
-#### Export — unmatched submission safety warning ✅
+#### Export — unmatched submissions excluded ✅
 
-Pre-export and at-export detection of submissions belonging to repeating/event forms that have no `RedcapInstanceToSubmissionMapping` row.
+Submissions belonging to repeating/event forms that have no `RedcapInstanceToSubmissionMapping` row are automatically excluded from the export.
 
-**View (`patientapp/views.py` → `redcap_export`):**
-- `_get_unmatched_warnings(fms_qs, patient_id_set)` helper: iterates form mappings that have any of `redcap_form_is_in_event`, `redcap_form_is_repeating`, or `redcap_event_is_repeating` set; for each, queries submissions for the given patients, fetches matched submission IDs in one query, and returns a list of `{patient, fm, submission_date, match_url}` dicts for any gaps.
-- On **GET**: runs against all form mappings + all mapped patients → `unmatched_warnings` passed to template (shown as a passive advisory table).
-- On **POST** (first submit, no `confirm_unmatched`): re-runs scoped to the selected forms + selected patients. If any unmatched found, re-renders with `show_unmatched_confirm=True` and re-injects `form_mapping_ids`, `patient_pks`, `export_type` as hidden inputs so no selections are lost.
-- On **POST** (second submit, `confirm_unmatched` checked): skips the gate and proceeds with export.
+**Rationale:** Exporting submissions without a confirmed instance/event mapping to REDCap can cause data errors (blank `redcap_repeat_instance` values, duplicate records, or rejected imports). The system now filters these out at collection time rather than warning and requiring confirmation.
 
-**Template (`redcap_export.html`):**
-- Orange warning card appears above the form cards whenever `unmatched_warnings` is non-empty.
-- Table columns: Patient | Form | Submission Date | Action ("Match →" opens match page in new tab).
-- When `show_unmatched_confirm` is set (after first submit attempt): confirm checkbox + "Proceed with Export" (danger) + "Cancel" link appear inside the warning card. Hidden inputs preserve prior selections.
-- No warning shown when all submissions are matched.
+**Implementation (`patientapp/views.py` → `_collect_export_rows`):**
+- After resolving `redcap_event_name` and `redcap_repeat_instance` for each submission, a guard clause checks:
+  - If the form requires instance mapping (`redcap_form_is_repeating` or `redcap_event_is_repeating` or `redcap_form_is_in_event`) AND
+  - No instance mapping exists (`inst_mapping is None`)
+- The submission is skipped entirely and does not appear in the export.
+
+**Previous behavior:** The system previously warned about unmatched submissions and required users to check a confirmation checkbox before proceeding with export. This was changed to silently exclude unmatched submissions to prevent data errors.
 
 #### Export — pre-flight validation ✅
 

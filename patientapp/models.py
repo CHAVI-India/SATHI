@@ -300,7 +300,6 @@ class ProjectRedcapMapping (models.Model):
         return f"{self.project} - {self.redcap_project_url}"
 
 
-
 class RedcapStudyIDtoPatientIDMap(models.Model):
     '''
     This model will store the mapping for the patient ID in REDCap to the patient ID in CHAVI PROM.

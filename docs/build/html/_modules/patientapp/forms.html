@@ -34,10 +34,18 @@
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django</span><span class="w"> </span><span class="kn">import</span> <span class="n">forms</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.forms</span><span class="w"> </span><span class="kn">import</span> <span class="n">UserCreationForm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Group</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patient</span><span class="p">,</span> <span class="n">Institution</span><span class="p">,</span> <span class="n">Treatment</span><span class="p">,</span> <span class="n">Diagnosis</span><span class="p">,</span> <span class="n">DiagnosisList</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Patient</span><span class="p">,</span> <span class="n">Institution</span><span class="p">,</span> <span class="n">Treatment</span><span class="p">,</span> <span class="n">Diagnosis</span><span class="p">,</span> <span class="n">DiagnosisList</span><span class="p">,</span> <span class="n">Project</span><span class="p">,</span> <span class="n">PatientProject</span><span class="p">,</span>
+    <span class="n">ProjectRedcapMapping</span><span class="p">,</span> <span class="n">RedcapFormToQuestionnaireMapping</span><span class="p">,</span>
+    <span class="n">RedcapFieldToItemMapping</span><span class="p">,</span> <span class="n">RedcapStudyIDtoPatientIDMap</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">crispy_forms.helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">FormHelper</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">crispy_forms.layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">Div</span><span class="p">,</span> <span class="n">Submit</span><span class="p">,</span> <span class="n">HTML</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="n">INPUT_CLASS</span> <span class="o">=</span> <span class="s1">&#39;w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500&#39;</span>
+<span class="n">SELECT_CLASS</span> <span class="o">=</span> <span class="s1">&#39;w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white&#39;</span>
+<span class="n">CHECKBOX_CLASS</span> <span class="o">=</span> <span class="s1">&#39;h-4 w-4 text-blue-600 border-gray-300 rounded&#39;</span>
 
 <div class="viewcode-block" id="PatientForm">
 <a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.PatientForm">[docs]</a>
@@ -243,6 +251,430 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="s1">&#39;date_of_end_of_treatment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">date_of_end_of_treatment</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span></div>
 </div>
 
+
+<div class="viewcode-block" id="ProjectForm">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.ProjectForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProjectForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
+<div class="viewcode-block" id="ProjectForm.Meta">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.ProjectForm.Meta">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Project</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;project_name&#39;</span><span class="p">]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;project_name&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Project Name&#39;</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">widgets</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;project_name&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">TextInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;placeholder&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter project name&#39;</span><span class="p">)</span>
+            <span class="p">}),</span>
+        <span class="p">}</span></div>
+</div>
+
+
+<div class="viewcode-block" id="PatientProjectForm">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.PatientProjectForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PatientProjectForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
+<div class="viewcode-block" id="PatientProjectForm.Meta">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.PatientProjectForm.Meta">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">PatientProject</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="s1">&#39;date_patient_enrolled_in_project&#39;</span><span class="p">,</span> <span class="s1">&#39;date_patient_exited_from_project&#39;</span><span class="p">]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Project&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;date_patient_enrolled_in_project&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Date Enrolled&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;date_patient_exited_from_project&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Date Exited&#39;</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">widgets</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500&#39;</span><span class="p">,</span>
+            <span class="p">}),</span>
+            <span class="s1">&#39;date_patient_enrolled_in_project&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">DateInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500&#39;</span><span class="p">,</span>
+            <span class="p">}),</span>
+            <span class="s1">&#39;date_patient_exited_from_project&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">DateInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500&#39;</span><span class="p">,</span>
+            <span class="p">}),</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="PatientProjectForm.__init__">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.PatientProjectForm.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">patient</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;patient&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+        <span class="c1"># Filter projects to exclude ones already assigned to this patient (for new assignments)</span>
+        <span class="k">if</span> <span class="n">patient</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">pk</span><span class="p">:</span>
+            <span class="n">existing_project_ids</span> <span class="o">=</span> <span class="n">PatientProject</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">patient</span><span class="o">=</span><span class="n">patient</span><span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;project_id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">queryset</span> <span class="o">=</span> <span class="n">Project</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">id__in</span><span class="o">=</span><span class="n">existing_project_ids</span><span class="p">)</span>
+        
+        <span class="c1"># Set initial values for date fields if instance exists</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">pk</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">date_patient_enrolled_in_project</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="s1">&#39;date_patient_enrolled_in_project&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">date_patient_enrolled_in_project</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">date_patient_exited_from_project</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="s1">&#39;date_patient_exited_from_project&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">date_patient_exited_from_project</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PatientProjectForm.clean">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.PatientProjectForm.clean">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cleaned_data</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
+        <span class="n">project</span> <span class="o">=</span> <span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">)</span>
+        <span class="n">enrollment_date</span> <span class="o">=</span> <span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;date_patient_enrolled_in_project&#39;</span><span class="p">)</span>
+        <span class="n">exit_date</span> <span class="o">=</span> <span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;date_patient_exited_from_project&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Check for duplicate patient-project assignment (for new assignments only)</span>
+        <span class="k">if</span> <span class="n">project</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">pk</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;patient&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">patient</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">PatientProject</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">patient</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">patient</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="n">forms</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;This patient is already assigned to this project.&#39;</span><span class="p">))</span>
+        
+        <span class="c1"># Validate that exit date is after enrollment date</span>
+        <span class="k">if</span> <span class="n">enrollment_date</span> <span class="ow">and</span> <span class="n">exit_date</span> <span class="ow">and</span> <span class="n">exit_date</span> <span class="o">&lt;</span> <span class="n">enrollment_date</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">forms</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;Exit date cannot be before enrollment date.&#39;</span><span class="p">))</span>
+        
+        <span class="k">return</span> <span class="n">cleaned_data</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ProjectRedcapMappingForm">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.ProjectRedcapMappingForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProjectRedcapMappingForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
+    <span class="n">redcap_project_token</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+        <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">PasswordInput</span><span class="p">(</span><span class="n">render_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">INPUT_CLASS</span><span class="p">,</span> <span class="s1">&#39;autocomplete&#39;</span><span class="p">:</span> <span class="s1">&#39;new-password&#39;</span><span class="p">}),</span>
+        <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;REDCap API Token&#39;</span><span class="p">),</span>
+        <span class="n">help_text</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;Enter the API token. Leave blank on edit to keep the existing token.&#39;</span><span class="p">),</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="ProjectRedcapMappingForm.Meta">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.ProjectRedcapMappingForm.Meta">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">ProjectRedcapMapping</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;redcap_project_url&#39;</span><span class="p">,</span> <span class="s1">&#39;redcap_project_token&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;redcap_project_token_allows_import&#39;</span><span class="p">,</span> <span class="s1">&#39;redcap_project_token_allows_export&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;export_type&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;redcap_project_url&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;REDCap Project URL&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;redcap_project_token_allows_import&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Token allows import into REDCap&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;redcap_project_token_allows_export&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Token allows export from REDCap&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;export_type&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Export Type&#39;</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">widgets</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;redcap_project_url&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">URLInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">INPUT_CLASS</span><span class="p">}),</span>
+            <span class="s1">&#39;export_type&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">SELECT_CLASS</span><span class="p">}),</span>
+            <span class="s1">&#39;redcap_project_token_allows_import&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">CheckboxInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">CHECKBOX_CLASS</span><span class="p">}),</span>
+            <span class="s1">&#39;redcap_project_token_allows_export&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">CheckboxInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">CHECKBOX_CLASS</span><span class="p">}),</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="ProjectRedcapMappingForm.clean_redcap_project_token">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.ProjectRedcapMappingForm.clean_redcap_project_token">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clean_redcap_project_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;redcap_project_token&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">pk</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">redcap_project_token</span>
+            <span class="k">raise</span> <span class="n">forms</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;API token is required when creating a new configuration.&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">token</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RedcapIDFieldsForm">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.RedcapIDFieldsForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RedcapIDFieldsForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
+<div class="viewcode-block" id="RedcapIDFieldsForm.__init__">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.RedcapIDFieldsForm.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">instance</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;instance&#39;</span><span class="p">)</span>
+        <span class="c1"># Build grouped choices: [(form_name, [(field_name, field_name), ...]), ...]</span>
+        <span class="c1"># Labels are field_name only — field labels can contain rich text/HTML.</span>
+        <span class="n">grouped</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># form_name -&gt; [(value, label)]</span>
+        <span class="n">flat</span> <span class="o">=</span> <span class="p">[]</span>     <span class="c1"># flat list for secondary (no optgroup blank)</span>
+        <span class="k">if</span> <span class="n">instance</span> <span class="ow">and</span> <span class="n">instance</span><span class="o">.</span><span class="n">redcap_project_info</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">instance</span><span class="o">.</span><span class="n">redcap_project_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="n">fname</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;field_name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">fform</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;form_name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;(unknown form)&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">fname</span><span class="p">:</span>
+                    <span class="n">grouped</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">fform</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fname</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+                    <span class="n">flat</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fname</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+        <span class="n">grouped_choices</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;--- Select Field ---&#39;</span><span class="p">))]</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">form_name</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span> <span class="k">for</span> <span class="n">form_name</span><span class="p">,</span> <span class="n">opts</span> <span class="ow">in</span> <span class="n">grouped</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="n">secondary_choices</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;--- None ---&#39;</span><span class="p">))]</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">form_name</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span> <span class="k">for</span> <span class="n">form_name</span><span class="p">,</span> <span class="n">opts</span> <span class="ow">in</span> <span class="n">grouped</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;redcap_study_id_field&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+            <span class="n">choices</span><span class="o">=</span><span class="n">grouped_choices</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;Study ID Field&#39;</span><span class="p">),</span>
+            <span class="n">help_text</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;The REDCap field used as the primary record/study identifier.&#39;</span><span class="p">),</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">SELECT_CLASS</span><span class="p">}),</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;redcap_secondary_id_field&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+            <span class="n">choices</span><span class="o">=</span><span class="n">secondary_choices</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;Secondary ID Field&#39;</span><span class="p">),</span>
+            <span class="n">help_text</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;Optional secondary identifier (e.g. when auto-numbering is used in REDCap).&#39;</span><span class="p">),</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">SELECT_CLASS</span><span class="p">}),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RedcapIDFieldsForm.Meta">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.RedcapIDFieldsForm.Meta">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">ProjectRedcapMapping</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;redcap_study_id_field&#39;</span><span class="p">,</span> <span class="s1">&#39;redcap_secondary_id_field&#39;</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RedcapFormToQuestionnaireMappingForm">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.RedcapFormToQuestionnaireMappingForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RedcapFormToQuestionnaireMappingForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
+<div class="viewcode-block" id="RedcapFormToQuestionnaireMappingForm.__init__">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.RedcapFormToQuestionnaireMappingForm.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">project_redcap_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_project_redcap_mapping</span> <span class="o">=</span> <span class="n">project_redcap_mapping</span>
+
+        <span class="n">redcap_form_choices</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;--- Select REDCap Form ---&#39;</span><span class="p">))]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_date_fields_by_form</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">_date_mapping_grouped</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">project_redcap_mapping</span> <span class="ow">and</span> <span class="n">project_redcap_mapping</span><span class="o">.</span><span class="n">redcap_project_info</span><span class="p">:</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="n">project_redcap_mapping</span><span class="o">.</span><span class="n">redcap_project_info</span>
+            <span class="n">forms_seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">instrument</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;instruments&#39;</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">instrument</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;instrument_name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">instrument</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;instrument_label&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">forms_seen</span><span class="p">:</span>
+                    <span class="n">redcap_form_choices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">))</span>
+                    <span class="n">forms_seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="c1"># Group fields by form for redcap_date_mapping_field grouped choices</span>
+            <span class="n">_date_mapping_grouped</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># form_name -&gt; [(fname, fname)]</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="n">fname</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;field_name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">fform</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;form_name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;(unknown form)&#39;</span><span class="p">)</span>
+                <span class="n">validation</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;text_validation_type_or_show_slider_number&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">fname</span><span class="p">:</span>
+                    <span class="c1"># Date mapping field: all fields, grouped by form, name-only labels</span>
+                    <span class="n">_date_mapping_grouped</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">fform</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fname</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">validation</span> <span class="ow">and</span> <span class="n">validation</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s1">&#39;date_&#39;</span><span class="p">,</span> <span class="s1">&#39;datetime_&#39;</span><span class="p">)):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_date_fields_by_form</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">fform</span><span class="p">,</span> <span class="p">{})[</span><span class="n">fname</span><span class="p">]</span> <span class="o">=</span> <span class="n">validation</span>
+
+        <span class="c1"># Build grouped choices for redcap_date_mapping_field</span>
+        <span class="n">date_mapping_grouped_choices</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;--- None ---&#39;</span><span class="p">))]</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">form_name</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span> <span class="k">for</span> <span class="n">form_name</span><span class="p">,</span> <span class="n">opts</span> <span class="ow">in</span> <span class="n">_date_mapping_grouped</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;redcap_form_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+            <span class="n">choices</span><span class="o">=</span><span class="n">redcap_form_choices</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;REDCap Form&#39;</span><span class="p">),</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">SELECT_CLASS</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;id_redcap_form_name&#39;</span><span class="p">}),</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;redcap_date_mapping_field&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+            <span class="n">choices</span><span class="o">=</span><span class="n">date_mapping_grouped_choices</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;Date Mapping Field in REDCap&#39;</span><span class="p">),</span>
+            <span class="n">help_text</span><span class="o">=</span><span class="n">_</span><span class="p">(</span>
+                <span class="s1">&#39;Optional. Only relevant when the form is part of an event, a repeating form, or a repeating event. &#39;</span>
+                <span class="s1">&#39;When set, the system uses this field</span><span class="se">\&#39;</span><span class="s1">s existing date value in REDCap to automatically suggest which &#39;</span>
+                <span class="s1">&#39;questionnaire submission corresponds to which event or instance. &#39;</span>
+                <span class="s1">&#39;For example, if a visit form records the visit date and your quality-of-life form is in the same event, &#39;</span>
+                <span class="s1">&#39;assigning the visit date field here lets the system match submissions by date proximity. &#39;</span>
+                <span class="s1">&#39;This field may belong to a different REDCap form — the system resolves the correct form from metadata.&#39;</span>
+            <span class="p">),</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">SELECT_CLASS</span><span class="p">}),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Build choices from ALL date/datetime fields across all forms so that any</span>
+        <span class="c1"># submitted value passes ChoiceField&#39;s built-in validation. The clean() method</span>
+        <span class="c1"># enforces that the chosen field actually belongs to the selected form.</span>
+        <span class="n">date_field_choices</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;--- None (no submission date export) ---&#39;</span><span class="p">))]</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">form_fields</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_date_fields_by_form</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">fname</span><span class="p">,</span> <span class="n">ftype</span> <span class="ow">in</span> <span class="n">form_fields</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">fname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                    <span class="n">date_field_choices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fname</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">ftype</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">))</span>
+                    <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;submission_date_field&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+            <span class="n">choices</span><span class="o">=</span><span class="n">date_field_choices</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;Submission Date Field&#39;</span><span class="p">),</span>
+            <span class="n">help_text</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;Select a date or datetime field in this REDCap form to receive the questionnaire submission date on export. The format is determined automatically from the REDCap field validation.&#39;</span><span class="p">),</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">SELECT_CLASS</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;id_submission_date_field&#39;</span><span class="p">}),</span>
+        <span class="p">)</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_normalise_date_format</span><span class="p">(</span><span class="n">validation</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Map any REDCap date validation type to its canonical ymd export format.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">validation</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;datetime_seconds_&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s1">&#39;datetime_seconds_ymd&#39;</span>
+        <span class="k">if</span> <span class="n">validation</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;datetime_&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s1">&#39;datetime_ymd&#39;</span>
+        <span class="k">if</span> <span class="n">validation</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;date_&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s1">&#39;date_ymd&#39;</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="RedcapFormToQuestionnaireMappingForm.clean">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.RedcapFormToQuestionnaireMappingForm.clean">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cleaned_data</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
+        <span class="n">submission_date_field</span> <span class="o">=</span> <span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;submission_date_field&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
+        <span class="n">redcap_form_name</span> <span class="o">=</span> <span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;redcap_form_name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">submission_date_field</span><span class="p">:</span>
+            <span class="n">form_date_fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_date_fields_by_form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">redcap_form_name</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">validation</span> <span class="o">=</span> <span class="n">form_date_fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">submission_date_field</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">validation</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_error</span><span class="p">(</span><span class="s1">&#39;submission_date_field&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span>
+                    <span class="s1">&#39;&quot;</span><span class="si">%(field)s</span><span class="s1">&quot; is not a recognised date/datetime field for the selected form.&#39;</span>
+                <span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s1">&#39;field&#39;</span><span class="p">:</span> <span class="n">submission_date_field</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">resolved</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalise_date_format</span><span class="p">(</span><span class="n">validation</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">resolved</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">add_error</span><span class="p">(</span><span class="s1">&#39;submission_date_field&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span>
+                        <span class="s1">&#39;The REDCap validation type &quot;</span><span class="si">%(fmt)s</span><span class="s1">&quot; could not be mapped to an export format.&#39;</span>
+                    <span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s1">&#39;fmt&#39;</span><span class="p">:</span> <span class="n">validation</span><span class="p">})</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;_resolved_submission_date_format&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolved</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;submission_date_field&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;_resolved_submission_date_format&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">cleaned_data</span></div>
+
+
+<div class="viewcode-block" id="RedcapFormToQuestionnaireMappingForm.save">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.RedcapFormToQuestionnaireMappingForm.save">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">commit</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">instance</span><span class="o">.</span><span class="n">submission_date_field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;submission_date_field&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
+        <span class="n">instance</span><span class="o">.</span><span class="n">submission_date_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_resolved_submission_date_format&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">commit</span><span class="p">:</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">instance</span></div>
+
+
+<div class="viewcode-block" id="RedcapFormToQuestionnaireMappingForm.Meta">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.RedcapFormToQuestionnaireMappingForm.Meta">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">RedcapFormToQuestionnaireMapping</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;redcap_form_name&#39;</span><span class="p">,</span> <span class="s1">&#39;redcap_event_name&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;redcap_form_is_repeating&#39;</span><span class="p">,</span> <span class="s1">&#39;redcap_form_is_in_event&#39;</span><span class="p">,</span> <span class="s1">&#39;redcap_event_is_repeating&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;redcap_date_mapping_field&#39;</span><span class="p">,</span> <span class="s1">&#39;questionnaire&#39;</span><span class="p">,</span> <span class="s1">&#39;submission_date_field&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;redcap_event_name&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;REDCap Event Name&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;redcap_form_is_repeating&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Form is a repeating form&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;redcap_form_is_in_event&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Form is part of an event&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;redcap_event_is_repeating&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Event is repeating&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;questionnaire&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;CHAVI PROM Questionnaire&#39;</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">widgets</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;redcap_event_name&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">TextInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">INPUT_CLASS</span><span class="p">}),</span>
+            <span class="s1">&#39;redcap_form_is_repeating&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">CheckboxInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">CHECKBOX_CLASS</span><span class="p">}),</span>
+            <span class="s1">&#39;redcap_form_is_in_event&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">CheckboxInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">CHECKBOX_CLASS</span><span class="p">}),</span>
+            <span class="s1">&#39;redcap_event_is_repeating&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">CheckboxInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">CHECKBOX_CLASS</span><span class="p">}),</span>
+            <span class="s1">&#39;questionnaire&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">SELECT_CLASS</span><span class="p">}),</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<span class="n">DATE_VALIDATION_PREFIXES</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;date_&#39;</span><span class="p">,</span> <span class="s1">&#39;datetime_&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="RedcapFieldToItemMappingForm">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.RedcapFieldToItemMappingForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RedcapFieldToItemMappingForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RedcapFieldToItemMappingForm.__init__">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.RedcapFieldToItemMappingForm.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">project_redcap_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">form_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_date_field_validation_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_form_mapping</span> <span class="o">=</span> <span class="n">form_mapping</span>
+
+        <span class="n">redcap_field_choices</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;--- Select Field ---&#39;</span><span class="p">))]</span>
+        <span class="k">if</span> <span class="n">project_redcap_mapping</span> <span class="ow">and</span> <span class="n">project_redcap_mapping</span><span class="o">.</span><span class="n">redcap_project_info</span><span class="p">:</span>
+            <span class="n">form_name</span> <span class="o">=</span> <span class="n">form_mapping</span><span class="o">.</span><span class="n">redcap_form_name</span> <span class="k">if</span> <span class="n">form_mapping</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">project_redcap_mapping</span><span class="o">.</span><span class="n">redcap_project_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="k">if</span> <span class="n">form_name</span> <span class="ow">and</span> <span class="n">field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;form_name&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">form_name</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">fname</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;field_name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">flabel</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;field_label&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+                <span class="n">validation</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;text_validation_type_or_show_slider_number&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">fname</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">validation</span> <span class="ow">and</span> <span class="n">validation</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">DATE_VALIDATION_PREFIXES</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_date_field_validation_map</span><span class="p">[</span><span class="n">fname</span><span class="p">]</span> <span class="o">=</span> <span class="n">validation</span>
+                        <span class="n">redcap_field_choices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fname</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">flabel</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">) </span><span class="se">\u2014</span><span class="s2"> </span><span class="se">\U0001f4c5</span><span class="s2"> </span><span class="si">{</span><span class="n">validation</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">redcap_field_choices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fname</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">flabel</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;redcap_field_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+            <span class="n">choices</span><span class="o">=</span><span class="n">redcap_field_choices</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;REDCap Field&#39;</span><span class="p">),</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">SELECT_CLASS</span><span class="p">}),</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">form_mapping</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">promapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuestionnaireItem</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;questionnaire_item&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">queryset</span> <span class="o">=</span> <span class="n">QuestionnaireItem</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">questionnaire</span><span class="o">=</span><span class="n">form_mapping</span><span class="o">.</span><span class="n">questionnaire</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;item&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RedcapFieldToItemMappingForm.Meta">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.RedcapFieldToItemMappingForm.Meta">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">RedcapFieldToItemMapping</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;redcap_field_name&#39;</span><span class="p">,</span> <span class="s1">&#39;questionnaire_item&#39;</span><span class="p">]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;questionnaire_item&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Questionnaire Item&#39;</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">widgets</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;questionnaire_item&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">SELECT_CLASS</span><span class="p">}),</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<span class="n">RedcapFieldToItemMappingFormSet</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">modelformset_factory</span><span class="p">(</span>
+    <span class="n">RedcapFieldToItemMapping</span><span class="p">,</span>
+    <span class="n">form</span><span class="o">=</span><span class="n">RedcapFieldToItemMappingForm</span><span class="p">,</span>
+    <span class="n">extra</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">can_delete</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="RedcapStudyIDMapForm">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.RedcapStudyIDMapForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RedcapStudyIDMapForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
+<div class="viewcode-block" id="RedcapStudyIDMapForm.Meta">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.RedcapStudyIDMapForm.Meta">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">RedcapStudyIDtoPatientIDMap</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;redcap_study_id&#39;</span><span class="p">]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;redcap_study_id&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;REDCap Study ID&#39;</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">widgets</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;redcap_study_id&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">TextInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">INPUT_CLASS</span><span class="p">}),</span>
+        <span class="p">}</span></div>
+</div>
+
 </pre></div>
 
           </div>
@@ -270,13 +702,10 @@
     </div>
 </search>
 <script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../patient/index.html">Patient Documentation</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../healthcare_worker/index.html">Healthcare Worker Documentation</a></li>
-</ul>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">Developer Documentation</a></li>
 </ul>
 

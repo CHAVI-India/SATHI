@@ -12,3 +12,4 @@ This section provides guidance for healthcare workers using SATHI to manage pati
    assigning_questionnaires
    reviewing_results
    adding_questionnaire
+   exporting_data_to_redcap

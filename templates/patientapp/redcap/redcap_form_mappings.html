@@ -15,9 +15,11 @@
       <c-link_button href="{% url 'redcap_project_dashboard' pk=project.pk %}" variant="secondary" size="sm">
         ← {% trans "Back" %}
       </c-link_button>
+      {% if perms.patientapp.add_redcapformtoquestionnairemapping %}
       <c-link_button href="{% url 'redcap_form_mapping_create' pk=project.pk mapping_pk=mapping.pk %}" variant="primary">
         {% trans "Add Form Mapping" %}
       </c-link_button>
+      {% endif %}
     </div>
   </div>
 
@@ -68,12 +70,21 @@
           </td>
           <td class="px-4 py-3 text-sm">
             <div class="flex gap-2">
+              {% if perms.patientapp.change_redcapformtoquestionnairemapping %}
               <c-link_button href="{% url 'redcap_form_mapping_edit' pk=project.pk mapping_pk=mapping.pk fm_pk=fm.pk %}" variant="outline" size="sm">
                 {% trans "Edit" %}
               </c-link_button>
+              {% endif %}
+              {% if perms.patientapp.change_redcapfieldtoitemmapping %}
               <c-link_button href="{% url 'redcap_field_mappings' pk=project.pk mapping_pk=mapping.pk fm_pk=fm.pk %}" variant="secondary" size="sm">
                 {% trans "Field Mappings" %}
               </c-link_button>
+              {% endif %}
+              {% if perms.patientapp.delete_redcapformtoquestionnairemapping %}
+              <c-link_button href="{% url 'redcap_form_mapping_delete' pk=project.pk mapping_pk=mapping.pk fm_pk=fm.pk %}" variant="danger" size="sm">
+                {% trans "Delete" %}
+              </c-link_button>
+              {% endif %}
             </div>
           </td>
         </tr>

@@ -33,6 +33,7 @@ extensions = [
     'sphinx.ext.napoleon',  # Support for Google and NumPy style docstrings
     'sphinx.ext.autosummary',  # Generate summary tables
     'sphinx.ext.intersphinx',  # Link to other documentation
+    'sphinxcontrib.mermaid',  # Mermaid diagram support
 ]
 
 # Autodoc settings
@@ -76,3 +77,12 @@ exclude_patterns = []
 
 html_theme = 'alabaster'
 html_static_path = ['_static']
+
+# -- Mermaid configuration -------------------------------------------------
+# Ensure diagrams render as SVG with proper sizing
+mermaid_output_format = 'raw'
+
+# Custom CSS for mermaid diagrams
+html_css_files = [
+    'custom.css',
+]

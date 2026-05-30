@@ -65,17 +65,21 @@
             <c-link_button href="{% url 'redcap_mapping_edit' pk=project.pk mapping_pk=m.pk %}" variant="outline" size="sm">
               {% trans "Edit" %}
             </c-link_button>
-            {% if m.redcap_project_info %}
+            {% if m.redcap_project_info and perms.patientapp.view_redcapformtoquestionnairemapping %}
             <c-link_button href="{% url 'redcap_form_mappings' pk=project.pk mapping_pk=m.pk %}" variant="secondary" size="sm">
               {% trans "Form Mappings" %}
             </c-link_button>
             {% endif %}
+            {% if perms.patientapp.change_redcapstudyidtopatientidmap %}
             <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=m.pk %}" variant="secondary" size="sm">
               {% trans "Patient IDs" %}
             </c-link_button>
+            {% endif %}
+            {% if request.user.is_staff %}
             <c-link_button href="{% url 'redcap_export' pk=project.pk mapping_pk=m.pk %}" variant="success" size="sm">
               {% trans "Export" %}
             </c-link_button>
+            {% endif %}
             {% if m.redcap_project_info %}
               <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-green-50 text-green-700 border border-green-200 self-center">
                 ✓ {% trans "Metadata loaded" %}

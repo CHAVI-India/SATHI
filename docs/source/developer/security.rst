@@ -251,6 +251,164 @@ All permissions need **View**, **Add**, and **Change** for:
    - Delete permissions not recommended except for privileged users
    - Permissions also allow adding translations to items
 
+REDCap Project Data Export Permissions
+------------------------------------------
+
+SATHI implements a granular, model-level permission system for REDCap integration using Django's built-in auth framework. This allows fine-grained access control for different roles (e.g., data managers, project coordinators, researchers).
+
+Permission Models
+~~~~~~~~~~~~~~~~~~~
+
+The following models have Django's default 4-tier permissions (view, add, change, delete):
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Model
+     - Purpose
+   * - ``RedcapFormToQuestionnaireMapping``
+     - Links REDCap forms to SATHI questionnaires
+   * - ``RedcapFieldToItemMapping``
+     - Maps REDCap fields to questionnaire items
+   * - ``RedcapStudyIDtoPatientIDMap``
+     - Maps SATHI patients to REDCap study IDs
+   * - ``RedcapInstanceToSubmissionMapping``
+     - Matches submissions to REDCap events/instances
+
+Generated Permission Codenames
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Django automatically creates permissions using the pattern ``{action}_{modelname}``:
+
+- ``view_redcapformtoquestionnairemapping`` – View form mappings
+- ``add_redcapformtoquestionnairemapping`` – Create new form mappings
+- ``change_redcapformtoquestionnairemapping`` – Edit form mappings
+- ``delete_redcapformtoquestionnairemapping`` – Delete form mappings
+
+- ``view_redcapfieldtoitemmapping`` – View field mappings
+- ``add_redcapfieldtoitemmapping`` – Create field mappings
+- ``change_redcapfieldtoitemmapping`` – Edit field mappings
+- ``delete_redcapfieldtoitemmapping`` – Remove field mappings
+
+- ``view_redcapstudyidtopatientidmap`` – View patient ID mappings
+- ``add_redcapstudyidtopatientidmap`` – Assign study IDs to patients
+- ``change_redcapstudyidtopatientidmap`` – Edit patient ID mappings
+- ``delete_redcapstudyidtopatientidmap`` – Clear patient ID mappings
+
+- ``view_redcapinstancetosubmissionmapping`` – View submission matches
+- ``add_redcapinstancetosubmissionmapping`` – Create submission matches
+- ``change_redcapinstancetosubmissionmapping`` – Edit submission matches
+
+Permission Mapping to Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 20 50
+
+   * - Operation
+     - Permission
+     - Notes
+   * - View Form Mappings list
+     - view_redcapformtoquestionnairemapping
+     - Required to see form mappings page
+   * - Add Form Mapping
+     - add_redcapformtoquestionnairemapping
+     - "Add Form Mapping" button visibility
+   * - Edit Form Mapping
+     - change_redcapformtoquestionnairemapping
+     - Edit button + update view access
+   * - Delete Form Mapping
+     - delete_redcapformtoquestionnairemapping
+     - Delete button + delete view access
+   * - View Field Mappings
+     - view_redcapfieldtoitemmapping
+     - Saved mappings section visibility
+   * - Add Field Mappings
+     - add_redcapfieldtoitemmapping
+     - Suggested mappings + Save button
+   * - Edit Field Mapping
+     - change_redcapfieldtoitemmapping
+     - Edit row toggle + save
+   * - Delete Field Mapping
+     - delete_redcapfieldtoitemmapping
+     - Remove button
+   * - Assign Patient Study ID
+     - change_redcapstudyidtopatientidmap
+     - Assign/Edit button
+   * - Match Submissions
+     - change_redcapinstancetosubmissionmapping
+     - Match link access
+   * - Clear Patient Mapping
+     - delete_redcapstudyidtopatientidmap
+     - Clear button + delete view
+
+Export Restriction
+~~~~~~~~~~~~~~~~~~
+
+Data export (both Manual CSV and Direct API) is restricted to **staff users only** (``request.user.is_staff``). This is a deliberate security measure because:
+
+- Exporting data affects external systems (REDCap)
+- API exports require elevated REDCap privileges
+- CSV exports contain PHI that may need audit controls
+
+To allow a user to export, grant them staff status via Django admin, or add them to a group with ``is_staff`` enabled.
+
+Recommended Permission Groups
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Role
+     - Suggested Permissions
+   * - REDCap Data Manager
+     - All view/add/change/delete permissions on all 4 models
+   * - Project Coordinator
+     - view/add/change on Form/Field mappings; view/change on Patient IDs; view on Submission matching
+   * - Research Assistant
+     - view on all models; change on Patient IDs and Submission matching (for data entry)
+   * - Read-only Auditor
+     - view permissions only on all models
+
+Assigning Permissions
+~~~~~~~~~~~~~~~~~~~~~
+
+Permissions can be assigned via Django admin or programmatically::
+
+    from django.contrib.auth.models import Group, Permission
+    from django.contrib.contenttypes.models import ContentType
+
+    # Get or create a group
+    redcap_managers, _ = Group.objects.get_or_create(name='REDCap Data Managers')
+
+    # Add all REDCap permissions
+    redcap_models = [
+        'redcapformtoquestionnairemapping',
+        'redcapfieldtoitemmapping',
+        'redcapstudyidtopatientidmap',
+        'redcapinstancetosubmissionmapping',
+    ]
+
+    for model in redcap_models:
+        for action in ['view', 'add', 'change', 'delete']:
+            try:
+                perm = Permission.objects.get(
+                    codename=f'{action}_{model}',
+                    content_type__app_label='patientapp'
+                )
+                redcap_managers.permissions.add(perm)
+            except Permission.DoesNotExist:
+                pass  # Model may not exist yet (run migrations first)
+
+.. note::
+   - Permissions are checked in both views (backend) and templates (UI visibility)
+   - The ``_redcap_permission_required()`` helper in ``views.py`` standardizes permission checks
+   - Template checks use ``{% if perms.patientapp.change_redcapformtoquestionnairemapping %}``
+
+
 Institution-Based Access Control
 ---------------------------------
 

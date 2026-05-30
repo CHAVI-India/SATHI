@@ -2823,6 +2823,23 @@ def _staff_required(request):
     return None
 
 
+def _redcap_permission_required(request, permission_codename):
+    """Return redirect response if user lacks permission, else None.
+    
+    Args:
+        request: HttpRequest with user attribute
+        permission_codename: String like 'add_redcapformmapping' or 'view_redcappatientidmapping'
+    
+    Returns:
+        HttpResponseRedirect if permission denied, None if allowed
+    """
+    perm = f'patientapp.{permission_codename}'
+    if not request.user.has_perm(perm):
+        messages.error(request, _('You do not have permission to perform this action.'))
+        return redirect('index')
+    return None
+
+
 @login_required
 def redcap_project_dashboard(request, pk):
     """List all ProjectRedcapMappings for a given Project."""
@@ -3147,7 +3164,7 @@ def redcap_fetch_metadata(request, pk, mapping_pk):
 @login_required
 def redcap_form_mappings(request, pk, mapping_pk):
     """List RedcapFormToQuestionnaireMapping entries for a ProjectRedcapMapping."""
-    guard = _staff_required(request)
+    guard = _redcap_permission_required(request, 'view_redcapformtoquestionnairemapping')
     if guard:
         return guard
     project = get_object_or_404(Project, pk=pk)
@@ -3165,7 +3182,7 @@ def redcap_form_mappings(request, pk, mapping_pk):
 @login_required
 def redcap_form_mapping_create(request, pk, mapping_pk):
     """Create a RedcapFormToQuestionnaireMapping."""
-    guard = _staff_required(request)
+    guard = _redcap_permission_required(request, 'add_redcapformtoquestionnairemapping')
     if guard:
         return guard
     project = get_object_or_404(Project, pk=pk)
@@ -3194,7 +3211,7 @@ def redcap_form_mapping_create(request, pk, mapping_pk):
 @login_required
 def redcap_form_mapping_edit(request, pk, mapping_pk, fm_pk):
     """Edit a RedcapFormToQuestionnaireMapping."""
-    guard = _staff_required(request)
+    guard = _redcap_permission_required(request, 'change_redcapformtoquestionnairemapping')
     if guard:
         return guard
     project = get_object_or_404(Project, pk=pk)
@@ -3221,10 +3238,43 @@ def redcap_form_mapping_edit(request, pk, mapping_pk, fm_pk):
 
 
 @login_required
+def redcap_form_mapping_delete(request, pk, mapping_pk, fm_pk):
+    """Delete a RedcapFormToQuestionnaireMapping."""
+    guard = _redcap_permission_required(request, 'delete_redcapformtoquestionnairemapping')
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+    fm = get_object_or_404(RedcapFormToQuestionnaireMapping, pk=fm_pk, project_redcap_mapping=mapping)
+
+    if request.method == 'POST':
+        form_name = fm.redcap_form_name
+        fm.delete()
+        messages.success(request, _('Form mapping "{name}" deleted.').format(name=form_name))
+        return redirect('redcap_form_mappings', pk=pk, mapping_pk=mapping_pk)
+
+    return render(request, 'patientapp/redcap/redcap_form_mapping_confirm_delete.html', {
+        'project': project,
+        'mapping': mapping,
+        'fm': fm,
+    })
+
+
+@login_required
 def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
     """Create/edit RedcapFieldToItemMapping entries for a form mapping."""
     import difflib, html, re as _re
-    guard = _staff_required(request)
+    # Check appropriate permission based on action
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'delete':
+            guard = _redcap_permission_required(request, 'delete_redcapfieldtoitemmapping')
+        elif action in ('bulk_save', 'edit_row'):
+            guard = _redcap_permission_required(request, 'change_redcapfieldtoitemmapping')
+        else:  # bulk_add, auto_map, etc.
+            guard = _redcap_permission_required(request, 'add_redcapfieldtoitemmapping')
+    else:
+        guard = _redcap_permission_required(request, 'view_redcapfieldtoitemmapping')
     if guard:
         return guard
     project = get_object_or_404(Project, pk=pk)
@@ -3511,7 +3561,7 @@ def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
 @login_required
 def redcap_patient_ids(request, pk, mapping_pk):
     """Map patients in the project to their REDCap study IDs."""
-    guard = _staff_required(request)
+    guard = _redcap_permission_required(request, 'change_redcapstudyidtopatientidmap')
     if guard:
         return guard
     project = get_object_or_404(Project, pk=pk)
@@ -3604,9 +3654,45 @@ def redcap_patient_ids(request, pk, mapping_pk):
 
 
 @login_required
+def redcap_patient_id_delete(request, pk, mapping_pk, patient_pk):
+    """Delete a REDCap study ID mapping for a specific patient."""
+    guard = _redcap_permission_required(request, 'delete_redcapstudyidtopatientidmap')
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+    patient = get_object_or_404(Patient, pk=patient_pk)
+
+    # Get the mapping to display in confirmation
+    id_map = RedcapStudyIDtoPatientIDMap.objects.filter(
+        project_redcap_mapping=mapping,
+        patient=patient
+    ).first()
+
+    if request.method == 'POST':
+        if id_map:
+            study_id = id_map.redcap_study_id
+            id_map.delete()
+            messages.success(
+                request,
+                _('Study ID mapping for {patient} cleared.').format(patient=patient.name)
+            )
+        else:
+            messages.info(request, _('No mapping exists for this patient.'))
+        return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+
+    return render(request, 'patientapp/redcap/redcap_patient_id_confirm_delete.html', {
+        'project': project,
+        'mapping': mapping,
+        'patient': patient,
+        'id_map': id_map,
+    })
+
+
+@login_required
 def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
     """Per-patient submission → REDCap instance matching review and save."""
-    guard = _staff_required(request)
+    guard = _redcap_permission_required(request, 'change_redcapinstancetosubmissionmapping')
     if guard:
         return guard
     project = get_object_or_404(Project, pk=pk)

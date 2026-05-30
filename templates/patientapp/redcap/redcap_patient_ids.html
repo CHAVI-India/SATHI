@@ -105,22 +105,26 @@
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
               <div class="flex items-center gap-3">
+                {% if perms.patientapp.change_redcapstudyidtopatientidmap %}
                 <button type="button"
                   onclick="openModal('{{ row.patient.pk }}','{{ row.patient.name|escapejs }}','{{ row.patient.patient_id|escapejs }}','{{ row.redcap_study_id|escapejs }}')"
                   class="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline">
                   {% if row.redcap_study_id %}{% trans "Edit" %}{% else %}{% trans "Assign" %}{% endif %}
                 </button>
+                {% endif %}
                 {% if row.redcap_study_id %}
+                {% if perms.patientapp.change_redcapinstancetosubmissionmapping %}
                 <a href="{% url 'redcap_match_submissions' pk=project.pk mapping_pk=mapping.pk patient_pk=row.patient.pk %}"
                    class="text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:underline">
                   {% trans "Match" %}
                 </a>
-                <form method="post" class="inline" onsubmit="return confirm('{% trans "Clear this mapping?" %}')">
-                  {% csrf_token %}
-                  <input type="hidden" name="action" value="clear">
-                  <input type="hidden" name="patient_pk" value="{{ row.patient.pk }}">
-                  <button type="submit" class="text-xs font-medium text-red-500 hover:text-red-700 hover:underline">{% trans "Clear" %}</button>
-                </form>
+                {% endif %}
+                {% if perms.patientapp.delete_redcapstudyidtopatientidmap %}
+                <a href="{% url 'redcap_patient_id_delete' pk=project.pk mapping_pk=mapping.pk patient_pk=row.patient.pk %}"
+                   class="text-xs font-medium text-red-500 hover:text-red-700 hover:underline">
+                  {% trans "Clear" %}
+                </a>
+                {% endif %}
                 {% endif %}
               </div>
             </td>
