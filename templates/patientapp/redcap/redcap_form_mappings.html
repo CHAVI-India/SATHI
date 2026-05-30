@@ -38,63 +38,128 @@
   {% endif %}
 
   {% if form_mappings %}
-  <div class="overflow-x-auto">
-    <table class="min-w-full bg-white rounded-lg shadow-sm border border-gray-200">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "REDCap Form" %}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Questionnaire" %}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Event" %}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Flags" %}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Actions" %}</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-200">
-        {% for fm in form_mappings %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ fm.redcap_form_name }}</td>
-          <td class="px-4 py-3 text-sm text-gray-700">{{ fm.questionnaire }}</td>
-          <td class="px-4 py-3 text-sm text-gray-600">{{ fm.redcap_event_name|default:"—" }}</td>
-          <td class="px-4 py-3 text-sm">
-            <div class="flex flex-wrap gap-1">
-              {% if fm.redcap_form_is_repeating %}
-                <span class="px-1.5 py-0.5 rounded text-xs bg-purple-100 text-purple-700">{% trans "Repeating" %}</span>
-              {% endif %}
-              {% if fm.redcap_form_is_in_event %}
-                <span class="px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700">{% trans "In Event" %}</span>
-              {% endif %}
-              {% if fm.redcap_event_is_repeating %}
-                <span class="px-1.5 py-0.5 rounded text-xs bg-indigo-100 text-indigo-700">{% trans "Repeating Event" %}</span>
+  <div class="space-y-6">
+    {% for fm in form_mappings %}
+    <c-card shadow="md" padding="lg">
+      {# ── Form Mapping Header ──────────────────────────────────────────── #}
+      <div class="border-b border-gray-100 pb-4 mb-4">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-3 mb-2">
+              <h2 class="text-lg font-semibold text-gray-900">{{ fm.redcap_form_name }}</h2>
+              <div class="flex flex-wrap gap-1">
+                {% if fm.redcap_form_is_repeating %}
+                  <span class="px-1.5 py-0.5 rounded text-xs bg-purple-100 text-purple-700">{% trans "Repeating" %}</span>
+                {% endif %}
+                {% if fm.redcap_form_is_in_event %}
+                  <span class="px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700">{% trans "In Event" %}</span>
+                {% endif %}
+                {% if fm.redcap_event_is_repeating %}
+                  <span class="px-1.5 py-0.5 rounded text-xs bg-indigo-100 text-indigo-700">{% trans "Repeating Event" %}</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-600">
+              <span>
+                <span class="font-medium text-gray-700">{% trans "Questionnaire:" %}</span>
+                {{ fm.questionnaire }}
+              </span>
+              {% if fm.redcap_event_name %}
+              <span>
+                <span class="font-medium text-gray-700">{% trans "Event:" %}</span>
+                {{ fm.redcap_event_name }}
+              </span>
               {% endif %}
             </div>
-          </td>
-          <td class="px-4 py-3 text-sm">
-            <div class="flex gap-2">
-              {% if perms.patientapp.change_redcapformtoquestionnairemapping %}
-              <c-link_button href="{% url 'redcap_form_mapping_edit' pk=project.pk mapping_pk=mapping.pk fm_pk=fm.pk %}" variant="outline" size="sm">
-                {% trans "Edit" %}
-              </c-link_button>
-              {% endif %}
-              {% if perms.patientapp.change_redcapfieldtoitemmapping %}
-              <c-link_button href="{% url 'redcap_field_mappings' pk=project.pk mapping_pk=mapping.pk fm_pk=fm.pk %}" variant="secondary" size="sm">
-                {% trans "Field Mappings" %}
-              </c-link_button>
-              {% endif %}
-              {% if perms.patientapp.delete_redcapformtoquestionnairemapping %}
-              <c-link_button href="{% url 'redcap_form_mapping_delete' pk=project.pk mapping_pk=mapping.pk fm_pk=fm.pk %}" variant="danger" size="sm">
-                {% trans "Delete" %}
-              </c-link_button>
-              {% endif %}
+          </div>
+          {% if perms.patientapp.change_redcapformtoquestionnairemapping or perms.patientapp.delete_redcapformtoquestionnairemapping %}
+          <div class="flex flex-wrap gap-2 shrink-0">
+            {% if perms.patientapp.change_redcapformtoquestionnairemapping %}
+            <c-link_button href="{% url 'redcap_form_mapping_edit' pk=project.pk mapping_pk=mapping.pk fm_pk=fm.pk %}" variant="outline" size="sm">
+              <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+              {% trans "Edit Form Mapping" %}
+            </c-link_button>
+            {% endif %}
+            {% if perms.patientapp.delete_redcapformtoquestionnairemapping %}
+            <c-link_button href="{% url 'redcap_form_mapping_delete' pk=project.pk mapping_pk=mapping.pk fm_pk=fm.pk %}" variant="danger" size="sm">
+              <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              {% trans "Delete Form Mapping" %}
+            </c-link_button>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Field Mappings Section ─────────────────────────────────────────── #}
+      <div class="bg-gray-50 rounded-lg p-4">
+        <div class="mb-3">
+          <div class="flex items-center justify-between mb-1">
+            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">{% trans "Field Mappings" %}</h3>
+            {% if perms.patientapp.change_redcapfieldtoitemmapping %}
+            <c-link_button href="{% url 'redcap_field_mappings' pk=project.pk mapping_pk=mapping.pk fm_pk=fm.pk %}" variant="secondary" size="sm">
+              {% trans "Manage Field Mappings" %}
+            </c-link_button>
+            {% endif %}
+          </div>
+          <p class="text-sm text-gray-500">{% trans "Map individual REDCap fields to questionnaire items. Each field can be mapped to a specific question, with options for value transformation and conditional mapping." %}</p>
+        </div>
+
+        {# Field Mappings Summary #}
+        {% with field_count=fm.redcapfieldtoitemmapping_set.count %}
+        <div class="bg-white rounded border border-gray-200 p-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="text-center px-4">
+                <p class="text-2xl font-bold text-indigo-600">{{ field_count }}</p>
+                <p class="text-xs text-gray-500">{% trans "Fields Mapped" %}</p>
+              </div>
+              <div class="h-10 w-px bg-gray-200"></div>
+              <div class="text-sm text-gray-600">
+                {% if field_count == 0 %}
+                  <p class="text-yellow-600">{% trans "No field mappings configured. Data export will not include any questionnaire responses." %}</p>
+                {% else %}
+                  <p>{% trans "Field mappings are configured and ready for data export." %}</p>
+                {% endif %}
+              </div>
             </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            {% if perms.patientapp.view_redcapfieldtoitemmapping %}
+            <c-link_button href="{% url 'redcap_field_mappings' pk=project.pk mapping_pk=mapping.pk fm_pk=fm.pk %}" variant="outline" size="sm">
+              {% trans "View Details →" %}
+            </c-link_button>
+            {% endif %}
+          </div>
+        </div>
+        {% endwith %}
+      </div>
+    </c-card>
+    {% endfor %}
   </div>
   {% else %}
-    <c-card shadow="sm" padding="md">
-      <p class="text-gray-500 text-center py-8">{% trans "No form mappings yet. Click 'Add Form Mapping' to create one." %}</p>
+    <c-card shadow="sm" padding="lg">
+      <div class="text-center py-12">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+          <svg class="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">{% trans "No Form Mappings" %}</h3>
+        <p class="text-gray-500 mb-6 max-w-md mx-auto">
+          {% trans "Create a form mapping to link REDCap forms with SATHI questionnaires. This is the first step before configuring field-level mappings." %}
+        </p>
+        {% if perms.patientapp.add_redcapformtoquestionnairemapping %}
+        <c-link_button href="{% url 'redcap_form_mapping_create' pk=project.pk mapping_pk=mapping.pk %}" variant="primary">
+          <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          {% trans "Add Form Mapping" %}
+        </c-link_button>
+        {% endif %}
+      </div>
     </c-card>
   {% endif %}
 </div>

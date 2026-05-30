@@ -2872,6 +2872,17 @@ def redcap_project_dashboard(request, pk):
             fm_stats.append({'fm': fm, 'total': total, 'matched': matched})
         m.fm_stats = fm_stats
 
+        # Calculate patient ID mapping statistics
+        patient_projects = PatientProject.objects.filter(project=project).count()
+        # Filter in Python because redcap_study_id is EncryptedCharField
+        id_maps = RedcapStudyIDtoPatientIDMap.objects.filter(project_redcap_mapping=m)
+        mapped_patients = sum(1 for im in id_maps if im.redcap_study_id)
+        m.patient_stats = {
+            'total': patient_projects,
+            'mapped': mapped_patients,
+            'unmapped': patient_projects - mapped_patients,
+        }
+
     return render(request, 'patientapp/redcap/redcap_dashboard.html', {
         'project': project,
         'mappings': mappings,
@@ -2925,6 +2936,27 @@ def redcap_mapping_edit(request, pk, mapping_pk):
         'mapping': mapping,
         'title': _('Edit REDCap Configuration'),
         'action': 'edit',
+    })
+
+
+@login_required
+def redcap_mapping_delete(request, pk, mapping_pk):
+    """Delete a ProjectRedcapMapping configuration."""
+    guard = _staff_required(request)
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+
+    if request.method == 'POST':
+        config_name = str(mapping)
+        mapping.delete()
+        messages.success(request, _('REDCap configuration "{name}" deleted.').format(name=config_name))
+        return redirect('redcap_project_dashboard', pk=pk)
+
+    return render(request, 'patientapp/redcap/redcap_mapping_confirm_delete.html', {
+        'project': project,
+        'mapping': mapping,
     })
 
 
@@ -3615,6 +3647,30 @@ def redcap_patient_ids(request, pk, mapping_pk):
         for m in RedcapStudyIDtoPatientIDMap.objects.filter(project_redcap_mapping=mapping)
     }
 
+    # Get submission matching stats per patient
+    from promapp.models import QuestionnaireSubmission as _QS
+    form_mappings = RedcapFormToQuestionnaireMapping.objects.filter(project_redcap_mapping=mapping)
+    submission_stats = {}
+    for pp in patient_projects:
+        patient = pp.patient
+        total_submissions = 0
+        matched_submissions = 0
+        for fm in form_mappings:
+            patient_subs = _QS.objects.filter(
+                patient_questionnaire__questionnaire=fm.questionnaire,
+                patient=patient,
+            )
+            total_submissions += patient_subs.count()
+            matched = RedcapInstanceToSubmissionMapping.objects.filter(
+                redcap_form=fm,
+                questionnaire_submission__in=patient_subs,
+            ).count()
+            matched_submissions += matched
+        submission_stats[patient.pk] = {
+            'total': total_submissions,
+            'matched': matched_submissions,
+        }
+
     rows = []
     for pp in patient_projects:
         patient = pp.patient
@@ -3638,13 +3694,42 @@ def redcap_patient_ids(request, pk, mapping_pk):
             'patient': patient,
             'redcap_study_id': suggested,
             'auto_matched': auto_matched,
+            'submission_stats': submission_stats.get(patient.pk, {'total': 0, 'matched': 0}),
         })
+
+    # Apply filtering
+    match_filter = request.GET.get('match_filter', 'all')
+    if match_filter == 'mapped':
+        rows = [r for r in rows if r['redcap_study_id']]
+    elif match_filter == 'unmapped':
+        rows = [r for r in rows if not r['redcap_study_id']]
+    elif match_filter == 'partial_match':
+        rows = [
+            r for r in rows
+            if r['submission_stats']['total'] > 0
+            and r['submission_stats']['matched'] < r['submission_stats']['total']
+        ]
+    elif match_filter == 'full_match':
+        rows = [
+            r for r in rows
+            if r['submission_stats']['total'] > 0
+            and r['submission_stats']['matched'] == r['submission_stats']['total']
+        ]
+
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(rows, 25)  # 25 per page
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
 
     mapped_count = sum(1 for r in rows if r['redcap_study_id'])
     return render(request, 'patientapp/redcap/redcap_patient_ids.html', {
         'project': project,
         'mapping': mapping,
-        'rows': rows,
+        'rows': page_obj,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'match_filter': match_filter,
         'mapped_count': mapped_count,
         'redcap_records': redcap_records,
         'primary_field': primary_field,

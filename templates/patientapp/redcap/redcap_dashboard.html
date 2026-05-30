@@ -6,126 +6,225 @@
 
 {% block content %}
 <div class="max-w-5xl mx-auto">
-  <div class="flex items-center justify-between mb-6">
-    <div>
-      <h1 class="text-2xl font-bold text-blue-700">{% trans "REDCap Integration" %}</h1>
-      <p class="text-gray-500 mt-1">{{ project.project_name }}</p>
+  {# ── Header Section ─────────────────────────────────────────────────────── #}
+  <div class="mb-8">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1">{% trans "Project" %}</p>
+        <h1 class="text-3xl font-bold text-gray-900">{{ project.project_name }}</h1>
+        <p class="text-gray-600 mt-2">{% trans "REDCap Integration Dashboard" %}</p>
+      </div>
+      {% if request.user.is_staff %}
+      <c-link_button href="{% url 'redcap_mapping_create' pk=project.pk %}" variant="primary" size="md">
+        <svg class="w-5 h-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        {% trans "Add REDCap Configuration" %}
+      </c-link_button>
+      {% endif %}
     </div>
-    {% if request.user.is_staff %}
-    <c-link_button href="{% url 'redcap_mapping_create' pk=project.pk %}" variant="primary">
-      {% trans "Add REDCap Configuration" %}
-    </c-link_button>
-    {% endif %}
   </div>
 
   {% if messages %}
     {% for message in messages %}
-      <div class="mb-4 px-4 py-3 rounded border {% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %}">
+      <div class="mb-6 px-4 py-3 rounded-lg border {% if message.tags == 'error' %}bg-red-50 border-red-300 text-red-700{% elif message.tags == 'success' %}bg-green-50 border-green-300 text-green-700{% else %}bg-blue-50 border-blue-300 text-blue-700{% endif %}">
         {{ message }}
       </div>
     {% endfor %}
   {% endif %}
 
   {% if mappings %}
-    <div class="space-y-4">
+    <div class="space-y-6">
       {% for m in mappings %}
-      <c-card shadow="md" padding="sm">
-        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div class="flex-1 min-w-0">
-            <h3 class="text-base font-semibold text-gray-900 truncate">{{ m.redcap_project_url }}</h3>
-            <div class="mt-2 flex flex-wrap gap-3 text-sm text-gray-600">
-              <span class="inline-flex items-center gap-1">
-                <span class="font-medium">{% trans "Export type" %}:</span>
-                <span class="px-2 py-0.5 rounded-full text-xs font-medium {% if m.export_type == 'automatic' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-700{% endif %}">
-                  {{ m.get_export_type_display }}
+      <c-card shadow="md" padding="lg">
+        {# ── Configuration Header ──────────────────────────────────────────── #}
+        <div class="border-b border-gray-100 pb-4 mb-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-3 mb-2">
+                <h2 class="text-xl font-semibold text-gray-900 truncate">{{ m.redcap_project_url }}</h2>
+                {% if m.redcap_project_info %}
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-50 text-green-700 border border-green-200">
+                    ✓ {% trans "Active" %}
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-yellow-50 text-yellow-700 border border-yellow-200">
+                    {% trans "Setup Required" %}
+                  </span>
+                {% endif %}
+              </div>
+              <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="font-medium text-gray-700">{% trans "Export Type:" %}</span>
+                  <span class="px-2 py-0.5 rounded-full text-xs font-medium {% if m.export_type == 'automatic' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+                    {{ m.get_export_type_display }}
+                  </span>
                 </span>
-              </span>
-              <span class="inline-flex items-center gap-1">
-                <span class="font-medium">{% trans "Records" %}:</span> {{ m.redcap_record_count|default:"—" }}
-              </span>
-              <span class="inline-flex items-center gap-1">
-                <span class="font-medium">{% trans "Metadata updated" %}:</span>
-                {{ m.date_redcap_project_info_updated|date:"d M Y"|default:"Never" }}
-              </span>
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="font-medium text-gray-700">{% trans "Records:" %}</span>
+                  {{ m.redcap_record_count|default:"—" }}
+                </span>
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="font-medium text-gray-700">{% trans "Last Updated:" %}</span>
+                  {{ m.date_redcap_project_info_updated|date:"d M Y"|default:"Never" }}
+                </span>
+              </div>
+              <div class="mt-2 flex gap-4 text-xs text-gray-500">
+                <span class="inline-flex items-center gap-1">
+                  {% if m.redcap_project_token_allows_import %}<span class="text-green-600 font-medium">✓</span>{% else %}<span class="text-red-500 font-medium">✗</span>{% endif %}
+                  {% trans "Import Permission" %}
+                </span>
+                <span class="inline-flex items-center gap-1">
+                  {% if m.redcap_project_token_allows_export %}<span class="text-green-600 font-medium">✓</span>{% else %}<span class="text-red-500 font-medium">✗</span>{% endif %}
+                  {% trans "Export Permission" %}
+                </span>
+              </div>
             </div>
-            <div class="mt-1 flex gap-3 text-xs text-gray-500">
-              <span>{% trans "Import" %}: {% if m.redcap_project_token_allows_import %}<span class="text-green-600 font-medium">✓</span>{% else %}<span class="text-red-500 font-medium">✗</span>{% endif %}</span>
-              <span>{% trans "Export" %}: {% if m.redcap_project_token_allows_export %}<span class="text-green-600 font-medium">✓</span>{% else %}<span class="text-red-500 font-medium">✗</span>{% endif %}</span>
-            </div>
-          </div>
-          <div class="flex flex-wrap gap-2 shrink-0">
-            {# Setup wizard — opens in new tab #}
-            <a href="{% url 'redcap_wizard_page' pk=project.pk mapping_pk=m.pk %}" target="_blank"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-              </svg>
-              {% if m.redcap_project_info %}{% trans "Setup Wizard" %}{% else %}{% trans "Setup / Fetch" %}{% endif %}
-            </a>
-            <c-link_button href="{% url 'redcap_mapping_edit' pk=project.pk mapping_pk=m.pk %}" variant="outline" size="sm">
-              {% trans "Edit" %}
-            </c-link_button>
-            {% if m.redcap_project_info and perms.patientapp.view_redcapformtoquestionnairemapping %}
-            <c-link_button href="{% url 'redcap_form_mappings' pk=project.pk mapping_pk=m.pk %}" variant="secondary" size="sm">
-              {% trans "Form Mappings" %}
-            </c-link_button>
-            {% endif %}
-            {% if perms.patientapp.change_redcapstudyidtopatientidmap %}
-            <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=m.pk %}" variant="secondary" size="sm">
-              {% trans "Patient IDs" %}
-            </c-link_button>
-            {% endif %}
             {% if request.user.is_staff %}
-            <c-link_button href="{% url 'redcap_export' pk=project.pk mapping_pk=m.pk %}" variant="success" size="sm">
-              {% trans "Export" %}
-            </c-link_button>
-            {% endif %}
-            {% if m.redcap_project_info %}
-              <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-green-50 text-green-700 border border-green-200 self-center">
-                ✓ {% trans "Metadata loaded" %}
-              </span>
-            {% else %}
-              <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 self-center">
-                {% trans "No metadata" %}
-              </span>
+            <div class="flex flex-wrap gap-2 shrink-0">
+              <c-link_button href="{% url 'redcap_mapping_edit' pk=project.pk mapping_pk=m.pk %}" variant="outline" size="sm">
+                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                {% trans "Edit Configuration" %}
+              </c-link_button>
+              <c-link_button href="{% url 'redcap_mapping_delete' pk=project.pk mapping_pk=m.pk %}" variant="danger" size="sm">
+                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                {% trans "Delete Configuration" %}
+              </c-link_button>
+            </div>
             {% endif %}
           </div>
         </div>
 
-        {% if m.fm_stats %}
-        <div class="mt-3 pt-3 border-t border-gray-100">
-          <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Form Mapping Status" %}</p>
-          <div class="space-y-1.5">
-            {% for stat in m.fm_stats %}
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-mono text-indigo-700 truncate mr-2">{{ stat.fm.redcap_form_name }}</span>
-              <span class="shrink-0 flex items-center gap-1.5">
-                {% if stat.total == 0 %}
-                  <span class="px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{% trans "No submissions" %}</span>
-                {% elif stat.matched == stat.total %}
-                  <span class="px-1.5 py-0.5 rounded bg-green-100 text-green-700">✓ {{ stat.matched }}/{{ stat.total }} {% trans "matched" %}</span>
-                {% elif stat.matched == 0 %}
-                  <span class="px-1.5 py-0.5 rounded bg-red-100 text-red-700">{{ stat.matched }}/{{ stat.total }} {% trans "matched" %}</span>
-                {% else %}
-                  <span class="px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700">{{ stat.matched }}/{{ stat.total }} {% trans "matched" %}</span>
+        {# ── Setup Wizard Section ──────────────────────────────────────────── #}
+        <div class="mb-6">
+          <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">{% trans "Configuration Setup" %}</h3>
+          <div class="flex flex-wrap gap-3">
+            <a href="{% url 'redcap_wizard_page' pk=project.pk mapping_pk=m.pk %}" target="_blank"
+              class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              {% if m.redcap_project_info %}{% trans "Re-run Setup Wizard" %}{% else %}{% trans "Run Setup Wizard" %}{% endif %}
+            </a>
+          </div>
+        </div>
+
+        {# ── Data Mapping Sections ─────────────────────────────────────────── #}
+        <div class="space-y-6 mb-6">
+          {# Form Mappings Section #}
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="mb-3">
+              <div class="flex items-center justify-between mb-1">
+                <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">{% trans "Form Mappings" %}</h3>
+                {% if m.redcap_project_info and perms.patientapp.view_redcapformtoquestionnairemapping %}
+                <c-link_button href="{% url 'redcap_form_mappings' pk=project.pk mapping_pk=m.pk %}" variant="secondary" size="sm">
+                  {% trans "Manage Forms and Field Mapping" %}
+                </c-link_button>
                 {% endif %}
-                <a href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=m.pk %}"
-                  class="text-blue-500 hover:underline">{% trans "Match →" %}</a>
-              </span>
+              </div>
+              <p class="text-sm text-gray-500">{% trans "Map REDCap forms to SATHI questionnaires and configure field-level mappings between REDCap variables and questionnaire items." %}</p>
             </div>
-            {% endfor %}
+            {% if m.fm_stats %}
+              <div class="space-y-2">
+                {% for stat in m.fm_stats %}
+                <div class="flex items-center justify-between text-sm bg-white px-3 py-2 rounded border border-gray-200">
+                  <span class="font-mono text-indigo-700 truncate mr-2">{{ stat.fm.redcap_form_name }}</span>
+                  <span class="shrink-0">
+                    {% if stat.total == 0 %}
+                      <span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-500">{% trans "No data" %}</span>
+                    {% elif stat.matched == stat.total %}
+                      <span class="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">✓ {{ stat.matched }}/{{ stat.total }}</span>
+                    {% elif stat.matched == 0 %}
+                      <span class="px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">{{ stat.matched }}/{{ stat.total }}</span>
+                    {% else %}
+                      <span class="px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">{{ stat.matched }}/{{ stat.total }}</span>
+                    {% endif %}
+                  </span>
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-sm text-gray-500 italic">{% trans "No form mappings configured yet. Run the setup wizard first to fetch REDCap metadata." %}</p>
+            {% endif %}
+          </div>
+
+          {# Patient IDs Section #}
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="mb-3">
+              <div class="flex items-center justify-between mb-1">
+                <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">{% trans "Patient ID Mappings" %}</h3>
+                {% if perms.patientapp.change_redcapstudyidtopatientidmap %}
+                <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=m.pk %}" variant="secondary" size="sm">
+                  {% trans "Manage Patient ID and Submission Mapping" %}
+                </c-link_button>
+                {% endif %}
+              </div>
+              <p class="text-sm text-gray-500">{% trans "Map REDCap study IDs to SATHI patients and match questionnaire submissions to REDCap events/instances. This step requires form mappings to be completed first." %}</p>
+            </div>
+            {% if m.patient_stats %}
+              <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white px-3 py-2 rounded border border-gray-200 text-center">
+                  <p class="text-2xl font-bold text-indigo-600">{{ m.patient_stats.mapped }}</p>
+                  <p class="text-xs text-gray-500">{% trans "Mapped" %}</p>
+                </div>
+                <div class="bg-white px-3 py-2 rounded border border-gray-200 text-center">
+                  <p class="text-2xl font-bold text-gray-600">{{ m.patient_stats.unmapped }}</p>
+                  <p class="text-xs text-gray-500">{% trans "Unmapped" %}</p>
+                </div>
+              </div>
+            {% else %}
+              <p class="text-sm text-gray-500 italic">{% trans "Patient ID mappings not yet configured." %}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        {# ── Export Section ──────────────────────────────────────────────────── #}
+        {% if request.user.is_staff %}
+        <div class="border-t border-gray-100 pt-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">{% trans "Data Export" %}</h3>
+              <p class="text-sm text-gray-500 mt-1">{% trans "Export questionnaire data to REDCap" %}</p>
+            </div>
+            <c-link_button href="{% url 'redcap_export' pk=project.pk mapping_pk=m.pk %}" variant="success" size="md">
+              <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+              </svg>
+              {% trans "Export to REDCap" %}
+            </c-link_button>
           </div>
         </div>
         {% endif %}
       </c-card>
-
       {% endfor %}
     </div>
   {% else %}
-    <c-card shadow="sm" padding="md">
-      <p class="text-gray-500 text-center py-8">
-        {% trans "No REDCap configurations yet. Add one to get started." %}
-      </p>
+    <c-card shadow="sm" padding="lg">
+      <div class="text-center py-12">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+          <svg class="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">{% trans "No REDCap Configurations" %}</h3>
+        <p class="text-gray-500 mb-6 max-w-md mx-auto">
+          {% trans "Connect this project to a REDCap instance to enable data export and synchronization." %}
+        </p>
+        {% if request.user.is_staff %}
+        <c-link_button href="{% url 'redcap_mapping_create' pk=project.pk %}" variant="primary">
+          <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          {% trans "Add REDCap Configuration" %}
+        </c-link_button>
+        {% endif %}
+      </div>
     </c-card>
   {% endif %}
 </div>

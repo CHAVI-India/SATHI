@@ -49,6 +49,7 @@ urlpatterns = [
     path('projects/<uuid:pk>/redcap/', views.redcap_project_dashboard, name='redcap_project_dashboard'),
     path('projects/<uuid:pk>/redcap/create/', views.redcap_mapping_create, name='redcap_mapping_create'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/edit/', views.redcap_mapping_edit, name='redcap_mapping_edit'),
+    path('projects/<uuid:pk>/redcap/<int:mapping_pk>/delete/', views.redcap_mapping_delete, name='redcap_mapping_delete'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/fetch-metadata/', views.redcap_fetch_metadata, name='redcap_fetch_metadata'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/wizard/', views.redcap_wizard_page, name='redcap_wizard_page'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/setup-wizard/', views.redcap_setup_wizard, name='redcap_setup_wizard'),

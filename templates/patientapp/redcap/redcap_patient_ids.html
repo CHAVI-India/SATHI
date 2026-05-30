@@ -55,15 +55,42 @@
   </div>
   {% endwith %}
 
-  {# ── Legend ── #}
+  {# ── Filter & Legend ── #}
   {% if not redcap_fetch_error %}
   <div class="mb-4 flex flex-wrap gap-4 text-xs text-gray-600 items-center">
     <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span> {% trans "Auto-matched" %}</span>
     <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block"></span> {% trans "Saved" %}</span>
-    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gray-300 inline-block"></span> {% trans "Unmatched" %}</span>
+    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gray-300 inline-block"></span> {% trans "Unmapped" %}</span>
     <span class="ml-2 text-gray-400">
       {% trans "Dropdown:" %} <span class="font-mono">{{ primary_field }}</span>{% if secondary_field %} / <span class="font-mono">{{ secondary_field }}</span>{% endif %}
     </span>
+  </div>
+  <div class="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+    <p class="text-xs text-gray-600">
+      <strong>{% trans "Submission Matching:" %}</strong>
+      {% trans "Shows how many questionnaire submissions are matched to REDCap instances. Click 'Match Submissions' to link individual submissions to specific REDCap events or repeating instances." %}
+    </p>
+  </div>
+
+  {# ── Filter Controls ── #}
+  <div class="mb-4 bg-white rounded-lg border border-gray-200 p-4">
+    <form method="get" class="flex flex-wrap items-end gap-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1.5">{% trans "Filter by Status" %}</label>
+        <select name="match_filter" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+          <option value="all" {% if match_filter == 'all' %}selected{% endif %}>{% trans "All Patients" %} ({{ paginator.count }})</option>
+          <option value="mapped" {% if match_filter == 'mapped' %}selected{% endif %}>{% trans "Mapped to REDCap" %}</option>
+          <option value="unmapped" {% if match_filter == 'unmapped' %}selected{% endif %}>{% trans "Not Mapped" %}</option>
+          <option value="partial_match" {% if match_filter == 'partial_match' %}selected{% endif %}>{% trans "Partial Submission Match" %}</option>
+          <option value="full_match" {% if match_filter == 'full_match' %}selected{% endif %}>{% trans "Full Submission Match" %}</option>
+        </select>
+      </div>
+      <div>
+        <c-link_button href="?" variant="outline" size="sm">
+          {% trans "Clear Filters" %}
+        </c-link_button>
+      </div>
+    </form>
   </div>
   {% endif %}
 
@@ -77,12 +104,14 @@
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "SATHI ID" %}</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "REDCap Study ID" %}</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Status" %}</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Submission Matching" %}</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Match & View Submissions" %}</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Actions" %}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
           {% for row in rows %}
-          <tr class="hover:bg-gray-50 transition-colors {% if row.auto_matched %}bg-green-50 hover:bg-green-100{% elif row.redcap_study_id %}bg-blue-50 hover:bg-blue-100{% endif %}">
+          <tr class="hover:bg-gray-50 transition-colors {% if row.redcap_study_id %}bg-blue-50 hover:bg-blue-100{% endif %}">
             <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{{ row.patient.name }}</td>
             <td class="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{{ row.patient.patient_id }}</td>
             <td class="px-4 py-3 font-mono text-sm whitespace-nowrap">
@@ -100,31 +129,64 @@
                   <span class="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">✓ {% trans "Saved" %}</span>
                 {% endif %}
               {% else %}
-                <span class="text-xs text-gray-400">{% trans "Unmatched" %}</span>
+                <span class="text-xs text-gray-400">{% trans "Unmapped" %}</span>
               {% endif %}
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
-              <div class="flex items-center gap-3">
+              {% if row.redcap_study_id %}
+                <div class="flex items-center gap-2">
+                  {% if row.submission_stats.total > 0 %}
+                    <span class="text-xs font-medium">
+                      {{ row.submission_stats.matched }}/{{ row.submission_stats.total }}
+                    </span>
+                    {% if row.submission_stats.matched == row.submission_stats.total %}
+                      <span class="px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700">✓</span>
+                    {% elif row.submission_stats.matched == 0 %}
+                      <span class="px-1.5 py-0.5 rounded text-xs bg-red-100 text-red-700">{% trans "None" %}</span>
+                    {% else %}
+                      <span class="px-1.5 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">{% trans "Partial" %}</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="text-xs text-gray-400">{% trans "No submissions" %}</span>
+                  {% endif %}
+                </div>
+              {% else %}
+                <span class="text-xs text-gray-400 italic">{% trans "Map patient first" %}</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              {% if row.redcap_study_id and perms.patientapp.change_redcapinstancetosubmissionmapping %}
+                <a href="{% url 'redcap_match_submissions' pk=project.pk mapping_pk=mapping.pk patient_pk=row.patient.pk %}"
+                   class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded border border-indigo-300 text-indigo-700 hover:bg-indigo-50 transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                  </svg>
+                  {% trans "Match Submissions" %}
+                </a>
+              {% else %}
+                <span class="text-xs text-gray-400">—</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <div class="flex items-center gap-2">
                 {% if perms.patientapp.change_redcapstudyidtopatientidmap %}
                 <button type="button"
                   onclick="openModal('{{ row.patient.pk }}','{{ row.patient.name|escapejs }}','{{ row.patient.patient_id|escapejs }}','{{ row.redcap_study_id|escapejs }}')"
-                  class="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline">
-                  {% if row.redcap_study_id %}{% trans "Edit" %}{% else %}{% trans "Assign" %}{% endif %}
+                  class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                  {% if row.redcap_study_id %}{% trans "Edit Study ID" %}{% else %}{% trans "Assign Study ID" %}{% endif %}
                 </button>
                 {% endif %}
-                {% if row.redcap_study_id %}
-                {% if perms.patientapp.change_redcapinstancetosubmissionmapping %}
-                <a href="{% url 'redcap_match_submissions' pk=project.pk mapping_pk=mapping.pk patient_pk=row.patient.pk %}"
-                   class="text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:underline">
-                  {% trans "Match" %}
-                </a>
-                {% endif %}
-                {% if perms.patientapp.delete_redcapstudyidtopatientidmap %}
+                {% if row.redcap_study_id and perms.patientapp.delete_redcapstudyidtopatientidmap %}
                 <a href="{% url 'redcap_patient_id_delete' pk=project.pk mapping_pk=mapping.pk patient_pk=row.patient.pk %}"
-                   class="text-xs font-medium text-red-500 hover:text-red-700 hover:underline">
-                  {% trans "Clear" %}
+                   class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded border border-red-300 text-red-700 hover:bg-red-50 transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                  {% trans "Delete Mapping" %}
                 </a>
-                {% endif %}
                 {% endif %}
               </div>
             </td>
@@ -134,11 +196,48 @@
       </table>
     </div>
   </c-card>
-  <p class="text-xs text-gray-500 text-right mb-2">{{ mapped_count }} / {{ rows|length }} {% trans "patients mapped" %}</p>
+
+  {# ── Pagination & Summary ── #}
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+    <p class="text-sm text-gray-600">
+      {% trans "Showing" %} {{ rows.start_index|default:0 }} - {{ rows.end_index|default:0 }} {% trans "of" %} {{ paginator.count }} {% trans "patients" %}
+      {% if match_filter != 'all' %}<span class="text-blue-600">({{ match_filter|title }} filter active)</span>{% endif %}
+    </p>
+    <p class="text-xs text-gray-500">{{ mapped_count }} {% trans "total mapped" %}</p>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="flex items-center justify-center gap-2 mb-6">
+    {% if page_obj.has_previous %}
+      <a href="?page=1{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">{% trans "First" %}</a>
+      <a href="?page={{ page_obj.previous_page_number }}{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">← {% trans "Previous" %}</a>
+    {% endif %}
+
+    <div class="flex items-center gap-1">
+      {% for num in page_obj.paginator.page_range %}
+        {% if num == page_obj.number %}
+          <span class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <a href="?page={{ num }}{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">{% trans "Next" %} →</a>
+      <a href="?page={{ page_obj.paginator.num_pages }}{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">{% trans "Last" %}</a>
+    {% endif %}
+  </div>
+  {% endif %}
 
   {% else %}
     <c-card shadow="sm" padding="md">
-      <p class="text-gray-500 text-center py-8">{% trans "No patients are enrolled in this project yet." %}</p>
+      <p class="text-gray-500 text-center py-8">{% trans "No patients match the selected filter." %}</p>
+      <div class="text-center">
+        <c-link_button href="?" variant="outline" size="sm">
+          {% trans "Clear Filters" %}
+        </c-link_button>
+      </div>
     </c-card>
   {% endif %}
 </div>
