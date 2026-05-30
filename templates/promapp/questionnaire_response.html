@@ -227,14 +227,16 @@
                         sm:grid-cols-2 
                         md:grid-cols-3 
                         lg:grid-cols-{{ col_count }}
-                        gap-4 items-stretch">
+                        gap-4 items-stretch"
+                        data-direction="{{ qi.item.item_better_score_direction|default:'No Direction' }}">
                         {% for option in item_data.translated_options %}
                           <label class="likert-option relative">
                             <input type="radio" 
                                    name="response_{{ qi.id }}" 
                                    value="{{ option.option_value }}"
                                    class="peer sr-only">
-                            <div class="option-content p-2 min-w-[120px] h-full flex flex-col items-center justify-center text-center border-2 rounded-md cursor-pointer bg-blue-50 border-blue-200 text-blue-700 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white hover:bg-blue-100 peer-checked:hover:bg-green-700 transition-colors duration-200">
+                            <div class="option-content p-2 min-w-[120px] h-full flex flex-col items-center justify-center text-center border-2 rounded-md cursor-pointer bg-blue-50 border-blue-200 text-blue-700 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white hover:bg-blue-100 peer-checked:hover:bg-green-700 transition-colors duration-200"
+                                 data-value="{{ option.option_value }}">
                               {% comment %}Option media display with translation fallback{% endcomment %}
                               {% if option.option_media %}
                                 {% with media_url=option.option_media.url media_name=option.option_media.name media_type=option.get_media_type %}
@@ -369,14 +371,16 @@
                         sm:grid-cols-2 
                         md:grid-cols-3 
                         lg:grid-cols-{{ col_count }}
-                        gap-4 items-stretch">
+                        gap-4 items-stretch"
+                        data-direction="{{ qi.item.item_better_score_direction|default:'No Direction' }}">
                         {% for option in item_data.translated_options %}
                           <label class="likert-option relative">
                             <input type="radio" 
                                    name="response_{{ qi.id }}" 
                                    value="{{ option.option_value }}"
                                    class="peer sr-only">
-                            <div class="option-content p-2 min-w-[120px] h-full flex flex-col items-center justify-center text-center border-2 rounded-md cursor-pointer bg-blue-50 border-blue-200 text-blue-700 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white hover:bg-blue-100 peer-checked:hover:bg-green-700 transition-colors duration-200">
+                            <div class="option-content p-2 min-w-[120px] h-full flex flex-col items-center justify-center text-center border-2 rounded-md cursor-pointer bg-blue-50 border-blue-200 text-blue-700 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white hover:bg-blue-100 peer-checked:hover:bg-green-700 transition-colors duration-200"
+                                 data-value="{{ option.option_value }}">
                               {% comment %}Option media display with translation fallback{% endcomment %}
                               {% if option.option_media %}
                                 {% with media_url=option.option_media.url media_name=option.option_media.name media_type=option.get_media_type %}
@@ -622,7 +626,80 @@
     return ruleEvalBase.replace('00000000-0000-0000-0000-000000000000', questionId);
   }
 
+  function applyLikertHues() {
+    document.querySelectorAll('.likert-options').forEach(function(container) {
+      const direction = container.dataset.direction || 'No Direction';
+      if (direction === 'No Direction') return;
+
+      const options = Array.from(container.querySelectorAll('.option-content'));
+      if (options.length === 0) return;
+
+      const values = options.map(o => parseFloat(o.dataset.value));
+      const minVal = Math.min(...values);
+      const maxVal = Math.max(...values);
+      const range = maxVal - minVal || 1;
+
+      // Compute a 0..1 rank for each option relative to its "better" direction.
+      // rank=1 means "best" (lightest tint), rank=0 means "worst" (slightly deeper tint).
+      // Tint range is kept very subtle: background opacity 0.04 (worst) .. 0.12 (best)
+      options.forEach(function(el) {
+        const val = parseFloat(el.dataset.value);
+        let rank;
+
+        if (direction === 'Higher is Better') {
+          rank = (val - minVal) / range;
+        } else if (direction === 'Lower is Better') {
+          rank = (maxVal - val) / range;
+        } else if (direction === 'Middle is Better') {
+          const mid = (minVal + maxVal) / 2;
+          const maxDist = range / 2;
+          const dist = Math.abs(val - mid);
+          rank = 1 - (dist / maxDist);
+        } else {
+          rank = 0.5;
+        }
+
+        // Hue gradient: worst=214 (blue), best=228 (warm blue-indigo)
+        // Lightness: worst=86%, best=93% — keeps tints subtle
+        const hue            = Math.round(214 + rank * 14);  // 214..228
+        const lightness      = Math.round(86 + rank * 7);    // 86..93
+        const saturation     = Math.round(55 + rank * 25);   // 55..80
+        const borderLightness = Math.round(70 + rank * 10);  // 70..80
+
+        // Store as data attributes so we can restore after deselection
+        el.dataset.hueBg     = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        el.dataset.hueBorder = `hsl(${hue}, ${saturation}%, ${borderLightness}%)`;
+        el.style.backgroundColor = el.dataset.hueBg;
+        el.style.borderColor     = el.dataset.hueBorder;
+      });
+
+      // Listen for selection changes — apply green to checked, restore hue to others
+      container.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          options.forEach(function(el) {
+            const label = el.closest('label');
+            const paired = label ? label.querySelector('input[type="radio"]') : null;
+            if (paired && paired.checked) {
+              // Explicitly set green so it overrides the hue inline style
+              el.style.setProperty('background-color', '#16a34a', 'important');
+              el.style.setProperty('border-color',     '#16a34a', 'important');
+              el.style.setProperty('color',            '#ffffff', 'important');
+            } else {
+              // Restore hue tint and default text colour
+              el.style.removeProperty('background-color');
+              el.style.removeProperty('border-color');
+              el.style.removeProperty('color');
+              el.style.backgroundColor = el.dataset.hueBg || '';
+              el.style.borderColor     = el.dataset.hueBorder || '';
+            }
+          });
+        });
+      });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
+    applyLikertHues();
     const questions = document.querySelectorAll('.question-item');
     const thankYouSection = document.getElementById('thank-you-section');
     const backToQuestionnaireBtn = document.getElementById('back-to-questionnaire-btn');
