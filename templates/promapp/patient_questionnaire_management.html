@@ -243,14 +243,6 @@
                         {% endif %}
                       </button>
                     </form>
-                    <form method="post" class="inline-block">
-                      {% csrf_token %}
-                      <input type="hidden" name="questionnaire_id" value="{{ qs.questionnaire.id }}">
-                      <input type="hidden" name="action" value="unassign">
-                      <button type="submit" class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="return confirm('{% translate "Are you sure you want to unassign this questionnaire?" %}')">
-                        {% translate "Unassign" %}
-                      </button>
-                    </form>
                   {% else %}
                     <form method="post" class="inline-block">
                       {% csrf_token %}

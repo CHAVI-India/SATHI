@@ -1979,21 +1979,16 @@ class PatientQuestionnaireManagementView(LoginRequiredMixin, PermissionRequiredM
             questionnaire = Questionnaire.objects.get(id=questionnaire_id)
             
             if action == 'assign':
-                # Create new assignment
-                PatientQuestionnaire.objects.create(
+                # Get or create assignment, and ensure it is displayed
+                pq, created = PatientQuestionnaire.objects.get_or_create(
                     patient=patient,
                     questionnaire=questionnaire,
-                    display_questionnaire=True
+                    defaults={'display_questionnaire': True}
                 )
+                if not created and not pq.display_questionnaire:
+                    pq.display_questionnaire = True
+                    pq.save()
                 messages.success(request, _('Questionnaire assigned successfully.'))
-                
-            elif action == 'unassign':
-                # Remove assignment
-                PatientQuestionnaire.objects.filter(
-                    patient=patient,
-                    questionnaire=questionnaire
-                ).delete()
-                messages.success(request, _('Questionnaire unassigned successfully.'))
                 
             elif action == 'toggle_display':
                 # Toggle display status
