@@ -3973,6 +3973,22 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
             if ev and date_str and not event_dates.get(ev):
                 event_dates[ev] = date_str
 
+        # Calculate time intervals from previous submission for each row
+        # sub_rows is already sorted by submission_date (ascending)
+        from datetime import timedelta
+        for i, row in enumerate(sub_rows):
+            if i == 0:
+                row['interval_from_prev'] = None
+            else:
+                prev_date = sub_rows[i-1]['submission'].submission_date
+                curr_date = row['submission'].submission_date
+                delta = curr_date - prev_date
+                row['interval_from_prev'] = {
+                    'days': delta.days,
+                    'weeks': round(delta.days / 7),  # rounded to no decimals
+                    'months': round(delta.days / 30),  # rounded to no decimals
+                }
+
         fm_data.append({
             'fm': fm,
             'sub_rows': sub_rows,
