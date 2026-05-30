@@ -67,8 +67,8 @@
   </div>
   <div class="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
     <p class="text-xs text-gray-600">
-      <strong>{% trans "Submission Matching:" %}</strong>
-      {% trans "Shows how many questionnaire submissions are matched to REDCap instances. Click 'Match Submissions' to link individual submissions to specific REDCap events or repeating instances." %}
+      <strong>{% trans "Submissions Matched:" %}</strong>
+      {% trans "Shows how many questionnaire submissions are linked to REDCap instances. 'X of Y matched' means X submissions are linked to specific REDCap events/instances out of Y total submissions. Click 'Match Submissions' to link remaining submissions." %}
     </p>
   </div>
 
@@ -104,7 +104,7 @@
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "SATHI ID" %}</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "REDCap Study ID" %}</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Status" %}</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Submission Matching" %}</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Submissions Matched" %}</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Match & View Submissions" %}</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% trans "Actions" %}</th>
           </tr>
@@ -134,22 +134,23 @@
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
               {% if row.redcap_study_id %}
-                <div class="flex items-center gap-2">
-                  {% if row.submission_stats.total > 0 %}
-                    <span class="text-xs font-medium">
-                      {{ row.submission_stats.matched }}/{{ row.submission_stats.total }}
+                {% if row.submission_stats.total > 0 %}
+                  {% if row.submission_stats.matched == row.submission_stats.total %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-green-100 text-green-700" title="{% trans 'All submissions matched to REDCap' %}">
+                      ✓ {{ row.submission_stats.matched }} {% trans "of" %} {{ row.submission_stats.total }} {% trans "matched" %}
                     </span>
-                    {% if row.submission_stats.matched == row.submission_stats.total %}
-                      <span class="px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700">✓</span>
-                    {% elif row.submission_stats.matched == 0 %}
-                      <span class="px-1.5 py-0.5 rounded text-xs bg-red-100 text-red-700">{% trans "None" %}</span>
-                    {% else %}
-                      <span class="px-1.5 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">{% trans "Partial" %}</span>
-                    {% endif %}
+                  {% elif row.submission_stats.matched == 0 %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-red-100 text-red-700" title="{% trans 'No submissions matched to REDCap yet' %}">
+                      0 {% trans "of" %} {{ row.submission_stats.total }} {% trans "matched" %}
+                    </span>
                   {% else %}
-                    <span class="text-xs text-gray-400">{% trans "No submissions" %}</span>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700" title="{% trans 'Some submissions not yet matched to REDCap' %}">
+                      {{ row.submission_stats.matched }} {% trans "of" %} {{ row.submission_stats.total }} {% trans "matched" %}
+                    </span>
                   {% endif %}
-                </div>
+                {% else %}
+                  <span class="text-xs text-gray-400">{% trans "No submissions" %}</span>
+                {% endif %}
               {% else %}
                 <span class="text-xs text-gray-400 italic">{% trans "Map patient first" %}</span>
               {% endif %}

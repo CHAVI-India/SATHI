@@ -130,19 +130,23 @@
               <p class="text-sm text-gray-500">{% trans "Map REDCap forms to SATHI questionnaires and configure field-level mappings between REDCap variables and questionnaire items." %}</p>
             </div>
             {% if m.fm_stats %}
+              <div class="mb-2 flex items-center justify-between text-xs text-gray-500 px-1">
+                <span>{% trans "REDCap Form" %}</span>
+                <span>{% trans "Submissions Matched to REDCap" %}</span>
+              </div>
               <div class="space-y-2">
                 {% for stat in m.fm_stats %}
                 <div class="flex items-center justify-between text-sm bg-white px-3 py-2 rounded border border-gray-200">
-                  <span class="font-mono text-indigo-700 truncate mr-2">{{ stat.fm.redcap_form_name }}</span>
-                  <span class="shrink-0">
+                  <span class="font-mono text-indigo-700 truncate mr-2" title="{% trans 'REDCap form name' %}">{{ stat.fm.redcap_form_name }}</span>
+                  <span class="shrink-0 text-xs">
                     {% if stat.total == 0 %}
-                      <span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-500">{% trans "No data" %}</span>
+                      <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-500" title="{% trans 'No questionnaire submissions exist for this form' %}">{% trans "No submissions" %}</span>
                     {% elif stat.matched == stat.total %}
-                      <span class="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">✓ {{ stat.matched }}/{{ stat.total }}</span>
+                      <span class="px-2 py-0.5 rounded bg-green-100 text-green-700" title="{% trans 'All submissions are matched to REDCap instances' %}">✓ {{ stat.matched }} {% trans "of" %} {{ stat.total }} {% trans "matched" %}</span>
                     {% elif stat.matched == 0 %}
-                      <span class="px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">{{ stat.matched }}/{{ stat.total }}</span>
+                      <span class="px-2 py-0.5 rounded bg-red-100 text-red-700" title="{% trans 'No submissions matched to REDCap yet' %}">0 {% trans "of" %} {{ stat.total }} {% trans "matched" %}</span>
                     {% else %}
-                      <span class="px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">{{ stat.matched }}/{{ stat.total }}</span>
+                      <span class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-700" title="{% trans 'Some submissions are not yet matched to REDCap' %}">{{ stat.matched }} {% trans "of" %} {{ stat.total }} {% trans "matched" %}</span>
                     {% endif %}
                   </span>
                 </div>
