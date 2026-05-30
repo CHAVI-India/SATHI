@@ -1830,10 +1830,7 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Use
                         
                         # Handle media files for Media response type
                         if qi.item.response_type == 'Media':
-                            # Check if there's a media file for this question
-                            media_field_name = f'response_media_{qi.id}'
-                            if media_field_name in request.FILES:
-                                response_media = request.FILES[media_field_name]
+                            response_media = form.cleaned_data.get(f'response_media_{qi.id}')
                         
                         # Create record for every question, even if unanswered
                         QuestionnaireItemResponse.objects.create(
@@ -4733,10 +4730,7 @@ class StaffQuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin
                         
                         # Handle media files for Media response type
                         if qi.item.response_type == 'Media':
-                            # Check if there's a media file for this question
-                            media_field_name = f'response_media_{qi.id}'
-                            if media_field_name in request.FILES:
-                                response_media = request.FILES[media_field_name]
+                            response_media = form.cleaned_data.get(f'response_media_{qi.id}')
                         
                         # Create record for every question, even if unanswered
                         QuestionnaireItemResponse.objects.create(

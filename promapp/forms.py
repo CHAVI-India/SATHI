@@ -594,18 +594,19 @@ class QuestionnaireResponseForm(forms.Form):
                     })
                 )
             elif qi.item.response_type == 'Media':
-                # For media responses, we'll handle file uploads in the template/JavaScript
-                # This field is just for tracking that a media response was provided
-                self.fields[f'response_{qi.id}'] = forms.CharField(
+                self.fields[f'response_media_{qi.id}'] = forms.FileField(
                     required=False,
-                    widget=forms.HiddenInput()
+                    widget=forms.FileInput(attrs={'accept': 'audio/*,video/*'})
                 )
 
     def clean(self):
         cleaned_data = super().clean()
         # Convert empty strings to None and ensure all questions have a value (None if unanswered)
         for qi in self.questionnaire_items:
-            field_name = f'response_{qi.id}'
+            if qi.item.response_type == 'Media':
+                field_name = f'response_media_{qi.id}'
+            else:
+                field_name = f'response_{qi.id}'
             value = cleaned_data.get(field_name)
             if value == '' or value is None:
                 cleaned_data[field_name] = None
@@ -1319,9 +1320,9 @@ class StaffQuestionnaireResponseForm(forms.Form):
                     })
                 )
             elif qi.item.response_type == 'Media':
-                self.fields[f'response_{qi.id}'] = forms.CharField(
+                self.fields[f'response_media_{qi.id}'] = forms.FileField(
                     required=False,
-                    widget=forms.HiddenInput()
+                    widget=forms.FileInput(attrs={'accept': 'audio/*,video/*'})
                 )
     
     def clean_patient(self):
@@ -1340,7 +1341,10 @@ class StaffQuestionnaireResponseForm(forms.Form):
         cleaned_data = super().clean()
         # Convert empty strings to None
         for qi in self.questionnaire_items:
-            field_name = f'response_{qi.id}'
+            if qi.item.response_type == 'Media':
+                field_name = f'response_media_{qi.id}'
+            else:
+                field_name = f'response_{qi.id}'
             value = cleaned_data.get(field_name)
             if value == '':
                 cleaned_data[field_name] = None
