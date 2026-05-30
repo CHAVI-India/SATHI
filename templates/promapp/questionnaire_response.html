@@ -354,6 +354,9 @@
                                 {% endif %}
                                 {{ option.option_text }}
                               </span>
+                              <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-md border-2 border-current text-xs font-bold mt-2 flex-shrink-0">
+                                {{ option.option_value }}
+                              </span>
                             </div>
                           </label>
                         {% endfor %}
@@ -492,6 +495,9 @@
                                   <span class="mr-2">{{ option.option_emoji }}</span>
                                 {% endif %}
                                 {{ option.option_text }}
+                              </span>
+                              <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-md border-2 border-current text-xs font-bold mt-2 flex-shrink-0">
+                                {{ option.option_value }}
                               </span>
                             </div>
                           </label>
