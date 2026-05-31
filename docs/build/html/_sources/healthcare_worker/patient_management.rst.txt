@@ -122,6 +122,38 @@ Click the **Add Patient** button on the Patients page. You will need to fill in:
 
 Tick the appropriate groups to control what the patient can access in the system.
 
+**Diagnosis & Treatment Information**
+
+.. note::
+   This section is only visible if you have the ``add_diagnosis`` permission. Contact your administrator if you need to record diagnoses during patient registration but cannot see this section.
+
+If available, you can add one or more diagnoses for the patient during registration:
+
+1. **Diagnosis** — Select from the pre-configured diagnosis list (searchable dropdown).
+2. **Date of Diagnosis** — When the diagnosis was made.
+
+To add another diagnosis, click **Add Another Diagnosis**. Each diagnosis can have associated treatment information:
+
+- **Treatment Type** — Select one or more treatment types (e.g., Surgery, Chemotherapy). Multiple types can be selected if treatments were delivered synchronously.
+- **Treatment Intent** — Preventive, Curative, Palliative, or Other.
+- **Date of Start of Treatment** — When treatment began.
+- **Currently Ongoing Treatment** — Tick if treatment is still in progress (hides end date field).
+- **Date of End of Treatment** — When treatment was completed (required if not ongoing).
+
+.. note::
+   Treatment fields are only visible if you have the ``add_treatment`` permission. You can add treatments to a diagnosis later from the patient detail page if needed.
+
+**Project Assignment**
+
+.. note::
+   This section is only visible if you have the ``add_patientproject`` permission.
+
+If available, you can assign the patient to a project during registration:
+
+- **Project** — Select the research project or clinical study.
+- **Date Patient Enrolled in Project** — When the patient joined the project.
+- **Date Patient Exited from Project** — When the patient left the project (optional).
+
 Once all fields are filled in correctly, submit the form. You will be returned to the patient list with a success message.
 
 .. note::

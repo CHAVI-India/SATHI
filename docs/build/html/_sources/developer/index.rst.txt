@@ -10,6 +10,7 @@ This section provides technical documentation for developers installing, configu
    installation
    architecture
    security
+   roles_and_permissions_configuration
    frontend_development
    ui_components
    data_integration

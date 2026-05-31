@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
 from .models import (
-    Patient, Institution, Treatment, Diagnosis, DiagnosisList, Project, PatientProject,
+    Patient, Institution, Treatment, TreatmentType, TreatmentIntentChoices, Diagnosis, DiagnosisList, Project, PatientProject,
     ProjectRedcapMapping, RedcapFormToQuestionnaireMapping,
     RedcapFieldToItemMapping, RedcapStudyIDtoPatientIDMap,
 )
@@ -13,6 +13,80 @@ from django.utils.translation import gettext_lazy as _
 INPUT_CLASS = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
 SELECT_CLASS = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white'
 CHECKBOX_CLASS = 'h-4 w-4 text-blue-600 border-gray-300 rounded'
+
+class DiagnosisTreatmentBlockForm(forms.Form):
+    """
+    A single block containing one Diagnosis and one Treatment for initial patient registration.
+    Multiple blocks can be added dynamically via HTMX.
+    """
+    # Hidden field to identify the block
+    block_prefix = forms.CharField(widget=forms.HiddenInput, required=False)
+
+    # Diagnosis fields
+    diagnosis = forms.ModelChoiceField(
+        queryset=DiagnosisList.objects.all().order_by('diagnosis'),
+        required=False,
+        label=_('Diagnosis'),
+        help_text=_('Select the diagnosis from the list'),
+        widget=forms.Select(attrs={'class': 'select2-diagnosis', 'style': 'width: 100%;'})
+    )
+    date_of_diagnosis = forms.DateField(
+        required=False,
+        label=_('Date of Diagnosis'),
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+
+    # Treatment fields (linked to the above diagnosis)
+    treatment_type = forms.ModelMultipleChoiceField(
+        queryset=TreatmentType.objects.all().order_by('treatment_type'),
+        required=False,
+        label=_('Treatment Type(s)'),
+        help_text=_('Select treatment types delivered synchronously for this diagnosis'),
+        widget=forms.CheckboxSelectMultiple
+    )
+    treatment_intent = forms.ChoiceField(
+        choices=[('', _('--- Select Intent ---'))] + list(TreatmentIntentChoices.choices),
+        required=False,
+        label=_('Treatment Intent')
+    )
+    date_of_start_of_treatment = forms.DateField(
+        required=False,
+        label=_('Date of Start of Treatment'),
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    currently_ongoing_treatment = forms.BooleanField(
+        required=False,
+        label=_('Currently Ongoing Treatment'),
+        help_text=_('Check if the treatment is currently ongoing'
+    )
+    )
+    date_of_end_of_treatment = forms.DateField(
+        required=False,
+        label=_('Date of End of Treatment'),
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Only validate if diagnosis is provided
+        diagnosis = cleaned_data.get('diagnosis')
+        if not diagnosis:
+            return cleaned_data
+
+        # Treatment validation
+        start_date = cleaned_data.get('date_of_start_of_treatment')
+        end_date = cleaned_data.get('date_of_end_of_treatment')
+        ongoing = cleaned_data.get('currently_ongoing_treatment')
+
+        if start_date and end_date and end_date < start_date:
+            self.add_error('date_of_end_of_treatment', _('End date cannot be before the start date.'))
+
+        if ongoing and end_date:
+            self.add_error('date_of_end_of_treatment', _('End date should not be specified for ongoing treatments.'))
+
+        return cleaned_data
+
 
 class PatientForm(forms.ModelForm):
     # User fields
@@ -34,7 +108,25 @@ class PatientForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         label=_('Groups')
     )
-    
+
+    # Project fields
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.all().order_by('project_name'),
+        required=False,
+        label=_('Project'),
+        help_text=_('Select the project to assign the patient to')
+    )
+    date_patient_enrolled_in_project = forms.DateField(
+        required=False,
+        label=_('Date Enrolled in Project'),
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    date_patient_exited_from_project = forms.DateField(
+        required=False,
+        label=_('Date Exited from Project'),
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+
     class Meta:
         model = Patient
         fields = ['patient_id', 'name', 'age', 'gender', 'institution','date_of_registration', 'preferred_language', 'username', 'email', 'password1', 'password2', 'groups']
@@ -93,18 +185,30 @@ class PatientForm(forms.ModelForm):
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError(_("Passwords don't match"))
         return password2
-    
+
     def clean_username(self):
         username = self.cleaned_data.get('username')
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError(_("A user with that username already exists."))
         return username
-    
+
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError(_("A user with that email already exists."))
         return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Project validation
+        enrollment_date = cleaned_data.get('date_patient_enrolled_in_project')
+        exit_date = cleaned_data.get('date_patient_exited_from_project')
+
+        if enrollment_date and exit_date and exit_date < enrollment_date:
+            self.add_error('date_patient_exited_from_project', _('Exit date cannot be before enrollment date.'))
+
+        return cleaned_data
 
 class DiagnosisListForm(forms.ModelForm):
     class Meta:

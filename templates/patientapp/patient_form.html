@@ -6,6 +6,52 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block extra_css %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" integrity="sha256-zaSoHBhwFdle0scfGEFUCwggPN7F+ip9XRglo8IWb4w=" crossorigin="anonymous" />
+<style>
+    /* Custom Select2 styling to match Tailwind */
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 38px;
+        padding-left: 12px;
+        color: #374151;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--single {
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 1px #3b82f6;
+    }
+    .select2-dropdown {
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #3b82f6;
+    }
+    /* Treatment type checkbox grid */
+    .treatment-type-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.5rem;
+    }
+    .treatment-type-grid .checkbox {
+        display: flex;
+        align-items: center;
+    }
+    .treatment-type-grid .checkbox input {
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="max-w-6xl mx-auto">
   <div class="bg-white shadow-md rounded-lg overflow-hidden">
@@ -23,7 +69,7 @@
       {% endif %}
       <form method="post" class="space-y-8">
         {% csrf_token %}
-        
+
         <!-- User Account Information -->
         <div class="space-y-4">
           <h3 class="text-lg font-medium text-gray-900">{% translate "User Account Information" %}</h3>
@@ -66,6 +112,52 @@
           </div>
         </div>
 
+        <!-- Diagnosis Section (only visible to users with add_diagnosis permission) -->
+        {% if can_add_diagnosis %}
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-medium text-gray-900">{% translate "Diagnosis & Treatment Information" %}</h3>
+            {% if can_add_diagnosis %}
+            <button type="button"
+                    id="add-diagnosis-btn"
+                    hx-get="{% url 'diagnosis_block_partial' %}"
+                    hx-vals='js:{"block_idx": getNextBlockIdx()}'
+                    hx-target="#diagnosis-blocks-container"
+                    hx-swap="beforeend"
+                    class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              {% translate "Add Another Diagnosis" %}
+            </button>
+            {% endif %}
+          </div>
+
+          <!-- Diagnosis Blocks Container -->
+          <div id="diagnosis-blocks-container">
+            <!-- Render all diagnosis blocks from context -->
+            {% for block in diagnosis_blocks %}
+              {% include 'patientapp/partials/diagnosis_block.html' with form=block.form block_idx=block.block_idx prefix=block.prefix can_add_treatment=can_add_treatment %}
+            {% empty %}
+              <!-- Fallback: render one empty block if no blocks in context -->
+              {% include 'patientapp/partials/diagnosis_block.html' with form=diagnosis_block_form block_idx="0" prefix="diag_block_0" can_add_treatment=can_add_treatment %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Project Section (only visible to users with add_patientproject permission) -->
+        {% if can_add_project %}
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">{% translate "Project Assignment" %}</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {{ form.project|as_crispy_field }}
+            {{ form.date_patient_enrolled_in_project|as_crispy_field }}
+            {{ form.date_patient_exited_from_project|as_crispy_field }}
+          </div>
+        </div>
+        {% endif %}
+
         <!-- Groups Section -->
         <div class="space-y-4">
           <h3 class="text-lg font-medium text-gray-900">{% translate "User Groups" %}</h3>
@@ -87,4 +179,92 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" integrity="sha256-9yRP/2EFlblE92vzCA10469Ctd0jT48HnmmMw5rJZrA=" crossorigin="anonymous"></script>
+
+<script>
+// Global counter for diagnosis blocks - initialize from existing blocks
+// If no blocks exist (user lacks permission), start at 0
+let diagnosisBlockCount = document.querySelectorAll('.diagnosis-block').length || 0;
+
+function getNextBlockIdx() {
+    return diagnosisBlockCount++;
+}
+
+function removeDiagnosisBlock(blockIdx) {
+    const block = document.getElementById('diagnosis-block-' + blockIdx);
+    if (block) {
+        block.remove();
+        renumberBlocks();
+    }
+}
+
+function renumberBlocks() {
+    const blocks = document.querySelectorAll('.diagnosis-block');
+    blocks.forEach((block, index) => {
+        const numberSpan = block.querySelector('.block-number');
+        if (numberSpan) {
+            numberSpan.textContent = index + 1;
+        }
+    });
+}
+
+function initializeSelect2ForBlock(block) {
+    const diagnosisSelect = block.querySelector('.select2-diagnosis');
+    if (diagnosisSelect) {
+        $(diagnosisSelect).select2({
+            placeholder: '{% translate "Select a diagnosis..." %}',
+            allowClear: true,
+            width: '100%',
+            dropdownParent: $(block)
+        });
+    }
+}
+
+function initializeOngoingTreatmentToggle(block) {
+    // Django form prefixes use hyphens, not underscores
+    const ongoingCheckbox = block.querySelector('input[name$="-currently_ongoing_treatment"]');
+    const endDateField = block.querySelector('input[name$="-date_of_end_of_treatment"]');
+
+    if (ongoingCheckbox && endDateField) {
+        ongoingCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                endDateField.disabled = true;
+                endDateField.value = '';
+            } else {
+                endDateField.disabled = false;
+            }
+        });
+        // Initial check
+        if (ongoingCheckbox.checked) {
+            endDateField.disabled = true;
+        }
+    }
+}
+
+$(document).ready(function() {
+    // Initialize Select2 for existing blocks
+    document.querySelectorAll('.diagnosis-block').forEach(block => {
+        initializeSelect2ForBlock(block);
+        initializeOngoingTreatmentToggle(block);
+    });
+
+    // Initialize HTMX event listener for new blocks
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'diagnosis-blocks-container') {
+            const newBlock = evt.detail.target.lastElementChild;
+            if (newBlock && newBlock.classList.contains('diagnosis-block')) {
+                initializeSelect2ForBlock(newBlock);
+                initializeOngoingTreatmentToggle(newBlock);
+                renumberBlocks();
+            }
+        }
+    });
+});
+</script>
 {% endblock %} 

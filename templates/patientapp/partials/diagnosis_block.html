@@ -1,0 +1,77 @@
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+<div class="diagnosis-block border border-gray-300 rounded-lg p-4 mb-4 bg-gray-50" id="diagnosis-block-{{ block_idx }}">
+    <div class="flex justify-between items-center mb-4">
+        <h4 class="text-md font-medium text-gray-900">{% translate "Diagnosis" %} #<span class="block-number">{{ block_idx|add:1 }}</span></h4>
+        {% if block_idx != "0" %}
+        <button type="button"
+                class="text-red-600 hover:text-red-800 text-sm font-medium"
+                onclick="removeDiagnosisBlock('{{ block_idx }}')">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            {% translate "Remove" %}
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Hidden prefix field -->
+    {{ form.block_prefix }}
+
+    <!-- Diagnosis Fields -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+            <label for="id_{{ prefix }}-diagnosis" class="block text-sm font-medium text-gray-700 mb-1">{{ form.diagnosis.label }}</label>
+            <!-- Django form prefixes use hyphens, not underscores -->
+            <select name="{{ prefix|default:form.prefix }}-diagnosis"
+                    id="id_{{ prefix|default:form.prefix }}-diagnosis"
+                    class="select2-diagnosis"
+                    style="width: 100%;">
+                <option value="">{% translate "Select a diagnosis..." %}</option>
+                {% for choice in form.diagnosis.field.queryset %}
+                    <option value="{{ choice.pk }}" {% if form.diagnosis.value == choice.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ choice }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% if form.diagnosis.help_text %}
+                <p class="text-xs text-gray-500 mt-1">{{ form.diagnosis.help_text }}</p>
+            {% endif %}
+            {% if form.diagnosis.errors %}
+                <div class="text-red-600 text-sm mt-1">{{ form.diagnosis.errors }}</div>
+            {% endif %}
+        </div>
+        {{ form.date_of_diagnosis|as_crispy_field }}
+    </div>
+
+    <!-- Treatment Section (only visible to users with add_treatment permission) -->
+    {% if can_add_treatment %}
+    <div class="border-t border-gray-300 pt-4 mt-4">
+        <h5 class="text-sm font-medium text-gray-700 mb-3">{% translate "Treatment for this Diagnosis" %}</h5>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Treatment Type Checkboxes -->
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.treatment_type.label }}</label>
+                <div class="treatment-type-grid border border-gray-300 rounded-md p-3 bg-white">
+                    {% for checkbox in form.treatment_type %}
+                        <div class="checkbox flex items-center">
+                            {{ checkbox.tag }}
+                            <label for="{{ checkbox.id_for_label }}" class="text-sm text-gray-700 ml-2">{{ checkbox.choice_label }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if form.treatment_type.help_text %}
+                    <p class="text-xs text-gray-500 mt-1">{{ form.treatment_type.help_text }}</p>
+                {% endif %}
+            </div>
+
+            {{ form.treatment_intent|as_crispy_field }}
+            {{ form.date_of_start_of_treatment|as_crispy_field }}
+            {{ form.currently_ongoing_treatment|as_crispy_field }}
+            {{ form.date_of_end_of_treatment|as_crispy_field }}
+        </div>
+    </div>
+    {% endif %}
+</div>

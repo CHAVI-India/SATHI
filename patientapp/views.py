@@ -30,7 +30,7 @@ from .forms import (
     PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm,
     DiagnosisListForm, ProjectForm, PatientProjectForm,
     ProjectRedcapMappingForm, RedcapIDFieldsForm, RedcapFormToQuestionnaireMappingForm,
-    RedcapFieldToItemMappingForm, RedcapStudyIDMapForm,
+    RedcapFieldToItemMappingForm, RedcapStudyIDMapForm, DiagnosisTreatmentBlockForm,
 )
 from promapp.models import *
 from .utils import (
@@ -2356,14 +2356,118 @@ class PatientCreateView(InstitutionFilterMixin, LoginRequiredMixin, PermissionRe
     def get_form(self, form_class=None):
         """Customize the form to limit institution choices for providers."""
         form = super().get_form(form_class)
-        
+
         # If user is a provider, limit institution choices to their institution
         user_institution = get_user_institution(self.request.user)
         if user_institution:
             form.fields['institution'].queryset = Institution.objects.filter(id=user_institution.id)
             form.fields['institution'].initial = user_institution
-        
+
         return form
+
+    def _parse_diagnosis_blocks(self, post_data):
+        """Parse POST data to extract multiple diagnosis-treatment blocks.
+
+        Django form prefixes use hyphens, so field names are like:
+        'diag_block_0-diagnosis', 'diag_block_0-date_of_diagnosis', etc.
+        """
+        blocks = []
+        # Find all unique block prefixes from the POST data
+        # Django uses hyphens for prefixed forms: diag_block_0-diagnosis
+        block_keys = [k for k in post_data.keys() if k.startswith('diag_block_') and k.endswith('-diagnosis')]
+
+        logger.debug(f"Found diagnosis block keys: {block_keys}")
+        logger.debug(f"All POST keys: {list(post_data.keys())}")
+
+        for key in block_keys:
+            # Extract the block index (e.g., 'diag_block_0-diagnosis' -> '0')
+            prefix = key.replace('-diagnosis', '')  # e.g., 'diag_block_0'
+            block_idx = prefix.replace('diag_block_', '')
+
+            # Django form prefixes use hyphens
+            diagnosis_id = post_data.get(f'{prefix}-diagnosis')
+            logger.debug(f"Block {block_idx}: diagnosis_id = {diagnosis_id}")
+
+            if diagnosis_id:  # Only process if a diagnosis is selected
+                block = {
+                    'block_idx': block_idx,
+                    'diagnosis': diagnosis_id,
+                    'date_of_diagnosis': post_data.get(f'{prefix}-date_of_diagnosis'),
+                    'treatment_type': post_data.getlist(f'{prefix}-treatment_type'),
+                    'treatment_intent': post_data.get(f'{prefix}-treatment_intent'),
+                    'date_of_start_of_treatment': post_data.get(f'{prefix}-date_of_start_of_treatment'),
+                    'currently_ongoing_treatment': f'{prefix}-currently_ongoing_treatment' in post_data,
+                    'date_of_end_of_treatment': post_data.get(f'{prefix}-date_of_end_of_treatment'),
+                }
+                logger.debug(f"Block {block_idx} data: {block}")
+                blocks.append(block)
+
+        logger.debug(f"Total blocks parsed: {len(blocks)}")
+        return blocks
+
+    def _create_diagnosis_and_treatment(self, patient, block_data, can_add_treatment=True):
+        """Create a Diagnosis and optional Treatment for a patient.
+
+        Args:
+            patient: The patient to associate with
+            block_data: Dictionary containing diagnosis and treatment data
+            can_add_treatment: Whether the user has add_treatment permission
+        """
+        from datetime import datetime
+
+        # Parse date
+        date_of_diagnosis = None
+        if block_data['date_of_diagnosis']:
+            try:
+                date_of_diagnosis = datetime.strptime(block_data['date_of_diagnosis'], '%Y-%m-%d').date()
+            except ValueError:
+                pass
+
+        # Create Diagnosis
+        diagnosis = Diagnosis.objects.create(
+            patient=patient,
+            diagnosis_id=block_data['diagnosis'],
+            date_of_diagnosis=date_of_diagnosis
+        )
+
+        # Only create treatment if user has add_treatment permission
+        if can_add_treatment:
+            # Check if treatment data is provided
+            has_treatment_data = (
+                block_data['treatment_type'] or
+                block_data['treatment_intent'] or
+                block_data['date_of_start_of_treatment']
+            )
+
+            if has_treatment_data:
+                # Parse dates
+                start_date = None
+                end_date = None
+                if block_data['date_of_start_of_treatment']:
+                    try:
+                        start_date = datetime.strptime(block_data['date_of_start_of_treatment'], '%Y-%m-%d').date()
+                    except ValueError:
+                        pass
+                if block_data['date_of_end_of_treatment']:
+                    try:
+                        end_date = datetime.strptime(block_data['date_of_end_of_treatment'], '%Y-%m-%d').date()
+                    except ValueError:
+                        pass
+
+                treatment = Treatment.objects.create(
+                    diagnosis=diagnosis,
+                    treatment_intent=block_data['treatment_intent'] or '',
+                    date_of_start_of_treatment=start_date,
+                    currently_ongoing_treatment=block_data['currently_ongoing_treatment'],
+                    date_of_end_of_treatment=end_date
+                )
+                # Set ManyToMany treatment types
+                if block_data['treatment_type']:
+                    treatment.treatment_type.set(block_data['treatment_type'])
+        else:
+            logger.debug(f"User lacks add_treatment permission - skipping treatment creation for diagnosis {diagnosis}")
+
+        return diagnosis
 
     def form_valid(self, form):
         try:
@@ -2374,32 +2478,117 @@ class PatientCreateView(InstitutionFilterMixin, LoginRequiredMixin, PermissionRe
                     email=form.cleaned_data['email'],
                     password=form.cleaned_data['password1']
                 )
-                
+
                 # Assign groups to the user
                 if 'groups' in form.cleaned_data:
                     user.groups.set(form.cleaned_data['groups'])
-                
+
                 # Create the Patient object
                 patient = form.save(commit=False)
                 patient.user = user
-                
+
                 # For providers, ensure the patient is created in their institution
                 user_institution = get_user_institution(self.request.user)
                 if user_institution:
                     patient.institution = user_institution
-                
+
                 patient.save()
-                
+
+                # Only create diagnosis records if user has add_diagnosis permission
+                if self.request.user.has_perm('patientapp.add_diagnosis'):
+                    # Parse and create all diagnosis-treatment blocks
+                    diagnosis_blocks = self._parse_diagnosis_blocks(self.request.POST)
+                    for block_data in diagnosis_blocks:
+                        # Pass treatment permission to control treatment creation
+                        self._create_diagnosis_and_treatment(
+                            patient,
+                            block_data,
+                            can_add_treatment=self.request.user.has_perm('patientapp.add_treatment')
+                        )
+                else:
+                    logger.debug(f"User {self.request.user} lacks add_diagnosis permission - skipping diagnosis creation")
+
+                # Only create PatientProject if user has add_patientproject permission
+                if self.request.user.has_perm('patientapp.add_patientproject'):
+                    project = form.cleaned_data.get('project')
+                    if project:
+                        PatientProject.objects.create(
+                            patient=patient,
+                            project=project,
+                            date_patient_enrolled_in_project=form.cleaned_data.get('date_patient_enrolled_in_project'),
+                            date_patient_exited_from_project=form.cleaned_data.get('date_patient_exited_from_project')
+                        )
+                else:
+                    logger.debug(f"User {self.request.user} lacks add_patientproject permission - skipping project assignment")
+
                 messages.success(self.request, _('Patient created successfully.'))
                 return redirect(self.success_url)
-                
+
         except Exception as e:
+            logger.error(f"Error creating patient: {e}", exc_info=True)
             messages.error(self.request, _('An error occurred while creating the patient.'))
             return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        """Handle form invalid - preserve submitted diagnosis blocks."""
+        # Parse the submitted diagnosis blocks to repopulate the form
+        response = super().form_invalid(form)
+        return response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = _('Add New Patient')
+
+        # Permission flags for conditional form section display
+        context['can_add_diagnosis'] = self.request.user.has_perm('patientapp.add_diagnosis')
+        context['can_add_treatment'] = self.request.user.has_perm('patientapp.add_treatment')
+        context['can_add_project'] = self.request.user.has_perm('patientapp.add_patientproject')
+
+        # Check if we're repopulating after a form error
+        if self.request.method == 'POST' and context['can_add_diagnosis']:
+            # Parse submitted diagnosis blocks and create forms with submitted data
+            diagnosis_blocks = self._parse_diagnosis_blocks(self.request.POST)
+            block_forms = []
+            for i, block_data in enumerate(diagnosis_blocks):
+                prefix = f'diag_block_{i}'
+                # Create form with submitted data
+                block_form = DiagnosisTreatmentBlockForm(
+                    prefix=prefix,
+                    data=self.request.POST
+                )
+                block_forms.append({
+                    'form': block_form,
+                    'block_idx': str(i),
+                    'prefix': prefix,
+                })
+
+            # If no blocks were submitted (or first one empty), at least show one empty block
+            if not block_forms:
+                block_forms = [{
+                    'form': DiagnosisTreatmentBlockForm(prefix='diag_block_0'),
+                    'block_idx': '0',
+                    'prefix': 'diag_block_0',
+                }]
+
+            context['diagnosis_blocks'] = block_forms
+            context['diagnosis_block_count'] = len(block_forms)
+        elif context['can_add_diagnosis']:
+            # Fresh form - show one empty block (only if user has permission)
+            context['diagnosis_blocks'] = [{
+                'form': DiagnosisTreatmentBlockForm(prefix='diag_block_0'),
+                'block_idx': '0',
+                'prefix': 'diag_block_0',
+            }]
+            context['diagnosis_block_count'] = 1
+        else:
+            # No diagnosis permission - hide diagnosis section
+            context['diagnosis_blocks'] = []
+            context['diagnosis_block_count'] = 0
+
+        # Keep the original for backwards compatibility
+        if context['diagnosis_blocks']:
+            context['diagnosis_block_form'] = context['diagnosis_blocks'][0]['form']
+
         return context
 
 class PatientRestrictedUpdateView(InstitutionFilterMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
@@ -2643,6 +2832,27 @@ def treatment_type_list(request):
     return render(request, 'patientapp/treatment_type_list.html', {
         'treatment_types': treatment_types,
         'title': _('Treatment Types')
+    })
+
+
+@login_required
+@permission_required('patientapp.add_diagnosis', raise_exception=True)
+def diagnosis_block_partial(request):
+    """
+    HTMX endpoint to return a new diagnosis-treatment block for the patient form.
+    Requires add_diagnosis permission to add diagnosis blocks.
+    Expects a 'block_idx' parameter to set the prefix for the form fields.
+    """
+    block_idx = request.GET.get('block_idx', '0')
+    prefix = f'diag_block_{block_idx}'
+
+    form = DiagnosisTreatmentBlockForm(prefix=prefix)
+
+    return render(request, 'patientapp/partials/diagnosis_block.html', {
+        'form': form,
+        'block_idx': block_idx,
+        'prefix': prefix,
+        'can_add_treatment': request.user.has_perm('patientapp.add_treatment'),
     })
 
 

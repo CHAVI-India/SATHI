@@ -161,6 +161,39 @@
 </ul>
 <p><strong>User Groups</strong></p>
 <p>Tick the appropriate groups to control what the patient can access in the system.</p>
+<p><strong>Diagnosis &amp; Treatment Information</strong></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This section is only visible if you have the <code class="docutils literal notranslate"><span class="pre">add_diagnosis</span></code> permission. Contact your administrator if you need to record diagnoses during patient registration but cannot see this section.</p>
+</div>
+<p>If available, you can add one or more diagnoses for the patient during registration:</p>
+<ol class="arabic simple">
+<li><p><strong>Diagnosis</strong> — Select from the pre-configured diagnosis list (searchable dropdown).</p></li>
+<li><p><strong>Date of Diagnosis</strong> — When the diagnosis was made.</p></li>
+</ol>
+<p>To add another diagnosis, click <strong>Add Another Diagnosis</strong>. Each diagnosis can have associated treatment information:</p>
+<ul class="simple">
+<li><p><strong>Treatment Type</strong> — Select one or more treatment types (e.g., Surgery, Chemotherapy). Multiple types can be selected if treatments were delivered synchronously.</p></li>
+<li><p><strong>Treatment Intent</strong> — Preventive, Curative, Palliative, or Other.</p></li>
+<li><p><strong>Date of Start of Treatment</strong> — When treatment began.</p></li>
+<li><p><strong>Currently Ongoing Treatment</strong> — Tick if treatment is still in progress (hides end date field).</p></li>
+<li><p><strong>Date of End of Treatment</strong> — When treatment was completed (required if not ongoing).</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Treatment fields are only visible if you have the <code class="docutils literal notranslate"><span class="pre">add_treatment</span></code> permission. You can add treatments to a diagnosis later from the patient detail page if needed.</p>
+</div>
+<p><strong>Project Assignment</strong></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This section is only visible if you have the <code class="docutils literal notranslate"><span class="pre">add_patientproject</span></code> permission.</p>
+</div>
+<p>If available, you can assign the patient to a project during registration:</p>
+<ul class="simple">
+<li><p><strong>Project</strong> — Select the research project or clinical study.</p></li>
+<li><p><strong>Date Patient Enrolled in Project</strong> — When the patient joined the project.</p></li>
+<li><p><strong>Date Patient Exited from Project</strong> — When the patient left the project (optional).</p></li>
+</ul>
 <p>Once all fields are filled in correctly, submit the form. You will be returned to the patient list with a success message.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>

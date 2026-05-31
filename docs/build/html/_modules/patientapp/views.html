@@ -500,7 +500,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">PatientForm</span><span class="p">,</span> <span class="n">TreatmentForm</span><span class="p">,</span> <span class="n">DiagnosisForm</span><span class="p">,</span> <span class="n">PatientRestrictedUpdateForm</span><span class="p">,</span>
     <span class="n">DiagnosisListForm</span><span class="p">,</span> <span class="n">ProjectForm</span><span class="p">,</span> <span class="n">PatientProjectForm</span><span class="p">,</span>
     <span class="n">ProjectRedcapMappingForm</span><span class="p">,</span> <span class="n">RedcapIDFieldsForm</span><span class="p">,</span> <span class="n">RedcapFormToQuestionnaireMappingForm</span><span class="p">,</span>
-    <span class="n">RedcapFieldToItemMappingForm</span><span class="p">,</span> <span class="n">RedcapStudyIDMapForm</span><span class="p">,</span>
+    <span class="n">RedcapFieldToItemMappingForm</span><span class="p">,</span> <span class="n">RedcapStudyIDMapForm</span><span class="p">,</span> <span class="n">DiagnosisTreatmentBlockForm</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">promapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -2872,15 +2872,119 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form_class</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Customize the form to limit institution choices for providers.&quot;&quot;&quot;</span>
         <span class="n">form</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_form</span><span class="p">(</span><span class="n">form_class</span><span class="p">)</span>
-        
+
         <span class="c1"># If user is a provider, limit institution choices to their institution</span>
         <span class="n">user_institution</span> <span class="o">=</span> <span class="n">get_user_institution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">user_institution</span><span class="p">:</span>
             <span class="n">form</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;institution&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">queryset</span> <span class="o">=</span> <span class="n">Institution</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">user_institution</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
             <span class="n">form</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;institution&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="n">user_institution</span>
-        
+
         <span class="k">return</span> <span class="n">form</span></div>
 
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_diagnosis_blocks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">post_data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse POST data to extract multiple diagnosis-treatment blocks.</span>
+
+<span class="sd">        Django form prefixes use hyphens, so field names are like:</span>
+<span class="sd">        &#39;diag_block_0-diagnosis&#39;, &#39;diag_block_0-date_of_diagnosis&#39;, etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">blocks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># Find all unique block prefixes from the POST data</span>
+        <span class="c1"># Django uses hyphens for prefixed forms: diag_block_0-diagnosis</span>
+        <span class="n">block_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">post_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;diag_block_&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">k</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;-diagnosis&#39;</span><span class="p">)]</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found diagnosis block keys: </span><span class="si">{</span><span class="n">block_keys</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;All POST keys: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">post_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">block_keys</span><span class="p">:</span>
+            <span class="c1"># Extract the block index (e.g., &#39;diag_block_0-diagnosis&#39; -&gt; &#39;0&#39;)</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-diagnosis&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>  <span class="c1"># e.g., &#39;diag_block_0&#39;</span>
+            <span class="n">block_idx</span> <span class="o">=</span> <span class="n">prefix</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;diag_block_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Django form prefixes use hyphens</span>
+            <span class="n">diagnosis_id</span> <span class="o">=</span> <span class="n">post_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">-diagnosis&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Block </span><span class="si">{</span><span class="n">block_idx</span><span class="si">}</span><span class="s2">: diagnosis_id = </span><span class="si">{</span><span class="n">diagnosis_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">diagnosis_id</span><span class="p">:</span>  <span class="c1"># Only process if a diagnosis is selected</span>
+                <span class="n">block</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;block_idx&#39;</span><span class="p">:</span> <span class="n">block_idx</span><span class="p">,</span>
+                    <span class="s1">&#39;diagnosis&#39;</span><span class="p">:</span> <span class="n">diagnosis_id</span><span class="p">,</span>
+                    <span class="s1">&#39;date_of_diagnosis&#39;</span><span class="p">:</span> <span class="n">post_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">-date_of_diagnosis&#39;</span><span class="p">),</span>
+                    <span class="s1">&#39;treatment_type&#39;</span><span class="p">:</span> <span class="n">post_data</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">-treatment_type&#39;</span><span class="p">),</span>
+                    <span class="s1">&#39;treatment_intent&#39;</span><span class="p">:</span> <span class="n">post_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">-treatment_intent&#39;</span><span class="p">),</span>
+                    <span class="s1">&#39;date_of_start_of_treatment&#39;</span><span class="p">:</span> <span class="n">post_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">-date_of_start_of_treatment&#39;</span><span class="p">),</span>
+                    <span class="s1">&#39;currently_ongoing_treatment&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">-currently_ongoing_treatment&#39;</span> <span class="ow">in</span> <span class="n">post_data</span><span class="p">,</span>
+                    <span class="s1">&#39;date_of_end_of_treatment&#39;</span><span class="p">:</span> <span class="n">post_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">-date_of_end_of_treatment&#39;</span><span class="p">),</span>
+                <span class="p">}</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Block </span><span class="si">{</span><span class="n">block_idx</span><span class="si">}</span><span class="s2"> data: </span><span class="si">{</span><span class="n">block</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">blocks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total blocks parsed: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">blocks</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_diagnosis_and_treatment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">block_data</span><span class="p">,</span> <span class="n">can_add_treatment</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a Diagnosis and optional Treatment for a patient.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            patient: The patient to associate with</span>
+<span class="sd">            block_data: Dictionary containing diagnosis and treatment data</span>
+<span class="sd">            can_add_treatment: Whether the user has add_treatment permission</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
+        <span class="c1"># Parse date</span>
+        <span class="n">date_of_diagnosis</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;date_of_diagnosis&#39;</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">date_of_diagnosis</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;date_of_diagnosis&#39;</span><span class="p">],</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="c1"># Create Diagnosis</span>
+        <span class="n">diagnosis</span> <span class="o">=</span> <span class="n">Diagnosis</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">patient</span><span class="o">=</span><span class="n">patient</span><span class="p">,</span>
+            <span class="n">diagnosis_id</span><span class="o">=</span><span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">],</span>
+            <span class="n">date_of_diagnosis</span><span class="o">=</span><span class="n">date_of_diagnosis</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Only create treatment if user has add_treatment permission</span>
+        <span class="k">if</span> <span class="n">can_add_treatment</span><span class="p">:</span>
+            <span class="c1"># Check if treatment data is provided</span>
+            <span class="n">has_treatment_data</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;treatment_type&#39;</span><span class="p">]</span> <span class="ow">or</span>
+                <span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;treatment_intent&#39;</span><span class="p">]</span> <span class="ow">or</span>
+                <span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;date_of_start_of_treatment&#39;</span><span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">has_treatment_data</span><span class="p">:</span>
+                <span class="c1"># Parse dates</span>
+                <span class="n">start_date</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">end_date</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;date_of_start_of_treatment&#39;</span><span class="p">]:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">start_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;date_of_start_of_treatment&#39;</span><span class="p">],</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                <span class="k">if</span> <span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;date_of_end_of_treatment&#39;</span><span class="p">]:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">end_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;date_of_end_of_treatment&#39;</span><span class="p">],</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+                <span class="n">treatment</span> <span class="o">=</span> <span class="n">Treatment</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                    <span class="n">diagnosis</span><span class="o">=</span><span class="n">diagnosis</span><span class="p">,</span>
+                    <span class="n">treatment_intent</span><span class="o">=</span><span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;treatment_intent&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                    <span class="n">date_of_start_of_treatment</span><span class="o">=</span><span class="n">start_date</span><span class="p">,</span>
+                    <span class="n">currently_ongoing_treatment</span><span class="o">=</span><span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;currently_ongoing_treatment&#39;</span><span class="p">],</span>
+                    <span class="n">date_of_end_of_treatment</span><span class="o">=</span><span class="n">end_date</span>
+                <span class="p">)</span>
+                <span class="c1"># Set ManyToMany treatment types</span>
+                <span class="k">if</span> <span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;treatment_type&#39;</span><span class="p">]:</span>
+                    <span class="n">treatment</span><span class="o">.</span><span class="n">treatment_type</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">block_data</span><span class="p">[</span><span class="s1">&#39;treatment_type&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;User lacks add_treatment permission - skipping treatment creation for diagnosis </span><span class="si">{</span><span class="n">diagnosis</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">diagnosis</span>
 
 <div class="viewcode-block" id="PatientCreateView.form_valid">
 <a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.PatientCreateView.form_valid">[docs]</a>
@@ -2893,28 +2997,65 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">email</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;email&#39;</span><span class="p">],</span>
                     <span class="n">password</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;password1&#39;</span><span class="p">]</span>
                 <span class="p">)</span>
-                
+
                 <span class="c1"># Assign groups to the user</span>
                 <span class="k">if</span> <span class="s1">&#39;groups&#39;</span> <span class="ow">in</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">:</span>
                     <span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;groups&#39;</span><span class="p">])</span>
-                
+
                 <span class="c1"># Create the Patient object</span>
                 <span class="n">patient</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">commit</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
                 <span class="n">patient</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span>
-                
+
                 <span class="c1"># For providers, ensure the patient is created in their institution</span>
                 <span class="n">user_institution</span> <span class="o">=</span> <span class="n">get_user_institution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">user_institution</span><span class="p">:</span>
                     <span class="n">patient</span><span class="o">.</span><span class="n">institution</span> <span class="o">=</span> <span class="n">user_institution</span>
-                
+
                 <span class="n">patient</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
-                
+
+                <span class="c1"># Only create diagnosis records if user has add_diagnosis permission</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">has_perm</span><span class="p">(</span><span class="s1">&#39;patientapp.add_diagnosis&#39;</span><span class="p">):</span>
+                    <span class="c1"># Parse and create all diagnosis-treatment blocks</span>
+                    <span class="n">diagnosis_blocks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_diagnosis_blocks</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">block_data</span> <span class="ow">in</span> <span class="n">diagnosis_blocks</span><span class="p">:</span>
+                        <span class="c1"># Pass treatment permission to control treatment creation</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_create_diagnosis_and_treatment</span><span class="p">(</span>
+                            <span class="n">patient</span><span class="p">,</span>
+                            <span class="n">block_data</span><span class="p">,</span>
+                            <span class="n">can_add_treatment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">has_perm</span><span class="p">(</span><span class="s1">&#39;patientapp.add_treatment&#39;</span><span class="p">)</span>
+                        <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;User </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="si">}</span><span class="s2"> lacks add_diagnosis permission - skipping diagnosis creation&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Only create PatientProject if user has add_patientproject permission</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">has_perm</span><span class="p">(</span><span class="s1">&#39;patientapp.add_patientproject&#39;</span><span class="p">):</span>
+                    <span class="n">project</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">project</span><span class="p">:</span>
+                        <span class="n">PatientProject</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                            <span class="n">patient</span><span class="o">=</span><span class="n">patient</span><span class="p">,</span>
+                            <span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">,</span>
+                            <span class="n">date_patient_enrolled_in_project</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;date_patient_enrolled_in_project&#39;</span><span class="p">),</span>
+                            <span class="n">date_patient_exited_from_project</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;date_patient_exited_from_project&#39;</span><span class="p">)</span>
+                        <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;User </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="si">}</span><span class="s2"> lacks add_patientproject permission - skipping project assignment&quot;</span><span class="p">)</span>
+
                 <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Patient created successfully.&#39;</span><span class="p">))</span>
                 <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">success_url</span><span class="p">)</span>
-                
+
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error creating patient: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">messages</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;An error occurred while creating the patient.&#39;</span><span class="p">))</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_invalid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PatientCreateView.form_invalid">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.PatientCreateView.form_invalid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">form_invalid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle form invalid - preserve submitted diagnosis blocks.&quot;&quot;&quot;</span>
+        <span class="c1"># Parse the submitted diagnosis blocks to repopulate the form</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">form_invalid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span></div>
 
 
 <div class="viewcode-block" id="PatientCreateView.get_context_data">
@@ -2922,6 +3063,57 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">context</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Add New Patient&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Permission flags for conditional form section display</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;can_add_diagnosis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">has_perm</span><span class="p">(</span><span class="s1">&#39;patientapp.add_diagnosis&#39;</span><span class="p">)</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;can_add_treatment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">has_perm</span><span class="p">(</span><span class="s1">&#39;patientapp.add_treatment&#39;</span><span class="p">)</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;can_add_project&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">has_perm</span><span class="p">(</span><span class="s1">&#39;patientapp.add_patientproject&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Check if we&#39;re repopulating after a form error</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span> <span class="ow">and</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;can_add_diagnosis&#39;</span><span class="p">]:</span>
+            <span class="c1"># Parse submitted diagnosis blocks and create forms with submitted data</span>
+            <span class="n">diagnosis_blocks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_diagnosis_blocks</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+            <span class="n">block_forms</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">block_data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">diagnosis_blocks</span><span class="p">):</span>
+                <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;diag_block_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="c1"># Create form with submitted data</span>
+                <span class="n">block_form</span> <span class="o">=</span> <span class="n">DiagnosisTreatmentBlockForm</span><span class="p">(</span>
+                    <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+                    <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span>
+                <span class="p">)</span>
+                <span class="n">block_forms</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">block_form</span><span class="p">,</span>
+                    <span class="s1">&#39;block_idx&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
+                    <span class="s1">&#39;prefix&#39;</span><span class="p">:</span> <span class="n">prefix</span><span class="p">,</span>
+                <span class="p">})</span>
+
+            <span class="c1"># If no blocks were submitted (or first one empty), at least show one empty block</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">block_forms</span><span class="p">:</span>
+                <span class="n">block_forms</span> <span class="o">=</span> <span class="p">[{</span>
+                    <span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">DiagnosisTreatmentBlockForm</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;diag_block_0&#39;</span><span class="p">),</span>
+                    <span class="s1">&#39;block_idx&#39;</span><span class="p">:</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;prefix&#39;</span><span class="p">:</span> <span class="s1">&#39;diag_block_0&#39;</span><span class="p">,</span>
+                <span class="p">}]</span>
+
+            <span class="n">context</span><span class="p">[</span><span class="s1">&#39;diagnosis_blocks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">block_forms</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">&#39;diagnosis_block_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">block_forms</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;can_add_diagnosis&#39;</span><span class="p">]:</span>
+            <span class="c1"># Fresh form - show one empty block (only if user has permission)</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">&#39;diagnosis_blocks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[{</span>
+                <span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">DiagnosisTreatmentBlockForm</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;diag_block_0&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;block_idx&#39;</span><span class="p">:</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;prefix&#39;</span><span class="p">:</span> <span class="s1">&#39;diag_block_0&#39;</span><span class="p">,</span>
+            <span class="p">}]</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">&#39;diagnosis_block_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># No diagnosis permission - hide diagnosis section</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">&#39;diagnosis_blocks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">&#39;diagnosis_block_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Keep the original for backwards compatibility</span>
+        <span class="k">if</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;diagnosis_blocks&#39;</span><span class="p">]:</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">&#39;diagnosis_block_form&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;diagnosis_blocks&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;form&#39;</span><span class="p">]</span>
+
         <span class="k">return</span> <span class="n">context</span></div>
 </div>
 
@@ -3272,6 +3464,30 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="diagnosis_block_partial">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.diagnosis_block_partial">[docs]</a>
+<span class="nd">@login_required</span>
+<span class="nd">@permission_required</span><span class="p">(</span><span class="s1">&#39;patientapp.add_diagnosis&#39;</span><span class="p">,</span> <span class="n">raise_exception</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">diagnosis_block_partial</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    HTMX endpoint to return a new diagnosis-treatment block for the patient form.</span>
+<span class="sd">    Requires add_diagnosis permission to add diagnosis blocks.</span>
+<span class="sd">    Expects a &#39;block_idx&#39; parameter to set the prefix for the form fields.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">block_idx</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;block_idx&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">)</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;diag_block_</span><span class="si">{</span><span class="n">block_idx</span><span class="si">}</span><span class="s1">&#39;</span>
+
+    <span class="n">form</span> <span class="o">=</span> <span class="n">DiagnosisTreatmentBlockForm</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;patientapp/partials/diagnosis_block.html&#39;</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">form</span><span class="p">,</span>
+        <span class="s1">&#39;block_idx&#39;</span><span class="p">:</span> <span class="n">block_idx</span><span class="p">,</span>
+        <span class="s1">&#39;prefix&#39;</span><span class="p">:</span> <span class="n">prefix</span><span class="p">,</span>
+        <span class="s1">&#39;can_add_treatment&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">has_perm</span><span class="p">(</span><span class="s1">&#39;patientapp.add_treatment&#39;</span><span class="p">),</span>
+    <span class="p">})</span></div>
+
+
+
 <div class="viewcode-block" id="get_patient_count">
 <a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.get_patient_count">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_patient_count</span><span class="p">():</span>
@@ -3521,6 +3737,17 @@ window.runMermaid = runMermaid;</script>
             <span class="n">fm_stats</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;fm&#39;</span><span class="p">:</span> <span class="n">fm</span><span class="p">,</span> <span class="s1">&#39;total&#39;</span><span class="p">:</span> <span class="n">total</span><span class="p">,</span> <span class="s1">&#39;matched&#39;</span><span class="p">:</span> <span class="n">matched</span><span class="p">})</span>
         <span class="n">m</span><span class="o">.</span><span class="n">fm_stats</span> <span class="o">=</span> <span class="n">fm_stats</span>
 
+        <span class="c1"># Calculate patient ID mapping statistics</span>
+        <span class="n">patient_projects</span> <span class="o">=</span> <span class="n">PatientProject</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+        <span class="c1"># Filter in Python because redcap_study_id is EncryptedCharField</span>
+        <span class="n">id_maps</span> <span class="o">=</span> <span class="n">RedcapStudyIDtoPatientIDMap</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">project_redcap_mapping</span><span class="o">=</span><span class="n">m</span><span class="p">)</span>
+        <span class="n">mapped_patients</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">im</span> <span class="ow">in</span> <span class="n">id_maps</span> <span class="k">if</span> <span class="n">im</span><span class="o">.</span><span class="n">redcap_study_id</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">patient_stats</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;total&#39;</span><span class="p">:</span> <span class="n">patient_projects</span><span class="p">,</span>
+            <span class="s1">&#39;mapped&#39;</span><span class="p">:</span> <span class="n">mapped_patients</span><span class="p">,</span>
+            <span class="s1">&#39;unmapped&#39;</span><span class="p">:</span> <span class="n">patient_projects</span> <span class="o">-</span> <span class="n">mapped_patients</span><span class="p">,</span>
+        <span class="p">}</span>
+
     <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;patientapp/redcap/redcap_dashboard.html&#39;</span><span class="p">,</span> <span class="p">{</span>
         <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">project</span><span class="p">,</span>
         <span class="s1">&#39;mappings&#39;</span><span class="p">:</span> <span class="n">mappings</span><span class="p">,</span>
@@ -3580,6 +3807,30 @@ window.runMermaid = runMermaid;</script>
         <span class="s1">&#39;mapping&#39;</span><span class="p">:</span> <span class="n">mapping</span><span class="p">,</span>
         <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;Edit REDCap Configuration&#39;</span><span class="p">),</span>
         <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;edit&#39;</span><span class="p">,</span>
+    <span class="p">})</span></div>
+
+
+
+<div class="viewcode-block" id="redcap_mapping_delete">
+<a class="viewcode-back" href="../../developer/api_reference.html#patientapp.views.redcap_mapping_delete">[docs]</a>
+<span class="nd">@login_required</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">redcap_mapping_delete</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">mapping_pk</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Delete a ProjectRedcapMapping configuration.&quot;&quot;&quot;</span>
+    <span class="n">guard</span> <span class="o">=</span> <span class="n">_staff_required</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">guard</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">guard</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Project</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+    <span class="n">mapping</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">ProjectRedcapMapping</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">mapping_pk</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="n">config_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span>
+        <span class="n">mapping</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;REDCap configuration &quot;</span><span class="si">{name}</span><span class="s1">&quot; deleted.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">config_name</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;redcap_project_dashboard&#39;</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;patientapp/redcap/redcap_mapping_confirm_delete.html&#39;</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">project</span><span class="p">,</span>
+        <span class="s1">&#39;mapping&#39;</span><span class="p">:</span> <span class="n">mapping</span><span class="p">,</span>
     <span class="p">})</span></div>
 
 
@@ -4300,6 +4551,30 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">RedcapStudyIDtoPatientIDMap</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">project_redcap_mapping</span><span class="o">=</span><span class="n">mapping</span><span class="p">)</span>
     <span class="p">}</span>
 
+    <span class="c1"># Get submission matching stats per patient</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">promapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuestionnaireSubmission</span> <span class="k">as</span> <span class="n">_QS</span>
+    <span class="n">form_mappings</span> <span class="o">=</span> <span class="n">RedcapFormToQuestionnaireMapping</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">project_redcap_mapping</span><span class="o">=</span><span class="n">mapping</span><span class="p">)</span>
+    <span class="n">submission_stats</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">pp</span> <span class="ow">in</span> <span class="n">patient_projects</span><span class="p">:</span>
+        <span class="n">patient</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">patient</span>
+        <span class="n">total_submissions</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">matched_submissions</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">form_mappings</span><span class="p">:</span>
+            <span class="n">patient_subs</span> <span class="o">=</span> <span class="n">_QS</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">patient_questionnaire__questionnaire</span><span class="o">=</span><span class="n">fm</span><span class="o">.</span><span class="n">questionnaire</span><span class="p">,</span>
+                <span class="n">patient</span><span class="o">=</span><span class="n">patient</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">total_submissions</span> <span class="o">+=</span> <span class="n">patient_subs</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+            <span class="n">matched</span> <span class="o">=</span> <span class="n">RedcapInstanceToSubmissionMapping</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">redcap_form</span><span class="o">=</span><span class="n">fm</span><span class="p">,</span>
+                <span class="n">questionnaire_submission__in</span><span class="o">=</span><span class="n">patient_subs</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+            <span class="n">matched_submissions</span> <span class="o">+=</span> <span class="n">matched</span>
+        <span class="n">submission_stats</span><span class="p">[</span><span class="n">patient</span><span class="o">.</span><span class="n">pk</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;total&#39;</span><span class="p">:</span> <span class="n">total_submissions</span><span class="p">,</span>
+            <span class="s1">&#39;matched&#39;</span><span class="p">:</span> <span class="n">matched_submissions</span><span class="p">,</span>
+        <span class="p">}</span>
+
     <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">pp</span> <span class="ow">in</span> <span class="n">patient_projects</span><span class="p">:</span>
         <span class="n">patient</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">patient</span>
@@ -4323,13 +4598,42 @@ window.runMermaid = runMermaid;</script>
             <span class="s1">&#39;patient&#39;</span><span class="p">:</span> <span class="n">patient</span><span class="p">,</span>
             <span class="s1">&#39;redcap_study_id&#39;</span><span class="p">:</span> <span class="n">suggested</span><span class="p">,</span>
             <span class="s1">&#39;auto_matched&#39;</span><span class="p">:</span> <span class="n">auto_matched</span><span class="p">,</span>
+            <span class="s1">&#39;submission_stats&#39;</span><span class="p">:</span> <span class="n">submission_stats</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">patient</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;total&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;matched&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}),</span>
         <span class="p">})</span>
+
+    <span class="c1"># Apply filtering</span>
+    <span class="n">match_filter</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;match_filter&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">match_filter</span> <span class="o">==</span> <span class="s1">&#39;mapped&#39;</span><span class="p">:</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;redcap_study_id&#39;</span><span class="p">]]</span>
+    <span class="k">elif</span> <span class="n">match_filter</span> <span class="o">==</span> <span class="s1">&#39;unmapped&#39;</span><span class="p">:</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;redcap_study_id&#39;</span><span class="p">]]</span>
+    <span class="k">elif</span> <span class="n">match_filter</span> <span class="o">==</span> <span class="s1">&#39;partial_match&#39;</span><span class="p">:</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span>
+            <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;submission_stats&#39;</span><span class="p">][</span><span class="s1">&#39;total&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;submission_stats&#39;</span><span class="p">][</span><span class="s1">&#39;matched&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;submission_stats&#39;</span><span class="p">][</span><span class="s1">&#39;total&#39;</span><span class="p">]</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">match_filter</span> <span class="o">==</span> <span class="s1">&#39;full_match&#39;</span><span class="p">:</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span>
+            <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;submission_stats&#39;</span><span class="p">][</span><span class="s1">&#39;total&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;submission_stats&#39;</span><span class="p">][</span><span class="s1">&#39;matched&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;submission_stats&#39;</span><span class="p">][</span><span class="s1">&#39;total&#39;</span><span class="p">]</span>
+        <span class="p">]</span>
+
+    <span class="c1"># Pagination</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">django.core.paginator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Paginator</span>
+    <span class="n">paginator</span> <span class="o">=</span> <span class="n">Paginator</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>  <span class="c1"># 25 per page</span>
+    <span class="n">page_number</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;page&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">page_obj</span> <span class="o">=</span> <span class="n">paginator</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">page_number</span><span class="p">)</span>
 
     <span class="n">mapped_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;redcap_study_id&#39;</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;patientapp/redcap/redcap_patient_ids.html&#39;</span><span class="p">,</span> <span class="p">{</span>
         <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">project</span><span class="p">,</span>
         <span class="s1">&#39;mapping&#39;</span><span class="p">:</span> <span class="n">mapping</span><span class="p">,</span>
-        <span class="s1">&#39;rows&#39;</span><span class="p">:</span> <span class="n">rows</span><span class="p">,</span>
+        <span class="s1">&#39;rows&#39;</span><span class="p">:</span> <span class="n">page_obj</span><span class="p">,</span>
+        <span class="s1">&#39;page_obj&#39;</span><span class="p">:</span> <span class="n">page_obj</span><span class="p">,</span>
+        <span class="s1">&#39;paginator&#39;</span><span class="p">:</span> <span class="n">paginator</span><span class="p">,</span>
+        <span class="s1">&#39;match_filter&#39;</span><span class="p">:</span> <span class="n">match_filter</span><span class="p">,</span>
         <span class="s1">&#39;mapped_count&#39;</span><span class="p">:</span> <span class="n">mapped_count</span><span class="p">,</span>
         <span class="s1">&#39;redcap_records&#39;</span><span class="p">:</span> <span class="n">redcap_records</span><span class="p">,</span>
         <span class="s1">&#39;primary_field&#39;</span><span class="p">:</span> <span class="n">primary_field</span><span class="p">,</span>
@@ -4578,6 +4882,34 @@ window.runMermaid = runMermaid;</script>
             <span class="n">date_str</span> <span class="o">=</span> <span class="n">rc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;date_str&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ev</span> <span class="ow">and</span> <span class="n">date_str</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">event_dates</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ev</span><span class="p">):</span>
                 <span class="n">event_dates</span><span class="p">[</span><span class="n">ev</span><span class="p">]</span> <span class="o">=</span> <span class="n">date_str</span>
+
+        <span class="c1"># Calculate time intervals from previous submission and from first submission</span>
+        <span class="c1"># sub_rows is already sorted by submission_date (ascending)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
+        <span class="n">first_date</span> <span class="o">=</span> <span class="n">sub_rows</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;submission&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">submission_date</span> <span class="k">if</span> <span class="n">sub_rows</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sub_rows</span><span class="p">):</span>
+            <span class="n">curr_date</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;submission&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">submission_date</span>
+            <span class="c1"># Time from previous submission</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">row</span><span class="p">[</span><span class="s1">&#39;interval_from_prev&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">prev_date</span> <span class="o">=</span> <span class="n">sub_rows</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;submission&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">submission_date</span>
+                <span class="n">delta</span> <span class="o">=</span> <span class="n">curr_date</span> <span class="o">-</span> <span class="n">prev_date</span>
+                <span class="n">row</span><span class="p">[</span><span class="s1">&#39;interval_from_prev&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;days&#39;</span><span class="p">:</span> <span class="n">delta</span><span class="o">.</span><span class="n">days</span><span class="p">,</span>
+                    <span class="s1">&#39;weeks&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">days</span> <span class="o">/</span> <span class="mi">7</span><span class="p">),</span>
+                    <span class="s1">&#39;months&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">days</span> <span class="o">/</span> <span class="mi">30</span><span class="p">),</span>
+                <span class="p">}</span>
+            <span class="c1"># Time from first submission (cumulative)</span>
+            <span class="k">if</span> <span class="n">first_date</span><span class="p">:</span>
+                <span class="n">delta_from_first</span> <span class="o">=</span> <span class="n">curr_date</span> <span class="o">-</span> <span class="n">first_date</span>
+                <span class="n">row</span><span class="p">[</span><span class="s1">&#39;interval_from_first&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;days&#39;</span><span class="p">:</span> <span class="n">delta_from_first</span><span class="o">.</span><span class="n">days</span><span class="p">,</span>
+                    <span class="s1">&#39;weeks&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">delta_from_first</span><span class="o">.</span><span class="n">days</span> <span class="o">/</span> <span class="mi">7</span><span class="p">),</span>
+                    <span class="s1">&#39;months&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">delta_from_first</span><span class="o">.</span><span class="n">days</span> <span class="o">/</span> <span class="mi">30</span><span class="p">),</span>
+                <span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">row</span><span class="p">[</span><span class="s1">&#39;interval_from_first&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="n">fm_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
             <span class="s1">&#39;fm&#39;</span><span class="p">:</span> <span class="n">fm</span><span class="p">,</span>

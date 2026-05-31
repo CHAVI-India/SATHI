@@ -14,6 +14,7 @@ urlpatterns = [
     path('diagnoses/<uuid:pk>/update/', views.DiagnosisUpdateView.as_view(), name='diagnosis_update'),
     # path('diagnoses/<uuid:pk>/delete/', views.DiagnosisDeleteView.as_view(), name='diagnosis_delete'), # Removed as per request
     path('diagnosislist/create/', views.DiagnosisListCreateView.as_view(), name='diagnosislist_create'),
+    path('partials/diagnosis-block/', views.diagnosis_block_partial, name='diagnosis_block_partial'),
     
     # Treatment URLs
     path('diagnoses/<uuid:diagnosis_pk>/treatments/create/', views.TreatmentCreateView.as_view(), name='treatment_create'),
