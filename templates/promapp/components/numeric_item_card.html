@@ -34,12 +34,18 @@
      id="plot-item-{{ item_response.questionnaire_item.item.id }}" 
      style="min-height: 280px;"
      hx-get="{% url 'prom_review_item_plot' patient.id item_response.questionnaire_item.item.id %}?{{ request.GET.urlencode }}"
-     hx-trigger="revealed"
-     hx-swap="innerHTML">
+     hx-trigger="none"
+     hx-swap="innerHTML"
+     data-plot-name="{{ item_response.questionnaire_item.item.item_text|truncatechars:50 }}"
+     data-plot-type="item">
     <!-- Loading placeholder -->
-    <div class="flex items-center justify-center h-64">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
-        <span class="ml-2 text-sm text-gray-600">{% translate "Loading item plot..." %}</span>
+    <div class="flex flex-col items-center justify-center h-64">
+        <div class="animate-pulse rounded-full h-10 w-10 bg-gray-100 flex items-center justify-center mb-2">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <span class="text-sm text-gray-500">{% translate "Queued for loading..." %}</span>
     </div>
 </div>
 {% endblock %} 

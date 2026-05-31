@@ -25,6 +25,31 @@
     </div>
 </div>
 
+<!-- Plot Loading Progress Bar - Sticky at top -->
+<div id="plot-progress-container" class="fixed top-0 left-0 right-0 z-40 bg-white shadow-md transform -translate-y-full transition-transform duration-300" style="display: none;">
+    <div class="max-w-7xl mx-auto px-4 py-3">
+        <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-3">
+                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                <span id="progress-status" class="text-sm font-medium text-gray-700">{% translate "Preparing plots..." %}</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span id="progress-counter" class="text-sm text-gray-500">0 / 0</span>
+                <span id="progress-percentage" class="text-sm font-semibold text-blue-600">0%</span>
+            </div>
+        </div>
+        <!-- Progress bar -->
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
+        </div>
+        <!-- Current item being loaded -->
+        <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
+            <span id="progress-current-item" class="truncate max-w-md">{% translate "Initializing..." %}</span>
+            <span id="progress-phase" class="text-gray-400">{% translate "Phase 1/3" %}</span>
+        </div>
+    </div>
+</div>
+
 <div class="max-w-7xl mx-auto">
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
         <div class="p-6">
@@ -109,6 +134,9 @@
         
         // Restore population comparison state on page load
         restorePopulationState();
+        
+        // Start sequential plot loading with progress bar
+        initializePlotProgressLoader();
     });
     
     // Add HTMX event listener to reinitialize after content updates
@@ -118,8 +146,227 @@
             initializeItemFilter();
             // Reinitialize plot indicator functionality after HTMX content swap
             initializePlotIndicators();
+            // Restart plot loading for new content
+            initializePlotProgressLoader();
         }
     });
+    
+    // =============================================
+    // Plot Progress Loader - Sequential Loading
+    // =============================================
+    let plotLoadingState = {
+        isLoading: false,
+        queue: [],
+        completed: 0,
+        total: 0,
+        currentPhase: 1,
+        phases: [
+            { name: '{% translate "Topline Construct Scores" %}', selector: '.topline-tab-content .plot-container[data-plot-pending="true"]' },
+            { name: '{% translate "Other Construct Scores" %}', selector: '.other-tab-content .plot-container[data-plot-pending="true"]' },
+            { name: '{% translate "Item Response Plots" %}', selector: '.plot-container[id^="plot-item-"][data-plot-pending="true"]' }
+        ]
+    };
+    
+    function initializePlotProgressLoader() {
+        // Mark all plot containers as pending
+        const allPlotContainers = document.querySelectorAll('.plot-container[hx-get]');
+        allPlotContainers.forEach(container => {
+            container.setAttribute('data-plot-pending', 'true');
+            // Remove the automatic HTMX trigger - we'll load manually
+            container.removeAttribute('hx-trigger');
+        });
+        
+        // Count total plots
+        plotLoadingState.total = allPlotContainers.length;
+        plotLoadingState.completed = 0;
+        plotLoadingState.currentPhase = 1;
+        plotLoadingState.isLoading = false;
+        
+        if (plotLoadingState.total === 0) {
+            // No plots to load
+            return;
+        }
+        
+        // Show progress bar
+        showProgressBar();
+        
+        // Start loading
+        startSequentialLoading();
+    }
+    
+    function showProgressBar() {
+        const container = document.getElementById('plot-progress-container');
+        if (container) {
+            container.style.display = 'block';
+            // Trigger animation
+            setTimeout(() => {
+                container.classList.remove('-translate-y-full');
+                container.classList.add('translate-y-0');
+            }, 50);
+        }
+        updateProgressUI();
+    }
+    
+    function hideProgressBar() {
+        const container = document.getElementById('plot-progress-container');
+        if (container) {
+            container.classList.remove('translate-y-0');
+            container.classList.add('-translate-y-full');
+            setTimeout(() => {
+                container.style.display = 'none';
+            }, 300);
+        }
+    }
+    
+    function updateProgressUI() {
+        const percentage = plotLoadingState.total > 0 
+            ? Math.round((plotLoadingState.completed / plotLoadingState.total) * 100) 
+            : 0;
+        
+        document.getElementById('progress-bar').style.width = percentage + '%';
+        document.getElementById('progress-percentage').textContent = percentage + '%';
+        document.getElementById('progress-counter').textContent = 
+            plotLoadingState.completed + ' / ' + plotLoadingState.total;
+        document.getElementById('progress-phase').textContent = 
+            '{% translate "Phase" %} ' + plotLoadingState.currentPhase + '/3';
+    }
+    
+    function updateProgressStatus(status, currentItem) {
+        document.getElementById('progress-status').textContent = status;
+        if (currentItem) {
+            document.getElementById('progress-current-item').textContent = currentItem;
+        }
+    }
+    
+    async function startSequentialLoading() {
+        if (plotLoadingState.isLoading) return;
+        plotLoadingState.isLoading = true;
+        
+        // Phase 1: Load visible/first tab construct plots
+        plotLoadingState.currentPhase = 1;
+        updateProgressStatus('{% translate "Loading construct score plots..." %}', '{% translate "Starting..." %}');
+        await loadPlotsInPhase(1);
+        
+        // Phase 2: Load other construct plots (hidden tabs)
+        plotLoadingState.currentPhase = 2;
+        updateProgressStatus('{% translate "Loading remaining construct plots..." %}', '{% translate "Processing..." %}');
+        await loadPlotsInPhase(2);
+        
+        // Phase 3: Load item plots
+        plotLoadingState.currentPhase = 3;
+        updateProgressStatus('{% translate "Loading item response plots..." %}', '{% translate "Processing..." %}');
+        await loadPlotsInPhase(3);
+        
+        // Complete
+        updateProgressStatus('{% translate "All plots loaded!" %}', '{% translate "Complete" %}');
+        document.getElementById('progress-bar').classList.remove('bg-blue-600');
+        document.getElementById('progress-bar').classList.add('bg-green-500');
+        
+        // Hide progress bar after a short delay
+        setTimeout(() => {
+            hideProgressBar();
+            plotLoadingState.isLoading = false;
+        }, 1500);
+    }
+    
+    async function loadPlotsInPhase(phaseNumber) {
+        updateProgressUI();
+        
+        // Get all pending plot containers
+        const pendingPlots = document.querySelectorAll('.plot-container[data-plot-pending="true"]');
+        
+        // Filter by phase priority
+        let plotsToLoad = [];
+        pendingPlots.forEach(plot => {
+            const plotId = plot.id || '';
+            const isTopline = plot.closest('.topline-tab-content') !== null;
+            const isOther = plot.closest('.other-tab-content') !== null;
+            const isComposite = plot.closest('.composite-tab-content') !== null;
+            const isItem = plotId.startsWith('plot-item-');
+            
+            if (phaseNumber === 1 && (isTopline || isComposite)) {
+                plotsToLoad.push(plot);
+            } else if (phaseNumber === 2 && isOther) {
+                plotsToLoad.push(plot);
+            } else if (phaseNumber === 3 && isItem) {
+                plotsToLoad.push(plot);
+            }
+        });
+        
+        // Load plots sequentially
+        for (const plot of plotsToLoad) {
+            await loadSinglePlot(plot);
+        }
+    }
+    
+    async function loadSinglePlot(plotContainer) {
+        const url = plotContainer.getAttribute('hx-get');
+        if (!url) return;
+        
+        // Get plot name from data attribute
+        const plotName = plotContainer.getAttribute('data-plot-name') || '{% translate "Plot" %}';
+        const plotType = plotContainer.getAttribute('data-plot-type') || 'unknown';
+        
+        // Update placeholder to show loading state
+        const placeholder = plotContainer.querySelector('.flex.flex-col');
+        if (placeholder) {
+            const icon = placeholder.querySelector('div');
+            if (icon) {
+                icon.classList.remove('animate-pulse');
+                icon.classList.add('animate-spin');
+                icon.innerHTML = '<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>';
+            }
+            const text = placeholder.querySelector('span');
+            if (text) {
+                text.textContent = '{% translate "Loading..." %}';
+                text.classList.remove('text-gray-500');
+                text.classList.add('text-blue-600');
+            }
+        }
+        
+        // Update progress bar UI
+        updateProgressStatus(
+            '{% translate "Loading:" %} ' + plotName,
+            plotName
+        );
+        
+        try {
+            // Fetch the plot content
+            const response = await fetch(url, {
+                headers: {
+                    'HX-Request': 'true'
+                }
+            });
+            
+            if (response.ok) {
+                const html = await response.text();
+                plotContainer.innerHTML = html;
+                
+                // Execute any scripts in the response (for Bokeh)
+                const scripts = plotContainer.querySelectorAll('script');
+                scripts.forEach(script => {
+                    const newScript = document.createElement('script');
+                    if (script.src) {
+                        newScript.src = script.src;
+                    } else {
+                        newScript.textContent = script.textContent;
+                    }
+                    document.head.appendChild(newScript);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading plot:', plotId, error);
+            plotContainer.innerHTML = '<div class="text-red-500 text-center py-4">{% translate "Error loading plot" %}</div>';
+        }
+        
+        // Mark as completed
+        plotContainer.removeAttribute('data-plot-pending');
+        plotLoadingState.completed++;
+        updateProgressUI();
+        
+        // Small delay between requests to avoid overwhelming the server
+        await new Promise(resolve => setTimeout(resolve, 50));
+    }
     
     function initializeItemFilter() {
         // Item filter functionality
