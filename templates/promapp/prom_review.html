@@ -240,18 +240,22 @@
             ? Math.round((plotLoadingState.completed / plotLoadingState.total) * 100) 
             : 0;
         
-        document.getElementById('progress-bar').style.width = percentage + '%';
-        document.getElementById('progress-percentage').textContent = percentage + '%';
-        document.getElementById('progress-counter').textContent = 
-            plotLoadingState.completed + ' / ' + plotLoadingState.total;
-        document.getElementById('progress-phase').textContent = 
-            '{% translate "Phase" %} ' + plotLoadingState.currentPhase + '/3';
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercentage = document.getElementById('progress-percentage');
+        const progressCounter = document.getElementById('progress-counter');
+        const progressPhase = document.getElementById('progress-phase');
+        
+        if (progressBar) progressBar.style.width = percentage + '%';
+        if (progressPercentage) progressPercentage.textContent = percentage + '%';
+        if (progressCounter) progressCounter.textContent = plotLoadingState.completed + '/' + plotLoadingState.total;
+        if (progressPhase) progressPhase.textContent = '{% translate "Phase" %} ' + plotLoadingState.currentPhase + '/3';
     }
     
     function updateProgressStatus(status, currentItem) {
-        document.getElementById('progress-status').textContent = status;
-        if (currentItem) {
-            document.getElementById('progress-current-item').textContent = currentItem;
+        // Update current item display (status is no longer shown separately in new design)
+        const currentItemEl = document.getElementById('progress-current-item');
+        if (currentItemEl && currentItem) {
+            currentItemEl.textContent = currentItem;
         }
     }
     
@@ -277,20 +281,24 @@
         // Complete
         updateProgressStatus('{% translate "All plots loaded!" %}', '{% translate "Complete" %}');
         const progressBar = document.getElementById('progress-bar');
-        progressBar.classList.add('completed');
+        const progressPercentage = document.getElementById('progress-percentage');
         
-        // Update percentage to green
-        document.getElementById('progress-percentage').classList.remove('text-blue-600');
-        document.getElementById('progress-percentage').classList.add('text-green-600');
+        if (progressBar) progressBar.classList.add('completed');
+        if (progressPercentage) {
+            progressPercentage.classList.remove('text-blue-600');
+            progressPercentage.classList.add('text-green-600');
+        }
         
         // Hide progress bar after a short delay
         setTimeout(() => {
             hideProgressBar();
             plotLoadingState.isLoading = false;
             // Reset for next time
-            progressBar.classList.remove('completed');
-            document.getElementById('progress-percentage').classList.remove('text-green-600');
-            document.getElementById('progress-percentage').classList.add('text-blue-600');
+            if (progressBar) progressBar.classList.remove('completed');
+            if (progressPercentage) {
+                progressPercentage.classList.remove('text-green-600');
+                progressPercentage.classList.add('text-blue-600');
+            }
         }, 1500);
     }
     
