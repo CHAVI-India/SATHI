@@ -75,7 +75,7 @@ def prom_review(request, pk, print_mode=False):
     
     # Get patient with institution access check
     patient = get_accessible_patient_or_404(request.user, pk)
-    logger.info(f"Found patient: {patient.name} (ID: {patient.id})")
+    logger.info(f"Found patient UUID: {patient.id}")
     
     # Get filter parameters
     questionnaire_filter = request.GET.get('questionnaire_filter')
@@ -1086,8 +1086,15 @@ def prom_review_construct_plot(request, pk, construct_id):
     # Get construct scores for this construct with caching
     from promapp.models import QuestionnaireConstructScore
     
-    # Generate cache key for historical scores (patient-specific)
-    scores_cache_key = f"scores_{str(pk)}_{str(construct_id)}_{questionnaire_filter or 'all'}_{time_range}_{str(max_time_interval_value) if max_time_interval_value else 'none'}"
+    # Generate cache key for historical scores - include ALL params that affect the query result
+    scores_cache_key = (
+        f"scores_{str(pk)}_{str(construct_id)}"
+        f"_{questionnaire_filter or 'all'}"
+        f"_{time_range}"
+        f"_{str(max_time_interval_value) if max_time_interval_value else 'none'}"
+        f"_{start_date_reference}"
+        f"_{time_interval}"
+    )
     
     # Try to get from cache
     historical_scores = cache.get(scores_cache_key)
@@ -1297,8 +1304,14 @@ def prom_review_composite_plot(request, pk, composite_id):
     # Get composite construct scores with caching
     from promapp.models import QuestionnaireConstructScoreComposite
     
-    # Generate cache key for composite scores (patient-specific)
-    comp_cache_key = f"comp_scores_{str(pk)}_{str(composite_id)}_{time_range}_{str(max_time_interval_value) if max_time_interval_value else 'none'}"
+    # Generate cache key for composite scores - include ALL params that affect the query result
+    comp_cache_key = (
+        f"comp_scores_{str(pk)}_{str(composite_id)}"
+        f"_{time_range}"
+        f"_{str(max_time_interval_value) if max_time_interval_value else 'none'}"
+        f"_{start_date_reference}"
+        f"_{time_interval}"
+    )
     
     # Try to get from cache
     historical_scores = cache.get(comp_cache_key)
@@ -1432,8 +1445,15 @@ def prom_review_item_plot(request, pk, item_id):
     # Get item responses for this item with caching
     from promapp.models import QuestionnaireItemResponse
     
-    # Generate cache key for item responses (patient-specific)
-    item_cache_key = f"item_resp_{str(pk)}_{str(item_id)}_{time_range}_{str(max_time_interval_value) if max_time_interval_value else 'none'}"
+    # Generate cache key for item responses - include ALL params that affect the query result
+    item_cache_key = (
+        f"item_resp_{str(pk)}_{str(item_id)}"
+        f"_{questionnaire_filter or 'all'}"
+        f"_{time_range}"
+        f"_{str(max_time_interval_value) if max_time_interval_value else 'none'}"
+        f"_{start_date_reference}"
+        f"_{time_interval}"
+    )
     
     # Try to get from cache
     historical_responses = cache.get(item_cache_key)

@@ -810,7 +810,7 @@ class ConstructScoreData:
         plotting_logger.info("="*80)
         plotting_logger.info(f"PLOTTING DATA for {self.construct.name}")
         plotting_logger.info("="*80)
-        plotting_logger.info(f"Patient: {self.patient.name if self.patient else 'Unknown'}")
+        plotting_logger.info(f"Patient UUID: {self.patient.id if self.patient else 'Unknown'}")
         plotting_logger.info(f"Start Date: {start_date}")
         plotting_logger.info(f"Time Interval Type: {self.time_interval}")
         plotting_logger.info(f"Number of Historical Scores: {len(historical_scores)}")
@@ -1176,7 +1176,7 @@ class CompositeConstructScoreData:
         plotting_logger.info("="*80)
         plotting_logger.info(f"PLOTTING DATA for Composite: {self.composite_construct_scale.composite_construct_scale_name}")
         plotting_logger.info("="*80)
-        plotting_logger.info(f"Patient: {self.patient.name if self.patient else 'Unknown'}")
+        plotting_logger.info(f"Patient UUID: {self.patient.id if self.patient else 'Unknown'}")
         plotting_logger.info(f"Start Date: {start_date}")
         plotting_logger.info(f"Time Interval Type: {self.time_interval}")
         plotting_logger.info(f"Number of Historical Scores: {len(historical_scores)}")
@@ -2226,7 +2226,7 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
     plotting_logger.info(f"Total scores processed: {total_scores_processed}")
     
     for patient_data in patient_data_list[:5]:  # Show first 5 patients as example
-        plotting_logger.info(f"\nPatient: {patient_data['patient'].name} (Start: {patient_data['start_date']})")
+        plotting_logger.info(f"\nPatient UUID: {patient_data['patient'].id} (Start: {patient_data['start_date']})")
         plotting_logger.info(f"Scores count: {patient_data['score_count']}")
         
         if patient_data['scores']:
@@ -2536,7 +2536,7 @@ def log_plotting_session_start(patient_name, constructs_count):
     """Log the start of a new plotting session."""
     plotting_logger.info("=" * 100)
     plotting_logger.info(f"NEW PLOTTING SESSION STARTED")
-    plotting_logger.info(f"Patient: {patient_name}")
+    plotting_logger.info(f"Patient UUID: {patient_name}")
     plotting_logger.info(f"Number of constructs to plot: {constructs_count}")
     plotting_logger.info(f"Session started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     plotting_logger.info("=" * 100)
