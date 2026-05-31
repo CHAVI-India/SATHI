@@ -1163,8 +1163,7 @@ def prom_review_construct_plot(request, pk, construct_id):
         try:
             from patientapp.utils import (
                 aggregate_construct_scores_by_time_interval,
-                calculate_aggregation_statistics,
-                get_patient_start_date_for_aggregation
+                calculate_aggregation_statistics
             )
             
             # Get reference time intervals from this patient's scores (patient-specific)
@@ -1179,27 +1178,27 @@ def prom_review_construct_plot(request, pk, construct_id):
                     reference_intervals.append(interval_value)
             reference_intervals.sort()
             
-            # Check patients with requested start date type
-            patients_with_requested_start_date = 0
-            for agg_patient in aggregated_patients:
-                patient_start_date_agg = get_patient_start_date_for_aggregation(agg_patient, start_date_reference)
-                if patient_start_date_agg:
-                    patients_with_requested_start_date += 1
+            # Call aggregation directly - it handles the case where no patients
+            # have valid start dates by returning empty aggregated_data.
+            # The old pre-check loop was removed because:
+            # 1. It ran N slow queries using get_patient_start_date_for_aggregation()
+            # 2. The aggregation function does the same check with 0 queries
+            #    using _get_patient_start_date_bulk() on prefetched data
+            # 3. The pre-check couldn't tell if patients had scores for THIS
+            #    construct anyway - only if they had valid start dates
+            aggregated_data, aggregation_metadata = aggregate_construct_scores_by_time_interval(
+                construct=construct,
+                patients_queryset=aggregated_patients,
+                start_date_reference=start_date_reference,
+                time_interval=time_interval,
+                max_time_interval_filter=max_time_interval_value,
+                reference_time_intervals=reference_intervals
+            )
             
-            if patients_with_requested_start_date > 0:
-                aggregated_data, aggregation_metadata = aggregate_construct_scores_by_time_interval(
-                    construct=construct,
-                    patients_queryset=aggregated_patients,
-                    start_date_reference=start_date_reference,
-                    time_interval=time_interval,
-                    max_time_interval_filter=max_time_interval_value,
-                    reference_time_intervals=reference_intervals
+            if aggregated_data:
+                aggregated_statistics = calculate_aggregation_statistics(
+                    aggregated_data, aggregation_type
                 )
-                
-                if aggregated_data:
-                    aggregated_statistics = calculate_aggregation_statistics(
-                        aggregated_data, aggregation_type
-                    )
         except Exception as e:
             logger.error(f"Error calculating aggregated data for construct {construct.name}: {e}")
     
