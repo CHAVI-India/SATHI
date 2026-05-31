@@ -415,8 +415,19 @@
             });
             
             if (response.ok) {
+                // Read server-side timing headers before consuming body
+                const tAgg = response.headers.get('X-Timing-Aggregation');
+                const tPlot = response.headers.get('X-Timing-Plot');
+                
                 const html = await response.text();
                 plotContainer.innerHTML = html;
+                
+                // Show server-side timing breakdown
+                if (tAgg !== null && stepTimeEl) {
+                    const tAggMs = parseInt(tAgg);
+                    const tPlotMs = tPlot ? parseInt(tPlot) : 0;
+                    stepTimeEl.innerHTML = `<span title="aggregation" class="text-orange-500">${formatTime(tAggMs)}</span> <span class="text-gray-300">+</span> <span title="plot render" class="text-blue-500">${formatTime(tPlotMs)}</span>`;
+                }
                 
                 // Execute any scripts in the response (for Bokeh)
                 const scripts = plotContainer.querySelectorAll('script');
@@ -435,9 +446,12 @@
             plotContainer.innerHTML = '<div class="text-red-500 text-center py-4">{% translate "Error loading plot" %}</div>';
         }
         
-        // Record step duration and show it
+        // Record total round-trip duration
         const stepDuration = Date.now() - stepStart;
-        if (stepTimeEl) stepTimeEl.textContent = formatTime(stepDuration);
+        // Only show total if no server breakdown was shown
+        if (stepTimeEl && !stepTimeEl.innerHTML.includes('orange')) {
+            stepTimeEl.textContent = formatTime(stepDuration);
+        }
         
         // Mark as completed
         plotContainer.removeAttribute('data-plot-pending');

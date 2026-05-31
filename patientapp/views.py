@@ -1146,6 +1146,9 @@ def prom_review_construct_plot(request, pk, construct_id):
         patient_filter_max_age=max_age_value
     )
     
+    import time as time_module
+    t_agg_start = time_module.perf_counter()
+    
     # Calculate aggregated statistics (no caching - aggregation intervals are patient-specific)
     aggregated_statistics = None
     aggregation_metadata = None
@@ -1193,9 +1196,13 @@ def prom_review_construct_plot(request, pk, construct_id):
         except Exception as e:
             logger.error(f"Error calculating aggregated data for construct {construct.name}: {e}")
     
+    t_agg_ms = round((time_module.perf_counter() - t_agg_start) * 1000)
+    
     # Get current and previous scores
     current_score = historical_scores[0].score if historical_scores else None
     previous_score = historical_scores[1].score if len(historical_scores) > 1 else None
+    
+    t_plot_start = time_module.perf_counter()
     
     # Create construct score data object
     score_data = ConstructScoreData(
@@ -1212,11 +1219,16 @@ def prom_review_construct_plot(request, pk, construct_id):
         selected_indicators=selected_indicators
     )
     
+    t_plot_ms = round((time_module.perf_counter() - t_plot_start) * 1000)
+    
     context = {
         'score_data': score_data,
     }
     
-    return render(request, 'promapp/partials/construct_plot.html', context)
+    response = render(request, 'promapp/partials/construct_plot.html', context)
+    response['X-Timing-Aggregation'] = str(t_agg_ms)
+    response['X-Timing-Plot'] = str(t_plot_ms)
+    return response
 
 
 @login_required
