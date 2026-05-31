@@ -1389,6 +1389,7 @@ def prom_review_item_plot(request, pk, item_id):
     patient = get_accessible_patient_or_404(request.user, pk)
     
     # Get filter parameters
+    questionnaire_filter = request.GET.get('questionnaire_filter')
     max_time_interval = request.GET.get('max_time_interval')
     time_range = request.GET.get('time_range', '5')
     start_date_reference = request.GET.get('start_date_reference', 'date_of_registration')
