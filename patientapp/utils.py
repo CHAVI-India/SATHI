@@ -2042,7 +2042,9 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
     plotting_logger.info("="*80)
     plotting_logger.info(f"AGGREGATION DATA for {construct.name}")
     plotting_logger.info("="*80)
-    plotting_logger.info(f"Patients in aggregation: {patients_queryset.count()}")
+    # Cache count to avoid repeated COUNT queries
+    total_patients_count = patients_queryset.count()
+    plotting_logger.info(f"Patients in aggregation: {total_patients_count}")
     plotting_logger.info(f"Start date reference: {start_date_reference}")
     plotting_logger.info(f"Time interval: {time_interval}")
     plotting_logger.info(f"Max time interval filter: {max_time_interval_filter}")
@@ -2051,7 +2053,7 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
     if not reference_time_intervals:
         plotting_logger.info("No reference time intervals provided - returning empty aggregation")
         return {}, {
-            'total_eligible_patients': patients_queryset.count(),
+            'total_eligible_patients': total_patients_count,
             'contributing_patients': 0,
             'total_responses': 0,
             'time_intervals_count': 0,
@@ -2089,7 +2091,9 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
             scores_by_patient[patient_id] = []
         scores_by_patient[patient_id].append(score)
     
-    plotting_logger.info(f"Bulk fetched {all_scores.count()} construct scores across all patients")
+    # Use len() on already-iterated data instead of .count() which re-executes query
+    total_scores_fetched = sum(len(scores) for scores in scores_by_patient.values())
+    plotting_logger.info(f"Bulk fetched {total_scores_fetched} construct scores across all patients")
     
     # 3. If using diagnosis/treatment-based start dates, bulk fetch reference objects
     reference_objects_cache = {}
@@ -2289,9 +2293,12 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
             patient_details['non_contributing'].append(patient_info)
     
     # Add non-contributing patients (those without any scores in the dataset)
-    for patient in patients_queryset:
-        if patient.id not in [p['patient'].id for p in patient_data_list]:
-            start_date = get_patient_start_date_for_aggregation(patient, start_date_reference)
+    # Use already-fetched patients_list instead of re-querying patients_queryset
+    # Use _get_patient_start_date_bulk instead of slow get_patient_start_date_for_aggregation
+    patient_data_ids = {p['patient'].id for p in patient_data_list}
+    for patient in patients_list:
+        if patient.id not in patient_data_ids:
+            start_date = _get_patient_start_date_bulk(patient, start_date_reference, reference_objects_cache)
             patient_details['non_contributing'].append({
                 'id': patient.id,
                 'name': patient.name,
@@ -2300,7 +2307,7 @@ def aggregate_construct_scores_by_time_interval(construct, patients_queryset, st
             })
     
     metadata = {
-        'total_eligible_patients': patients_queryset.count(),
+        'total_eligible_patients': total_patients_count,
         'contributing_patients': len(contributing_patients),
         'total_responses': total_scores_processed,
         'time_intervals_count': len(time_intervals),
