@@ -147,3 +147,4 @@ package-lock.json
 
 # Tailwind CSS compiled output #
 static/src/output.css
+docs/PROM_REVIEW_SCORE_CALCULATION.md

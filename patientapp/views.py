@@ -701,96 +701,9 @@ def prom_review(request, pk, print_mode=False):
             previous_score_for_plot_context = historical_scores_for_plot[1].score
             logger.debug(f"Previous score for {construct.name} (plot context): {previous_score_for_plot_context}")
 
-        # Calculate aggregated statistics - now always enabled
-        aggregated_statistics = None
-        aggregation_metadata = None
-        if aggregated_patients and historical_scores_for_plot:
-            try:
-                from patientapp.utils import (
-                    aggregate_construct_scores_by_time_interval,
-                    calculate_aggregation_statistics
-                )
-                
-                # Get reference time intervals from the index patient's data
-                reference_intervals = []
-                for score_obj in historical_scores_for_plot:
-                    interval_value = calculate_time_interval_value(
-                        score_obj.questionnaire_submission.submission_date,
-                        patient_start_date,
-                        time_interval
-                    )
-                    if interval_value not in reference_intervals:
-                        reference_intervals.append(interval_value)
-                
-                # Sort reference intervals
-                reference_intervals.sort()
-                
-                # Check how many patients in the aggregation pool have the requested start date type
-                patients_with_requested_start_date = 0
-                for agg_patient in aggregated_patients:
-                    # Use aggregation-friendly start date logic
-                    from patientapp.utils import get_patient_start_date_for_aggregation
-                    patient_start_date_agg = get_patient_start_date_for_aggregation(agg_patient, start_date_reference)
-                    if patient_start_date_agg:
-                        patients_with_requested_start_date += 1
-                
-                total_agg_patients = aggregated_patients.count()
-                
-                # Proceed with aggregation if we have patients with the requested start date type
-                if patients_with_requested_start_date > 0:
-                    logger.info(f"Proceeding with aggregation using '{start_date_reference}': {patients_with_requested_start_date}/{total_agg_patients} patients have this start date type.")
-                    
-                    # Aggregate data from other patients using the requested start date reference
-                    aggregated_data, aggregation_metadata = aggregate_construct_scores_by_time_interval(
-                        construct=construct,
-                        patients_queryset=aggregated_patients,
-                        start_date_reference=start_date_reference,
-                        time_interval=time_interval,
-                        max_time_interval_filter=max_time_interval_value,
-                        reference_time_intervals=reference_intervals
-                    )
-                    
-                    # Calculate statistics only if we have meaningful data
-                    if aggregated_data:
-                        aggregated_statistics = calculate_aggregation_statistics(
-                            aggregated_data, aggregation_type
-                        )
-                        
-                        logger.debug(f"Construct {construct.name}: Generated aggregated statistics for {len(aggregated_statistics)} intervals using start_date_reference '{start_date_reference}'")
-                    else:
-                        logger.info(f"No aggregated data available for construct {construct.name} with start_date_reference '{start_date_reference}' - patients may not have construct scores in the time range")
-                        
-                        # Create metadata to show why no data is available
-                        aggregation_metadata = {
-                            'total_eligible_patients': total_agg_patients,
-                            'contributing_patients': 0,
-                            'total_responses': 0,
-                            'time_intervals_count': 0,
-                            'time_range': 'N/A',
-                            'time_interval_unit': get_interval_label(time_interval).lower(),
-                            'no_data_reason': f"{patients_with_requested_start_date} patients have the selected start date type '{start_date_reference}', but no construct scores are available in the specified time range.",
-                            'patients_with_start_date': patients_with_requested_start_date,
-                            'patient_details': {'contributing': [], 'non_contributing': []}
-                        }
-                    
-                else:
-                    logger.info(f"No patients available for aggregation with '{start_date_reference}': {patients_with_requested_start_date}/{total_agg_patients} patients have this start date type.")
-                    
-                    # Create metadata to show why aggregation is not available
-                    aggregation_metadata = {
-                        'total_eligible_patients': total_agg_patients,
-                        'contributing_patients': 0,
-                        'total_responses': 0,
-                        'time_intervals_count': 0,
-                        'time_range': 'N/A',
-                        'time_interval_unit': get_interval_label(time_interval).lower(),
-                        'insufficient_patients_reason': f"No patients in the selected population have the start date type '{start_date_reference}'. Try selecting a different start date reference or adjusting the population filters.",
-                        'patients_with_start_date': patients_with_requested_start_date,
-                        'patient_details': {'contributing': [], 'non_contributing': []}
-                    }
-                
-            except Exception as e:
-                logger.error(f"Error calculating aggregated data for construct {construct.name}: {e}")
+        # LAZY LOADING: Skip aggregation calculation in main view
+        # Aggregation statistics will be calculated on-demand in prom_review_construct_plot endpoint
+        # This dramatically improves initial page load time (removes ~250ms × N constructs)
 
         # Create construct score data object
         # LAZY LOADING: Skip plot generation in main view
@@ -802,8 +715,8 @@ def prom_review(request, pk, print_mode=False):
             patient=patient,
             start_date_reference=start_date_reference,
             time_interval=time_interval,
-            aggregated_statistics=aggregated_statistics,  # Pass aggregated statistics
-            aggregation_metadata=aggregation_metadata,  # Pass aggregation metadata
+            aggregated_statistics=None,  # Lazy-loaded in prom_review_construct_plot
+            aggregation_metadata=None,  # Lazy-loaded in prom_review_construct_plot
             aggregation_type=aggregation_type,  # Pass aggregation type for tooltips
             selected_indicators=selected_indicators,  # Pass selected indicators for plot display
             generate_plot=False  # Skip plot generation - will be lazy-loaded via HTMX
@@ -986,127 +899,23 @@ def prom_review(request, pk, print_mode=False):
     from patientapp.utils import calculate_patient_age
     patient_current_age = calculate_patient_age(patient)
 
-    # Calculate aggregation metadata - now always available since aggregation is always enabled
+    # LAZY LOADING: Simplified aggregation metadata for initial page load
+    # Detailed aggregation statistics are now calculated on-demand in prom_review_construct_plot
+    # This section only provides basic patient pool information for the aggregation card header
     aggregation_metadata = None
     if aggregated_patients:
-        try:
-            # Collect metadata from all the construct aggregations that were already calculated
-            total_eligible_patients = aggregated_patients.count()
-            total_responses = 0
-            time_intervals_count = 0
-            time_ranges = []
-            all_patient_details = {'contributing': [], 'non_contributing': []}
-            
-            # Get patient details from the first construct that has aggregation data
-            found_patient_details = False
-            
-            # Aggregate metadata from important construct calculations (which have aggregated_statistics)
-            for score_data in important_construct_scores:
-                if hasattr(score_data, 'aggregated_statistics') and score_data.aggregated_statistics:
-                    # Count unique time intervals across all constructs
-                    construct_intervals = list(score_data.aggregated_statistics.keys())
-                    if construct_intervals:
-                        time_intervals_count = max(time_intervals_count, len(construct_intervals))
-                        time_ranges.extend([min(construct_intervals), max(construct_intervals)])
-                    
-                    # Count responses from this construct's aggregation
-                    for interval_stats in score_data.aggregated_statistics.values():
-                        if 'n' in interval_stats:
-                            total_responses += interval_stats['n']
-                    
-                    # Get patient details from the construct's metadata (if available)
-                    if not found_patient_details and hasattr(score_data, 'aggregation_metadata'):
-                        if 'patient_details' in score_data.aggregation_metadata:
-                            all_patient_details = score_data.aggregation_metadata['patient_details']
-                            found_patient_details = True
-            
-            # If we don't have patient details yet, try to get them from a fresh calculation
-            if not found_patient_details and important_construct_scores:
-                try:
-                    first_construct = important_construct_scores[0]
-                    if hasattr(first_construct, 'construct'):
-                        from patientapp.utils import aggregate_construct_scores_by_time_interval
-                        
-                        # Check if we have sufficient patients with the requested start date type
-                        patients_with_requested_start_date = 0
-                        for agg_patient in aggregated_patients:
-                            # Use aggregation-friendly start date logic
-                            from patientapp.utils import get_patient_start_date_for_aggregation
-                            patient_start_date_agg = get_patient_start_date_for_aggregation(agg_patient, start_date_reference)
-                            if patient_start_date_agg:
-                                patients_with_requested_start_date += 1
-                        
-                        # Proceed if we have patients with the requested start date type (consistent with main aggregation logic)
-                        if patients_with_requested_start_date > 0 and patient_start_date and hasattr(first_construct, 'aggregated_statistics') and first_construct.aggregated_statistics:
-                            # Get reference intervals from this construct
-                            reference_intervals = sorted(list(first_construct.aggregated_statistics.keys()))
-                            if reference_intervals:
-                                # Get fresh metadata with patient details using the requested start date reference
-                                _, metadata_with_details = aggregate_construct_scores_by_time_interval(
-                                    construct=first_construct.construct,
-                                    patients_queryset=aggregated_patients,
-                                    start_date_reference=start_date_reference,
-                                    time_interval=time_interval,
-                                    max_time_interval_filter=max_time_interval_value,
-                                    reference_time_intervals=reference_intervals
-                                )
-                                if 'patient_details' in metadata_with_details:
-                                    all_patient_details = metadata_with_details['patient_details']
-                                    found_patient_details = True
-                                    
-                                    logger.info(f"Successfully retrieved patient details using start_date_reference '{start_date_reference}': {len(all_patient_details['contributing'])} contributing, {len(all_patient_details['non_contributing'])} non-contributing")
-                        else:
-                            logger.info(f"Cannot retrieve patient details: no patients ({patients_with_requested_start_date}) with start_date_reference '{start_date_reference}' or no aggregated statistics available")
-                except Exception as e:
-                    logger.error(f"Error getting patient details: {e}")
-            
-            # Calculate overall time range
-            time_range = None
-            if time_ranges:
-                min_time = min(time_ranges)
-                max_time = max(time_ranges)
-                if min_time == max_time:
-                    time_range = f"{min_time:.1f}"
-                else:
-                    time_range = f"{min_time:.1f} - {max_time:.1f}"
-            
-            # Estimate contributing patients (this is approximate since we aggregate across constructs)
-            # Use a reasonable estimate based on total responses and intervals
-            if time_intervals_count > 0 and total_responses > 0:
-                estimated_contributing_patients = min(
-                    total_responses // max(1, time_intervals_count),
-                    total_eligible_patients
-                )
-            else:
-                estimated_contributing_patients = 0
-            
-            # If we have actual patient details, use the real count
-            if found_patient_details:
-                estimated_contributing_patients = len(all_patient_details['contributing'])
-            
-            aggregation_metadata = {
-                'total_eligible_patients': total_eligible_patients,
-                'contributing_patients': estimated_contributing_patients,
-                'total_responses': total_responses,
-                'time_intervals_count': time_intervals_count,
-                'time_range': time_range or 'N/A',
-                'time_interval_unit': get_interval_label(time_interval).lower(),
-                'patient_details': all_patient_details,
-            }
-            
-            logger.info(f"Calculated aggregation metadata: {estimated_contributing_patients} contributing patients, {total_responses} responses, {time_intervals_count} intervals, patient_details_found: {found_patient_details}")
-                
-        except Exception as e:
-            logger.error(f"Error calculating aggregation metadata: {e}")
-            aggregation_metadata = {
-                'total_eligible_patients': aggregated_patients.count() if aggregated_patients else 0,
-                'contributing_patients': 0,
-                'total_responses': 0,
-                'time_intervals_count': 0,
-                'time_range': 'N/A',
-                'time_interval_unit': get_interval_label(time_interval).lower(),
-                'patient_details': {'contributing': [], 'non_contributing': []},
-            }
+        total_eligible_patients = aggregated_patients.count()
+        aggregation_metadata = {
+            'total_eligible_patients': total_eligible_patients,
+            'contributing_patients': None,  # Will be calculated when plots load
+            'total_responses': None,  # Will be calculated when plots load
+            'time_intervals_count': None,  # Will be calculated when plots load
+            'time_range': 'N/A',  # Will be calculated when plots load
+            'time_interval_unit': get_interval_label(time_interval).lower(),
+            'patient_details': {'contributing': [], 'non_contributing': []},  # Will be populated when plots load
+            'lazy_loaded': True,  # Flag to indicate detailed stats are lazy-loaded
+        }
+        logger.info(f"Aggregation metadata (lazy-load mode): {total_eligible_patients} eligible patients in pool")
 
     context = {
         'patient': patient,

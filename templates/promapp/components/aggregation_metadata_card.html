@@ -41,6 +41,9 @@
             <span class="text-orange-600">{{ aggregation_metadata.insufficient_patients_reason|truncatechars:60 }}</span>
             {% elif aggregation_metadata.no_data_reason %}
             <span class="text-yellow-600">{{ aggregation_metadata.no_data_reason|truncatechars:60 }}</span>
+            {% elif aggregation_metadata.lazy_loaded %}
+            <span class="text-gray-500">{{ aggregation_metadata.total_eligible_patients }} {% translate "patients in comparison pool" %}</span>
+            <span class="text-blue-500 italic">{% translate "Details load with plots" %}</span>
             {% else %}
             <span class="text-green-600">{{ aggregation_metadata.contributing_patients }} contributing patients</span>
             <span class="text-blue-600">{{ aggregation_metadata.total_responses }} responses</span>
@@ -129,8 +132,52 @@
             </div>
         </div>
         
+        {% elif aggregation_metadata.lazy_loaded %}
+        <!-- Lazy Loading Case - Detailed stats load with plots -->
+        <div class="p-4">
+            <p class="text-sm text-gray-600 mb-4">
+                {% translate "Individual results are shown with aggregated data from similar patients for comparison. Detailed statistics will appear as plots load." %}
+            </p>
+            
+            <!-- Basic Statistics Overview -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div class="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="font-bold text-2xl text-gray-600">{{ aggregation_metadata.total_eligible_patients }}</div>
+                    <div class="text-sm text-gray-600">{% translate "Eligible" %}</div>
+                    <div class="text-xs text-gray-500">{% translate "Patients" %}</div>
+                </div>
+                <div class="text-center p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <div class="font-bold text-2xl text-blue-400">—</div>
+                    <div class="text-sm text-gray-600">{% translate "Contributing" %}</div>
+                    <div class="text-xs text-gray-400 italic">{% translate "Loading..." %}</div>
+                </div>
+                <div class="text-center p-3 bg-purple-50 rounded-lg border border-purple-100">
+                    <div class="font-bold text-2xl text-purple-400">—</div>
+                    <div class="text-sm text-gray-600">{% translate "Responses" %}</div>
+                    <div class="text-xs text-gray-400 italic">{% translate "Loading..." %}</div>
+                </div>
+                <div class="text-center p-3 bg-orange-50 rounded-lg border border-orange-100">
+                    <div class="font-bold text-2xl text-orange-400">—</div>
+                    <div class="text-sm text-gray-600">{% translate "Time Range" %}</div>
+                    <div class="text-xs text-gray-500">{{ aggregation_metadata.time_interval_unit|default:"Units" }}</div>
+                </div>
+            </div>
+            
+            <!-- Plot Indicator -->
+            <div class="flex items-center justify-center p-3 bg-gray-50 rounded-lg border border-gray-200 mb-4">
+                <svg class="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                <span class="text-sm font-medium text-gray-700">
+                    {% translate "Population data shown as " %}
+                    <span class="text-gray-600 font-mono">- - - -</span>
+                    {% translate " dotted lines with error bars on plots" %}
+                </span>
+            </div>
+        </div>
+        
         {% else %}
-        <!-- Normal Aggregation Case -->
+        <!-- Normal Aggregation Case (when stats are pre-calculated) -->
         <div class="p-4">
             <p class="text-sm text-gray-600 mb-4">
                 {% translate "Individual results are shown with aggregated data from similar patients for comparison" %}
