@@ -211,7 +211,7 @@
     
     // Update population comparison stats when first plot loads with aggregation data
     function updatePopulationStats(contributing, responses, timeRange, timeUnit) {
-        console.log('[Population Stats] Updating:', { contributing, responses, timeRange, timeUnit });
+        // console.log('[Population Stats] Updating:', { contributing, responses, timeRange, timeUnit });
         
         // Update Contributing Patients
         const contributingValueEl = document.getElementById('pop-stat-contributing-value');
@@ -368,7 +368,7 @@
         }
         // Show total time in current-item slot
         const totalMs = Date.now() - plotLoadingState.startTime;
-        console.log(`[Plot] ✓ All ${plotLoadingState.total} plots loaded in ${formatTime(totalMs)}`);
+        // console.log(`[Plot] ✓ All ${plotLoadingState.total} plots loaded in ${formatTime(totalMs)}`);
         const currentItemEl = document.getElementById('progress-current-item');
         if (currentItemEl) currentItemEl.textContent = '{% translate "Done in" %} ' + formatTime(totalMs);
         const stepTimeEl = document.getElementById('progress-step-time');
@@ -482,7 +482,7 @@
                     const tAggMs = parseInt(tAgg);
                     const tPlotMs = tPlot ? parseInt(tPlot) : 0;
                     const tTotal = Date.now() - stepStart;
-                    console.log(`[Plot] ${plotName} | agg: ${tAggMs}ms | render: ${tPlotMs}ms | total: ${tTotal}ms`);
+                    // console.log(`[Plot] ${plotName} | agg: ${tAggMs}ms | render: ${tPlotMs}ms | total: ${tTotal}ms`);
                     if (stepTimeEl) {
                         stepTimeEl.innerHTML = `<span title="aggregation" class="text-orange-500">${formatTime(tAggMs)}</span> <span class="text-gray-300">+</span> <span title="plot render" class="text-blue-500">${formatTime(tPlotMs)}</span>`;
                     }
@@ -631,7 +631,7 @@
         // Debug: Check if dropdown has items after initialization
         if (itemDropdown) {
             const existingItems = itemDropdown.querySelectorAll('.item-option');
-            console.log('Item filter initialized. Available items:', existingItems.length);
+            // console.log('Item filter initialized. Available items:', existingItems.length);
             
             // If dropdown has items but is hidden, this is expected behavior
             // Items will show when user clicks on search input

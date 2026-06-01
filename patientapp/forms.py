@@ -9,6 +9,7 @@ from .models import (
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Div, Submit, HTML
 from django.utils.translation import gettext_lazy as _
+from django.utils.html import strip_tags
 
 INPUT_CLASS = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
 SELECT_CLASS = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white'
@@ -434,7 +435,7 @@ class RedcapFormToQuestionnaireMappingForm(forms.ModelForm):
             forms_seen = set()
             for instrument in info.get('instruments', []):
                 name = instrument.get('instrument_name', '')
-                label = instrument.get('instrument_label', name)
+                label = strip_tags(instrument.get('instrument_label', name))
                 if name and name not in forms_seen:
                     redcap_form_choices.append((name, f"{label} ({name})"))
                     forms_seen.add(name)
@@ -579,7 +580,7 @@ class RedcapFieldToItemMappingForm(forms.ModelForm):
                 if form_name and field.get('form_name') != form_name:
                     continue
                 fname = field.get('field_name', '')
-                flabel = field.get('field_label', fname)
+                flabel = strip_tags(field.get('field_label', fname))
                 validation = field.get('text_validation_type_or_show_slider_number', '')
                 if fname:
                     if validation and validation.startswith(DATE_VALIDATION_PREFIXES):
