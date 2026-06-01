@@ -146,20 +146,20 @@
                     <div class="text-sm text-gray-600">{% translate "Eligible" %}</div>
                     <div class="text-xs text-gray-500">{% translate "Patients" %}</div>
                 </div>
-                <div class="text-center p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <div class="font-bold text-2xl text-blue-400">—</div>
+                <div id="pop-stat-contributing" class="text-center p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <div id="pop-stat-contributing-value" class="font-bold text-2xl text-blue-400">—</div>
                     <div class="text-sm text-gray-600">{% translate "Contributing" %}</div>
-                    <div class="text-xs text-gray-400 italic">{% translate "Loading..." %}</div>
+                    <div id="pop-stat-contributing-label" class="text-xs text-gray-400 italic">{% translate "Loading..." %}</div>
                 </div>
-                <div class="text-center p-3 bg-purple-50 rounded-lg border border-purple-100">
-                    <div class="font-bold text-2xl text-purple-400">—</div>
+                <div id="pop-stat-responses" class="text-center p-3 bg-purple-50 rounded-lg border border-purple-100">
+                    <div id="pop-stat-responses-value" class="font-bold text-2xl text-purple-400">—</div>
                     <div class="text-sm text-gray-600">{% translate "Responses" %}</div>
-                    <div class="text-xs text-gray-400 italic">{% translate "Loading..." %}</div>
+                    <div id="pop-stat-responses-label" class="text-xs text-gray-400 italic">{% translate "Loading..." %}</div>
                 </div>
-                <div class="text-center p-3 bg-orange-50 rounded-lg border border-orange-100">
-                    <div class="font-bold text-2xl text-orange-400">—</div>
+                <div id="pop-stat-timerange" class="text-center p-3 bg-orange-50 rounded-lg border border-orange-100">
+                    <div id="pop-stat-timerange-value" class="font-bold text-2xl text-orange-400">—</div>
                     <div class="text-sm text-gray-600">{% translate "Time Range" %}</div>
-                    <div class="text-xs text-gray-500">{{ aggregation_metadata.time_interval_unit|default:"Units" }}</div>
+                    <div id="pop-stat-timerange-label" class="text-xs text-gray-500">{{ aggregation_metadata.time_interval_unit|default:"weeks" }}</div>
                 </div>
             </div>
             

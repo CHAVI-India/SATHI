@@ -1,9 +1,6 @@
 {% load i18n %}
 {% load static %}
 
-<!-- Aggregation Metadata Card -->
-{% include "promapp/components/aggregation_metadata_card.html" %}
-
 <!-- Patient Info Card - Full Width -->
 <div class="mb-6">
     {% include "promapp/components/patient_info_card.html" %}
@@ -22,3 +19,6 @@
 
 <!-- Composite Construct Scores with Vertical Tabs -->
 {% include "promapp/components/composite_scores_vertical_tabs.html" %}
+
+<!-- Population Comparison Section - At Bottom -->
+{% include "promapp/components/aggregation_metadata_card.html" %}

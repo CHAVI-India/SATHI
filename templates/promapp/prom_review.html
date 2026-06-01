@@ -190,7 +190,9 @@
         startTime: null,
         stepStartTime: null,
         lastStepDuration: null,
-        elapsedTimerInterval: null
+        elapsedTimerInterval: null,
+        // Population stats tracking
+        populationStatsUpdated: false
     };
     
     function formatTime(ms) {
@@ -204,6 +206,45 @@
         const elapsedEl = document.getElementById('progress-elapsed');
         if (elapsedEl) {
             elapsedEl.textContent = formatTime(elapsed);
+        }
+    }
+    
+    // Update population comparison stats when first plot loads with aggregation data
+    function updatePopulationStats(contributing, responses, timeRange, timeUnit) {
+        console.log('[Population Stats] Updating:', { contributing, responses, timeRange, timeUnit });
+        
+        // Update Contributing Patients
+        const contributingValueEl = document.getElementById('pop-stat-contributing-value');
+        const contributingLabelEl = document.getElementById('pop-stat-contributing-label');
+        if (contributingValueEl && contributingLabelEl) {
+            contributingValueEl.textContent = contributing || '0';
+            contributingValueEl.classList.remove('text-blue-400');
+            contributingValueEl.classList.add('text-blue-600');
+            contributingLabelEl.textContent = '{% translate "Patients" %}';
+            contributingLabelEl.classList.remove('text-gray-400', 'italic');
+            contributingLabelEl.classList.add('text-gray-500');
+        }
+        
+        // Update Responses
+        const responsesValueEl = document.getElementById('pop-stat-responses-value');
+        const responsesLabelEl = document.getElementById('pop-stat-responses-label');
+        if (responsesValueEl && responsesLabelEl) {
+            responsesValueEl.textContent = responses || '0';
+            responsesValueEl.classList.remove('text-purple-400');
+            responsesValueEl.classList.add('text-purple-600');
+            responsesLabelEl.textContent = '{% translate "Total" %}';
+            responsesLabelEl.classList.remove('text-gray-400', 'italic');
+            responsesLabelEl.classList.add('text-gray-500');
+        }
+        
+        // Update Time Range
+        const timeRangeValueEl = document.getElementById('pop-stat-timerange-value');
+        const timeRangeLabelEl = document.getElementById('pop-stat-timerange-label');
+        if (timeRangeValueEl && timeRangeLabelEl) {
+            timeRangeValueEl.textContent = timeRange || 'N/A';
+            timeRangeValueEl.classList.remove('text-orange-400');
+            timeRangeValueEl.classList.add('text-orange-600');
+            timeRangeLabelEl.textContent = timeUnit || '{% translate "weeks" %}';
         }
     }
     
@@ -221,6 +262,7 @@
         plotLoadingState.completed = 0;
         plotLoadingState.currentPhase = 1;
         plotLoadingState.isLoading = false;
+        plotLoadingState.populationStatsUpdated = false;
         
         // Initialize timing
         plotLoadingState.startTime = Date.now();
@@ -419,6 +461,18 @@
                 // Read server-side timing headers before consuming body
                 const tAgg = response.headers.get('X-Timing-Aggregation');
                 const tPlot = response.headers.get('X-Timing-Plot');
+                
+                // Read aggregation metadata headers and update population stats
+                const aggContributing = response.headers.get('X-Aggregation-Contributing');
+                const aggResponses = response.headers.get('X-Aggregation-Responses');
+                const aggTimeRange = response.headers.get('X-Aggregation-TimeRange');
+                const aggTimeUnit = response.headers.get('X-Aggregation-TimeUnit');
+                
+                // Update population stats if we have the data (only update once from first plot)
+                if (aggContributing !== null && !plotLoadingState.populationStatsUpdated) {
+                    updatePopulationStats(aggContributing, aggResponses, aggTimeRange, aggTimeUnit);
+                    plotLoadingState.populationStatsUpdated = true;
+                }
                 
                 const html = await response.text();
                 plotContainer.innerHTML = html;

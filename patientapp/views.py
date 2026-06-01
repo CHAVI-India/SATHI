@@ -1234,6 +1234,14 @@ def prom_review_construct_plot(request, pk, construct_id):
     response = render(request, 'promapp/partials/construct_plot.html', context)
     response['X-Timing-Aggregation'] = str(t_agg_ms)
     response['X-Timing-Plot'] = str(t_plot_ms)
+    
+    # Include aggregation metadata in headers for population stats update
+    if aggregation_metadata:
+        response['X-Aggregation-Contributing'] = str(aggregation_metadata.get('contributing_patients', 0))
+        response['X-Aggregation-Responses'] = str(aggregation_metadata.get('total_responses', 0))
+        response['X-Aggregation-TimeRange'] = str(aggregation_metadata.get('time_range', 'N/A'))
+        response['X-Aggregation-TimeUnit'] = str(aggregation_metadata.get('time_interval_unit', 'weeks'))
+    
     return response
 
 
