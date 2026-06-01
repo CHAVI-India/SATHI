@@ -304,6 +304,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
     // Update the visual display of selected dates
     function updateSelectedDatesDisplay() {
         const displayList = document.getElementById('selected-dates-list');
@@ -320,15 +327,27 @@ document.addEventListener('DOMContentLoaded', function() {
         // Sort dates chronologically
         const sortedDates = [...selectedDates].sort((a, b) => a - b);
         
-        displayList.innerHTML = sortedDates.map((date, index) => {
+        // Clear existing content and build safely
+        displayList.innerHTML = '';
+        sortedDates.forEach((date, index) => {
             const dateStr = formatDateTime(date);
-            return `
-                <div class="schedule-date-item">
-                    <span class="text-sm">${dateStr}</span>
-                    <button type="button" onclick="removeDate(${index})" class="text-xs">✕</button>
-                </div>
-            `;
-        }).join('');
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'schedule-date-item';
+            
+            const span = document.createElement('span');
+            span.className = 'text-sm';
+            span.textContent = dateStr;
+            
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'text-xs';
+            button.textContent = '✕';
+            button.onclick = function() { removeDate(index); };
+            
+            itemDiv.appendChild(span);
+            itemDiv.appendChild(button);
+            displayList.appendChild(itemDiv);
+        });
     }
     
     // Format date for display
@@ -430,12 +449,22 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('selected-dates-display').appendChild(warningDiv);
         }
         
-        warningDiv.innerHTML = `
-            <p class="font-semibold text-sm mb-1">⚠️ Interval Violation:</p>
-            <ul class="text-xs list-disc list-inside">
-                ${messages.map(msg => `<li>${msg}</li>`).join('')}
-            </ul>
-        `;
+        // Build warning content safely without innerHTML
+        warningDiv.innerHTML = '';
+        
+        const titleP = document.createElement('p');
+        titleP.className = 'font-semibold text-sm mb-1';
+        titleP.textContent = '⚠️ Interval Violation:';
+        warningDiv.appendChild(titleP);
+        
+        const ul = document.createElement('ul');
+        ul.className = 'text-xs list-disc list-inside';
+        messages.forEach(msg => {
+            const li = document.createElement('li');
+            li.textContent = msg;
+            ul.appendChild(li);
+        });
+        warningDiv.appendChild(ul);
     }
     
     // Clear interval warnings
