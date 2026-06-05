@@ -726,3 +726,7 @@ CELERY_RESULT_EXPIRES = 300
 
 # Track task started state
 CELERY_TASK_TRACK_STARTED = True
+
+# Worker pool configuration (gevent for I/O-bound tasks)
+CELERY_WORKER_POOL = 'gevent'
+CELERY_WORKER_CONCURRENCY = 50  # High concurrency for I/O-bound tasks

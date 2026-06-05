@@ -360,3 +360,30 @@ Required infrastructure:
 | Message Broker | RabbitMQ | `amqp://guest:guest@localhost:5672//` |
 | Result Backend | Django DB | `django-db` (via `django_celery_results`) |
 | Progress Tracking | celery-progress | Built-in with `ProgressRecorder` |
+| Worker Pool | gevent | 50 concurrent greenlets (I/O optimized) |
+
+---
+
+## Starting the Celery Worker
+
+The workload is **I/O-bound** (database queries dominate), so we use gevent for high concurrency:
+
+```bash
+# Install gevent
+pip install gevent
+
+# Start worker with gevent pool (recommended for I/O-bound tasks)
+celery -A chaviprom worker -l INFO -P gevent -c 50
+
+# Or use settings defaults (configured in settings.py)
+celery -A chaviprom worker -l INFO
+```
+
+### Worker Pool Options
+
+| Pool Type | Best For | Concurrency |
+|-----------|----------|-------------|
+| `prefork` (default) | CPU-bound tasks | 1-2x CPU cores |
+| `gevent` | I/O-bound tasks (DB, network) | 50-100+ greenlets |
+| `eventlet` | I/O-bound (alternative to gevent) | 50-100+ |
+| `solo` | Development/debugging | 1 |
