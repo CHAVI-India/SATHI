@@ -79,6 +79,9 @@ INSTALLED_APPS = [
     'patientapp',
     'providerapp',
     'docs',
+    # Celery
+    'django_celery_results',
+    'celery_progress',
 ]
 
 MIDDLEWARE = [
@@ -701,3 +704,25 @@ PWA_APP_LANG = 'en-gb'
 
 DOCS_ROOT = os.path.join(BASE_DIR, 'docs/build/html')
 DOCS_ACCESS = 'public'
+
+
+# Celery Configuration
+# Using RabbitMQ as message broker
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'amqp://guest:guest@localhost:5672//')
+
+# Using Django database as result backend (via django_celery_results)
+CELERY_RESULT_BACKEND = 'django-db'
+
+# Store extended task metadata in database (required for admin visibility)
+CELERY_RESULT_EXTENDED = True
+
+# Celery serialization settings
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+# Task result expiration (5 minutes)
+CELERY_RESULT_EXPIRES = 300
+
+# Track task started state
+CELERY_TASK_TRACK_STARTED = True

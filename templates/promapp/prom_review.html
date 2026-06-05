@@ -119,6 +119,7 @@
 {% block extra_js %}
 {{ bokeh_js|safe }}
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{% static 'celery_progress/celery_progress.js' %}"></script>
 <script>
     // Handle browser back button navigation (bfcache restoration)
     window.addEventListener('pageshow', function(event) {
@@ -173,8 +174,12 @@
     });
     
     // =============================================
-    // Plot Progress Loader - Sequential Loading
+    // Plot Progress Loader - Celery Parallel Loading
     // =============================================
+    
+    // Configuration: Set to true to use Celery parallel loading, false for sequential fallback
+    const USE_CELERY_LOADING = true;
+    
     let plotLoadingState = {
         isLoading: false,
         queue: [],
@@ -192,7 +197,9 @@
         lastStepDuration: null,
         elapsedTimerInterval: null,
         // Population stats tracking
-        populationStatsUpdated: false
+        populationStatsUpdated: false,
+        // Celery task tracking
+        celeryTaskId: null
     };
     
     function formatTime(ms) {
@@ -263,6 +270,7 @@
         plotLoadingState.currentPhase = 1;
         plotLoadingState.isLoading = false;
         plotLoadingState.populationStatsUpdated = false;
+        plotLoadingState.celeryTaskId = null;
         
         // Initialize timing
         plotLoadingState.startTime = Date.now();
@@ -280,9 +288,283 @@
         // Start elapsed time timer
         plotLoadingState.elapsedTimerInterval = setInterval(updateElapsedTime, 100);
         
-        // Start loading
-        startSequentialLoading();
+        // Choose loading strategy
+        if (USE_CELERY_LOADING) {
+            startCeleryParallelLoading();
+        } else {
+            startSequentialLoading();
+        }
     }
+    
+    // =============================================
+    // Celery Parallel Loading Functions
+    // =============================================
+    
+    function collectAllPendingPlots() {
+        // Collect all pending plot containers and extract their info
+        const plots = [];
+        const allPlotContainers = document.querySelectorAll('.plot-container[data-plot-pending="true"]');
+        
+        allPlotContainers.forEach(container => {
+            const url = container.getAttribute('hx-get');
+            if (!url) return;
+            
+            // Parse the URL to extract plot type and ID
+            // URLs are like: /en/patientapp/patients/{pk}/prom-review/construct-plot/{construct_id}/
+            let plotType = 'unknown';
+            let plotId = null;
+            
+            if (url.includes('/construct-plot/')) {
+                plotType = 'construct';
+                const match = url.match(/\/construct-plot\/([^\/\?]+)/);
+                if (match) plotId = match[1];
+            } else if (url.includes('/composite-plot/')) {
+                plotType = 'composite';
+                const match = url.match(/\/composite-plot\/([^\/\?]+)/);
+                if (match) plotId = match[1];
+            } else if (url.includes('/item-plot/')) {
+                plotType = 'item';
+                const match = url.match(/\/item-plot\/([^\/\?]+)/);
+                if (match) plotId = match[1];
+            }
+            
+            if (plotId) {
+                plots.push({
+                    type: plotType,
+                    id: plotId,
+                    containerId: container.id
+                });
+            }
+        });
+        
+        return plots;
+    }
+    
+    function getCurrentFilters() {
+        // Extract current filter values from the form or URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const filters = {};
+        
+        // Extract all relevant filter parameters
+        const filterKeys = [
+            'questionnaire_filter', 'max_time_interval', 'time_range',
+            'start_date_reference', 'time_interval', 'aggregation_type',
+            'patient_filter_gender', 'patient_filter_diagnosis', 'patient_filter_treatment',
+            'patient_filter_min_age', 'patient_filter_max_age', 'selected_indicators'
+        ];
+        
+        filterKeys.forEach(key => {
+            const value = urlParams.get(key);
+            if (value) {
+                filters[key] = value;
+            }
+        });
+        
+        return filters;
+    }
+    
+    async function startCeleryParallelLoading() {
+        if (plotLoadingState.isLoading) return;
+        plotLoadingState.isLoading = true;
+        
+        updateProgressStatus('{% translate "Dispatching parallel tasks..." %}', '{% translate "Starting..." %}');
+        
+        // Collect all plots to load
+        const plots = collectAllPendingPlots();
+        const filters = getCurrentFilters();
+        
+        if (plots.length === 0) {
+            completeLoading();
+            return;
+        }
+        
+        try {
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                              document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+            
+            // Dispatch batch task to Celery
+            const dispatchUrl = '{% url "dispatch_plot_tasks" patient.id %}';
+            const response = await fetch(dispatchUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    plots: plots,
+                    filters: filters
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Dispatch failed: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            plotLoadingState.celeryTaskId = data.task_id;
+            
+            console.log(`[Celery] Dispatched task ${data.task_id} for ${data.plot_count} plots`);
+            updateProgressStatus('{% translate "Processing plots in parallel..." %}', '{% translate "Waiting for results..." %}');
+            
+            // Poll for progress using celery-progress
+            pollCeleryTaskProgress(data.task_id, plots);
+            
+        } catch (error) {
+            console.error('[Celery] Dispatch failed, falling back to sequential loading:', error);
+            // Fallback to sequential loading
+            plotLoadingState.isLoading = false;
+            startSequentialLoading();
+        }
+    }
+    
+    function pollCeleryTaskProgress(taskId, plots) {
+        const progressUrl = `/celery-progress/${taskId}/`;
+        
+        const pollInterval = setInterval(async () => {
+            try {
+                const response = await fetch(progressUrl);
+                const data = await response.json();
+                
+                // Update progress bar based on task progress
+                if (data.progress) {
+                    const current = data.progress.current || 0;
+                    const total = data.progress.total || plotLoadingState.total;
+                    const percent = Math.round((current / total) * 100);
+                    
+                    plotLoadingState.completed = current;
+                    updateProgressUI();
+                    
+                    if (data.progress.description) {
+                        updateProgressStatus('', data.progress.description);
+                    }
+                }
+                
+                // Check if complete
+                if (data.complete) {
+                    clearInterval(pollInterval);
+                    
+                    if (data.success && data.result) {
+                        console.log(`[Celery] Task completed successfully with ${data.result.length} plots`);
+                        
+                        // Render all completed plots
+                        for (const plotResult of data.result) {
+                            renderCeleryPlotResult(plotResult);
+                        }
+                        
+                        completeLoading();
+                    } else {
+                        console.error('[Celery] Task failed:', data.result);
+                        // Fallback to sequential loading
+                        plotLoadingState.isLoading = false;
+                        plotLoadingState.completed = 0;
+                        startSequentialLoading();
+                    }
+                }
+            } catch (error) {
+                console.error('[Celery] Polling error:', error);
+                clearInterval(pollInterval);
+                // Fallback to sequential loading
+                plotLoadingState.isLoading = false;
+                plotLoadingState.completed = 0;
+                startSequentialLoading();
+            }
+        }, 500);  // Poll every 500ms
+    }
+    
+    function renderCeleryPlotResult(plotResult) {
+        const { plot_id, plot_type, html, metadata } = plotResult;
+        
+        // Find the container for this plot
+        let container;
+        if (plot_type === 'construct') {
+            container = document.getElementById(`plot-${plot_id}`);
+        } else if (plot_type === 'composite') {
+            container = document.getElementById(`composite-plot-${plot_id}`);
+        } else if (plot_type === 'item') {
+            container = document.getElementById(`plot-item-${plot_id}`);
+        }
+        
+        if (!container) {
+            console.warn(`[Celery] Container not found for ${plot_type} plot ${plot_id}`);
+            return;
+        }
+        
+        // Update population stats from first plot with metadata
+        if (metadata && !plotLoadingState.populationStatsUpdated) {
+            if (metadata.contributing_patients !== undefined) {
+                updatePopulationStats(
+                    metadata.contributing_patients,
+                    metadata.total_responses,
+                    metadata.time_range,
+                    metadata.time_interval_unit
+                );
+                plotLoadingState.populationStatsUpdated = true;
+            }
+        }
+        
+        // Render the plot HTML
+        container.innerHTML = html;
+        
+        // Execute any scripts in the response (for Bokeh)
+        const scripts = container.querySelectorAll('script');
+        scripts.forEach(script => {
+            const newScript = document.createElement('script');
+            if (script.src) {
+                newScript.src = script.src;
+            } else {
+                newScript.textContent = script.textContent;
+            }
+            document.head.appendChild(newScript);
+        });
+        
+        // Mark as completed
+        container.removeAttribute('data-plot-pending');
+    }
+    
+    function completeLoading() {
+        plotLoadingState.completed = plotLoadingState.total;
+        updateProgressUI();
+        
+        updateProgressStatus('{% translate "All plots loaded!" %}', '{% translate "Complete" %}');
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercentage = document.getElementById('progress-percentage');
+        
+        if (progressBar) progressBar.classList.add('completed');
+        if (progressPercentage) {
+            progressPercentage.classList.remove('text-blue-600');
+            progressPercentage.classList.add('text-green-600');
+        }
+        
+        // Stop elapsed timer
+        if (plotLoadingState.elapsedTimerInterval) {
+            clearInterval(plotLoadingState.elapsedTimerInterval);
+        }
+        
+        // Show total time
+        const totalMs = Date.now() - plotLoadingState.startTime;
+        console.log(`[Plot] ✓ All ${plotLoadingState.total} plots loaded in ${formatTime(totalMs)}`);
+        const currentItemEl = document.getElementById('progress-current-item');
+        if (currentItemEl) currentItemEl.textContent = '{% translate "Done in" %} ' + formatTime(totalMs);
+        const stepTimeEl = document.getElementById('progress-step-time');
+        if (stepTimeEl) stepTimeEl.textContent = '';
+        
+        // Hide progress bar after a short delay
+        setTimeout(() => {
+            hideProgressBar();
+            plotLoadingState.isLoading = false;
+            // Reset for next time
+            if (progressBar) progressBar.classList.remove('completed');
+            if (progressPercentage) {
+                progressPercentage.classList.remove('text-green-600');
+                progressPercentage.classList.add('text-blue-600');
+            }
+        }, 2000);
+    }
+    
+    // =============================================
+    // Sequential Loading Functions (Fallback)
+    // =============================================
     
     function showProgressBar() {
         const container = document.getElementById('plot-progress-container');
@@ -351,40 +633,8 @@
         updateProgressStatus('{% translate "Loading item response plots..." %}', '{% translate "Processing..." %}');
         await loadPlotsInPhase(3);
         
-        // Complete
-        updateProgressStatus('{% translate "All plots loaded!" %}', '{% translate "Complete" %}');
-        const progressBar = document.getElementById('progress-bar');
-        const progressPercentage = document.getElementById('progress-percentage');
-        
-        if (progressBar) progressBar.classList.add('completed');
-        if (progressPercentage) {
-            progressPercentage.classList.remove('text-blue-600');
-            progressPercentage.classList.add('text-green-600');
-        }
-        
-        // Stop elapsed timer
-        if (plotLoadingState.elapsedTimerInterval) {
-            clearInterval(plotLoadingState.elapsedTimerInterval);
-        }
-        // Show total time in current-item slot
-        const totalMs = Date.now() - plotLoadingState.startTime;
-        // console.log(`[Plot] ✓ All ${plotLoadingState.total} plots loaded in ${formatTime(totalMs)}`);
-        const currentItemEl = document.getElementById('progress-current-item');
-        if (currentItemEl) currentItemEl.textContent = '{% translate "Done in" %} ' + formatTime(totalMs);
-        const stepTimeEl = document.getElementById('progress-step-time');
-        if (stepTimeEl) stepTimeEl.textContent = '';
-        
-        // Hide progress bar after a short delay
-        setTimeout(() => {
-            hideProgressBar();
-            plotLoadingState.isLoading = false;
-            // Reset for next time
-            if (progressBar) progressBar.classList.remove('completed');
-            if (progressPercentage) {
-                progressPercentage.classList.remove('text-green-600');
-                progressPercentage.classList.add('text-blue-600');
-            }
-        }, 2000);
+        // Complete using shared function
+        completeLoading();
     }
     
     async function loadPlotsInPhase(phaseNumber) {

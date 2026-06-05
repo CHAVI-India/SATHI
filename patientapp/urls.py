@@ -34,6 +34,7 @@ urlpatterns = [
     path('patients/<uuid:pk>/prom-review/construct-plot/<uuid:construct_id>/', views.prom_review_construct_plot, name='prom_review_construct_plot'),
     path('patients/<uuid:pk>/prom-review/composite-plot/<uuid:composite_id>/', views.prom_review_composite_plot, name='prom_review_composite_plot'),
     path('patients/<uuid:pk>/prom-review/item-plot/<uuid:item_id>/', views.prom_review_item_plot, name='prom_review_item_plot'),
+    path('patients/<uuid:pk>/prom-review/dispatch-plots/', views.dispatch_plot_tasks, name='dispatch_plot_tasks'),
     
     # Patient Portal URL
     path('my-portal/', views.patient_portal, name='patient_portal'),

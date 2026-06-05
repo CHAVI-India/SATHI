@@ -28,6 +28,8 @@ from chaviprom.views import IndexView
 
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
+    # Celery progress tracking endpoint (not i18n prefixed)
+    path('celery-progress/', include('celery_progress.urls')),
 ]
 
 urlpatterns += i18n_patterns(

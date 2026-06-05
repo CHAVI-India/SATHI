@@ -1526,6 +1526,70 @@ def prom_review_item_plot(request, pk, item_id):
 
 @login_required
 @permission_required('patientapp.view_patient', raise_exception=True)
+def dispatch_plot_tasks(request, pk):
+    """
+    API endpoint to dispatch Celery tasks for parallel plot generation.
+    
+    Accepts POST with JSON body:
+    {
+        "plots": [
+            {"type": "construct", "id": "uuid-string"},
+            {"type": "composite", "id": "uuid-string"},
+            {"type": "item", "id": "uuid-string"}
+        ],
+        "filters": {
+            "questionnaire_filter": "...",
+            "time_range": "5",
+            ...
+        }
+    }
+    
+    Returns JSON:
+    {
+        "task_id": "celery-task-id",
+        "status": "dispatched"
+    }
+    """
+    import json
+    from django.views.decorators.http import require_POST
+    from patientapp.tasks import generate_plots_batch_task
+    
+    # Verify patient access
+    patient = get_accessible_patient_or_404(request.user, pk)
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    
+    plots = data.get('plots', [])
+    filters = data.get('filters', {})
+    
+    if not plots:
+        return JsonResponse({'error': 'No plots specified'}, status=400)
+    
+    # Dispatch the Celery task
+    task = generate_plots_batch_task.delay(
+        patient_id=str(pk),
+        plots=plots,
+        filters=filters,
+        user_id=request.user.id
+    )
+    
+    logger.info(f"Dispatched plot generation task {task.id} for patient {pk}, {len(plots)} plots")
+    
+    return JsonResponse({
+        'task_id': task.id,
+        'status': 'dispatched',
+        'plot_count': len(plots)
+    })
+
+
+@login_required
+@permission_required('patientapp.view_patient', raise_exception=True)
 def prom_review_item_search(request, pk):
     """HTMX endpoint for searching items in the item filter autocomplete."""
     patient = get_accessible_patient_or_404(request.user, pk)
