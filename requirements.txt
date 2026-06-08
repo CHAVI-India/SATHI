@@ -4,7 +4,7 @@ annotated-types==0.7.0
 anyio==4.13.0
 asgiref==3.11.1
 babel==2.18.0
-beautifulsoup4==4.14.3
+beautifulsoup4==4.15.0
 billiard==4.2.4
 bokeh==3.9.1
 celery==5.6.3
