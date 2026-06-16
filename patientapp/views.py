@@ -393,15 +393,17 @@ def prom_review(request, pk, print_mode=False):
                 # Use bulk-fetched options to calculate max value
                 likert_scale_id = response.questionnaire_item.item.likert_response_id
                 options_list = likert_options_map.get(likert_scale_id, [])
-                max_value = max(option.option_value for option in options_list) if options_list else None
+                valid_option_values = [option.option_value for option in options_list if option.option_value is not None]
+                max_value = max(valid_option_values) if valid_option_values else None
                 response.percentage = calculate_percentage(likert_value, max_value)
                 
                 likert_scale = response.questionnaire_item.item.likert_response
                 better_direction = response.questionnaire_item.item.item_better_score_direction or 'Higher is Better'
                 
                 # Calculate color map directly using bulk-fetched options
-                if options_list:
-                    sorted_options = sorted(options_list, key=lambda x: x.option_value)
+                valid_options_list = [option for option in options_list if option.option_value is not None]
+                if valid_options_list:
+                    sorted_options = sorted(valid_options_list, key=lambda x: x.option_value)
                     n_options = len(sorted_options)
                     colors = likert_scale.get_viridis_colors(n_options)
                     color_map = {}
@@ -414,8 +416,8 @@ def prom_review(request, pk, print_mode=False):
                     color_map = {}
                 
                 # Use the bulk-fetched options_list
-                for option in options_list:
-                    if str(option.option_value) == response.response_value:
+                for option in valid_options_list:
+                    if response.response_value and float(option.option_value) == float(response.response_value):
                         response.option_text = option.option_text
                         response.option_color = color_map.get(str(option.option_value), '#ffffff')
                         response.text_color = likert_scale.get_text_color(response.option_color)
@@ -1819,7 +1821,8 @@ def patient_portal(request):
                     # Use bulk-fetched options to calculate max value
                     likert_scale_id = response.questionnaire_item.item.likert_response_id
                     options_list = likert_options_map.get(likert_scale_id, [])
-                    max_value = max(option.option_value for option in options_list) if options_list else None
+                    valid_option_values = [option.option_value for option in options_list if option.option_value is not None]
+                    max_value = max(valid_option_values) if valid_option_values else None
                     response.percentage = calculate_percentage(likert_value, max_value)
                     
                     likert_scale = response.questionnaire_item.item.likert_response
@@ -1827,10 +1830,11 @@ def patient_portal(request):
                     
                     # === OPTIMIZATION: Calculate colors in Python using bulk-fetched options ===
                     # Avoid additional database query by calculating colors directly
-                    n_options = len(options_list)
+                    valid_options_list = [option for option in options_list if option.option_value is not None]
+                    n_options = len(valid_options_list)
                     if n_options > 0:
                         # Sort options for consistent color mapping
-                        sorted_options = sorted(options_list, key=lambda x: x.option_value)
+                        sorted_options = sorted(valid_options_list, key=lambda x: x.option_value)
                         # Get colors from viridis palette
                         colors = likert_scale.get_viridis_colors(n_options)
                         
@@ -1847,8 +1851,8 @@ def patient_portal(request):
                         color_map = {}
                     
                     # Use the bulk-fetched options_list
-                    for option in options_list:
-                        if str(option.option_value) == response.response_value:
+                    for option in valid_options_list:
+                        if response.response_value and float(option.option_value) == float(response.response_value):
                             response.option_text = option.option_text
                             response.option_color = color_map.get(str(option.option_value), '#ffffff')
                             response.text_color = likert_scale.get_text_color(response.option_color)
