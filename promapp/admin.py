@@ -213,7 +213,7 @@ class QuestionnaireConstructScoreAdmin(admin.ModelAdmin):
 @admin.register(QuestionnaireItemResponse)
 class QuestionnaireItemResponseAdmin(admin.ModelAdmin):
     list_display = ('questionnaire_item', 'questionnaire_submission', 'response_date', 'response_value')
-    search_fields = ('questionnaire_item', 'questionnaire_submission', 'response_date', 'response_value')
+    search_fields = ('questionnaire_item__item__translations__name', 'questionnaire_submission__patient__name', 'questionnaire_submission__patient__patient_id', 'response_date', 'response_value')
     list_filter = ('questionnaire_item',  'response_date', 'response_value')
     ordering = ('-created_date',)
     readonly_fields = ('created_date', 'modified_date')
