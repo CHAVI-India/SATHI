@@ -101,7 +101,7 @@ tablib==3.9.0
 tinycss2==1.5.1
 toml==0.10.2
 tornado==6.5.7
-tqdm==4.68.2
+tqdm==4.68.3
 tqdm-loggable==0.4.1
 typing-inspection==0.4.2
 typing_extensions==4.15.0
