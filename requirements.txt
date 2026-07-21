@@ -62,7 +62,7 @@ numpy==2.4.6
 packaging==26.2
 pandas==3.0.3
 phonenumbers==9.0.32
-pillow==12.2.0
+pillow==12.3.0
 pip-check-updates==0.28.0
 prompt_toolkit==3.0.52
 psycopg2-binary==2.9.12
