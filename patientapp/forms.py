@@ -105,9 +105,10 @@ class PatientForm(forms.ModelForm):
     )
     groups = forms.ModelMultipleChoiceField(
         queryset=Group.objects.all(),
-        required=False,
+        required=True,
         widget=forms.CheckboxSelectMultiple,
-        label=_('Groups')
+        label=_('Groups'),
+        help_text=_('At least one group must be selected.')
     )
 
     # Project fields
