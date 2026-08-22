@@ -4019,14 +4019,17 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
     fm_data = []
     fetch_errors = {}
 
-    # Build a lookup: field_name -> form_name from REDCap metadata
+    # Build lookups: field_name -> form_name and field_name -> validation type from REDCap metadata
     _metadata_field_to_form = {}
+    _metadata_field_validation = {}
     if mapping.redcap_project_info:
         for _f in mapping.redcap_project_info.get('metadata', []):
             _fname = _f.get('field_name', '')
             _fform = _f.get('form_name', '')
+            _fval = _f.get('text_validation_type_or_show_slider_number', '')
             if _fname:
                 _metadata_field_to_form[_fname] = _fform
+                _metadata_field_validation[_fname] = _fval
 
     for fm in form_mappings:
         submissions = list(
@@ -4049,6 +4052,10 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
 
         # Resolve which form actually owns the date mapping field from metadata
         date_field_form_name = _metadata_field_to_form.get(fm.redcap_date_mapping_field or '', '') or fm.redcap_form_name
+
+        # Determine if the date mapping field is a date or datetime field
+        _date_field_validation = _metadata_field_validation.get(fm.redcap_date_mapping_field or '', '')
+        _is_datetime_field = _date_field_validation.startswith('datetime_')
 
         # Fetch REDCap instances for this patient — two separate calls:
         #   1. Questionnaire form records → all (event, repeat_instance) pairs
@@ -4119,18 +4126,45 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
             existing = existing_matches.get(sub.pk)
             confirmed = existing is not None
             if existing:
+                # For confirmed rows, look up the matched RC instance date
+                _confirmed_date_matched = True
+                _confirmed_match_delta = None
+                if rc_instances and fm.redcap_date_mapping_field:
+                    _matched_rc_date = None
+                    for rc in rc_instances:
+                        if rc['event'] == (existing.redcap_event_name or '') and rc['instance'] == existing.redcap_repeat_instance:
+                            if rc['date_str']:
+                                try:
+                                    _matched_rc_date = parse_datetime(rc['date_str']) or parse_date(rc['date_str'])
+                                except Exception:
+                                    pass
+                            break
+                    if _matched_rc_date is not None:
+                        if _is_datetime_field:
+                            _confirmed_date_matched = sub.submission_date.replace(tzinfo=None) == _matched_rc_date.replace(tzinfo=None)
+                        else:
+                            _confirmed_date_matched = sub.submission_date.date() == _matched_rc_date.date()
+                        _delta_days = (sub.submission_date.date() - _matched_rc_date.date()).days
+                        _confirmed_match_delta = {
+                            'days': _delta_days,
+                            'weeks': round(_delta_days / 7),
+                            'months': round(_delta_days / 30),
+                        }
                 sub_rows.append({
                     'submission': sub,
                     'suggested_event': existing.redcap_event_name or '',
                     'suggested_instance': existing.redcap_repeat_instance,
                     'confirmed': True,
                     'existing': existing,
+                    'date_matched': _confirmed_date_matched,
+                    'match_delta': _confirmed_match_delta,
                 })
             else:
                 # Date-proximity: find the rc_instance whose date is closest to submission_date
                 _MATCH_THRESHOLD_SECONDS = 30 * 86400  # 30 days — no suggestion beyond this
                 best_event = fm.redcap_event_name or (available_events[0] if available_events else '')
                 best_instance = None  # if set, skip Pass 2 auto-increment for this row
+                best_rc_date = None
                 if rc_instances and fm.redcap_date_mapping_field:
                     best_delta = None
                     for inst in rc_instances:
@@ -4147,14 +4181,32 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
                                     best_delta = delta
                                     best_event = inst['event']
                                     best_instance = inst['instance']  # use this instance directly
+                                    best_rc_date = rc_dt
                         except Exception:
                             continue
+                # Determine if this is an exact match (same day for date fields, exact datetime for datetime fields)
+                if best_rc_date is not None:
+                    if _is_datetime_field:
+                        _date_matched = sub.submission_date.replace(tzinfo=None) == best_rc_date.replace(tzinfo=None)
+                    else:
+                        _date_matched = sub.submission_date.date() == best_rc_date.date()
+                    _delta_days = (sub.submission_date.date() - best_rc_date.date()).days
+                    _match_delta = {
+                        'days': _delta_days,
+                        'weeks': round(_delta_days / 7),
+                        'months': round(_delta_days / 30),
+                    }
+                else:
+                    _date_matched = False
+                    _match_delta = None
                 sub_rows.append({
                     'submission': sub,
                     'suggested_event': best_event,
                     'suggested_instance': best_instance,  # None → filled by Pass 2; int → skip Pass 2
                     'confirmed': False,
                     'existing': None,
+                    'date_matched': _date_matched,
+                    'match_delta': _match_delta,
                 })
 
         # Pass 2 — auto-increment instance numbers per event for unconfirmed rows,

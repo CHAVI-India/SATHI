@@ -108,6 +108,7 @@
               <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Submission date" %}</th>
               <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Time from first" %}</th>
               <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Time from previous" %}</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Δ Matched date" %}</th>
               {% if fm.redcap_form_is_in_event %}
               <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Event name" %}</th>
               {% endif %}
@@ -125,7 +126,7 @@
               <td class="px-2 py-3 whitespace-nowrap">
                 <input type="checkbox" name="include_{{ fm.pk }}_{{ row.submission.pk }}"
                   class="submission-checkbox-{{ fm.pk }} rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  {% if not row.confirmed %}checked{% endif %}>
+                  {% if not row.confirmed and row.date_matched %}checked{% endif %}>
               </td>
 
               {# Submission date #}
@@ -150,6 +151,17 @@
                   <span class="interval-prev-value interval-days hidden">{{ row.interval_from_prev.days }} {% trans "days" %}</span>
                   <span class="interval-prev-value interval-weeks">{{ row.interval_from_prev.weeks }} {% trans "weeks" %}</span>
                   <span class="interval-prev-value interval-months hidden">{{ row.interval_from_prev.months }} {% trans "months" %}</span>
+                {% else %}
+                  <span class="text-gray-300">—</span>
+                {% endif %}
+              </td>
+
+              {# Δ Matched date — delta between submission date and matched REDCap date #}
+              <td class="px-4 py-3 whitespace-nowrap text-gray-600 interval-delta-cell" data-fm="{{ fm.pk }}">
+                {% if row.match_delta %}
+                  <span class="interval-delta-value interval-days hidden">{{ row.match_delta.days }} {% trans "days" %}</span>
+                  <span class="interval-delta-value interval-weeks">{{ row.match_delta.weeks }} {% trans "weeks" %}</span>
+                  <span class="interval-delta-value interval-months hidden">{{ row.match_delta.months }} {% trans "months" %}</span>
                 {% else %}
                   <span class="text-gray-300">—</span>
                 {% endif %}
@@ -322,6 +334,17 @@
     // Update visible values in "time from previous" column
     document.querySelectorAll(`.interval-prev-cell[data-fm="${fmPk}"]`).forEach(cell => {
       cell.querySelectorAll('.interval-prev-value').forEach(val => {
+        val.classList.add('hidden');
+      });
+      const activeVal = cell.querySelector(`.interval-${unit}`);
+      if (activeVal) {
+        activeVal.classList.remove('hidden');
+      }
+    });
+
+    // Update visible values in "Δ matched date" column
+    document.querySelectorAll(`.interval-delta-cell[data-fm="${fmPk}"]`).forEach(cell => {
+      cell.querySelectorAll('.interval-delta-value').forEach(val => {
         val.classList.add('hidden');
       });
       const activeVal = cell.querySelector(`.interval-${unit}`);
