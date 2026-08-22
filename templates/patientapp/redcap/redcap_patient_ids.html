@@ -58,7 +58,7 @@
   {# ── Filter & Legend ── #}
   {% if not redcap_fetch_error %}
   <div class="mb-4 flex flex-wrap gap-4 text-xs text-gray-600 items-center">
-    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span> {% trans "Auto-matched" %}</span>
+    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> {% trans "Auto-matched (unsaved)" %}</span>
     <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block"></span> {% trans "Saved" %}</span>
     <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gray-300 inline-block"></span> {% trans "Unmapped" %}</span>
     <span class="ml-2 text-gray-400">
@@ -83,6 +83,15 @@
           <option value="unmapped" {% if match_filter == 'unmapped' %}selected{% endif %}>{% trans "Not Mapped" %}</option>
           <option value="partial_match" {% if match_filter == 'partial_match' %}selected{% endif %}>{% trans "Partial Submission Match" %}</option>
           <option value="full_match" {% if match_filter == 'full_match' %}selected{% endif %}>{% trans "Full Submission Match" %}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1.5">{% trans "Patients per page" %}</label>
+        <select name="per_page" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+          <option value="25" {% if per_page == '25' %}selected{% endif %}>25</option>
+          <option value="50" {% if per_page == '50' %}selected{% endif %}>50</option>
+          <option value="100" {% if per_page == '100' %}selected{% endif %}>100</option>
+          <option value="all" {% if per_page == 'all' %}selected{% endif %}>{% trans "All" %}</option>
         </select>
       </div>
       <div>
@@ -111,7 +120,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
           {% for row in rows %}
-          <tr class="hover:bg-gray-50 transition-colors {% if row.redcap_study_id %}bg-blue-50 hover:bg-blue-100{% endif %}">
+          <tr class="hover:bg-gray-50 transition-colors {% if row.auto_matched %}bg-amber-50 hover:bg-amber-100{% elif row.redcap_study_id %}bg-blue-50 hover:bg-blue-100{% endif %}">
             <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{{ row.patient.name }}</td>
             <td class="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{{ row.patient.patient_id }}</td>
             <td class="px-4 py-3 font-mono text-sm whitespace-nowrap">
@@ -124,7 +133,7 @@
             <td class="px-4 py-3 whitespace-nowrap">
               {% if row.redcap_study_id %}
                 {% if row.auto_matched %}
-                  <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ {% trans "Auto-matched" %}</span>
+                  <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">⚡ {% trans "Auto-matched (unsaved)" %}</span>
                 {% else %}
                   <span class="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">✓ {% trans "Saved" %}</span>
                 {% endif %}
@@ -170,6 +179,20 @@
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
               <div class="flex items-center gap-2">
+                {% if row.auto_matched and perms.patientapp.change_redcapstudyidtopatientidmap %}
+                <form method="post" class="inline" onsubmit="return confirmSaveSingle('{{ row.patient.name|escapejs }}', '{{ row.redcap_study_id|escapejs }}')">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="save_single_auto">
+                  <input type="hidden" name="patient_pk" value="{{ row.patient.pk }}">
+                  <button type="submit"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded border border-green-300 text-green-700 hover:bg-green-50 transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    {% trans "Save" %}
+                  </button>
+                </form>
+                {% endif %}
                 {% if perms.patientapp.change_redcapstudyidtopatientidmap %}
                 <button type="button"
                   onclick="openModal('{{ row.patient.pk }}','{{ row.patient.name|escapejs }}','{{ row.patient.patient_id|escapejs }}','{{ row.redcap_study_id|escapejs }}')"
@@ -180,7 +203,7 @@
                   {% if row.redcap_study_id %}{% trans "Edit Study ID" %}{% else %}{% trans "Assign Study ID" %}{% endif %}
                 </button>
                 {% endif %}
-                {% if row.redcap_study_id and perms.patientapp.delete_redcapstudyidtopatientidmap %}
+                {% if row.redcap_study_id and not row.auto_matched and perms.patientapp.delete_redcapstudyidtopatientidmap %}
                 <a href="{% url 'redcap_patient_id_delete' pk=project.pk mapping_pk=mapping.pk patient_pk=row.patient.pk %}"
                    class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded border border-red-300 text-red-700 hover:bg-red-50 transition-colors">
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -198,20 +221,39 @@
     </div>
   </c-card>
 
+  {# ── Bulk Save Bar ── #}
+  {% if auto_match_count > 0 and perms.patientapp.change_redcapstudyidtopatientidmap %}
+  <div class="mb-4 flex items-center justify-between bg-amber-50 border border-amber-300 rounded-lg px-4 py-3">
+    <div class="flex items-center gap-2 text-sm text-amber-800">
+      <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <span><strong>{{ auto_match_count }}</strong> {% trans "auto-matched patients on this page are not yet saved." %}</span>
+    </div>
+    <button type="button" onclick="openBulkSaveModal()"
+      class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+      </svg>
+      {% trans "Save Auto-Matched on This Page" %}
+    </button>
+  </div>
+  {% endif %}
+
   {# ── Pagination & Summary ── #}
   <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
     <p class="text-sm text-gray-600">
       {% trans "Showing" %} {{ rows.start_index|default:0 }} - {{ rows.end_index|default:0 }} {% trans "of" %} {{ paginator.count }} {% trans "patients" %}
       {% if match_filter != 'all' %}<span class="text-blue-600">({{ match_filter|title }} filter active)</span>{% endif %}
     </p>
-    <p class="text-xs text-gray-500">{{ mapped_count }} {% trans "total mapped" %}</p>
+    <p class="text-xs text-gray-500">{{ mapped_count }} {% trans "total mapped" %}{% if auto_match_count > 0 %} · {{ auto_match_count }} {% trans "auto-matched (unsaved) on this page" %}{% endif %}</p>
   </div>
 
   {% if page_obj.has_other_pages %}
   <div class="flex items-center justify-center gap-2 mb-6">
     {% if page_obj.has_previous %}
-      <a href="?page=1{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">{% trans "First" %}</a>
-      <a href="?page={{ page_obj.previous_page_number }}{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">← {% trans "Previous" %}</a>
+      <a href="?page=1{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}{% if per_page != '25' %}&per_page={{ per_page }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">{% trans "First" %}</a>
+      <a href="?page={{ page_obj.previous_page_number }}{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}{% if per_page != '25' %}&per_page={{ per_page }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">← {% trans "Previous" %}</a>
     {% endif %}
 
     <div class="flex items-center gap-1">
@@ -219,14 +261,14 @@
         {% if num == page_obj.number %}
           <span class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded">{{ num }}</span>
         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-          <a href="?page={{ num }}{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">{{ num }}</a>
+          <a href="?page={{ num }}{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}{% if per_page != '25' %}&per_page={{ per_page }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">{{ num }}</a>
         {% endif %}
       {% endfor %}
     </div>
 
     {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">{% trans "Next" %} →</a>
-      <a href="?page={{ page_obj.paginator.num_pages }}{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">{% trans "Last" %}</a>
+      <a href="?page={{ page_obj.next_page_number }}{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}{% if per_page != '25' %}&per_page={{ per_page }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">{% trans "Next" %} →</a>
+      <a href="?page={{ page_obj.paginator.num_pages }}{% if match_filter != 'all' %}&match_filter={{ match_filter }}{% endif %}{% if per_page != '25' %}&per_page={{ per_page }}{% endif %}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">{% trans "Last" %}</a>
     {% endif %}
   </div>
   {% endif %}
@@ -315,6 +357,56 @@
   </div>
 </div>
 
+{# ── Bulk Save Confirmation Modal ── #}
+<div id="bulk-save-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40" onclick="closeBulkSaveModal()"></div>
+  <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4">
+
+    {# Header #}
+    <div class="flex items-start justify-between px-6 pt-5 pb-4 border-b border-gray-100">
+      <div>
+        <h2 class="text-base font-semibold text-gray-900">{% trans "Confirm Save Auto-Matched Patients" %}</h2>
+        <p class="text-xs text-gray-500 mt-0.5" id="bulk-save-subtitle"></p>
+      </div>
+      <button type="button" onclick="closeBulkSaveModal()" class="text-gray-400 hover:text-gray-600 ml-4">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    {# Body #}
+    <form method="post" id="bulk-save-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_page_auto">
+      <div class="px-6 py-4">
+        <div class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-4 text-sm text-amber-800">
+          <p>{% trans "The following auto-matched patient IDs will be saved to the database. Please review before confirming." %}</p>
+        </div>
+        <div id="bulk-save-list" class="border border-gray-200 rounded-lg overflow-y-auto bg-white" style="max-height:300px">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 border-b border-gray-200 sticky top-0">
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Patient" %}</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "SATHI ID" %}</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{% trans "REDCap Study ID" %}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100" id="bulk-save-tbody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {# Footer #}
+      <div class="flex justify-end gap-3 px-6 pb-5">
+        <button type="button" onclick="closeBulkSaveModal()"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">{% trans "Cancel" %}</button>
+        <button type="submit"
+          class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">{% trans "Confirm Save" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 {% if not redcap_fetch_error %}
 var _listbox = document.getElementById('modal-listbox');
@@ -378,6 +470,53 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 
-document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') { closeModal(); closeBulkSaveModal(); }
+});
+
+{# ── Bulk save modal logic ── #}
+var _autoMatchedRows = [
+  {% for row in rows %}
+  {% if row.auto_matched %}
+  { pk: '{{ row.patient.pk }}', name: '{{ row.patient.name|escapejs }}', pid: '{{ row.patient.patient_id|escapejs }}', studyId: '{{ row.redcap_study_id|escapejs }}' },
+  {% endif %}
+  {% endfor %}
+];
+
+function openBulkSaveModal() {
+  var tbody = document.getElementById('bulk-save-tbody');
+  tbody.innerHTML = '';
+  var form = document.getElementById('bulk-save-form');
+
+  _autoMatchedRows.forEach(function (r) {
+    {# Add table row #}
+    var tr = document.createElement('tr');
+    tr.className = 'hover:bg-gray-50';
+    tr.innerHTML = '<td class="px-4 py-2 font-medium text-gray-900">' + r.name + '</td>' +
+                   '<td class="px-4 py-2 font-mono text-xs text-gray-500">' + r.pid + '</td>' +
+                   '<td class="px-4 py-2 font-mono text-sm text-gray-800">' + r.studyId + '</td>';
+    tbody.appendChild(tr);
+
+    {# Add hidden input for PK #}
+    var inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = 'auto_patient_pks';
+    inp.value = r.pk;
+    form.appendChild(inp);
+  });
+
+  document.getElementById('bulk-save-subtitle').textContent = _autoMatchedRows.length + ' patient(s) will be saved.';
+  document.getElementById('bulk-save-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeBulkSaveModal() {
+  document.getElementById('bulk-save-modal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function confirmSaveSingle(name, studyId) {
+  return confirm('Save auto-matched REDCap Study ID "' + studyId + '" for patient "' + name + '"?');
+}
 </script>
 {% endblock %}

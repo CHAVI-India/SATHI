@@ -3737,6 +3737,75 @@ def redcap_patient_ids(request, pk, mapping_pk):
                 patient__pk=patient_pk,
             ).delete()
             messages.success(request, _('Patient ID mapping cleared.'))
+        elif action == 'save_page_auto':
+            # Bulk save all auto-matched patients on the current page
+            patient_pks = request.POST.getlist('auto_patient_pks')
+            # Fetch REDCap records for auto-matching
+            try:
+                _redcap_records = fetch_patient_id_records(mapping)
+            except Exception:
+                _redcap_records = []
+            _primary_lookup = {r['primary'].lower(): r['primary'] for r in _redcap_records}
+            _secondary_lookup = {r['secondary'].lower(): r['primary'] for r in _redcap_records if r['secondary']}
+            saved_count = 0
+            for ppk in patient_pks:
+                try:
+                    patient = Patient.objects.get(pk=ppk)
+                except Patient.DoesNotExist:
+                    continue
+                # Skip if already has a saved mapping
+                if RedcapStudyIDtoPatientIDMap.objects.filter(
+                    project_redcap_mapping=mapping, patient=patient
+                ).exists():
+                    continue
+                pid = (patient.patient_id or '').strip().lower()
+                suggested = ''
+                if pid in _primary_lookup:
+                    suggested = _primary_lookup[pid]
+                elif pid in _secondary_lookup:
+                    suggested = _secondary_lookup[pid]
+                if suggested:
+                    obj, created = RedcapStudyIDtoPatientIDMap.objects.get_or_create(
+                        project_redcap_mapping=mapping,
+                        patient=patient,
+                    )
+                    obj.redcap_study_id = suggested
+                    obj.save(update_fields=['redcap_study_id', 'modified_at'])
+                    saved_count += 1
+            if saved_count > 0:
+                messages.success(request, _('{count} auto-matched patient ID(s) saved.').format(count=saved_count))
+            else:
+                messages.info(request, _('No auto-matched patients were saved.'))
+        elif action == 'save_single_auto':
+            # Save a single auto-matched patient
+            patient_pk = request.POST.get('patient_pk', '').strip()
+            try:
+                _redcap_records = fetch_patient_id_records(mapping)
+            except Exception:
+                _redcap_records = []
+            _primary_lookup = {r['primary'].lower(): r['primary'] for r in _redcap_records}
+            _secondary_lookup = {r['secondary'].lower(): r['primary'] for r in _redcap_records if r['secondary']}
+            try:
+                patient = Patient.objects.get(pk=patient_pk)
+            except Patient.DoesNotExist:
+                messages.error(request, _('Patient not found.'))
+                return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+            pid = (patient.patient_id or '').strip().lower()
+            suggested = ''
+            if pid in _primary_lookup:
+                suggested = _primary_lookup[pid]
+            elif pid in _secondary_lookup:
+                suggested = _secondary_lookup[pid]
+            if suggested:
+                obj, created = RedcapStudyIDtoPatientIDMap.objects.get_or_create(
+                    project_redcap_mapping=mapping,
+                    patient=patient,
+                )
+                obj.redcap_study_id = suggested
+                obj.save(update_fields=['redcap_study_id', 'modified_at'])
+                messages.success(request, _('Auto-matched patient ID saved.'))
+            else:
+                messages.error(request, _('No auto-match found for this patient.'))
         elif request.POST.get('modal_single'):
             # Single-patient save from the modal dialog
             patient_pk = request.POST.get('modal_patient_pk', '').strip()
@@ -3843,13 +3912,25 @@ def redcap_patient_ids(request, pk, mapping_pk):
             and r['submission_stats']['matched'] == r['submission_stats']['total']
         ]
 
+    # Page size selector
+    per_page = request.GET.get('per_page', '25')
+    if per_page == 'all':
+        per_page_num = len(rows)
+    else:
+        try:
+            per_page_num = int(per_page)
+        except (ValueError, TypeError):
+            per_page_num = 25
+        per_page = str(per_page_num)
+
     # Pagination
     from django.core.paginator import Paginator
-    paginator = Paginator(rows, 25)  # 25 per page
+    paginator = Paginator(rows, per_page_num)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
     mapped_count = sum(1 for r in rows if r['redcap_study_id'])
+    auto_match_count = sum(1 for r in page_obj if r.get('auto_matched'))
     return render(request, 'patientapp/redcap/redcap_patient_ids.html', {
         'project': project,
         'mapping': mapping,
@@ -3858,6 +3939,8 @@ def redcap_patient_ids(request, pk, mapping_pk):
         'paginator': paginator,
         'match_filter': match_filter,
         'mapped_count': mapped_count,
+        'auto_match_count': auto_match_count,
+        'per_page': per_page,
         'redcap_records': redcap_records,
         'primary_field': primary_field,
         'secondary_field': secondary_field,
