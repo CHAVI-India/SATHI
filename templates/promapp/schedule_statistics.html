@@ -2,13 +2,13 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% translate "Schedule Statistics" %}{% endblock %}
+{% block title %}{% translate "Statistics" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-8">
   <!-- Page header -->
   <div class="mb-6 flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-gray-900">{% translate "Schedule Statistics" %}</h1>
+    <h1 class="text-2xl font-bold text-gray-900">{% translate "Statistics" %}</h1>
     <c-link_button href="{% url 'global_schedule_calendar' %}" variant="secondary" size="sm">
       {% translate "Back to Schedule Calendar" %}
     </c-link_button>

@@ -2306,7 +2306,7 @@ def global_schedule_calendar(request):
     return render(request, 'promapp/global_schedule_calendar.html', context)
 
 
-class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin, TemplateView):
     """
     Read-only statistics page for scheduled questionnaire compliance.
 
@@ -2317,11 +2317,17 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     Supports filters: date range (on schedule date_assessment), questionnaire, patient.
     Respects institution-based access control via filter_patients_by_institution.
 
+    Only accessible to staff users (Django is_staff flag).
+
     Each metric is computed by an explicit query + aggregation step — see the
     method docstrings and the plan's "Metric -> Query & Aggregation Trace" section.
     """
     template_name = 'promapp/schedule_statistics.html'
     permission_required = 'patientapp.view_patient'
+
+    def test_func(self):
+        """Only staff users can access the statistics page."""
+        return self.request.user.is_staff
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
