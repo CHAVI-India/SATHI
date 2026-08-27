@@ -2403,9 +2403,13 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
         # Query: the `submissions` queryset above (one DB hit, already executed).
         # Aggregation: build a dict for O(1) lookup by (patient_questionnaire_id, submission_date.date()).
         submissions_by_pq_date = defaultdict(list)
+        submissions_by_pq = defaultdict(list)
+        submissions_by_patient = defaultdict(list)
         for sub in submissions:
             if sub.submission_date:
                 submissions_by_pq_date[(sub.patient_questionnaire_id, sub.submission_date.date())].append(sub)
+            submissions_by_pq[sub.patient_questionnaire_id].append(sub)
+            submissions_by_patient[sub.patient_id].append(sub)
 
         # ---- M5: questions expected per questionnaire (one GROUP BY query) ----
         # Query: QuestionnaireItem grouped by questionnaire_id, counting rows.
@@ -2446,6 +2450,7 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
             'filled_by_patient': 0, 'filled_by_staff': 0,
             'schedule_delays': [], 'entry_lags': [],
         })
+        pqs_by_patient = defaultdict(list)
         for pq in pqs:
             patient = pq.patient
             pp = per_patient[patient.id]
@@ -2455,6 +2460,7 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
             pp['age'] = patient.age
             pp['gender'] = patient.gender
             pp['questionnaires_assigned'] += 1
+            pqs_by_patient[patient.id].append(pq)
 
         # ---- M1/M2/M3/M4/M7/M8/M9/M10: iterate schedules, aggregate per patient ----
         # Query: the `schedules` queryset (one DB hit, already executed).
@@ -2483,7 +2489,6 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
 
             # M5: questions expected for this schedule's questionnaire
             expected_q = questionnaire_item_counts.get(questionnaire.id, 0)
-            pp['questions_expected'] += expected_q
             overview['total_questions_expected'] += expected_q
 
             # M2: schedules answered (lookup in submissions_by_pq_date)
@@ -2495,10 +2500,7 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
                 overview['completed_schedules'] += 1
                 # M6: questions answered in this schedule-matched submission
                 answered = answered_counts_by_sub.get(sub.id, 0)
-                pp['questions_answered'] += answered
                 overview['questions_answered_on_schedules'] += answered
-                # M7: questions missing on an answered schedule
-                pp['questions_missing'] += max(0, expected_q - answered)
                 # M9 + M10: response times (schedule delay + data-entry lag)
                 # M8 (filled by patient vs staff) is computed separately below
                 # over ALL submissions, not just those matching a schedule.
@@ -2526,8 +2528,6 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
                 if sched_date <= today:
                     pp['missing'] += 1
                     overview['missing_schedules'] += 1
-                    # M7: questions missing on a fully missing schedule
-                    pp['questions_missing'] += expected_q
 
         # ---- M8: filled by patient vs staff (over ALL submissions, not just ----
         # ---- those matching a schedule). Patients may submit questionnaires    ----
@@ -2559,6 +2559,75 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
         overview['total_questions_answered'] = sum(
             answered_counts_by_sub.get(sub.id, 0) for sub in submissions
         )
+
+        # ---- Compute per-patient Q Expected/Answered/Missing from ALL assigned ----
+        # ---- questionnaires and ALL submissions (not just scheduled ones).      ----
+        for pid, pp in per_patient.items():
+            q_expected = sum(
+                questionnaire_item_counts.get(pq.questionnaire_id, 0)
+                for pq in pqs_by_patient.get(pid, [])
+            )
+            q_answered = sum(
+                answered_counts_by_sub.get(sub.id, 0)
+                for sub in submissions_by_patient.get(pid, [])
+            )
+            pp['questions_expected'] = q_expected
+            pp['questions_answered'] = q_answered
+            pp['questions_missing'] = max(0, q_expected - q_answered)
+
+        # ---- Per Patient × Questionnaire long-form breakdown ----
+        # Build schedules_by_pq from the already-fetched schedules queryset.
+        schedules_by_pq = defaultdict(list)
+        for sch in schedules:
+            schedules_by_pq[sch.patient_questionnaire_id].append(sch)
+
+        per_patient_questionnaire = []
+        for pq in pqs:
+            patient = pq.patient
+            questionnaire = pq.questionnaire
+            pq_schedules = schedules_by_pq.get(pq.id, [])
+            pq_submissions = submissions_by_pq.get(pq.id, [])
+
+            sched_count = len(pq_schedules)
+            answered_scheds = 0
+            missing_scheds = 0
+            for sch in pq_schedules:
+                sched_date = sch.date_assessment.date() if sch.date_assessment else None
+                if not sched_date:
+                    continue
+                matched = submissions_by_pq_date.get((pq.id, sched_date), [])
+                if matched:
+                    answered_scheds += 1
+                elif sched_date <= today:
+                    missing_scheds += 1
+
+            q_expected = questionnaire_item_counts.get(questionnaire.id, 0)
+            q_answered = sum(
+                answered_counts_by_sub.get(sub.id, 0) for sub in pq_submissions
+            )
+            fb_patient = sum(
+                1 for sub in pq_submissions
+                if sub.user_submitting_questionnaire_id == patient.user_id
+            )
+            fb_staff = len(pq_submissions) - fb_patient
+
+            qname = questionnaire.safe_translation_getter('name', any_language=True) or str(questionnaire.id)
+            per_patient_questionnaire.append({
+                'patient_name': patient.name or '',
+                'patient_id': patient.patient_id or '',
+                'questionnaire_name': qname,
+                'schedules_assigned': sched_count,
+                'answered': answered_scheds,
+                'missing': missing_scheds,
+                'completion_rate': round(100 * answered_scheds / sched_count, 1) if sched_count else 0.0,
+                'questions_expected': q_expected,
+                'questions_answered': q_answered,
+                'questions_missing': max(0, q_expected - q_answered),
+                'filled_by_patient': fb_patient,
+                'filled_by_staff': fb_staff,
+                'total_submissions': len(pq_submissions),
+            })
+        per_patient_questionnaire.sort(key=lambda d: (d['patient_name'], d['questionnaire_name']))
 
         # ---- M4: completion rate (derived from M1 + M2) ----
         per_patient_list = []
@@ -2625,6 +2694,7 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
             'patient_options': patient_options,
             'overview': overview,
             'per_patient': per_patient_list,
+            'per_patient_questionnaire': per_patient_questionnaire,
             'demographics': demographics,
             'response_times': response_times,
             'filled_by_summary': filled_by_summary,

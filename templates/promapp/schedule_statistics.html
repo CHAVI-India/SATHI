@@ -56,6 +56,7 @@
       <nav class="-mb-px flex space-x-8 px-6" id="stats-tabs">
         <button data-tab="overview" class="tab-btn border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">{% translate "Overview" %}</button>
         <button data-tab="per-patient" class="tab-btn border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">{% translate "Per Patient" %}</button>
+        <button data-tab="per-patient-questionnaire" class="tab-btn border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">{% translate "Per Patient × Questionnaire" %}</button>
         <button data-tab="demographics" class="tab-btn border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">{% translate "Demographics" %}</button>
         <button data-tab="response-times" class="tab-btn border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">{% translate "Response Times" %}</button>
         <button data-tab="filled-by" class="tab-btn border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">{% translate "Filled By" %}</button>
@@ -145,6 +146,50 @@
           </tr>
           {% empty %}
           <tr><td colspan="12" class="px-3 py-4 text-center text-gray-500">{% translate "No patients with assigned questionnaires match the filters." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Per Patient × Questionnaire tab -->
+    <div data-tab-content="per-patient-questionnaire" class="p-6 hidden overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-3 py-2 text-left font-medium text-gray-600">{% translate "Patient" %}</th>
+            <th class="px-3 py-2 text-left font-medium text-gray-600">{% translate "Patient ID" %}</th>
+            <th class="px-3 py-2 text-left font-medium text-gray-600">{% translate "Questionnaire" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Schedules" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Answered" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Missing" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Completion %" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Q Expected" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Q Answered" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Q Missing" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "By Patient" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "By Staff" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Submissions" %}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for ppq in per_patient_questionnaire %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-3 py-2">{{ ppq.patient_name }}</td>
+            <td class="px-3 py-2">{{ ppq.patient_id }}</td>
+            <td class="px-3 py-2">{{ ppq.questionnaire_name }}</td>
+            <td class="px-3 py-2 text-right">{{ ppq.schedules_assigned }}</td>
+            <td class="px-3 py-2 text-right text-green-700">{{ ppq.answered }}</td>
+            <td class="px-3 py-2 text-right text-red-700">{{ ppq.missing }}</td>
+            <td class="px-3 py-2 text-right">{{ ppq.completion_rate }}%</td>
+            <td class="px-3 py-2 text-right">{{ ppq.questions_expected }}</td>
+            <td class="px-3 py-2 text-right text-green-700">{{ ppq.questions_answered }}</td>
+            <td class="px-3 py-2 text-right text-red-700">{{ ppq.questions_missing }}</td>
+            <td class="px-3 py-2 text-right">{{ ppq.filled_by_patient }}</td>
+            <td class="px-3 py-2 text-right">{{ ppq.filled_by_staff }}</td>
+            <td class="px-3 py-2 text-right">{{ ppq.total_submissions }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="13" class="px-3 py-4 text-center text-gray-500">{% translate "No patient-questionnaire pairs match the filters." %}</td></tr>
           {% endfor %}
         </tbody>
       </table>
