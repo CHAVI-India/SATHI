@@ -2423,9 +2423,13 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
                       .annotate(cnt=models.Count('id')))
         }
 
-        # ---- M1/M2/M3/M4/M7/M8/M9/M10: iterate schedules, aggregate per patient ----
-        # Query: the `schedules` queryset (one DB hit, already executed).
-        # Aggregation: single pass building per_patient, overview, response_times, filled_by_summary.
+        # ---- Pre-populate per_patient with ALL patients that have at least one ----
+        # ---- assigned questionnaire (PatientQuestionnaire), so that patients    ----
+        # ---- without any schedules still appear in per-patient stats and         ----
+        # ---- demographics. Schedule-dependent counts start at 0 and are updated  ----
+        # ---- during the schedule iteration below.                                ----
+        # Query: the `pqs` queryset (already executed, select_related patient).
+        # Aggregation: build per_patient entries for each distinct patient.
         today = timezone.now().date()
         per_patient = defaultdict(lambda: {
             'patient_name': '', 'patient_id': '', 'patient_uuid': '', 'age': None, 'gender': None,
@@ -2434,6 +2438,18 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
             'filled_by_patient': 0, 'filled_by_staff': 0,
             'schedule_delays': [], 'entry_lags': [],
         })
+        for pq in pqs:
+            patient = pq.patient
+            pp = per_patient[patient.id]
+            pp['patient_name'] = patient.name or ''
+            pp['patient_id'] = patient.patient_id or ''
+            pp['patient_uuid'] = str(patient.id)
+            pp['age'] = patient.age
+            pp['gender'] = patient.gender
+
+        # ---- M1/M2/M3/M4/M7/M8/M9/M10: iterate schedules, aggregate per patient ----
+        # Query: the `schedules` queryset (one DB hit, already executed).
+        # Aggregation: single pass updating per_patient, overview, response_times, filled_by_summary.
         overview = {
             'total_schedules': 0, 'completed_schedules': 0, 'missing_schedules': 0,
             'total_questions_expected': 0, 'total_questions_answered': 0,
@@ -2450,11 +2466,6 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
                 continue
 
             pp = per_patient[patient.id]
-            pp['patient_name'] = patient.name or ''
-            pp['patient_id'] = patient.patient_id or ''
-            pp['patient_uuid'] = str(patient.id)
-            pp['age'] = patient.age
-            pp['gender'] = patient.gender
 
             # M1: schedules assigned
             pp['assigned'] += 1
