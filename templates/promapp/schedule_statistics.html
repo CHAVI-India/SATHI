@@ -60,6 +60,7 @@
         <button data-tab="demographics" class="tab-btn border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">{% translate "Demographics" %}</button>
         <button data-tab="response-times" class="tab-btn border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">{% translate "Response Times" %}</button>
         <button data-tab="filled-by" class="tab-btn border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">{% translate "Filled By" %}</button>
+        <button data-tab="top-missing-items" class="tab-btn border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">{% translate "Top Missing Items" %}</button>
       </nav>
     </div>
 
@@ -105,6 +106,10 @@
         <div class="bg-gray-50 p-4 rounded-lg">
           <p class="text-sm text-gray-600">{% translate "Total submissions" %}</p>
           <p class="text-2xl font-bold text-gray-900">{{ overview.total_submissions }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Item missing rate" %}</p>
+          <p class="text-2xl font-bold text-red-600">{{ overview.item_missing_rate }}%</p>
         </div>
       </div>
     </div>
@@ -153,6 +158,39 @@
 
     <!-- Per Patient × Questionnaire tab -->
     <div data-tab-content="per-patient-questionnaire" class="p-6 hidden overflow-x-auto">
+      <!-- Missing rate by questionnaire -->
+      <div class="mb-6">
+        <h3 class="text-sm font-semibold text-gray-700 mb-2">{% translate "Missing rate by questionnaire" %}</h3>
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-3 py-2 text-left font-medium text-gray-600">{% translate "Questionnaire" %}</th>
+              <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Submissions" %}</th>
+              <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Q Expected" %}</th>
+              <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Q Answered" %}</th>
+              <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Q Missing" %}</th>
+              <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Missing Rate %" %}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for qm in per_questionnaire_missing %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-3 py-2">{{ qm.questionnaire_name }}</td>
+              <td class="px-3 py-2 text-right">{{ qm.total_submissions }}</td>
+              <td class="px-3 py-2 text-right">{{ qm.questions_expected }}</td>
+              <td class="px-3 py-2 text-right text-green-700">{{ qm.questions_answered }}</td>
+              <td class="px-3 py-2 text-right text-red-700">{{ qm.questions_missing }}</td>
+              <td class="px-3 py-2 text-right text-red-700">{{ qm.missing_rate }}%</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="px-3 py-4 text-center text-gray-500">{% translate "No questionnaire submission data match the filters." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Per patient × questionnaire detail table -->
+      <h3 class="text-sm font-semibold text-gray-700 mb-2">{% translate "Per patient × questionnaire detail" %}</h3>
       <table class="min-w-full divide-y divide-gray-200 text-sm">
         <thead class="bg-gray-50">
           <tr>
@@ -291,6 +329,38 @@
           <p class="text-2xl font-bold text-gray-900">{{ filled_by_summary.total }}</p>
         </div>
       </div>
+    </div>
+
+    <!-- Top Missing Items tab -->
+    <div data-tab-content="top-missing-items" class="p-6 hidden overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-3 py-2 text-left font-medium text-gray-600">{% translate "Questionnaire" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Q#" %}</th>
+            <th class="px-3 py-2 text-left font-medium text-gray-600">{% translate "Item" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Total" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Answered" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Missing" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Missing Rate %" %}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for tmi in top_missing_items %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-3 py-2">{{ tmi.questionnaire_name }}</td>
+            <td class="px-3 py-2 text-right">{{ tmi.question_number }}</td>
+            <td class="px-3 py-2">{{ tmi.item_name }}</td>
+            <td class="px-3 py-2 text-right">{{ tmi.total_responses }}</td>
+            <td class="px-3 py-2 text-right text-green-700">{{ tmi.answered }}</td>
+            <td class="px-3 py-2 text-right text-red-700">{{ tmi.missing }}</td>
+            <td class="px-3 py-2 text-right text-red-700">{{ tmi.missing_rate }}%</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="px-3 py-4 text-center text-gray-500">{% translate "No item-level response data match the filters." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </c-card>
 </div>

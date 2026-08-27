@@ -2560,6 +2560,94 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
             answered_counts_by_sub.get(sub.id, 0) for sub in submissions
         )
 
+        # ---- Aggregated item-level missing rate ----
+        # total questions across all in-scope submissions = item_count per questionnaire × number of submissions
+        total_q_all = sum(
+            questionnaire_item_counts.get(pq.questionnaire_id, 0)
+            for pq in pqs
+            for _ in submissions_by_pq.get(pq.id, [])
+        )
+        overview['item_missing_rate'] = round(
+            100 * (total_q_all - overview['total_questions_answered']) / total_q_all, 1
+        ) if total_q_all else 0.0
+
+        # ---- Per-questionnaire missing rate ----
+        per_questionnaire_missing = []
+        questionnaire_submissions = defaultdict(list)
+        for pq in pqs:
+            questionnaire_submissions[pq.questionnaire_id].extend(
+                submissions_by_pq.get(pq.id, [])
+            )
+        for qid, qsubs in questionnaire_submissions.items():
+            item_count = questionnaire_item_counts.get(qid, 0)
+            total_q = item_count * len(qsubs)
+            answered_q = sum(answered_counts_by_sub.get(s.id, 0) for s in qsubs)
+            missing_q = max(0, total_q - answered_q)
+            # Get questionnaire name from the first pq with this questionnaire
+            qname = None
+            for pq in pqs:
+                if pq.questionnaire_id == qid:
+                    qname = pq.questionnaire.safe_translation_getter('name', any_language=True) or str(qid)
+                    break
+            per_questionnaire_missing.append({
+                'questionnaire_name': qname or str(qid),
+                'total_submissions': len(qsubs),
+                'questions_expected': total_q,
+                'questions_answered': answered_q,
+                'questions_missing': missing_q,
+                'missing_rate': round(100 * missing_q / total_q, 1) if total_q else 0.0,
+            })
+        per_questionnaire_missing.sort(key=lambda d: -d['missing_rate'])
+
+        # ---- Top missing items (per QuestionnaireItem) ----
+        # Two GROUP BY queries filtered to in-scope submissions only.
+        submission_ids = [sub.id for sub in submissions]
+        if submission_ids:
+            total_per_item = {
+                r['questionnaire_item_id']: r['cnt']
+                for r in (QuestionnaireItemResponse.objects
+                          .filter(questionnaire_submission_id__in=submission_ids)
+                          .values('questionnaire_item_id')
+                          .annotate(cnt=models.Count('id')))
+            }
+            answered_per_item = {
+                r['questionnaire_item_id']: r['cnt']
+                for r in (QuestionnaireItemResponse.objects
+                          .filter(questionnaire_submission_id__in=submission_ids)
+                          .filter(response_value__isnull=False)
+                          .exclude(response_value='')
+                          .values('questionnaire_item_id')
+                          .annotate(cnt=models.Count('id')))
+            }
+            item_ids = set(total_per_item.keys())
+            qi_map = {
+                qi.id: qi
+                for qi in QuestionnaireItem.objects.filter(
+                    id__in=item_ids
+                ).select_related('questionnaire', 'item')
+            }
+            top_missing_items = []
+            for qi_id, total in total_per_item.items():
+                answered = answered_per_item.get(qi_id, 0)
+                missing = total - answered
+                qi = qi_map.get(qi_id)
+                if not qi:
+                    continue
+                qname = qi.questionnaire.safe_translation_getter('name', any_language=True) or str(qi.questionnaire_id)
+                item_name = qi.item.safe_translation_getter('name', any_language=True) if hasattr(qi.item, 'safe_translation_getter') else str(qi.item)
+                top_missing_items.append({
+                    'questionnaire_name': qname,
+                    'question_number': qi.question_number,
+                    'item_name': item_name,
+                    'total_responses': total,
+                    'answered': answered,
+                    'missing': missing,
+                    'missing_rate': round(100 * missing / total, 1) if total else 0.0,
+                })
+            top_missing_items.sort(key=lambda d: -d['missing_rate'])
+        else:
+            top_missing_items = []
+
         # ---- Compute per-patient Q Expected/Answered/Missing from ALL assigned ----
         # ---- questionnaires and ALL submissions (not just scheduled ones).      ----
         for pid, pp in per_patient.items():
@@ -2695,6 +2783,8 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
             'overview': overview,
             'per_patient': per_patient_list,
             'per_patient_questionnaire': per_patient_questionnaire,
+            'per_questionnaire_missing': per_questionnaire_missing,
+            'top_missing_items': top_missing_items,
             'demographics': demographics,
             'response_times': response_times,
             'filled_by_summary': filled_by_summary,
