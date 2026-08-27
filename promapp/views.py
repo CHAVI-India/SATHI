@@ -2365,10 +2365,16 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
         if date_to:
             schedules = schedules.filter(date_assessment__date__lte=date_to)
 
-        # --- Submissions for matching (M2 query) ---
+        # --- Submissions for matching (M2 query) and filled-by/answered-stats ---
+        # The date range filter applies to submissions via submission_date__date,
+        # so that filled-by counts and total_questions_answered respect the filter.
         submissions = QuestionnaireSubmission.objects.filter(
             patient_questionnaire__in=pqs
         ).select_related('patient__user', 'user_submitting_questionnaire')
+        if date_from:
+            submissions = submissions.filter(submission_date__date__gte=date_from)
+        if date_to:
+            submissions = submissions.filter(submission_date__date__lte=date_to)
 
         # Filter-choice options for the filter form (M14) — built early so
         # overview['questionnaire_count'] can reference questionnaire_options.
@@ -2429,11 +2435,13 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
         # ---- demographics. Schedule-dependent counts start at 0 and are updated  ----
         # ---- during the schedule iteration below.                                ----
         # Query: the `pqs` queryset (already executed, select_related patient).
-        # Aggregation: build per_patient entries for each distinct patient.
+        # Aggregation: build per_patient entries for each distinct patient, counting
+        #              the number of assigned questionnaires per patient.
         today = timezone.now().date()
         per_patient = defaultdict(lambda: {
             'patient_name': '', 'patient_id': '', 'patient_uuid': '', 'age': None, 'gender': None,
-            'assigned': 0, 'answered': 0, 'missing': 0,
+            'questionnaires_assigned': 0,
+            'schedules_assigned': 0, 'answered': 0, 'missing': 0,
             'questions_expected': 0, 'questions_answered': 0, 'questions_missing': 0,
             'filled_by_patient': 0, 'filled_by_staff': 0,
             'schedule_delays': [], 'entry_lags': [],
@@ -2446,13 +2454,15 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
             pp['patient_uuid'] = str(patient.id)
             pp['age'] = patient.age
             pp['gender'] = patient.gender
+            pp['questionnaires_assigned'] += 1
 
         # ---- M1/M2/M3/M4/M7/M8/M9/M10: iterate schedules, aggregate per patient ----
         # Query: the `schedules` queryset (one DB hit, already executed).
         # Aggregation: single pass updating per_patient, overview, response_times, filled_by_summary.
         overview = {
+            'total_questionnaires_assigned': sum(pp['questionnaires_assigned'] for pp in per_patient.values()),
             'total_schedules': 0, 'completed_schedules': 0, 'missing_schedules': 0,
-            'total_questions_expected': 0, 'total_questions_answered': 0,
+            'total_questions_expected': 0, 'questions_answered_on_schedules': 0,
         }
         response_times = []
         filled_by_summary = {'patient': 0, 'staff': 0}
@@ -2467,8 +2477,8 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
 
             pp = per_patient[patient.id]
 
-            # M1: schedules assigned
-            pp['assigned'] += 1
+            # M1: schedules assigned (scheduled time points)
+            pp['schedules_assigned'] += 1
             overview['total_schedules'] += 1
 
             # M5: questions expected for this schedule's questionnaire
@@ -2483,29 +2493,24 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
                 # M2: answered
                 pp['answered'] += 1
                 overview['completed_schedules'] += 1
-                # M6: questions answered in this submission
+                # M6: questions answered in this schedule-matched submission
                 answered = answered_counts_by_sub.get(sub.id, 0)
                 pp['questions_answered'] += answered
-                overview['total_questions_answered'] += answered
+                overview['questions_answered_on_schedules'] += answered
                 # M7: questions missing on an answered schedule
                 pp['questions_missing'] += max(0, expected_q - answered)
-                # M8: filled by patient vs staff
-                is_patient = (sub.user_submitting_questionnaire_id == patient.user_id)
-                if is_patient:
-                    pp['filled_by_patient'] += 1
-                    filled_by_summary['patient'] += 1
-                    filled_by = 'patient'
-                else:
-                    pp['filled_by_staff'] += 1
-                    filled_by_summary['staff'] += 1
-                    filled_by = 'staff'
                 # M9 + M10: response times (schedule delay + data-entry lag)
+                # M8 (filled by patient vs staff) is computed separately below
+                # over ALL submissions, not just those matching a schedule.
                 if sch.date_assessment and sub.submission_date:
                     delay = (sub.submission_date - sch.date_assessment).total_seconds()
                     entry_lag = (sub.created_date - sub.submission_date).total_seconds()
                     pp['schedule_delays'].append(delay)
                     pp['entry_lags'].append(entry_lag)
                     qname = questionnaire.safe_translation_getter('name', any_language=True) or str(questionnaire.id)
+                    # Determine filled_by for this submission
+                    is_patient = (sub.user_submitting_questionnaire_id == patient.user_id)
+                    filled_by = 'patient' if is_patient else 'staff'
                     response_times.append({
                         'patient_id': patient.patient_id or '',
                         'patient_name': patient.name or '',
@@ -2524,10 +2529,41 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
                     # M7: questions missing on a fully missing schedule
                     pp['questions_missing'] += expected_q
 
+        # ---- M8: filled by patient vs staff (over ALL submissions, not just ----
+        # ---- those matching a schedule). Patients may submit questionnaires    ----
+        # ---- ad-hoc without a scheduled assessment.                            ----
+        # Query: the `submissions` queryset (one DB hit, already executed).
+        # Aggregation: iterate all submissions, classify each as patient-filled
+        #              or staff-filled by comparing the submitting user to the
+        #              patient's own user. Update per_patient and filled_by_summary.
+        for sub in submissions:
+            patient = sub.patient
+            if patient.id not in per_patient:
+                continue
+            pp = per_patient[patient.id]
+            is_patient = (sub.user_submitting_questionnaire_id == patient.user_id)
+            if is_patient:
+                pp['filled_by_patient'] += 1
+                filled_by_summary['patient'] += 1
+            else:
+                pp['filled_by_staff'] += 1
+                filled_by_summary['staff'] += 1
+        filled_by_summary['total'] = filled_by_summary['patient'] + filled_by_summary['staff']
+        overview['total_submissions'] = filled_by_summary['total']
+
+        # ---- M6 (all submissions): total questions answered across ALL       ----
+        # ---- submissions, not just those matching a schedule. Patients may    ----
+        # ---- submit questionnaires ad-hoc without a scheduled assessment.     ----
+        # Query: the `submissions` queryset (already executed) + answered_counts_by_sub.
+        # Aggregation: sum answered-response counts for every accessible submission.
+        overview['total_questions_answered'] = sum(
+            answered_counts_by_sub.get(sub.id, 0) for sub in submissions
+        )
+
         # ---- M4: completion rate (derived from M1 + M2) ----
         per_patient_list = []
         for pkey, pp in per_patient.items():
-            pp['completion_rate'] = round(100 * pp['answered'] / pp['assigned'], 1) if pp['assigned'] else 0.0
+            pp['completion_rate'] = round(100 * pp['answered'] / pp['schedules_assigned'], 1) if pp['schedules_assigned'] else 0.0
             pp['avg_schedule_delay_seconds'] = (
                 round(sum(pp['schedule_delays']) / len(pp['schedule_delays']), 1)
                 if pp['schedule_delays'] else None
@@ -2545,7 +2581,6 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, UserPassesTest
         )
         overview['patient_count'] = len(per_patient_list)
         overview['questionnaire_count'] = len(questionnaire_options)
-        filled_by_summary['total'] = filled_by_summary['patient'] + filled_by_summary['staff']
 
         # ---- M11/M12: demographics — gender & age (derived from per_patient) ----
         gender_counts = defaultdict(int)

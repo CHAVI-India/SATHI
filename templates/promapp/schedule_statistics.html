@@ -70,11 +70,11 @@
           <p class="text-2xl font-bold text-gray-900">{{ overview.patient_count }}</p>
         </div>
         <div class="bg-gray-50 p-4 rounded-lg">
-          <p class="text-sm text-gray-600">{% translate "Questionnaires" %}</p>
-          <p class="text-2xl font-bold text-gray-900">{{ overview.questionnaire_count }}</p>
+          <p class="text-sm text-gray-600">{% translate "Questionnaires assigned" %}</p>
+          <p class="text-2xl font-bold text-gray-900">{{ overview.total_questionnaires_assigned }}</p>
         </div>
         <div class="bg-gray-50 p-4 rounded-lg">
-          <p class="text-sm text-gray-600">{% translate "Schedules assigned" %}</p>
+          <p class="text-sm text-gray-600">{% translate "Scheduled assessments" %}</p>
           <p class="text-2xl font-bold text-gray-900">{{ overview.total_schedules }}</p>
         </div>
         <div class="bg-gray-50 p-4 rounded-lg">
@@ -90,12 +90,20 @@
           <p class="text-2xl font-bold text-red-600">{{ overview.missing_schedules }}</p>
         </div>
         <div class="bg-gray-50 p-4 rounded-lg">
-          <p class="text-sm text-gray-600">{% translate "Questions expected" %}</p>
+          <p class="text-sm text-gray-600">{% translate "Questions expected (scheduled)" %}</p>
           <p class="text-2xl font-bold text-gray-900">{{ overview.total_questions_expected }}</p>
         </div>
         <div class="bg-gray-50 p-4 rounded-lg">
-          <p class="text-sm text-gray-600">{% translate "Questions answered" %}</p>
+          <p class="text-sm text-gray-600">{% translate "Questions answered (all submissions)" %}</p>
           <p class="text-2xl font-bold text-green-600">{{ overview.total_questions_answered }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Questions answered (scheduled)" %}</p>
+          <p class="text-2xl font-bold text-green-600">{{ overview.questions_answered_on_schedules }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Total submissions" %}</p>
+          <p class="text-2xl font-bold text-gray-900">{{ overview.total_submissions }}</p>
         </div>
       </div>
     </div>
@@ -107,7 +115,8 @@
           <tr>
             <th class="px-3 py-2 text-left font-medium text-gray-600">{% translate "Patient" %}</th>
             <th class="px-3 py-2 text-left font-medium text-gray-600">{% translate "Patient ID" %}</th>
-            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Assigned" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Questionnaires" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Schedules" %}</th>
             <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Answered" %}</th>
             <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Missing" %}</th>
             <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Completion %" %}</th>
@@ -123,7 +132,8 @@
           <tr class="hover:bg-gray-50">
             <td class="px-3 py-2">{{ pp.patient_name }}</td>
             <td class="px-3 py-2">{{ pp.patient_id }}</td>
-            <td class="px-3 py-2 text-right">{{ pp.assigned }}</td>
+            <td class="px-3 py-2 text-right">{{ pp.questionnaires_assigned }}</td>
+            <td class="px-3 py-2 text-right">{{ pp.schedules_assigned }}</td>
             <td class="px-3 py-2 text-right text-green-700">{{ pp.answered }}</td>
             <td class="px-3 py-2 text-right text-red-700">{{ pp.missing }}</td>
             <td class="px-3 py-2 text-right">{{ pp.completion_rate }}%</td>
@@ -134,7 +144,7 @@
             <td class="px-3 py-2 text-right">{{ pp.filled_by_staff }}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="11" class="px-3 py-4 text-center text-gray-500">{% translate "No scheduled assessments match the filters." %}</td></tr>
+          <tr><td colspan="12" class="px-3 py-4 text-center text-gray-500">{% translate "No patients with assigned questionnaires match the filters." %}</td></tr>
           {% endfor %}
         </tbody>
       </table>
