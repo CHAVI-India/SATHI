@@ -2306,6 +2306,90 @@ def global_schedule_calendar(request):
     return render(request, 'promapp/global_schedule_calendar.html', context)
 
 
+class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+    """
+    Read-only statistics page for scheduled questionnaire compliance.
+
+    Shows, per patient and in aggregate: assigned vs answered questionnaires,
+    missing questionnaires, missing questions, response times, filled-by-patient
+    vs filled-by-staff counts, and patient demographics (age, gender, diagnosis).
+
+    Supports filters: date range (on schedule date_assessment), questionnaire, patient.
+    Respects institution-based access control via filter_patients_by_institution.
+
+    Each metric is computed by an explicit query + aggregation step — see the
+    method docstrings and the plan's "Metric -> Query & Aggregation Trace" section.
+    """
+    template_name = 'promapp/schedule_statistics.html'
+    permission_required = 'patientapp.view_patient'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from patientapp.models import Patient, Diagnosis
+        from patientapp.utils import filter_patients_by_institution
+
+        # --- Parse filters ---
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        questionnaire_id = self.request.GET.get('questionnaire')
+        patient_id = self.request.GET.get('patient')
+
+        # --- Accessible patients (institution-filtered) ---
+        patients_qs = Patient.objects.select_related('institution', 'user').all()
+        patients_qs = filter_patients_by_institution(patients_qs, self.request.user)
+        if patient_id:
+            patients_qs = patients_qs.filter(id=patient_id)
+
+        # --- Accessible patient questionnaires (M14 query 1 base) ---
+        pqs = PatientQuestionnaire.objects.filter(
+            patient__in=patients_qs
+        ).select_related('patient', 'questionnaire')
+        if questionnaire_id:
+            pqs = pqs.filter(questionnaire_id=questionnaire_id)
+
+        # --- Schedules within date range (M1 query) ---
+        schedules = QuestionnairePatientSchedule.objects.filter(
+            patient_questionnaire__in=pqs
+        ).select_related(
+            'patient_questionnaire__patient',
+            'patient_questionnaire__questionnaire'
+        ).order_by('date_assessment')
+        if date_from:
+            schedules = schedules.filter(date_assessment__date__gte=date_from)
+        if date_to:
+            schedules = schedules.filter(date_assessment__date__lte=date_to)
+
+        # --- Submissions for matching (M2 query) ---
+        submissions = QuestionnaireSubmission.objects.filter(
+            patient_questionnaire__in=pqs
+        ).select_related('patient__user', 'user_submitting_questionnaire')
+
+        # Filter-choice options for the filter form (M14)
+        questionnaire_choices = (
+            PatientQuestionnaire.objects.filter(patient__in=patients_qs)
+            .select_related('questionnaire').values_list('questionnaire_id', flat=True)
+            .distinct()
+        )
+        questionnaire_options = [
+            (str(q.id), q.safe_translation_getter('name', any_language=True) or str(q.id))
+            for q in Questionnaire.objects.filter(id__in=questionnaire_choices)
+        ]
+        patient_options = [
+            (str(p.id), f"{p.name} ({p.patient_id})" if p.patient_id else str(p.name))
+            for p in patients_qs
+        ]
+
+        context.update({
+            'date_from': date_from or '',
+            'date_to': date_to or '',
+            'selected_questionnaire': questionnaire_id or '',
+            'selected_patient': patient_id or '',
+            'questionnaire_options': questionnaire_options,
+            'patient_options': patient_options,
+        })
+        return context
+
+
 class QuestionnaireItemRuleListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     """
     View for listing rules associated with a questionnaire item.
