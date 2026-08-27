@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% translate "Schedule Statistics" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <!-- Page header -->
+  <div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-900">{% translate "Schedule Statistics" %}</h1>
+    <c-link_button href="{% url 'global_schedule_calendar' %}" variant="secondary" size="sm">
+      {% translate "Back to Schedule Calendar" %}
+    </c-link_button>
+  </div>
+
+  <!-- Filter form card -->
+  <c-card shadow="sm" padding="md" class="mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+      <!-- Date from (no cotton component for date inputs — plain HTML) -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">{% translate "Schedule date from" %}</label>
+        <input type="date" name="date_from" value="{{ date_from }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+      </div>
+      <!-- Date to -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">{% translate "Schedule date to" %}</label>
+        <input type="date" name="date_to" value="{{ date_to }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+      </div>
+      <!-- Questionnaire filter (cotton component) -->
+      <c-filter_dropdown
+          name="questionnaire"
+          label="{% translate 'Questionnaire' %}"
+          placeholder="{% translate 'All' %}"
+          :options="questionnaire_options"
+          :selected="selected_questionnaire" />
+      <!-- Patient filter (cotton component) -->
+      <c-filter_dropdown
+          name="patient"
+          label="{% translate 'Patient' %}"
+          placeholder="{% translate 'All' %}"
+          :options="patient_options"
+          :selected="selected_patient" />
+      <!-- Apply + Reset buttons grouped -->
+      <c-button_group class="flex gap-2">
+        <c-button type="submit" variant="primary" size="sm">{% translate "Apply" %}</c-button>
+        <c-link_button href="{% url 'schedule_statistics' %}" variant="secondary" size="sm">{% translate "Reset" %}</c-link_button>
+      </c-button_group>
+    </form>
+  </c-card>
+
+  <!-- Tabbed content card -->
+  <c-card shadow="md" padding="none">
+    <!-- Tab navigation -->
+    <div class="border-b border-gray-200">
+      <nav class="-mb-px flex space-x-8 px-6" id="stats-tabs">
+        <button data-tab="overview" class="tab-btn border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">{% translate "Overview" %}</button>
+        <button data-tab="per-patient" class="tab-btn border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">{% translate "Per Patient" %}</button>
+        <button data-tab="demographics" class="tab-btn border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">{% translate "Demographics" %}</button>
+        <button data-tab="response-times" class="tab-btn border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">{% translate "Response Times" %}</button>
+        <button data-tab="filled-by" class="tab-btn border-transparent text-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700">{% translate "Filled By" %}</button>
+      </nav>
+    </div>
+
+    <!-- Overview tab -->
+    <div data-tab-content="overview" class="p-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Patients" %}</p>
+          <p class="text-2xl font-bold text-gray-900">{{ overview.patient_count }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Questionnaires" %}</p>
+          <p class="text-2xl font-bold text-gray-900">{{ overview.questionnaire_count }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Schedules assigned" %}</p>
+          <p class="text-2xl font-bold text-gray-900">{{ overview.total_schedules }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Completion rate" %}</p>
+          <p class="text-2xl font-bold text-green-600">{{ overview.completion_rate }}%</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Schedules answered" %}</p>
+          <p class="text-2xl font-bold text-green-600">{{ overview.completed_schedules }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Schedules missing" %}</p>
+          <p class="text-2xl font-bold text-red-600">{{ overview.missing_schedules }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Questions expected" %}</p>
+          <p class="text-2xl font-bold text-gray-900">{{ overview.total_questions_expected }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Questions answered" %}</p>
+          <p class="text-2xl font-bold text-green-600">{{ overview.total_questions_answered }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Per-patient tab -->
+    <div data-tab-content="per-patient" class="p-6 hidden overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-3 py-2 text-left font-medium text-gray-600">{% translate "Patient" %}</th>
+            <th class="px-3 py-2 text-left font-medium text-gray-600">{% translate "Patient ID" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Assigned" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Answered" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Missing" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Completion %" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Q Expected" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Q Answered" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "Q Missing" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "By Patient" %}</th>
+            <th class="px-3 py-2 text-right font-medium text-gray-600">{% translate "By Staff" %}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for pp in per_patient %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-3 py-2">{{ pp.patient_name }}</td>
+            <td class="px-3 py-2">{{ pp.patient_id }}</td>
+            <td class="px-3 py-2 text-right">{{ pp.assigned }}</td>
+            <td class="px-3 py-2 text-right text-green-700">{{ pp.answered }}</td>
+            <td class="px-3 py-2 text-right text-red-700">{{ pp.missing }}</td>
+            <td class="px-3 py-2 text-right">{{ pp.completion_rate }}%</td>
+            <td class="px-3 py-2 text-right">{{ pp.questions_expected }}</td>
+            <td class="px-3 py-2 text-right text-green-700">{{ pp.questions_answered }}</td>
+            <td class="px-3 py-2 text-right text-red-700">{{ pp.questions_missing }}</td>
+            <td class="px-3 py-2 text-right">{{ pp.filled_by_patient }}</td>
+            <td class="px-3 py-2 text-right">{{ pp.filled_by_staff }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="11" class="px-3 py-4 text-center text-gray-500">{% translate "No scheduled assessments match the filters." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Demographics tab -->
+    <div data-tab-content="demographics" class="p-6 hidden">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <h3 class="text-sm font-semibold text-gray-700 mb-2">{% translate "Gender distribution" %}</h3>
+          <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-50"><tr><th class="px-3 py-2 text-left">{% translate "Gender" %}</th><th class="px-3 py-2 text-right">{% translate "Count" %}</th></tr></thead>
+            <tbody class="divide-y divide-gray-100">
+              {% for g, c in demographics.gender_counts.items %}
+              <tr><td class="px-3 py-2">{{ g }}</td><td class="px-3 py-2 text-right">{{ c }}</td></tr>
+              {% empty %}
+              <tr><td colspan="2" class="px-3 py-2 text-center text-gray-500">-</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-gray-700 mb-2">{% translate "Age distribution" %}</h3>
+          <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-50"><tr><th class="px-3 py-2 text-left">{% translate "Age band" %}</th><th class="px-3 py-2 text-right">{% translate "Count" %}</th></tr></thead>
+            <tbody class="divide-y divide-gray-100">
+              {% for b, c in demographics.age_buckets.items %}
+              <tr><td class="px-3 py-2">{{ b }}</td><td class="px-3 py-2 text-right">{{ c }}</td></tr>
+              {% empty %}
+              <tr><td colspan="2" class="px-3 py-2 text-center text-gray-500">-</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-gray-700 mb-2">{% translate "Diagnosis distribution" %}</h3>
+          <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-50"><tr><th class="px-3 py-2 text-left">{% translate "Diagnosis" %}</th><th class="px-3 py-2 text-right">{% translate "Count" %}</th></tr></thead>
+            <tbody class="divide-y divide-gray-100">
+              {% for label, c in demographics.diagnosis_counts %}
+              <tr><td class="px-3 py-2">{{ label }}</td><td class="px-3 py-2 text-right">{{ c }}</td></tr>
+              {% empty %}
+              <tr><td colspan="2" class="px-3 py-2 text-center text-gray-500">-</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Response times tab -->
+    <div data-tab-content="response-times" class="p-6 hidden overflow-x-auto">
+      <p class="text-xs text-gray-500 mb-3">
+        {% translate "Schedule delay = submission time - scheduled time (negative = early). Data-entry lag = record-created time - claimed submission time (mainly meaningful for staff-entered retrospective submissions)." %}
+      </p>
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-3 py-2 text-left">{% translate "Patient" %}</th>
+            <th class="px-3 py-2 text-left">{% translate "Questionnaire" %}</th>
+            <th class="px-3 py-2 text-left">{% translate "Scheduled" %}</th>
+            <th class="px-3 py-2 text-left">{% translate "Submitted" %}</th>
+            <th class="px-3 py-2 text-right">{% translate "Schedule delay" %}</th>
+            <th class="px-3 py-2 text-right">{% translate "Entry lag" %}</th>
+            <th class="px-3 py-2 text-left">{% translate "Filled by" %}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for rt in response_times %}
+          <tr>
+            <td class="px-3 py-2">{{ rt.patient_name }} ({{ rt.patient_id }})</td>
+            <td class="px-3 py-2">{{ rt.questionnaire_name }}</td>
+            <td class="px-3 py-2">{{ rt.schedule_datetime|date:"Y-m-d H:i" }}</td>
+            <td class="px-3 py-2">{{ rt.submission_datetime|date:"Y-m-d H:i" }}</td>
+            <td class="px-3 py-2 text-right">{{ rt.schedule_delay_seconds|floatformat:0 }}s</td>
+            <td class="px-3 py-2 text-right">{{ rt.entry_lag_seconds|floatformat:0 }}s</td>
+            <td class="px-3 py-2">{{ rt.filled_by }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="px-3 py-4 text-center text-gray-500">{% translate "No matched schedule/submission pairs." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Filled-by tab -->
+    <div data-tab-content="filled-by" class="p-6 hidden">
+      <div class="grid grid-cols-3 gap-4 max-w-xl">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Filled by patient" %}</p>
+          <p class="text-2xl font-bold text-blue-600">{{ filled_by_summary.patient }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Filled by staff" %}</p>
+          <p class="text-2xl font-bold text-purple-600">{{ filled_by_summary.staff }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600">{% translate "Total submissions" %}</p>
+          <p class="text-2xl font-bold text-gray-900">{{ filled_by_summary.total }}</p>
+        </div>
+      </div>
+    </div>
+  </c-card>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const tabs = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('[data-tab-content]');
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.tab;
+      tabs.forEach(b => {
+        b.classList.remove('border-blue-500', 'text-blue-600');
+        b.classList.add('border-transparent', 'text-gray-500');
+      });
+      btn.classList.add('border-blue-500', 'text-blue-600');
+      btn.classList.remove('border-transparent', 'text-gray-500');
+      panels.forEach(p => p.classList.toggle('hidden', p.dataset.tabContent !== target));
+    });
+  });
+});
+</script>
+{% endblock %}

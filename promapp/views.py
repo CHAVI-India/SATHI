@@ -2364,7 +2364,8 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
             patient_questionnaire__in=pqs
         ).select_related('patient__user', 'user_submitting_questionnaire')
 
-        # Filter-choice options for the filter form (M14)
+        # Filter-choice options for the filter form (M14) — built early so
+        # overview['questionnaire_count'] can reference questionnaire_options.
         questionnaire_choices = (
             PatientQuestionnaire.objects.filter(patient__in=patients_qs)
             .select_related('questionnaire').values_list('questionnaire_id', flat=True)
@@ -2379,6 +2380,190 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
             for p in patients_qs
         ]
 
+        # ============================================================
+        # Metric computation — each block is labeled M<n> and matches
+        # the "Metric -> Query & Aggregation Trace" section of the plan.
+        # ============================================================
+
+        from collections import defaultdict
+
+        # ---- M2 lookup index: submissions keyed by (pq_id, date) ----
+        # Query: the `submissions` queryset above (one DB hit, already executed).
+        # Aggregation: build a dict for O(1) lookup by (patient_questionnaire_id, submission_date.date()).
+        submissions_by_pq_date = defaultdict(list)
+        for sub in submissions:
+            if sub.submission_date:
+                submissions_by_pq_date[(sub.patient_questionnaire_id, sub.submission_date.date())].append(sub)
+
+        # ---- M5: questions expected per questionnaire (one GROUP BY query) ----
+        # Query: QuestionnaireItem grouped by questionnaire_id, counting rows.
+        # Aggregation: materialize into a {questionnaire_id: count} dict.
+        questionnaire_item_counts = {
+            qi['questionnaire_id']: qi['cnt']
+            for qi in (QuestionnaireItem.objects.values('questionnaire_id')
+                       .annotate(cnt=models.Count('id')))
+        }
+
+        # ---- M6: answered item counts per submission (one GROUP BY query) ----
+        # Query: QuestionnaireItemResponse filtered to non-null, non-empty response_value,
+        #        grouped by questionnaire_submission_id, counting rows.
+        # Aggregation: materialize into a {submission_id: count} dict.
+        answered_counts_by_sub = {
+            r['questionnaire_submission_id']: r['cnt']
+            for r in (QuestionnaireItemResponse.objects
+                      .filter(response_value__isnull=False)
+                      .exclude(response_value='')
+                      .values('questionnaire_submission_id')
+                      .annotate(cnt=models.Count('id')))
+        }
+
+        # ---- M1/M2/M3/M4/M7/M8/M9/M10: iterate schedules, aggregate per patient ----
+        # Query: the `schedules` queryset (one DB hit, already executed).
+        # Aggregation: single pass building per_patient, overview, response_times, filled_by_summary.
+        today = timezone.now().date()
+        per_patient = defaultdict(lambda: {
+            'patient_name': '', 'patient_id': '', 'patient_uuid': '', 'age': None, 'gender': None,
+            'assigned': 0, 'answered': 0, 'missing': 0,
+            'questions_expected': 0, 'questions_answered': 0, 'questions_missing': 0,
+            'filled_by_patient': 0, 'filled_by_staff': 0,
+            'schedule_delays': [], 'entry_lags': [],
+        })
+        overview = {
+            'total_schedules': 0, 'completed_schedules': 0, 'missing_schedules': 0,
+            'total_questions_expected': 0, 'total_questions_answered': 0,
+        }
+        response_times = []
+        filled_by_summary = {'patient': 0, 'staff': 0}
+
+        for sch in schedules:
+            pq = sch.patient_questionnaire
+            patient = pq.patient
+            questionnaire = pq.questionnaire
+            sched_date = sch.date_assessment.date() if sch.date_assessment else None
+            if not sched_date:
+                continue
+
+            pp = per_patient[patient.id]
+            pp['patient_name'] = patient.name or ''
+            pp['patient_id'] = patient.patient_id or ''
+            pp['patient_uuid'] = str(patient.id)
+            pp['age'] = patient.age
+            pp['gender'] = patient.gender
+
+            # M1: schedules assigned
+            pp['assigned'] += 1
+            overview['total_schedules'] += 1
+
+            # M5: questions expected for this schedule's questionnaire
+            expected_q = questionnaire_item_counts.get(questionnaire.id, 0)
+            pp['questions_expected'] += expected_q
+            overview['total_questions_expected'] += expected_q
+
+            # M2: schedules answered (lookup in submissions_by_pq_date)
+            matched_subs = submissions_by_pq_date.get((pq.id, sched_date), [])
+            if matched_subs:
+                sub = matched_subs[0]  # first matching submission on that date
+                # M2: answered
+                pp['answered'] += 1
+                overview['completed_schedules'] += 1
+                # M6: questions answered in this submission
+                answered = answered_counts_by_sub.get(sub.id, 0)
+                pp['questions_answered'] += answered
+                overview['total_questions_answered'] += answered
+                # M7: questions missing on an answered schedule
+                pp['questions_missing'] += max(0, expected_q - answered)
+                # M8: filled by patient vs staff
+                is_patient = (sub.user_submitting_questionnaire_id == patient.user_id)
+                if is_patient:
+                    pp['filled_by_patient'] += 1
+                    filled_by_summary['patient'] += 1
+                    filled_by = 'patient'
+                else:
+                    pp['filled_by_staff'] += 1
+                    filled_by_summary['staff'] += 1
+                    filled_by = 'staff'
+                # M9 + M10: response times (schedule delay + data-entry lag)
+                if sch.date_assessment and sub.submission_date:
+                    delay = (sub.submission_date - sch.date_assessment).total_seconds()
+                    entry_lag = (sub.created_date - sub.submission_date).total_seconds()
+                    pp['schedule_delays'].append(delay)
+                    pp['entry_lags'].append(entry_lag)
+                    qname = questionnaire.safe_translation_getter('name', any_language=True) or str(questionnaire.id)
+                    response_times.append({
+                        'patient_id': patient.patient_id or '',
+                        'patient_name': patient.name or '',
+                        'questionnaire_name': qname,
+                        'schedule_datetime': sch.date_assessment,
+                        'submission_datetime': sub.submission_date,
+                        'schedule_delay_seconds': delay,
+                        'entry_lag_seconds': entry_lag,
+                        'filled_by': filled_by,
+                    })
+            else:
+                # M3: schedules missing (past + no submission)
+                if sched_date <= today:
+                    pp['missing'] += 1
+                    overview['missing_schedules'] += 1
+                    # M7: questions missing on a fully missing schedule
+                    pp['questions_missing'] += expected_q
+
+        # ---- M4: completion rate (derived from M1 + M2) ----
+        per_patient_list = []
+        for pkey, pp in per_patient.items():
+            pp['completion_rate'] = round(100 * pp['answered'] / pp['assigned'], 1) if pp['assigned'] else 0.0
+            pp['avg_schedule_delay_seconds'] = (
+                round(sum(pp['schedule_delays']) / len(pp['schedule_delays']), 1)
+                if pp['schedule_delays'] else None
+            )
+            pp['avg_entry_lag_seconds'] = (
+                round(sum(pp['entry_lags']) / len(pp['entry_lags']), 1)
+                if pp['entry_lags'] else None
+            )
+            per_patient_list.append(pp)
+        per_patient_list.sort(key=lambda d: d['patient_name'])
+
+        overview['completion_rate'] = (
+            round(100 * overview['completed_schedules'] / overview['total_schedules'], 1)
+            if overview['total_schedules'] else 0.0
+        )
+        overview['patient_count'] = len(per_patient_list)
+        overview['questionnaire_count'] = len(questionnaire_options)
+        filled_by_summary['total'] = filled_by_summary['patient'] + filled_by_summary['staff']
+
+        # ---- M11/M12: demographics — gender & age (derived from per_patient) ----
+        gender_counts = defaultdict(int)
+        age_buckets = defaultdict(int)
+        for pp in per_patient_list:
+            gender_counts[pp['gender'] or 'Unknown'] += 1
+            age = pp['age']
+            if age is None:
+                age_buckets['Unknown'] += 1
+            elif age <= 17:
+                age_buckets['0-17'] += 1
+            elif age <= 39:
+                age_buckets['18-39'] += 1
+            elif age <= 59:
+                age_buckets['40-59'] += 1
+            elif age <= 79:
+                age_buckets['60-79'] += 1
+            else:
+                age_buckets['80+'] += 1
+
+        # ---- M13: demographics — diagnosis distribution (one IN-query) ----
+        # Query: Diagnosis filtered to patients in the per_patient set, select_related diagnosis.
+        # Aggregation: count per diagnosis label, sorted descending.
+        patient_ids = list(per_patient.keys())
+        diagnosis_counts = defaultdict(int)
+        for d in Diagnosis.objects.filter(patient_id__in=patient_ids).select_related('diagnosis'):
+            label = str(d.diagnosis) if d.diagnosis_id else 'Unknown'
+            diagnosis_counts[label] += 1
+
+        demographics = {
+            'gender_counts': dict(gender_counts),
+            'age_buckets': dict(age_buckets),
+            'diagnosis_counts': sorted(diagnosis_counts.items(), key=lambda x: -x[1]),
+        }
+
         context.update({
             'date_from': date_from or '',
             'date_to': date_to or '',
@@ -2386,6 +2571,11 @@ class StatisticsView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
             'selected_patient': patient_id or '',
             'questionnaire_options': questionnaire_options,
             'patient_options': patient_options,
+            'overview': overview,
+            'per_patient': per_patient_list,
+            'demographics': demographics,
+            'response_times': response_times,
+            'filled_by_summary': filled_by_summary,
         })
         return context
 

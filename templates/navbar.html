@@ -16,6 +16,7 @@
             {% if user.is_authenticated and perms.patientapp.view_patient %}
             <a href="{% url 'patient_list' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% translate "Patients" %}</a>
             <a href="{% url 'global_schedule_calendar' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% translate "Schedule Calendar" %}</a>
+            <a href="{% url 'schedule_statistics' %}" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">{% translate "Schedule Statistics" %}</a>
             {% endif %}
             {% if user.is_authenticated and perms.promapp.view_questionnaire %}
             <div class="relative group inline-block">
@@ -227,6 +228,7 @@
       {% if user.is_authenticated and perms.patientapp.view_patient %}
       <a href="{% url 'patient_list' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% translate "Patients" %}</a>
       <a href="{% url 'global_schedule_calendar' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% translate "Schedule Calendar" %}</a>
+      <a href="{% url 'schedule_statistics' %}" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">{% translate "Schedule Statistics" %}</a>
       {% endif %}
       {% if user.is_authenticated and perms.promapp.view_questionnaire %}
       <div class="py-2">
