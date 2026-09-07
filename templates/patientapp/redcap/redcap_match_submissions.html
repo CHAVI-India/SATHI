@@ -18,7 +18,7 @@
         <span class="ml-3 text-xs text-gray-400">{% trans "REDCap ID:" %} <span class="font-mono text-gray-600">{{ redcap_study_id }}</span></span>
       </p>
     </div>
-    <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}" variant="secondary" size="sm">
+    <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}{% if filter_params.match_filter %}?match_filter={{ filter_params.match_filter }}{% endif %}{% if filter_params.per_page %}&per_page={{ filter_params.per_page }}{% endif %}{% if filter_params.page %}&page={{ filter_params.page }}{% endif %}" variant="secondary" size="sm">
       ← {% trans "Back" %}
     </c-link_button>
   </div>
@@ -40,6 +40,9 @@
 
   <form method="post">
     {% csrf_token %}
+    {% if filter_params.match_filter %}<input type="hidden" name="match_filter" value="{{ filter_params.match_filter }}">{% endif %}
+    {% if filter_params.per_page %}<input type="hidden" name="per_page" value="{{ filter_params.per_page }}">{% endif %}
+    {% if filter_params.page %}<input type="hidden" name="page" value="{{ filter_params.page }}">{% endif %}
 
     {% for entry in fm_data %}
     {% with fm=entry.fm sub_rows=entry.sub_rows rc_instances=entry.rc_instances fetch_error=entry.fetch_error date_field_form_name=entry.date_field_form_name available_events=entry.available_events %}
@@ -258,7 +261,7 @@
     {% endfor %}
 
     <div class="flex justify-end gap-3 mt-2">
-      <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}" variant="secondary">
+      <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}{% if filter_params.match_filter %}?match_filter={{ filter_params.match_filter }}{% endif %}{% if filter_params.per_page %}&per_page={{ filter_params.per_page }}{% endif %}{% if filter_params.page %}&page={{ filter_params.page }}{% endif %}" variant="secondary">
         {% trans "Cancel" %}
       </c-link_button>
       <c-button type="submit" variant="primary">{% trans "Save Selected Matches" %}</c-button>

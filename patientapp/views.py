@@ -3791,7 +3791,16 @@ def redcap_patient_ids(request, pk, mapping_pk):
                 patient = Patient.objects.get(pk=patient_pk)
             except Patient.DoesNotExist:
                 messages.error(request, _('Patient not found.'))
-                return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+                from urllib.parse import urlencode
+                qs_params = {}
+                for key in ('match_filter', 'per_page', 'page'):
+                    val = request.POST.get(key, '').strip()
+                    if val:
+                        qs_params[key] = val
+                redirect_url = redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+                if qs_params:
+                    redirect_url['Location'] += '?' + urlencode(qs_params)
+                return redirect_url
             pid = (patient.patient_id or '').strip().lower()
             suggested = ''
             if pid in _primary_lookup:
@@ -4027,7 +4036,16 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
     # Patient must be enrolled in this project
     if not PatientProject.objects.filter(project=project, patient=patient).exists():
         messages.error(request, _('Patient is not enrolled in this project.'))
-        return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+        from urllib.parse import urlencode
+        qs_params = {}
+        for key in ('match_filter', 'per_page', 'page'):
+            val = request.GET.get(key, '').strip()
+            if val:
+                qs_params[key] = val
+        redirect_url = redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+        if qs_params:
+            redirect_url['Location'] += '?' + urlencode(qs_params)
+        return redirect_url
 
     # Patient must have a study ID mapped
     study_id_map = RedcapStudyIDtoPatientIDMap.objects.filter(
@@ -4035,7 +4053,16 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
     ).first()
     if not study_id_map or not study_id_map.redcap_study_id:
         messages.error(request, _('Please assign a REDCap study ID to this patient before matching submissions.'))
-        return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+        from urllib.parse import urlencode
+        qs_params = {}
+        for key in ('match_filter', 'per_page', 'page'):
+            val = request.GET.get(key, '').strip()
+            if val:
+                qs_params[key] = val
+        redirect_url = redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+        if qs_params:
+            redirect_url['Location'] += '?' + urlencode(qs_params)
+        return redirect_url
 
     redcap_study_id = study_id_map.redcap_study_id
 
@@ -4336,7 +4363,24 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
             messages.success(request, _('{count} submission match(es) saved.').format(count=saved_count))
         else:
             messages.info(request, _('No submissions were selected to save.'))
-        return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+        # Preserve filter state on redirect back to patient IDs page
+        from urllib.parse import urlencode
+        qs_params = {}
+        for key in ('match_filter', 'per_page', 'page'):
+            val = request.POST.get(key, '').strip()
+            if val:
+                qs_params[key] = val
+        redirect_url = redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+        if qs_params:
+            redirect_url['Location'] += '?' + urlencode(qs_params)
+        return redirect_url
+
+    # Pass filter params to template so they can be forwarded through the form
+    filter_params = {}
+    for key in ('match_filter', 'per_page', 'page'):
+        val = request.GET.get(key, '').strip()
+        if val:
+            filter_params[key] = val
 
     return render(request, 'patientapp/redcap/redcap_match_submissions.html', {
         'project': project,
@@ -4344,6 +4388,7 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
         'patient': patient,
         'redcap_study_id': redcap_study_id,
         'fm_data': fm_data,
+        'filter_params': filter_params,
     })
 
 
