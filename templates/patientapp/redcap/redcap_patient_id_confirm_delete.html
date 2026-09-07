@@ -7,7 +7,7 @@
 {% block content %}
 <div class="max-w-2xl mx-auto">
   <div class="mb-6">
-    <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}" variant="secondary" size="sm">
+    <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}{% if filter_params.match_filter %}?match_filter={{ filter_params.match_filter }}{% endif %}{% if filter_params.per_page %}&per_page={{ filter_params.per_page }}{% endif %}{% if filter_params.page %}&page={{ filter_params.page }}{% endif %}" variant="secondary" size="sm">
       ← {% trans "Back to Patient IDs" %}
     </c-link_button>
   </div>
@@ -46,8 +46,11 @@
 
     <form method="post">
       {% csrf_token %}
+      {% if filter_params.match_filter %}<input type="hidden" name="match_filter" value="{{ filter_params.match_filter }}">{% endif %}
+      {% if filter_params.per_page %}<input type="hidden" name="per_page" value="{{ filter_params.per_page }}">{% endif %}
+      {% if filter_params.page %}<input type="hidden" name="page" value="{{ filter_params.page }}">{% endif %}
       <div class="flex justify-center gap-3">
-        <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}" variant="secondary">
+        <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}{% if filter_params.match_filter %}?match_filter={{ filter_params.match_filter }}{% endif %}{% if filter_params.per_page %}&per_page={{ filter_params.per_page }}{% endif %}{% if filter_params.page %}&page={{ filter_params.page }}{% endif %}" variant="secondary">
           {% trans "Cancel" %}
         </c-link_button>
         <c-button type="submit" variant="danger">

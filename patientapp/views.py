@@ -3822,7 +3822,17 @@ def redcap_patient_ids(request, pk, mapping_pk):
             obj.redcap_study_id = study_id_val or None
             obj.save(update_fields=['redcap_study_id', 'modified_at'])
             messages.success(request, _('Patient ID mapping saved.'))
-        return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+        # Preserve filter state across POST actions
+        from urllib.parse import urlencode
+        qs_params = {}
+        for key in ('match_filter', 'per_page', 'page'):
+            val = request.POST.get(key, '').strip()
+            if val:
+                qs_params[key] = val
+        redirect_url = redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+        if qs_params:
+            redirect_url['Location'] += '?' + urlencode(qs_params)
+        return redirect_url
 
     # Field names used for display in the template
     primary_field = mapping.redcap_study_id_field or 'record_id'
@@ -3976,13 +3986,31 @@ def redcap_patient_id_delete(request, pk, mapping_pk, patient_pk):
             )
         else:
             messages.info(request, _('No mapping exists for this patient.'))
-        return redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+        # Preserve filter state on redirect back to patient IDs page
+        from urllib.parse import urlencode
+        qs_params = {}
+        for key in ('match_filter', 'per_page', 'page'):
+            val = request.POST.get(key, '').strip()
+            if val:
+                qs_params[key] = val
+        redirect_url = redirect('redcap_patient_ids', pk=pk, mapping_pk=mapping_pk)
+        if qs_params:
+            redirect_url['Location'] += '?' + urlencode(qs_params)
+        return redirect_url
+
+    # Pass filter params to template so they can be forwarded through the form
+    filter_params = {}
+    for key in ('match_filter', 'per_page', 'page'):
+        val = request.GET.get(key, '').strip()
+        if val:
+            filter_params[key] = val
 
     return render(request, 'patientapp/redcap/redcap_patient_id_confirm_delete.html', {
         'project': project,
         'mapping': mapping,
         'patient': patient,
         'id_map': id_map,
+        'filter_params': filter_params,
     })
 
 

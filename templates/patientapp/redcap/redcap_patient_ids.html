@@ -184,6 +184,9 @@
                   {% csrf_token %}
                   <input type="hidden" name="action" value="save_single_auto">
                   <input type="hidden" name="patient_pk" value="{{ row.patient.pk }}">
+                  <input type="hidden" name="match_filter" value="{{ match_filter }}">
+                  <input type="hidden" name="per_page" value="{{ per_page }}">
+                  <input type="hidden" name="page" value="{{ page_obj.number }}">
                   <button type="submit"
                     class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded border border-green-300 text-green-700 hover:bg-green-50 transition-colors">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -204,7 +207,7 @@
                 </button>
                 {% endif %}
                 {% if row.redcap_study_id and not row.auto_matched and perms.patientapp.delete_redcapstudyidtopatientidmap %}
-                <a href="{% url 'redcap_patient_id_delete' pk=project.pk mapping_pk=mapping.pk patient_pk=row.patient.pk %}"
+                <a href="{% url 'redcap_patient_id_delete' pk=project.pk mapping_pk=mapping.pk patient_pk=row.patient.pk %}{% if match_filter != 'all' %}?match_filter={{ match_filter }}{% endif %}{% if per_page != '25' %}&per_page={{ per_page }}{% endif %}{% if page_obj.number > 1 %}&page={{ page_obj.number }}{% endif %}"
                    class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded border border-red-300 text-red-700 hover:bg-red-50 transition-colors">
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -307,6 +310,9 @@
       <input type="hidden" name="action" value="save">
       <input type="hidden" name="modal_single" value="1">
       <input type="hidden" name="modal_patient_pk" id="modal-patient-pk">
+      <input type="hidden" name="match_filter" value="{{ match_filter }}">
+      <input type="hidden" name="per_page" value="{{ per_page }}">
+      <input type="hidden" name="page" value="{{ page_obj.number }}">
 
       <div class="px-6 py-4 space-y-3">
 
@@ -377,6 +383,9 @@
     <form method="post" id="bulk-save-form">
       {% csrf_token %}
       <input type="hidden" name="action" value="save_page_auto">
+      <input type="hidden" name="match_filter" value="{{ match_filter }}">
+      <input type="hidden" name="per_page" value="{{ per_page }}">
+      <input type="hidden" name="page" value="{{ page_obj.number }}">
       <div class="px-6 py-4">
         <div class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-4 text-sm text-amber-800">
           <p>{% trans "The following auto-matched patient IDs will be saved to the database. Please review before confirming." %}</p>
