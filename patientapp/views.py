@@ -43,6 +43,8 @@ from .utils import (
 )
 import logging
 import csv
+import io
+import zipfile
 from django.http import HttpResponse
 from bokeh.resources import Resources  # Serve Bokeh from local static files
 from patientapp.utils import get_filtered_patients_for_aggregation
@@ -4387,12 +4389,14 @@ def redcap_export(request, pk, mapping_pk):
             ) % {'names': names})
 
         # Note: Unmatched submissions (for repeating/event forms without instance mapping)
-        # are automatically excluded from the export in _collect_export_rows()
+        # are automatically excluded from the export in _collect_export_rows_per_fm()
 
         if export_type == ExportTypeChoices.MANUAL:
             return _build_csv_export(request, mapping, selected_fms, id_map)
         else:
             return _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map)
+
+    export_warnings = request.session.pop('redcap_export_warnings', [])
 
     return render(request, 'patientapp/redcap/redcap_export.html', {
         'project': project,
@@ -4401,6 +4405,7 @@ def redcap_export(request, pk, mapping_pk):
         'mappable_patients': mappable_patients,
         'logs': logs,
         'ExportTypeChoices': ExportTypeChoices,
+        'export_warnings': export_warnings,
     })
 
 
@@ -4438,10 +4443,15 @@ def _apply_response_transform(raw, transform):
     return raw
 
 
-def _collect_export_rows(mapping, selected_fms, id_map):
-    """Build list of dicts for REDCap import (wide format, one row per submission)."""
+def _collect_export_rows_per_fm(mapping, selected_fms, id_map):
+    """Build per-form rows for REDCap import, grouped by form mapping.
+
+    Returns a dict: {fm.pk: (fm, rows_list, warnings_list)}.
+    For non-repeating forms, if a patient has multiple submissions in the same
+    event, that patient is skipped for that form and a warning string is added.
+    """
     from promapp.models import QuestionnaireSubmission, QuestionnaireItemResponse
-    rows = []
+    result = {}
     for fm in selected_fms:
         field_maps = list(fm.redcapfieldtoitemmapping_set.select_related('questionnaire_item'))
         if not field_maps:
@@ -4462,6 +4472,13 @@ def _collect_export_rows(mapping, selected_fms, id_map):
         }
 
         date_fmt = _SUBMISSION_DATE_FORMATS.get(fm.submission_date_format) if fm.submission_date_format else None
+
+        fm_rows = []
+        warnings = []
+        # Track (study_id, event_name) keys for non-repeating forms to detect duplicates
+        _is_repeating = fm.redcap_form_is_repeating or fm.redcap_event_is_repeating
+        _is_in_event = fm.redcap_form_is_in_event
+        seen_keys = set()
 
         for sub in submissions:
             study_id = id_map.get(sub.patient_id)
@@ -4522,10 +4539,23 @@ def _collect_export_rows(mapping, selected_fms, id_map):
 
             # Skip submissions that require instance mapping but don't have one
             # (This filters out unmatched submissions for repeating/event forms)
-            _is_repeating = fm.redcap_form_is_repeating or fm.redcap_event_is_repeating
-            _is_in_event = fm.redcap_form_is_in_event
             if (_is_repeating or _is_in_event) and inst_mapping is None:
                 continue
+
+            # Duplicate detection for non-repeating forms:
+            # If the same (study_id, event_name) already has a row, skip and warn
+            if not _is_repeating:
+                dedup_key = (study_id, event_name or '')
+                if dedup_key in seen_keys:
+                    patient_name = sub.patient.name if sub.patient else str(sub.patient_id)
+                    warnings.append(
+                        f'Patient "{patient_name}" (study ID {study_id}) has multiple submissions '
+                        f'for form "{fm.redcap_form_name}"'
+                        + (f' in event "{event_name}"' if event_name else '')
+                        + ' — skipped to avoid duplicate import.'
+                    )
+                    continue
+                seen_keys.add(dedup_key)
 
             if fm.submission_date_field and date_fmt and sub.submission_date:
                 row[fm.submission_date_field] = sub.submission_date.strftime(date_fmt)
@@ -4537,38 +4567,60 @@ def _collect_export_rows(mapping, selected_fms, id_map):
             for fm_field in field_maps:
                 raw = responses.get(fm_field.questionnaire_item_id, '')
                 row[fm_field.redcap_field_name] = _apply_response_transform(raw, fm_field.response_transform)
-            rows.append(row)
-    return rows
+            fm_rows.append(row)
+        result[fm.pk] = (fm, fm_rows, warnings)
+    return result
 
 
 def _build_csv_export(request, mapping, selected_fms, id_map):
-    """Return a CSV HttpResponse and log the export."""
-    rows = _collect_export_rows(mapping, selected_fms, id_map)
-    if not rows:
+    """Return a ZIP HttpResponse containing one CSV per form mapping and log the export."""
+    grouped = _collect_export_rows_per_fm(mapping, selected_fms, id_map)
+    all_rows = []
+    all_warnings = []
+    for fm, rows, warnings in grouped.values():
+        all_rows.extend(rows)
+        all_warnings.extend(warnings)
+    if not all_rows:
         messages.warning(request, _('No data found for the selected form mappings.'))
         return redirect(request.path)
 
-    all_keys = []
-    seen = set()
-    for row in rows:
-        for k in row:
-            if k not in seen:
-                all_keys.append(k)
-                seen.add(k)
+    # Build ZIP in memory with one CSV per form mapping
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for fm, rows, warnings in grouped.values():
+            if not rows:
+                continue
+            # Collect field names preserving first-appearance order
+            all_keys = []
+            seen = set()
+            for row in rows:
+                for k in row:
+                    if k not in seen:
+                        all_keys.append(k)
+                        seen.add(k)
+            csv_buf = io.StringIO()
+            writer = csv.DictWriter(csv_buf, fieldnames=all_keys, extrasaction='ignore')
+            writer.writeheader()
+            writer.writerows(rows)
+            # Sanitize form name for filename
+            safe_name = fm.redcap_form_name.replace(' ', '_').replace('/', '_')
+            zf.writestr(f'{safe_name}.csv', csv_buf.getvalue())
+    buf.seek(0)
 
-    response = HttpResponse(content_type='text/csv')
-    filename = f'redcap_export_{mapping.project.project_name}.csv'
+    filename = f'redcap_export_{mapping.project.project_name}.zip'
+    response = HttpResponse(buf.getvalue(), content_type='application/zip')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    writer = csv.DictWriter(response, fieldnames=all_keys, extrasaction='ignore')
-    writer.writeheader()
-    writer.writerows(rows)
+
+    # Store warnings in session for display after redirect (only if there are warnings)
+    if all_warnings:
+        request.session['redcap_export_warnings'] = all_warnings
 
     # Log one entry per patient per fm
     from promapp.models import QuestionnaireSubmission as _QS
     patient_map = {p.pk: p for p in Patient.objects.filter(pk__in=id_map.keys())}
     now = timezone.now()
     log_entries = []
-    for fm in selected_fms:
+    for fm, rows, warnings in grouped.values():
         if not fm.redcapfieldtoitemmapping_set.exists():
             continue
         # Only log for patients who actually have submissions for this fm
@@ -4597,14 +4649,24 @@ def _build_csv_export(request, mapping, selected_fms, id_map):
 
 def _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map):
     """Export via REDCap API using PyCap and log results."""
-    rows = _collect_export_rows(mapping, selected_fms, id_map)
-    if not rows:
+    grouped = _collect_export_rows_per_fm(mapping, selected_fms, id_map)
+    all_rows = []
+    all_warnings = []
+    for fm, rows, warnings in grouped.values():
+        all_rows.extend(rows)
+        all_warnings.extend(warnings)
+    if not all_rows:
         messages.warning(request, _('No data found for the selected form mappings.'))
         return redirect(request.path)
 
+    if all_warnings:
+        request.session['redcap_export_warnings'] = all_warnings
+
     from promapp.models import QuestionnaireSubmission as _QS
     patient_map = {p.pk: p for p in Patient.objects.filter(pk__in=id_map.keys())}
-    for fm in selected_fms:
+    for fm, rows, warnings in grouped.values():
+        if not fm.redcapfieldtoitemmapping_set.exists():
+            continue
         patient_ids_with_subs = set(
             _QS.objects.filter(
                 patient_questionnaire__questionnaire=fm.questionnaire,
@@ -4625,8 +4687,7 @@ def _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map):
             for patient in patients_for_fm
         ]
         try:
-            fm_rows = [r for r in rows if fm.redcap_form_name in r.get('redcap_repeat_instrument', fm.redcap_form_name)]
-            response_data = redcap_import_records(mapping, fm_rows)
+            response_data = redcap_import_records(mapping, rows)
             final_status = ExportStatusChoices.COMPLETED
             log_text = str(response_data)
         except Exception as e:

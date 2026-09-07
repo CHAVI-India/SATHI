@@ -24,6 +24,17 @@
     {% endfor %}
   {% endif %}
 
+  {% if export_warnings %}
+    <div class="mb-4 px-4 py-3 rounded border bg-yellow-50 border-yellow-300 text-yellow-800 text-sm">
+      <p class="font-medium mb-1">⚠ {% trans "Export warnings" %}</p>
+      <ul class="list-disc list-inside space-y-1">
+        {% for warning in export_warnings %}
+          <li>{{ warning }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
   {% if not form_mappings %}
     <div class="mb-4 px-4 py-3 rounded border bg-yellow-50 border-yellow-300 text-yellow-800 text-sm">
       ⚠ {% trans "No form mappings configured yet. Please set up form and field mappings first." %}
