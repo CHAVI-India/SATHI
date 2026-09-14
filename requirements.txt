@@ -82,7 +82,7 @@ qrcode==8.2
 requests==2.34.2
 rich==15.0.0
 roman-numerals==4.1.0
-sarvamai==0.1.32
+sarvamai==0.1.33
 scipy==1.18.1
 semantic-version==2.10.0
 six==1.17.0
