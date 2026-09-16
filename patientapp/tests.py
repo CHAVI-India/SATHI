@@ -351,6 +351,25 @@ class ValidateBooleanTests(SimpleTestCase):
         val, err = validate_and_format_response_value('false', 'truefalse', '', [])
         self.assertEqual((val, err), ('0', None))
 
+    def test_yesno_decimal_one(self):
+        # Decimal-stored '1.00' should normalize to '1' (defense-in-depth).
+        val, err = validate_and_format_response_value('1.00', 'yesno', '', [])
+        self.assertEqual((val, err), ('1', None))
+
+    def test_yesno_decimal_zero(self):
+        val, err = validate_and_format_response_value('0.00', 'yesno', '', [])
+        self.assertEqual((val, err), ('0', None))
+
+    def test_yesno_decimal_invalid(self):
+        # A decimal value other than 0 or 1 is still invalid.
+        val, err = validate_and_format_response_value('2.00', 'yesno', '', [])
+        self.assertIsNone(val)
+        self.assertIn('not a valid yes/no', err)
+
+    def test_truefalse_decimal_one(self):
+        val, err = validate_and_format_response_value('1.00', 'truefalse', '', [])
+        self.assertEqual((val, err), ('1', None))
+
 
 class ValidateSliderCalcTests(SimpleTestCase):
     def test_slider_int(self):

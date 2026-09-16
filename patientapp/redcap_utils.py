@@ -522,10 +522,24 @@ def _validate_number(raw, validation):
 
 
 def _validate_boolean(raw):
-    """Normalize yesno/truefalse values to '0' or '1'."""
+    """Normalize yesno/truefalse values to '0' or '1'.
+
+    Accepts word forms (yes/no/true/false/y/n/t/f) and numeric forms including
+    decimal-stored values like '1.00' or '0.00' (defense-in-depth against the
+    same decimal-storage pattern that affects radio fields).
+    """
     s = str(raw).strip().lower()
     if s in ('1', 'yes', 'true', 'y', 't'):
         return ('1', None)
     if s in ('0', 'no', 'false', 'n', 'f'):
+        return ('0', None)
+    # Numeric fallback: coerce decimal-stored values (e.g. '1.00' → 1).
+    try:
+        num = float(s)
+    except (ValueError, TypeError):
+        return (None, f"value '{raw}' is not a valid yes/no value")
+    if num == 1:
+        return ('1', None)
+    if num == 0:
         return ('0', None)
     return (None, f"value '{raw}' is not a valid yes/no value")
