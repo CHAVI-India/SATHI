@@ -43,7 +43,7 @@ loglevel = "info"
 
 # Django logging integration
 disable_redirect_access_to_syslog = True
-capture_output = True
+capture_output = False  # must be False when errorlog is None; glogging.py would otherwise open(None, 'a+')
 
 
 # Process naming for easier monitoring
