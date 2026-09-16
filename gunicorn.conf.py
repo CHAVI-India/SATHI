@@ -37,8 +37,8 @@ log_dir = os.path.join(BASE_DIR, 'logs')
 os.makedirs(log_dir, exist_ok=True)
 
 # Log settings
-accesslog = os.path.join(log_dir, "gunicorn-access.log")
-errorlog = os.path.join(log_dir, "gunicorn-error.log")
+accesslog = None  # access logging handled by logconfig_dict gunicorn.access logger
+errorlog = None   # error logging handled by logconfig_dict gunicorn.error logger
 loglevel = "info"
 
 # Django logging integration
@@ -63,6 +63,11 @@ logconfig_dict = {
             'class': 'logging.Formatter',
         },
     },
+    'filters': {
+        'phi_mask': {
+            '()': 'chaviprom.logging_filters.PHIMaskingFilter',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
@@ -74,6 +79,15 @@ logconfig_dict = {
             'maxBytes': 1024*1024*15,  # 15MB
             'backupCount': 10,
             'formatter': 'generic',
+            'filters': ['phi_mask'],
+        },
+        'access_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(log_dir, "gunicorn-access.log"),
+            'maxBytes': 1024*1024*15,  # 15MB
+            'backupCount': 10,
+            'formatter': 'generic',
+            'filters': ['phi_mask'],
         },
     },
     'root': {
@@ -88,7 +102,7 @@ logconfig_dict = {
         },
         'gunicorn.access': {
             'level': 'INFO',
-            'handlers': ['console'],
+            'handlers': ['access_file'],
             'propagate': False,
         },
     }
