@@ -47,6 +47,9 @@ from .utils import (
 import logging
 import csv
 import io
+import os
+import tempfile
+import uuid
 import zipfile
 from django.http import HttpResponse
 from bokeh.resources import Resources  # Serve Bokeh from local static files
@@ -4473,6 +4476,7 @@ def redcap_export(request, pk, mapping_pk):
             return _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map)
 
     export_warnings = request.session.pop('redcap_export_warnings', [])
+    export_download = request.session.pop('redcap_export_download', None)
 
     return render(request, 'patientapp/redcap/redcap_export.html', {
         'project': project,
@@ -4482,7 +4486,41 @@ def redcap_export(request, pk, mapping_pk):
         'logs': logs,
         'ExportTypeChoices': ExportTypeChoices,
         'export_warnings': export_warnings,
+        'export_download': export_download,
     })
+
+
+@login_required
+def redcap_export_download(request, pk, mapping_pk):
+    """Serve a pending CSV export file stored in the session (temp file).
+
+    The file is deleted from disk after being served. This is used when the
+    CSV export had validation warnings — the user is redirected to the export
+    page to see the warnings, and can then download the file via this view.
+    """
+    download = request.session.pop('redcap_export_download', None)
+    if not download:
+        messages.error(request, _('No export file available for download.'))
+        return redirect('redcap_export', pk=pk, mapping_pk=mapping_pk)
+
+    tmp_path = download.get('path', '')
+    filename = download.get('filename', 'redcap_export.zip')
+    try:
+        with open(tmp_path, 'rb') as f:
+            data = f.read()
+    except (IOError, OSError):
+        messages.error(request, _('The export file is no longer available. Please re-run the export.'))
+        return redirect('redcap_export', pk=pk, mapping_pk=mapping_pk)
+    finally:
+        # Clean up the temp file regardless of success/failure.
+        try:
+            os.unlink(tmp_path)
+        except (IOError, OSError):
+            pass
+
+    response = HttpResponse(data, content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 
 _SUBMISSION_DATE_FORMATS = {
@@ -4719,7 +4757,14 @@ def _build_csv_export(request, mapping, selected_fms, id_map):
         all_rows.extend(rows)
         all_warnings.extend(warnings)
     if not all_rows:
-        messages.warning(request, _('No data found for the selected form mappings.'))
+        if all_warnings:
+            messages.warning(request, _(
+                'No data found for the selected form mappings. '
+                'See the warnings below for details on which fields failed validation.'
+            ))
+            request.session['redcap_export_warnings'] = all_warnings
+        else:
+            messages.warning(request, _('No data found for the selected form mappings.'))
         return redirect(request.path)
 
     # Build ZIP in memory with one CSV per form mapping
@@ -4746,12 +4791,6 @@ def _build_csv_export(request, mapping, selected_fms, id_map):
     buf.seek(0)
 
     filename = f'redcap_export_{mapping.project.project_name}.zip'
-    response = HttpResponse(buf.getvalue(), content_type='application/zip')
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
-
-    # Store warnings in session for display after redirect (only if there are warnings)
-    if all_warnings:
-        request.session['redcap_export_warnings'] = all_warnings
 
     # Log one entry per patient per fm
     from promapp.models import QuestionnaireSubmission as _QS
@@ -4782,6 +4821,31 @@ def _build_csv_export(request, mapping, selected_fms, id_map):
             ))
     RedcapDataExportLog.objects.bulk_create(log_entries)
 
+    if all_warnings:
+        # Store the ZIP in a temp file so we can redirect (showing warnings)
+        # while still offering the file for download afterwards.
+        token = uuid.uuid4().hex
+        fd, tmp_path = tempfile.mkstemp(suffix='.zip', prefix='redcap_export_')
+        try:
+            with os.fdopen(fd, 'wb') as f:
+                f.write(buf.getvalue())
+        except Exception:
+            os.close(fd)
+            raise
+        request.session['redcap_export_warnings'] = all_warnings
+        request.session['redcap_export_download'] = {
+            'token': token,
+            'path': tmp_path,
+            'filename': filename,
+        }
+        messages.warning(request, _(
+            'Export completed with %(skipped)s warning(s). Some rows were skipped — '
+            'see the warnings below. Your export file is ready for download.'
+        ) % {'skipped': len(all_warnings)})
+        return redirect(request.path)
+
+    response = HttpResponse(buf.getvalue(), content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 
 
@@ -4794,7 +4858,14 @@ def _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map):
         all_rows.extend(rows)
         all_warnings.extend(warnings)
     if not all_rows:
-        messages.warning(request, _('No data found for the selected form mappings.'))
+        if all_warnings:
+            messages.warning(request, _(
+                'No data found for the selected form mappings. '
+                'See the warnings below for details on which fields failed validation.'
+            ))
+            request.session['redcap_export_warnings'] = all_warnings
+        else:
+            messages.warning(request, _('No data found for the selected form mappings.'))
         return redirect(request.path)
 
     if all_warnings:
