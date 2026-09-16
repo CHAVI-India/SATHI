@@ -125,13 +125,35 @@ class ValidateTimeTests(SimpleTestCase):
         val, err = validate_and_format_response_value('14:30', 'text', 'time', [])
         self.assertEqual((val, err), ('14:30', None))
 
-    def test_time_with_seconds(self):
+    def test_time_with_seconds_strips_to_hhmm(self):
+        # REDCap's `time` validation expects HH:MM; seconds are dropped.
         val, err = validate_and_format_response_value('14:30:45', 'text', 'time', [])
-        self.assertEqual((val, err), ('14:30:45', None))
+        self.assertEqual((val, err), ('14:30', None))
 
     def test_time_am_pm(self):
         val, err = validate_and_format_response_value('2:30 PM', 'text', 'time', [])
         self.assertEqual((val, err), ('14:30', None))
+
+    def test_time_digit_4digit(self):
+        # "2230" → 22:30 (colon-less entry)
+        val, err = validate_and_format_response_value('2230', 'text', 'time', [])
+        self.assertEqual((val, err), ('22:30', None))
+
+    def test_time_digit_leading_zero(self):
+        val, err = validate_and_format_response_value('0930', 'text', 'time', [])
+        self.assertEqual((val, err), ('09:30', None))
+
+    def test_time_digit_invalid_hour(self):
+        # "2500" → hour 25 is invalid
+        val, err = validate_and_format_response_value('2500', 'text', 'time', [])
+        self.assertIsNone(val)
+        self.assertIn('could not be parsed as a time', err)
+
+    def test_time_single_digit_invalid(self):
+        # "7" is not a valid HH:MM time
+        val, err = validate_and_format_response_value('7', 'text', 'time', [])
+        self.assertIsNone(val)
+        self.assertIn('could not be parsed as a time', err)
 
     def test_invalid_time(self):
         val, err = validate_and_format_response_value('not a time', 'text', 'time', [])

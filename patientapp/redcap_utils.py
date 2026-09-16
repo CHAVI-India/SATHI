@@ -9,6 +9,7 @@ import re
 
 import redcap as pycap
 from dateutil import parser as _date_parser
+from datetime import datetime as _datetime
 
 
 # ---------------------------------------------------------------------------
@@ -214,6 +215,52 @@ _TEXT_VALIDATION_PATTERNS = {
     'alpha_only_uppercase': re.compile(r'^[A-Z]+$'),
 }
 
+# REDCap date/datetime/time validation types → expected output format and
+# input formats to try (in order). The validation type from REDCap metadata
+# drives both parsing and reformatting.
+_REDCAP_FORMATS = {
+    'date_ymd': {
+        'output': '%Y-%m-%d',
+        'input_formats': ['%Y-%m-%d', '%Y/%m/%d', '%Y%m%d'],
+    },
+    'date_mdy': {
+        'output': '%Y-%m-%d',
+        'input_formats': ['%m/%d/%Y', '%m-%d-%Y', '%m/%d/%y'],
+    },
+    'date_dmy': {
+        'output': '%Y-%m-%d',
+        'input_formats': ['%d/%m/%Y', '%d-%m-%Y', '%d/%m/%y'],
+    },
+    'datetime_ymd': {
+        'output': '%Y-%m-%d %H:%M',
+        'input_formats': ['%Y-%m-%d %H:%M', '%Y/%m/%d %H:%M', '%Y-%m-%dT%H:%M'],
+    },
+    'datetime_mdy': {
+        'output': '%Y-%m-%d %H:%M',
+        'input_formats': ['%m/%d/%Y %H:%M', '%m-%d-%Y %H:%M'],
+    },
+    'datetime_dmy': {
+        'output': '%Y-%m-%d %H:%M',
+        'input_formats': ['%d/%m/%Y %H:%M', '%d-%m-%Y %H:%M'],
+    },
+    'datetime_seconds_ymd': {
+        'output': '%Y-%m-%d %H:%M:%S',
+        'input_formats': ['%Y-%m-%d %H:%M:%S', '%Y/%m/%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S'],
+    },
+    'datetime_seconds_mdy': {
+        'output': '%Y-%m-%d %H:%M:%S',
+        'input_formats': ['%m/%d/%Y %H:%M:%S', '%m-%d-%Y %H:%M:%S'],
+    },
+    'datetime_seconds_dmy': {
+        'output': '%Y-%m-%d %H:%M:%S',
+        'input_formats': ['%d/%m/%Y %H:%M:%S', '%d-%m-%Y %H:%M:%S'],
+    },
+    'time': {
+        'output': '%H:%M',
+        'input_formats': ['%H:%M:%S', '%H:%M', '%H%M'],
+    },
+}
+
 
 def parse_redcap_choices(raw_choices):
     """Parse REDCap 'code, label | code, label | ...' into a list of dicts.
@@ -366,13 +413,40 @@ def validate_and_format_response_value(raw, field_type, validation, choices):
 
 
 def _validate_date_like(raw, validation):
-    """Parse a date/datetime string and reformat to the REDCap YMD format.
+    """Parse a date/datetime string and reformat to the REDCap-expected format.
 
-    validation is one of: date_ymd, date_mdy, date_dmy,
-                          datetime_ymd, datetime_mdy, datetime_dmy,
-                          datetime_seconds_ymd, datetime_seconds_mdy,
-                          datetime_seconds_dmy.
+    The REDCap validation type (e.g. date_ymd, datetime_seconds_mdy, time)
+    determines BOTH the expected output format and the input formats we try
+    in order. We try strptime with each expected input format first, then
+    fall back to dateutil's flexible parsing with hints (yearfirst/dayfirst)
+    derived from the validation type.
+
+    Args:
+        raw: the raw string from QuestionnaireItemResponse.response_value.
+        validation: one of date_ymd, date_mdy, date_dmy, datetime_ymd,
+                    datetime_mdy, datetime_dmy, datetime_seconds_ymd,
+                    datetime_seconds_mdy, datetime_seconds_dmy.
     """
+    fmt = _REDCAP_FORMATS.get(validation)
+    if fmt is None:
+        # Unknown validation type — fall back to dateutil with no hints.
+        try:
+            parsed = _date_parser.parse(str(raw))
+        except (ValueError, OverflowError, TypeError) as exc:
+            return (None, f"value '{raw}' could not be parsed as a date ({exc})")
+        return (parsed.strftime('%Y-%m-%d %H:%M:%S'), None)
+
+    s = str(raw).strip()
+
+    # Step 1: Try each input format that REDCap's validation type implies.
+    for in_fmt in fmt['input_formats']:
+        try:
+            parsed = _datetime.strptime(s, in_fmt)
+            return (parsed.strftime(fmt['output']), None)
+        except ValueError:
+            continue
+
+    # Step 2: Fall back to dateutil with hints derived from the validation type.
     kwargs = {}
     if validation.endswith('_ymd'):
         kwargs['yearfirst'] = True
@@ -381,29 +455,47 @@ def _validate_date_like(raw, validation):
     # _mdy → dateutil default (month-first)
 
     try:
-        parsed = _date_parser.parse(str(raw), **kwargs)
+        parsed = _date_parser.parse(s, **kwargs)
     except (ValueError, OverflowError, TypeError) as exc:
         return (None, f"value '{raw}' could not be parsed as a date ({exc})")
 
-    if validation.startswith('date_'):
-        return (parsed.strftime('%Y-%m-%d'), None)
-    if validation.startswith('datetime_seconds_'):
-        return (parsed.strftime('%Y-%m-%d %H:%M:%S'), None)
-    if validation.startswith('datetime_'):
-        return (parsed.strftime('%Y-%m-%d %H:%M'), None)
-    # Should not reach here given the caller's guards.
-    return (parsed.strftime('%Y-%m-%d %H:%M:%S'), None)
+    return (parsed.strftime(fmt['output']), None)
 
 
 def _validate_time(raw):
-    """Parse a time string and reformat to HH:MM (or HH:MM:SS if seconds)."""
+    """Parse a time string and reformat to the REDCap-expected format (HH:MM).
+
+    REDCap's `time` validation type expects HH:MM. We try strptime with the
+    expected format first, then common variants (HH:MM:SS, HHMM), then fall
+    back to dateutil for formats like "2:30 PM". Pure-digit strings that don't
+    match any strptime format are rejected (dateutil would misinterpret them
+    as years).
+    """
+    fmt = _REDCAP_FORMATS['time']
+    s = str(raw).strip()
+
+    # Step 1: Try each input format that REDCap's time validation implies.
+    for in_fmt in fmt['input_formats']:
+        try:
+            parsed = _datetime.strptime(s, in_fmt)
+            return (parsed.strftime(fmt['output']), None)
+        except ValueError:
+            continue
+
+    # Step 2: Pure-digit strings that didn't match above are invalid — do NOT
+    # fall back to dateutil, which would interpret them as years (e.g. "2500"
+    # → year 2500 → 00:00).
+    if s.isdigit():
+        return (None, f"value '{raw}' could not be parsed as a time "
+                      f"(expected HH:MM format)")
+
+    # Step 3: Fall back to dateutil for non-digit formats like "2:30 PM".
     try:
-        parsed = _date_parser.parse(str(raw))
+        parsed = _date_parser.parse(s)
     except (ValueError, OverflowError, TypeError) as exc:
         return (None, f"value '{raw}' could not be parsed as a time ({exc})")
-    if parsed.second:
-        return (parsed.strftime('%H:%M:%S'), None)
-    return (parsed.strftime('%H:%M'), None)
+
+    return (parsed.strftime(fmt['output']), None)
 
 
 def _validate_number(raw, validation):
