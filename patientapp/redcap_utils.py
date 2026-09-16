@@ -5,7 +5,10 @@ All functions accept a `ProjectRedcapMapping` instance (or explicit url/token)
 and return plain Python dicts/lists so callers stay decoupled from PyCap internals.
 """
 
+import re
+
 import redcap as pycap
+from dateutil import parser as _date_parser
 
 
 # ---------------------------------------------------------------------------
@@ -180,3 +183,226 @@ def import_records(mapping, rows: list):
     """
     rc = get_redcap_project(mapping)
     return rc.import_records(rows)
+
+
+# ---------------------------------------------------------------------------
+# Field-type validation & formatting for exports
+# ---------------------------------------------------------------------------
+
+# Field types for which auto-validation/formatting takes precedence over the
+# manual `response_transform` on RedcapFieldToItemMapping.
+_AUTO_VALIDATED_FIELD_TYPES = {
+    'radio', 'dropdown', 'checkbox',
+    'yesno', 'truefalse',
+    'slider', 'calc',
+    'descriptive', 'sql', 'file',
+}
+
+# text_validation_type values that trigger auto-validation for `text` fields.
+_AUTO_VALIDATED_TEXT_VALIDATIONS = {
+    'integer', 'number', 'number_1dp', 'number_2dp', 'number_3dp', 'number_4dp',
+    'email', 'phone', 'zipcode', 'alpha_only', 'alpha_only_uppercase',
+    'time',
+}
+
+# Regex patterns for text validation types.
+_TEXT_VALIDATION_PATTERNS = {
+    'email': re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$'),
+    'phone': re.compile(r'^[+()\d][\d\s()\-]+$'),
+    'zipcode': re.compile(r'^[A-Za-z0-9 \-]{3,10}$'),
+    'alpha_only': re.compile(r'^[A-Za-z]+$'),
+    'alpha_only_uppercase': re.compile(r'^[A-Z]+$'),
+}
+
+
+def parse_redcap_choices(raw_choices):
+    """Parse REDCap 'code, label | code, label | ...' into a list of dicts.
+
+    Returns: [{'code': str, 'label': str}, ...]
+    """
+    if not raw_choices:
+        return []
+    choices = []
+    for part in raw_choices.split('|'):
+        part = part.strip()
+        if ',' in part:
+            code, _, label = part.partition(',')
+            choices.append({'code': code.strip(), 'label': label.strip()})
+    return choices
+
+
+def has_auto_validation(field_type, validation):
+    """Return True if this REDCap field should use auto-validation/formatting
+    instead of the manual `response_transform`.
+
+    - Choice/yesno/truefalse/slider/calc/descriptive/sql/file field types always
+      use auto-validation (regardless of `validation`).
+    - `text` fields use auto-validation only when `validation` is a known
+      text_validation_type (date_*, datetime_*, time, integer, number*, email,
+      phone, zipcode, alpha_only*).
+    - `notes` and plain `text` (no/unknown validation) fall back to the manual
+      transform.
+    """
+    if field_type in _AUTO_VALIDATED_FIELD_TYPES:
+        return True
+    if field_type == 'text':
+        if not validation:
+            return False
+        if validation.startswith(('date_', 'datetime_')):
+            return True
+        return validation in _AUTO_VALIDATED_TEXT_VALIDATIONS
+    return False
+
+
+def validate_and_format_response_value(raw, field_type, validation, choices):
+    """Validate and format a raw response_value string for a REDCap field.
+
+    Args:
+        raw: the raw string from QuestionnaireItemResponse.response_value.
+        field_type: REDCap `field_type` (e.g. 'text', 'radio', 'yesno').
+        validation: REDCap `text_validation_type_or_show_slider_number`.
+        choices: list of {'code', 'label'} dicts (for radio/dropdown/checkbox).
+
+    Returns:
+        (formatted_value, error_message_or_None):
+        - formatted_value: string to write to the export row, or None on error.
+        - error_message: None on success, human-readable string on failure.
+    """
+    if raw is None or raw == '':
+        return ('', None)
+
+    # ── date / datetime / time ────────────────────────────────────────────
+    if field_type == 'text' and validation and (
+        validation.startswith('date_') or validation.startswith('datetime_')
+    ):
+        return _validate_date_like(raw, validation)
+    if field_type == 'text' and validation == 'time':
+        return _validate_time(raw)
+
+    # ── numeric (text + integer/number*) ──────────────────────────────────
+    if field_type == 'text' and validation in ('integer', 'number',
+                                                'number_1dp', 'number_2dp',
+                                                'number_3dp', 'number_4dp'):
+        return _validate_number(raw, validation)
+
+    # ── text format validations (email/phone/zipcode/alpha) ────────────────
+    if field_type == 'text' and validation in _TEXT_VALIDATION_PATTERNS:
+        pattern = _TEXT_VALIDATION_PATTERNS[validation]
+        if pattern.match(str(raw)):
+            return (str(raw), None)
+        return (None, f"value '{raw}' does not match {validation} format")
+
+    # ── choice fields (radio / dropdown) ─────────────────────────────────
+    if field_type in ('radio', 'dropdown'):
+        valid_codes = {str(c['code']) for c in (choices or [])}
+        if str(raw) in valid_codes:
+            return (str(raw), None)
+        return (None, f"value '{raw}' is not a valid choice code "
+                      f"(expected one of {sorted(valid_codes) or '[]'})")
+
+    # ── checkbox (comma-separated codes) ──────────────────────────────────
+    if field_type == 'checkbox':
+        valid_codes = {str(c['code']) for c in (choices or [])}
+        parts = [p.strip() for p in str(raw).split(',') if p.strip()]
+        if not parts:
+            return ('', None)
+        for p in parts:
+            if p not in valid_codes:
+                return (None, f"value '{p}' is not a valid checkbox code "
+                              f"(expected one of {sorted(valid_codes) or '[]'})")
+        return (','.join(parts), None)
+
+    # ── yesno / truefalse ────────────────────────────────────────────────
+    if field_type in ('yesno', 'truefalse'):
+        return _validate_boolean(raw)
+
+    # ── slider ───────────────────────────────────────────────────────────
+    if field_type == 'slider':
+        if validation == 'number':
+            return _validate_number(raw, 'number')
+        return _validate_number(raw, 'integer')
+
+    # ── calc ─────────────────────────────────────────────────────────────
+    if field_type == 'calc':
+        return _validate_number(raw, 'number')
+
+    # ── non-exportable field types ───────────────────────────────────────
+    if field_type in ('descriptive', 'sql', 'file'):
+        return (None, f"field type '{field_type}' is not exportable")
+
+    # ── fallback: plain text/notes or unknown validation → passthrough ────
+    return (str(raw), None)
+
+
+def _validate_date_like(raw, validation):
+    """Parse a date/datetime string and reformat to the REDCap YMD format.
+
+    validation is one of: date_ymd, date_mdy, date_dmy,
+                          datetime_ymd, datetime_mdy, datetime_dmy,
+                          datetime_seconds_ymd, datetime_seconds_mdy,
+                          datetime_seconds_dmy.
+    """
+    kwargs = {}
+    if validation.endswith('_ymd'):
+        kwargs['yearfirst'] = True
+    elif validation.endswith('_dmy'):
+        kwargs['dayfirst'] = True
+    # _mdy → dateutil default (month-first)
+
+    try:
+        parsed = _date_parser.parse(str(raw), **kwargs)
+    except (ValueError, OverflowError, TypeError) as exc:
+        return (None, f"value '{raw}' could not be parsed as a date ({exc})")
+
+    if validation.startswith('date_'):
+        return (parsed.strftime('%Y-%m-%d'), None)
+    if validation.startswith('datetime_seconds_'):
+        return (parsed.strftime('%Y-%m-%d %H:%M:%S'), None)
+    if validation.startswith('datetime_'):
+        return (parsed.strftime('%Y-%m-%d %H:%M'), None)
+    # Should not reach here given the caller's guards.
+    return (parsed.strftime('%Y-%m-%d %H:%M:%S'), None)
+
+
+def _validate_time(raw):
+    """Parse a time string and reformat to HH:MM (or HH:MM:SS if seconds)."""
+    try:
+        parsed = _date_parser.parse(str(raw))
+    except (ValueError, OverflowError, TypeError) as exc:
+        return (None, f"value '{raw}' could not be parsed as a time ({exc})")
+    if parsed.second:
+        return (parsed.strftime('%H:%M:%S'), None)
+    return (parsed.strftime('%H:%M'), None)
+
+
+def _validate_number(raw, validation):
+    """Validate and format a numeric value.
+
+    validation is one of: integer, number, number_1dp, number_2dp,
+                          number_3dp, number_4dp.
+    """
+    try:
+        val = float(raw)
+    except (ValueError, TypeError):
+        return (None, f"value '{raw}' is not a valid number")
+    if validation == 'integer':
+        return (str(int(val)), None)
+    if validation == 'number':
+        # General float — strip trailing zeros but keep at least one decimal.
+        s = f'{val:.10f}'.rstrip('0')
+        if s.endswith('.'):
+            s += '0'
+        return (s, None)
+    # number_Ndp
+    ndp = int(validation.split('_')[1].replace('dp', ''))
+    return (f'{val:.{ndp}f}', None)
+
+
+def _validate_boolean(raw):
+    """Normalize yesno/truefalse values to '0' or '1'."""
+    s = str(raw).strip().lower()
+    if s in ('1', 'yes', 'true', 'y', 't'):
+        return ('1', None)
+    if s in ('0', 'no', 'false', 'n', 'f'):
+        return ('0', None)
+    return (None, f"value '{raw}' is not a valid yes/no value")

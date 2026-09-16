@@ -25,6 +25,9 @@ from .redcap_utils import (
     fetch_form_instances,
     fetch_field_values_for_record,
     import_records as redcap_import_records,
+    parse_redcap_choices,
+    has_auto_validation,
+    validate_and_format_response_value,
 )
 from .forms import (
     PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm,
@@ -4516,6 +4519,32 @@ def _apply_response_transform(raw, transform):
     return raw
 
 
+def _build_field_meta_lookup(mapping, fm):
+    """Build {redcap_field_name: (field_type, validation, choices)} from the
+    REDCap project metadata, filtered to the form's fields.
+
+    Returns {} if metadata is unavailable. `choices` is a list of
+    {'code', 'label'} dicts for radio/dropdown/checkbox fields, else [].
+    """
+    info = mapping.redcap_project_info or {}
+    metadata = info.get('metadata', [])
+    if not metadata:
+        return {}
+    lookup = {}
+    for field in metadata:
+        if field.get('form_name') != fm.redcap_form_name:
+            continue
+        fname = field.get('field_name', '')
+        if not fname:
+            continue
+        ftype = field.get('field_type', '')
+        validation = field.get('text_validation_type_or_show_slider_number', '')
+        raw_choices = field.get('select_choices_or_calculations', '')
+        choices = parse_redcap_choices(raw_choices) if ftype in ('radio', 'dropdown', 'checkbox') else []
+        lookup[fname] = (ftype, validation, choices)
+    return lookup
+
+
 def _collect_export_rows_per_fm(mapping, selected_fms, id_map):
     """Build per-form rows for REDCap import, grouped by form mapping.
 
@@ -4545,6 +4574,14 @@ def _collect_export_rows_per_fm(mapping, selected_fms, id_map):
         }
 
         date_fmt = _SUBMISSION_DATE_FORMATS.get(fm.submission_date_format) if fm.submission_date_format else None
+
+        # Build per-field REDCap metadata lookup for auto-validation/formatting.
+        field_meta_lookup = _build_field_meta_lookup(mapping, fm)
+        if not field_meta_lookup and not (mapping.redcap_project_info or {}):
+            warnings.append(
+                f'Form "{fm.redcap_form_name}": REDCap metadata not fetched — '
+                f'field-type validation skipped.'
+            )
 
         fm_rows = []
         warnings = []
@@ -4637,10 +4674,33 @@ def _collect_export_rows_per_fm(mapping, selected_fms, id_map):
                 r.questionnaire_item_id: r.response_value
                 for r in QuestionnaireItemResponse.objects.filter(questionnaire_submission=sub)
             }
+            patient_name = sub.patient.name if sub.patient else str(sub.patient_id)
+            skip_row = False
             for fm_field in field_maps:
                 raw = responses.get(fm_field.questionnaire_item_id, '')
-                row[fm_field.redcap_field_name] = _apply_response_transform(raw, fm_field.response_transform)
-            fm_rows.append(row)
+                meta = field_meta_lookup.get(fm_field.redcap_field_name)
+
+                if meta and has_auto_validation(meta[0], meta[1]):
+                    # Auto-validation takes precedence over manual response_transform.
+                    formatted, err = validate_and_format_response_value(
+                        raw, meta[0], meta[1], meta[2]
+                    )
+                    if err:
+                        warnings.append(
+                            f'Patient "{patient_name}" (study ID {study_id}): '
+                            f'field "{fm_field.redcap_field_name}" — {err} '
+                            f'(value: "{raw}"). Row skipped.'
+                        )
+                        skip_row = True
+                        break
+                    row[fm_field.redcap_field_name] = formatted
+                else:
+                    # Plain text/notes or no metadata: apply manual transform (backward compatible).
+                    row[fm_field.redcap_field_name] = _apply_response_transform(
+                        raw, fm_field.response_transform
+                    )
+            if not skip_row:
+                fm_rows.append(row)
         result[fm.pk] = (fm, fm_rows, warnings)
     return result
 
