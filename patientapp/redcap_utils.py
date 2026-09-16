@@ -254,6 +254,33 @@ def has_auto_validation(field_type, validation):
     return False
 
 
+def _match_choice_code(raw, valid_codes):
+    """Match a raw value against a set of valid REDCap choice codes.
+
+    Does strict string matching first, then falls back to numeric
+    normalization: if both the raw value and a code parse as floats and are
+    equal, they match (e.g. '3.00' matches code '3'). This protects against
+    stored decimal-formatted values even when no manual transform is configured.
+
+    Returns the matching code string (in the code's canonical form) or None.
+    """
+    s = str(raw)
+    if s in valid_codes:
+        return s
+    # Numeric fallback: try to coerce both sides to float.
+    try:
+        raw_num = float(s)
+    except (ValueError, TypeError):
+        return None
+    for code in valid_codes:
+        try:
+            if float(code) == raw_num:
+                return code
+        except (ValueError, TypeError):
+            continue
+    return None
+
+
 def validate_and_format_response_value(raw, field_type, validation, choices):
     """Validate and format a raw response_value string for a REDCap field.
 
@@ -295,8 +322,9 @@ def validate_and_format_response_value(raw, field_type, validation, choices):
     # ── choice fields (radio / dropdown) ─────────────────────────────────
     if field_type in ('radio', 'dropdown'):
         valid_codes = {str(c['code']) for c in (choices or [])}
-        if str(raw) in valid_codes:
-            return (str(raw), None)
+        matched = _match_choice_code(raw, valid_codes)
+        if matched is not None:
+            return (matched, None)
         return (None, f"value '{raw}' is not a valid choice code "
                       f"(expected one of {sorted(valid_codes) or '[]'})")
 
@@ -306,11 +334,14 @@ def validate_and_format_response_value(raw, field_type, validation, choices):
         parts = [p.strip() for p in str(raw).split(',') if p.strip()]
         if not parts:
             return ('', None)
+        matched_parts = []
         for p in parts:
-            if p not in valid_codes:
+            matched = _match_choice_code(p, valid_codes)
+            if matched is None:
                 return (None, f"value '{p}' is not a valid checkbox code "
                               f"(expected one of {sorted(valid_codes) or '[]'})")
-        return (','.join(parts), None)
+            matched_parts.append(matched)
+        return (','.join(matched_parts), None)
 
     # ── yesno / truefalse ────────────────────────────────────────────────
     if field_type in ('yesno', 'truefalse'):

@@ -4575,6 +4575,9 @@ def _collect_export_rows_per_fm(mapping, selected_fms, id_map):
 
         date_fmt = _SUBMISSION_DATE_FORMATS.get(fm.submission_date_format) if fm.submission_date_format else None
 
+        fm_rows = []
+        warnings = []
+
         # Build per-field REDCap metadata lookup for auto-validation/formatting.
         field_meta_lookup = _build_field_meta_lookup(mapping, fm)
         if not field_meta_lookup and not (mapping.redcap_project_info or {}):
@@ -4583,8 +4586,6 @@ def _collect_export_rows_per_fm(mapping, selected_fms, id_map):
                 f'field-type validation skipped.'
             )
 
-        fm_rows = []
-        warnings = []
         # Track (study_id, event_name) keys for non-repeating forms to detect duplicates
         _is_repeating = fm.redcap_form_is_repeating or fm.redcap_event_is_repeating
         _is_in_event = fm.redcap_form_is_in_event
@@ -4678,12 +4679,18 @@ def _collect_export_rows_per_fm(mapping, selected_fms, id_map):
             skip_row = False
             for fm_field in field_maps:
                 raw = responses.get(fm_field.questionnaire_item_id, '')
+                # Apply the manual response_transform first to normalize the stored
+                # value (e.g. '3.00' → '3' via to_int) so it can match REDCap choice
+                # codes and numeric validations. Auto-validation then validates and
+                # reformats the normalized value.
+                normalized = _apply_response_transform(raw, fm_field.response_transform)
                 meta = field_meta_lookup.get(fm_field.redcap_field_name)
 
                 if meta and has_auto_validation(meta[0], meta[1]):
-                    # Auto-validation takes precedence over manual response_transform.
+                    # Auto-validation takes precedence for final formatting, but
+                    # operates on the normalized value (post-manual-transform).
                     formatted, err = validate_and_format_response_value(
-                        raw, meta[0], meta[1], meta[2]
+                        normalized, meta[0], meta[1], meta[2]
                     )
                     if err:
                         warnings.append(
@@ -4695,10 +4702,8 @@ def _collect_export_rows_per_fm(mapping, selected_fms, id_map):
                         break
                     row[fm_field.redcap_field_name] = formatted
                 else:
-                    # Plain text/notes or no metadata: apply manual transform (backward compatible).
-                    row[fm_field.redcap_field_name] = _apply_response_transform(
-                        raw, fm_field.response_transform
-                    )
+                    # Plain text/notes or no metadata: use the normalized value.
+                    row[fm_field.redcap_field_name] = normalized
             if not skip_row:
                 fm_rows.append(row)
         result[fm.pk] = (fm, fm_rows, warnings)

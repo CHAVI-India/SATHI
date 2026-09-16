@@ -245,6 +245,62 @@ class ValidateCheckboxTests(SimpleTestCase):
         self.assertEqual((val, err), ('', None))
 
 
+class ValidateChoiceNumericNormalizationTests(SimpleTestCase):
+    """Regression tests for decimal-formatted values matching integer choice codes.
+
+    Stored response_value strings are often decimal-formatted (e.g. '3.00')
+    while REDCap radio/dropdown choice codes are integers ('3'). The validator
+    must normalize these so they match.
+    """
+
+    CHOICES = [
+        {'code': '0', 'label': 'Not at all'},
+        {'code': '1', 'label': 'A little'},
+        {'code': '2', 'label': 'Quite a bit'},
+        {'code': '3', 'label': 'Very much'},
+        {'code': '4', 'label': 'Extremely'},
+    ]
+
+    def test_radio_decimal_matches_int_code(self):
+        val, err = validate_and_format_response_value('3.00', 'radio', '', self.CHOICES)
+        self.assertEqual((val, err), ('3', None))
+
+    def test_radio_decimal_zero_matches(self):
+        val, err = validate_and_format_response_value('0.00', 'radio', '', self.CHOICES)
+        self.assertEqual((val, err), ('0', None))
+
+    def test_radio_int_still_matches(self):
+        val, err = validate_and_format_response_value('3', 'radio', '', self.CHOICES)
+        self.assertEqual((val, err), ('3', None))
+
+    def test_radio_decimal_non_matching_still_fails(self):
+        val, err = validate_and_format_response_value('5.00', 'radio', '', self.CHOICES)
+        self.assertIsNone(val)
+        self.assertIn('not a valid choice code', err)
+
+    def test_dropdown_decimal_matches(self):
+        val, err = validate_and_format_response_value('2.00', 'dropdown', '', self.CHOICES)
+        self.assertEqual((val, err), ('2', None))
+
+    def test_radio_non_numeric_code_not_corrupted(self):
+        # Codes like 'a', 'b' must not be coerced numerically.
+        choices = [{'code': 'a', 'label': 'X'}, {'code': 'b', 'label': 'Y'}]
+        val, err = validate_and_format_response_value('a', 'radio', '', choices)
+        self.assertEqual((val, err), ('a', None))
+        val, err = validate_and_format_response_value('b', 'radio', '', choices)
+        self.assertEqual((val, err), ('b', None))
+        val, err = validate_and_format_response_value('c', 'radio', '', choices)
+        self.assertIsNone(val)
+
+    def test_checkbox_decimal_matches(self):
+        val, err = validate_and_format_response_value('1.00,2.00', 'checkbox', '', self.CHOICES)
+        self.assertEqual((val, err), ('1,2', None))
+
+    def test_checkbox_mixed_decimal_and_int(self):
+        val, err = validate_and_format_response_value('1,2.00', 'checkbox', '', self.CHOICES)
+        self.assertEqual((val, err), ('1,2', None))
+
+
 class ValidateBooleanTests(SimpleTestCase):
     def test_yesno_yes(self):
         val, err = validate_and_format_response_value('yes', 'yesno', '', [])
