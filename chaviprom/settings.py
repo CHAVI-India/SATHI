@@ -330,6 +330,11 @@ LOGGING = {
             'style': '{',
         },
     },
+    'filters': {
+        'phi_mask': {
+            '()': 'chaviprom.logging_filters.PHIMaskingFilter',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
@@ -341,6 +346,7 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 10,  # 10MB
             'backupCount': 5,
             'formatter': 'verbose',
+            'filters': ['phi_mask'],
         },
         'error_file': {
             'class': 'logging.handlers.RotatingFileHandler',
@@ -349,6 +355,7 @@ LOGGING = {
             'backupCount': 5,
             'formatter': 'verbose',
             'level': 'ERROR',
+            'filters': ['phi_mask'],
         },
         'promapp_rules_file': {
             'class': 'logging.handlers.RotatingFileHandler',
@@ -357,6 +364,7 @@ LOGGING = {
             'backupCount': 5,
             'level': 'DEBUG',
             'formatter': 'verbose',
+            'filters': ['phi_mask'],
         },
         'security_file': {
             'class': 'logging.handlers.RotatingFileHandler',
@@ -364,6 +372,7 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 10,  # 10MB
             'backupCount': 5,
             'formatter': 'verbose',
+            'filters': ['phi_mask'],
         },
         'tfa_file': {
             'class': 'logging.handlers.RotatingFileHandler',
@@ -371,6 +380,16 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 10,  # 10MB
             'backupCount': 5,
             'formatter': 'verbose',
+            'filters': ['phi_mask'],
+        },
+        'plotting_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'plotting_data.log'),
+            'maxBytes': 1024 * 1024 * 10,  # 10MB
+            'backupCount': 5,
+            'level': 'DEBUG',
+            'formatter': 'verbose',
+            'filters': ['phi_mask'],
         },
     },
     'root': {
@@ -415,6 +434,11 @@ LOGGING = {
         },
         'providerapp': {
             'handlers': ['console', 'file', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'plotting_data': {
+            'handlers': ['plotting_file'],
             'level': 'INFO',
             'propagate': False,
         },

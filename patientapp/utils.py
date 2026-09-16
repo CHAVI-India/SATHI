@@ -20,24 +20,8 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from patientapp.models import Patient, Institution, Diagnosis, Treatment, TreatmentType, TreatmentIntentChoices
 
-# Set up plotting data logger
+# Set up plotting data logger (handler/rotation/filter configured in settings.LOGGING)
 plotting_logger = logging.getLogger('plotting_data')
-plotting_logger.setLevel(logging.INFO)
-
-# Create file handler if it doesn't exist
-if not plotting_logger.handlers:
-    log_dir = os.path.join(settings.BASE_DIR, 'logs')
-    os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(log_dir, 'plotting_data.log')
-    
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setLevel(logging.INFO)
-    
-    # Create formatter
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    
-    plotting_logger.addHandler(file_handler)
 
 logger = logging.getLogger(__name__)
 
