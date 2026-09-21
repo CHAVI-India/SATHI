@@ -18,7 +18,7 @@
         <span class="ml-3 text-xs text-gray-400">{% trans "REDCap ID:" %} <span class="font-mono text-gray-600">{{ redcap_study_id }}</span></span>
       </p>
     </div>
-    <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}{% if filter_params.match_filter %}?match_filter={{ filter_params.match_filter }}{% endif %}{% if filter_params.per_page %}&per_page={{ filter_params.per_page }}{% endif %}{% if filter_params.page %}&page={{ filter_params.page }}{% endif %}" variant="secondary" size="sm">
+    <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}{% querystring %}" variant="secondary" size="sm">
       ← {% trans "Back" %}
     </c-link_button>
   </div>
@@ -261,7 +261,7 @@
     {% endfor %}
 
     <div class="flex justify-end gap-3 mt-2">
-      <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}{% if filter_params.match_filter %}?match_filter={{ filter_params.match_filter }}{% endif %}{% if filter_params.per_page %}&per_page={{ filter_params.per_page }}{% endif %}{% if filter_params.page %}&page={{ filter_params.page }}{% endif %}" variant="secondary">
+      <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}{% querystring %}" variant="secondary">
         {% trans "Cancel" %}
       </c-link_button>
       <c-button type="submit" variant="primary">{% trans "Save Selected Matches" %}</c-button>
