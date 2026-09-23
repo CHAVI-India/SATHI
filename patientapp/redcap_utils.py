@@ -396,8 +396,9 @@ def validate_and_format_response_value(raw, field_type, validation, choices):
 
     # ── slider ───────────────────────────────────────────────────────────
     if field_type == 'slider':
-        if validation == 'number':
-            return _validate_number(raw, 'number')
+        # For sliders, 'number' in the validation column is only the
+        # "show slider number" display toggle — not a real validation.
+        # Slider values are always stored as integers (min–max, step 1).
         return _validate_number(raw, 'integer')
 
     # ── calc ─────────────────────────────────────────────────────────────

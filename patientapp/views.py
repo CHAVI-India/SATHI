@@ -3582,8 +3582,9 @@ def redcap_field_mappings(request, pk, mapping_pk, fm_pk):
         if ftype == 'calc':
             return _RTC.STRIP_ZEROS
         if ftype == 'slider':
-            # slider validation is either empty or 'number'
-            return _RTC.TO_INT if not validation else _RTC.STRIP_ZEROS
+            # Slider values are always integers; 'number' in the validation
+            # column only toggles displaying the value on the slider widget.
+            return _RTC.TO_INT
         return _RTC.NONE
 
     redcap_fields = []  # [{name, label_plain, field_type, validation, choices, field_info_summary}]

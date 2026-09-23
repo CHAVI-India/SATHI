@@ -376,9 +376,15 @@ class ValidateSliderCalcTests(SimpleTestCase):
         val, err = validate_and_format_response_value('5', 'slider', '', [])
         self.assertEqual((val, err), ('5', None))
 
-    def test_slider_number_validation(self):
+    def test_slider_number_flag(self):
+        # 'number' is the "show slider number" display toggle, not a
+        # validation — slider values are always integers.
         val, err = validate_and_format_response_value('5', 'slider', 'number', [])
-        self.assertEqual((val, err), ('5.0', None))
+        self.assertEqual((val, err), ('5', None))
+
+    def test_slider_decimal_stored_value(self):
+        val, err = validate_and_format_response_value('5.00', 'slider', 'number', [])
+        self.assertEqual((val, err), ('5', None))
 
     def test_slider_invalid(self):
         val, err = validate_and_format_response_value('abc', 'slider', '', [])
