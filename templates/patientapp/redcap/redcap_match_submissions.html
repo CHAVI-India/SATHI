@@ -82,6 +82,12 @@
               data-unit="months">{% trans "Months" %}</button>
           </div>
           <span class="text-xs text-gray-400">{{ sub_rows|length }} {% trans "submission(s)" %}</span>
+          {% if entry.saved_count %}
+            <a href="{% url 'redcap_match_reset' pk=project.pk mapping_pk=mapping.pk patient_pk=patient.pk %}{% querystring fm=fm.pk all=1 %}"
+              class="text-xs font-medium text-red-600 hover:text-red-800 hover:underline">
+              {% trans "Reset saved" %} ({{ entry.saved_count }})
+            </a>
+          {% endif %}
         </div>
       </div>
 
@@ -215,6 +221,8 @@
               <td class="px-4 py-3 whitespace-nowrap">
                 {% if row.confirmed %}
                   <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">✓ {% trans "Saved" %}</span>
+                  <a href="{% url 'redcap_match_reset' pk=project.pk mapping_pk=mapping.pk patient_pk=patient.pk %}{% querystring fm=fm.pk sub=row.submission.pk %}"
+                    class="ml-2 text-xs text-red-600 hover:text-red-800 hover:underline">{% trans "Reset" %}</a>
                 {% else %}
                   <span class="inline-flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">⚡ {% trans "Suggested" %}</span>
                 {% endif %}
@@ -264,6 +272,11 @@
       <c-link_button href="{% url 'redcap_patient_ids' pk=project.pk mapping_pk=mapping.pk %}{% querystring %}" variant="secondary">
         {% trans "Cancel" %}
       </c-link_button>
+      <button type="submit"
+        formaction="{% url 'redcap_match_reset' pk=project.pk mapping_pk=mapping.pk patient_pk=patient.pk %}"
+        class="inline-flex items-center justify-center font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 px-4 py-2 text-base">
+        {% trans "Reset Selected" %}
+      </button>
       <c-button type="submit" variant="primary">{% trans "Save Selected Matches" %}</c-button>
     </div>
 

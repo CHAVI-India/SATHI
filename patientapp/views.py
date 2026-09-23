@@ -4335,6 +4335,7 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
             'date_field_form_name': date_field_form_name,
             'available_events': available_events,
             'event_dates': event_dates,
+            'saved_count': sum(1 for r in sub_rows if r['confirmed']),
         })
 
     if request.method == 'POST':
@@ -4395,6 +4396,125 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
         'patient': patient,
         'redcap_study_id': redcap_study_id,
         'fm_data': fm_data,
+        'filter_params': filter_params,
+    })
+
+
+@login_required
+def redcap_match_reset(request, pk, mapping_pk, patient_pk):
+    """Confirm and clear saved submission → REDCap instance matches.
+
+    Entry modes:
+      - GET ?fm=<fm_pk>&sub=<sub_pk>  — single submission match
+      - GET ?fm=<fm_pk>&all=1         — all matches for one form mapping
+      - POST include_<fm>_<sub> keys  — checkbox-selected rows from the match form
+    POST with confirm=1 performs the deletion.
+    """
+    guard = _redcap_permission_required(request, 'delete_redcapinstancetosubmissionmapping')
+    if guard:
+        return guard
+    project = get_object_or_404(Project, pk=pk)
+    mapping = get_object_or_404(ProjectRedcapMapping, pk=mapping_pk, project=project)
+    patient = get_object_or_404(Patient, pk=patient_pk)
+
+    from urllib.parse import urlencode
+
+    def _match_redirect(params):
+        redirect_url = redirect(
+            'redcap_match_submissions',
+            pk=pk, mapping_pk=mapping_pk, patient_pk=patient_pk,
+        )
+        qs_params = {}
+        for key in ('match_filter', 'per_page', 'page'):
+            val = params.get(key, '').strip()
+            if val:
+                qs_params[key] = val
+        if qs_params:
+            redirect_url['Location'] += '?' + urlencode(qs_params)
+        return redirect_url
+
+    def _valid_uuids(values):
+        valid = []
+        for v in values:
+            try:
+                valid.append(uuid.UUID(str(v)))
+            except (ValueError, AttributeError, TypeError):
+                continue
+        return valid
+
+    base_qs = RedcapInstanceToSubmissionMapping.objects.filter(
+        redcap_form__project_redcap_mapping=mapping,
+        questionnaire_submission__patient=patient,
+    )
+
+    if request.method == 'POST' and request.POST.get('confirm') == '1':
+        fm_pk = request.POST.get('fm', '').strip()
+        sub_pks = _valid_uuids(request.POST.getlist('sub'))
+        if request.POST.get('all') == '1' and fm_pk:
+            qs = base_qs.filter(redcap_form_id=fm_pk)
+        elif sub_pks:
+            qs = base_qs.filter(questionnaire_submission_id__in=sub_pks)
+        else:
+            qs = base_qs.none()
+        try:
+            deleted_count, _details = qs.delete()
+        except ValueError:
+            deleted_count = 0
+        if deleted_count:
+            messages.success(request, _('{count} submission match(es) cleared.').format(count=deleted_count))
+        else:
+            messages.info(request, _('No saved matches to clear.'))
+        return _match_redirect(request.POST)
+
+    # Resolve the target set to display on the confirmation page
+    source = request.POST if request.method == 'POST' else request.GET
+    fm_pk = source.get('fm', '').strip()
+    reset_all = source.get('all') == '1'
+
+    if request.method == 'POST':
+        # "Reset Selected" — parse include_<fm>_<sub> checkbox keys
+        sub_pks = _valid_uuids(
+            parts[2]
+            for parts in (k.split('_', 2) for k in request.POST if k.startswith('include_'))
+            if len(parts) == 3
+        )
+        targets = base_qs.filter(questionnaire_submission_id__in=sub_pks)
+    elif reset_all and fm_pk:
+        targets = base_qs.filter(redcap_form_id=fm_pk)
+    elif source.get('sub', '').strip():
+        targets = base_qs.filter(
+            redcap_form_id=fm_pk,
+            questionnaire_submission_id=source.get('sub').strip(),
+        )
+    else:
+        targets = base_qs.none()
+
+    try:
+        targets = list(
+            targets.select_related(
+                'questionnaire_submission', 'redcap_form', 'redcap_form__questionnaire'
+            ).order_by('redcap_form_id', 'questionnaire_submission__submission_date')
+        )
+    except ValueError:
+        targets = []
+
+    if not targets:
+        messages.info(request, _('No saved matches to clear.'))
+        return _match_redirect(source)
+
+    filter_params = {}
+    for key in ('match_filter', 'per_page', 'page'):
+        val = source.get(key, '').strip()
+        if val:
+            filter_params[key] = val
+
+    return render(request, 'patientapp/redcap/redcap_match_reset_confirm.html', {
+        'project': project,
+        'mapping': mapping,
+        'patient': patient,
+        'targets': targets,
+        'reset_all': reset_all,
+        'fm_pk': fm_pk,
         'filter_params': filter_params,
     })
 

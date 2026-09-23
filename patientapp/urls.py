@@ -64,6 +64,7 @@ urlpatterns = [
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/patient-ids/', views.redcap_patient_ids, name='redcap_patient_ids'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/patient-ids/<uuid:patient_pk>/delete/', views.redcap_patient_id_delete, name='redcap_patient_id_delete'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/patient-ids/<uuid:patient_pk>/match/', views.redcap_match_submissions, name='redcap_match_submissions'),
+    path('projects/<uuid:pk>/redcap/<int:mapping_pk>/patient-ids/<uuid:patient_pk>/match/reset/', views.redcap_match_reset, name='redcap_match_reset'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/export/', views.redcap_export, name='redcap_export'),
     path('projects/<uuid:pk>/redcap/<int:mapping_pk>/export/download/', views.redcap_export_download, name='redcap_export_download'),
 ]

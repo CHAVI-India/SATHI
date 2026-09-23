@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load cotton %}
+
+{% block title %}{% trans "Clear Submission Matches" %} — {{ patient.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <div class="mb-6">
+    <c-link_button href="{% url 'redcap_match_submissions' pk=project.pk mapping_pk=mapping.pk patient_pk=patient.pk %}{% if filter_params %}?{% for k,v in filter_params.items %}{{ k }}={{ v|urlencode }}{% if not forloop.last %}&{% endif %}{% endfor %}{% endif %}" variant="secondary" size="sm">
+      ← {% trans "Back to Match Submissions" %}
+    </c-link_button>
+  </div>
+
+  <c-card shadow="md" padding="lg">
+    <div class="text-center mb-6">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 mb-4">
+        <svg class="w-8 h-8 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">{% trans "Clear Saved Submission Matches" %}</h1>
+      <p class="text-gray-600">
+        {% blocktrans with patient_name=patient.name patient_id=patient.patient_id count=targets|length %}
+          You are about to clear <strong>{{ count }}</strong> saved submission match(es) for patient <strong>{{ patient_name }}</strong> (ID: {{ patient_id }}).
+        {% endblocktrans %}
+      </p>
+    </div>
+
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+      <h3 class="text-sm font-semibold text-gray-700 mb-2">{% trans "Matches to clear:" %}</h3>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200">
+              <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Submission date" %}</th>
+              <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Questionnaire" %}</th>
+              <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">{% trans "REDCap form" %}</th>
+              <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Event" %}</th>
+              <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">{% trans "Instance" %}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for t in targets %}
+            <tr>
+              <td class="px-3 py-1.5 text-gray-700 whitespace-nowrap">{{ t.questionnaire_submission.submission_date|date:"Y-m-d H:i" }}</td>
+              <td class="px-3 py-1.5 text-gray-700">{{ t.redcap_form.questionnaire.name }}</td>
+              <td class="px-3 py-1.5 font-mono text-gray-700">{{ t.redcap_form.redcap_form_name }}</td>
+              <td class="px-3 py-1.5 font-mono text-gray-700">{{ t.redcap_event_name|default:"—" }}</td>
+              <td class="px-3 py-1.5 font-mono text-gray-700">{{ t.redcap_repeat_instance|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+      <h3 class="text-sm font-semibold text-yellow-800 mb-2">{% trans "Note:" %}</h3>
+      <p class="text-sm text-yellow-700">
+        {% trans "Clearing these matches will not delete any data already exported to REDCap or any submissions in SATHI. The submissions will return to the unmapped (suggested) state and can be re-matched later." %}
+      </p>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="confirm" value="1">
+      {% if reset_all %}
+        <input type="hidden" name="fm" value="{{ fm_pk }}">
+        <input type="hidden" name="all" value="1">
+      {% else %}
+        {% for t in targets %}
+          <input type="hidden" name="sub" value="{{ t.questionnaire_submission_id }}">
+        {% endfor %}
+      {% endif %}
+      {% if filter_params.match_filter %}<input type="hidden" name="match_filter" value="{{ filter_params.match_filter }}">{% endif %}
+      {% if filter_params.per_page %}<input type="hidden" name="per_page" value="{{ filter_params.per_page }}">{% endif %}
+      {% if filter_params.page %}<input type="hidden" name="page" value="{{ filter_params.page }}">{% endif %}
+      <div class="flex justify-center gap-3">
+        <c-link_button href="{% url 'redcap_match_submissions' pk=project.pk mapping_pk=mapping.pk patient_pk=patient.pk %}{% if filter_params %}?{% for k,v in filter_params.items %}{{ k }}={{ v|urlencode }}{% if not forloop.last %}&{% endif %}{% endfor %}{% endif %}" variant="secondary">
+          {% trans "Cancel" %}
+        </c-link_button>
+        <c-button type="submit" variant="danger">
+          {% trans "Yes, Clear Matches" %}
+        </c-button>
+      </div>
+    </form>
+  </c-card>
+</div>
+{% endblock %}
