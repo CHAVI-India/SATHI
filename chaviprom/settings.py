@@ -291,6 +291,11 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # Django Allauth settings
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# App-specific cookie names: cookies are scoped by host, not port, so other
+# Django apps on the same host with default names would clobber these.
+SESSION_COOKIE_NAME = 'chaviprom_sessionid'
+CSRF_COOKIE_NAME = 'chaviprom_csrftoken'
 ACCOUNT_LOGIN_METHODS = {'username', 'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = os.getenv('DJANGO_ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
