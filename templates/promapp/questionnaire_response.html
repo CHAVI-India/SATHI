@@ -789,7 +789,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            'X-CSRFToken': window.getCsrfToken()
           },
           body: JSON.stringify(responses)
         });
@@ -880,7 +880,7 @@
       const formData = new FormData();
       
       // Add CSRF token
-      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      const csrfToken = window.getCsrfToken();
       formData.append('csrfmiddlewaretoken', csrfToken);
       
       // Add all responses

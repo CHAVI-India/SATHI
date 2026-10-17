@@ -379,9 +379,10 @@
         }
         
         try {
-            // Get CSRF token
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
-                              document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+            // Get CSRF token (see window.getCsrfToken in base.html). It never reads
+            // the cookie by name, so it keeps working even though the server's
+            // CSRF_COOKIE_NAME is app-specific.
+            const csrfToken = window.getCsrfToken();
             
             // Dispatch batch task to Celery
             const dispatchUrl = '{% url "dispatch_plot_tasks" patient.id %}';

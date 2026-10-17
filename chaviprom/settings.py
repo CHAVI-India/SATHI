@@ -114,6 +114,10 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
+                # Django 4.2+ applies this by default, but we list it explicitly so
+                # `{{ csrf_token }}` in templates is guaranteed to resolve and the
+                # intent is self-documenting (and version-independent).
+                'django.template.context_processors.csrf',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'chaviprom.context_processors.language_fonts',

@@ -446,7 +446,7 @@
           const formData = new FormData();
           formData.append('text', text);
           formData.append('language_code', 'en-IN');
-          formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+          formData.append('csrfmiddlewaretoken', window.getCsrfToken());
           
           const response = await fetch(ttsPreviewUrl, {
             method: 'POST',
@@ -493,7 +493,7 @@
           const formData = new FormData();
           formData.append('text', text);
           formData.append('language_code', 'en-IN');
-          formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+          formData.append('csrfmiddlewaretoken', window.getCsrfToken());
           
           const response = await fetch(ttsSaveUrl, {
             method: 'POST',

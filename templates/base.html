@@ -25,8 +25,35 @@
     
     <script src="{% static 'django_htmx/htmx.min.js' %}"></script>
     <script>
+        // Global CSRF token resolver — the single source of truth for every
+        // AJAX / fetch / htmx call in the app. Resolution order is independent of
+        // the CSRF cookie name:
+        //   1. The server-rendered hidden `csrfmiddlewaretoken` input, if present on
+        //      the current page (exactly the value Django sent for this session).
+        //   2. The server-rendered `{{ csrf_token }}` template variable (always a real
+        //      token, since Django applies the CSRF context processor by default).
+        // It deliberately never parses document.cookie with a hard-coded cookie name:
+        // the server's CSRF_COOKIE_NAME is app-specific, so a hard-coded name would
+        // silently return nothing. If no token can be resolved it throws, so a
+        // missing token is visible immediately instead of surfacing downstream as a
+        // cryptic 403 / JSON.parse error.
+        window.getCsrfToken = function () {
+            var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+            if (input && input.value) {
+                return input.value;
+            }
+            var rendered = '{{ csrf_token }}';
+            if (rendered) {
+                return rendered;
+            }
+            throw new Error(
+                'CSRF token could not be resolved: no csrfmiddlewaretoken input and '
+                + 'no csrf_token in the template context. Ensure '
+                + 'django.template.context_processors.csrf is available.'
+            );
+        };
         document.addEventListener('htmx:configRequest', function(evt) {
-            evt.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+            evt.detail.headers['X-CSRFToken'] = window.getCsrfToken();
         });
     </script>
     <!-- Website traffic monitoring -->
