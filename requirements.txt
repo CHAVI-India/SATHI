@@ -6,7 +6,7 @@ asgiref==3.12.1
 babel==2.18.0
 beautifulsoup4==4.15.0
 billiard==4.3.1
-bokeh==3.10.0
+bokeh==3.10.1
 celery==5.6.3
 celery-progress==0.5
 certifi==2026.7.22
