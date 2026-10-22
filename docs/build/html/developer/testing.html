@@ -181,30 +181,30 @@ pip<span class="w"> </span>install<span class="w"> </span>locust
 
 <span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">test_user</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a test user.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Create a test user."""</span>
     <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
-        <span class="n">username</span><span class="o">=</span><span class="s1">&#39;testuser&#39;</span><span class="p">,</span>
-        <span class="n">email</span><span class="o">=</span><span class="s1">&#39;test@example.com&#39;</span><span class="p">,</span>
-        <span class="n">password</span><span class="o">=</span><span class="s1">&#39;testpass123&#39;</span>
+        <span class="n">username</span><span class="o">=</span><span class="s1">'testuser'</span><span class="p">,</span>
+        <span class="n">email</span><span class="o">=</span><span class="s1">'test@example.com'</span><span class="p">,</span>
+        <span class="n">password</span><span class="o">=</span><span class="s1">'testpass123'</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">user</span>
 
 <span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">test_institution</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a test institution.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Create a test institution."""</span>
     <span class="k">return</span> <span class="n">Institution</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Test Hospital&#39;</span><span class="p">,</span>
-        <span class="n">address</span><span class="o">=</span><span class="s1">&#39;123 Test St&#39;</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'Test Hospital'</span><span class="p">,</span>
+        <span class="n">address</span><span class="o">=</span><span class="s1">'123 Test St'</span>
     <span class="p">)</span>
 
 <span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">test_patient</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">test_institution</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a test patient.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Create a test patient."""</span>
     <span class="k">return</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Test Patient&#39;</span><span class="p">,</span>
-        <span class="n">patient_id</span><span class="o">=</span><span class="s1">&#39;P001&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'Test Patient'</span><span class="p">,</span>
+        <span class="n">patient_id</span><span class="o">=</span><span class="s1">'P001'</span><span class="p">,</span>
         <span class="n">institution</span><span class="o">=</span><span class="n">test_institution</span><span class="p">,</span>
-        <span class="n">date_of_registration</span><span class="o">=</span><span class="s1">&#39;2024-01-01&#39;</span>
+        <span class="n">date_of_registration</span><span class="o">=</span><span class="s1">'2024-01-01'</span>
     <span class="p">)</span>
 </pre></div>
 </div>
@@ -224,24 +224,24 @@ pip<span class="w"> </span>install<span class="w"> </span>locust
 <span class="k">class</span><span class="w"> </span><span class="nc">TestPatientModel</span><span class="p">:</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_patient_creation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_institution</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test creating a patient.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test creating a patient."""</span>
         <span class="n">patient</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;John Doe&#39;</span><span class="p">,</span>
-            <span class="n">patient_id</span><span class="o">=</span><span class="s1">&#39;P12345&#39;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">'John Doe'</span><span class="p">,</span>
+            <span class="n">patient_id</span><span class="o">=</span><span class="s1">'P12345'</span><span class="p">,</span>
             <span class="n">institution</span><span class="o">=</span><span class="n">test_institution</span><span class="p">,</span>
             <span class="n">date_of_registration</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="p">)</span>
 
-        <span class="k">assert</span> <span class="n">patient</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;John Doe&#39;</span>
-        <span class="k">assert</span> <span class="n">patient</span><span class="o">.</span><span class="n">patient_id</span> <span class="o">==</span> <span class="s1">&#39;P12345&#39;</span>
+        <span class="k">assert</span> <span class="n">patient</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">'John Doe'</span>
+        <span class="k">assert</span> <span class="n">patient</span><span class="o">.</span><span class="n">patient_id</span> <span class="o">==</span> <span class="s1">'P12345'</span>
         <span class="k">assert</span> <span class="n">patient</span><span class="o">.</span><span class="n">institution</span> <span class="o">==</span> <span class="n">test_institution</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_patient_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test patient string representation.&quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">test_patient</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Test Patient (P001)&#39;</span>
+<span class="w">        </span><span class="sd">"""Test patient string representation."""</span>
+        <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">test_patient</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'Test Patient (P001)'</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_patient_age_calculation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test age calculation.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test age calculation."""</span>
         <span class="n">test_patient</span><span class="o">.</span><span class="n">date_of_birth</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="mi">1990</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">test_patient</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 
@@ -262,35 +262,35 @@ pip<span class="w"> </span>install<span class="w"> </span>locust
 <span class="k">class</span><span class="w"> </span><span class="nc">TestPatientListView</span><span class="p">:</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_patient_list_requires_login</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test that patient list requires authentication.&quot;&quot;&quot;</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;patient_list&#39;</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""Test that patient list requires authentication."""</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">'patient_list'</span><span class="p">)</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 
         <span class="c1"># Should redirect to login</span>
         <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">302</span>
-        <span class="k">assert</span> <span class="s1">&#39;/account/login/&#39;</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">url</span>
+        <span class="k">assert</span> <span class="s1">'/account/login/'</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">url</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_patient_list_requires_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">test_user</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test that patient list requires view permission.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test that patient list requires view permission."""</span>
         <span class="n">client</span><span class="o">.</span><span class="n">force_login</span><span class="p">(</span><span class="n">test_user</span><span class="p">)</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;patient_list&#39;</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">'patient_list'</span><span class="p">)</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 
         <span class="c1"># Should return 403 without permission</span>
         <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_patient_list_with_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">test_user</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test patient list with proper permission.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test patient list with proper permission."""</span>
         <span class="c1"># Add permission</span>
-        <span class="n">permission</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_patient&#39;</span><span class="p">)</span>
+        <span class="n">permission</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'view_patient'</span><span class="p">)</span>
         <span class="n">test_user</span><span class="o">.</span><span class="n">user_permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">permission</span><span class="p">)</span>
 
         <span class="n">client</span><span class="o">.</span><span class="n">force_login</span><span class="p">(</span><span class="n">test_user</span><span class="p">)</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;patient_list&#39;</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">'patient_list'</span><span class="p">)</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 
         <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
-        <span class="k">assert</span> <span class="s1">&#39;patients&#39;</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">context</span>
+        <span class="k">assert</span> <span class="s1">'patients'</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">context</span>
 </pre></div>
 </div>
 </section>
@@ -306,28 +306,28 @@ pip<span class="w"> </span>install<span class="w"> </span>locust
 <span class="k">class</span><span class="w"> </span><span class="nc">TestPatientForm</span><span class="p">:</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_valid_patient_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_institution</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test form with valid data.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test form with valid data."""</span>
         <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Jane Doe&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;patient_id&#39;</span><span class="p">:</span> <span class="s1">&#39;P67890&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;institution&#39;</span><span class="p">:</span> <span class="n">test_institution</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-            <span class="s1">&#39;date_of_registration&#39;</span><span class="p">:</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span>
-            <span class="s1">&#39;gender&#39;</span><span class="p">:</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span>
+            <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'Jane Doe'</span><span class="p">,</span>
+            <span class="s1">'patient_id'</span><span class="p">:</span> <span class="s1">'P67890'</span><span class="p">,</span>
+            <span class="s1">'institution'</span><span class="p">:</span> <span class="n">test_institution</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s1">'date_of_registration'</span><span class="p">:</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span>
+            <span class="s1">'gender'</span><span class="p">:</span> <span class="s1">'F'</span><span class="p">,</span>
         <span class="p">}</span>
 
         <span class="n">form</span> <span class="o">=</span> <span class="n">PatientForm</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">form_data</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_invalid_patient_form_missing_required</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test form with missing required fields.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test form with missing required fields."""</span>
         <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Jane Doe&#39;</span><span class="p">,</span>
+            <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'Jane Doe'</span><span class="p">,</span>
             <span class="c1"># Missing patient_id</span>
         <span class="p">}</span>
 
         <span class="n">form</span> <span class="o">=</span> <span class="n">PatientForm</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">form_data</span><span class="p">)</span>
         <span class="k">assert</span> <span class="ow">not</span> <span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">()</span>
-        <span class="k">assert</span> <span class="s1">&#39;patient_id&#39;</span> <span class="ow">in</span> <span class="n">form</span><span class="o">.</span><span class="n">errors</span>
+        <span class="k">assert</span> <span class="s1">'patient_id'</span> <span class="ow">in</span> <span class="n">form</span><span class="o">.</span><span class="n">errors</span>
 </pre></div>
 </div>
 </section>
@@ -347,27 +347,27 @@ pip<span class="w"> </span>install<span class="w"> </span>locust
 <span class="k">class</span><span class="w"> </span><span class="nc">TestDateReferenceFunctions</span><span class="p">:</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_get_available_start_dates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test getting all available start dates.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test getting all available start dates."""</span>
         <span class="n">dates</span> <span class="o">=</span> <span class="n">get_patient_available_start_dates</span><span class="p">(</span><span class="n">test_patient</span><span class="p">)</span>
 
         <span class="c1"># Should include registration date</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">dates</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span>
-        <span class="k">assert</span> <span class="n">dates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;date_of_registration&#39;</span>
+        <span class="k">assert</span> <span class="n">dates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'date_of_registration'</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_get_start_date_registration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test getting registration date.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test getting registration date."""</span>
         <span class="n">start_date</span> <span class="o">=</span> <span class="n">get_patient_start_date</span><span class="p">(</span>
             <span class="n">test_patient</span><span class="p">,</span>
-            <span class="s1">&#39;date_of_registration&#39;</span>
+            <span class="s1">'date_of_registration'</span>
         <span class="p">)</span>
 
         <span class="k">assert</span> <span class="n">start_date</span> <span class="o">==</span> <span class="n">test_patient</span><span class="o">.</span><span class="n">date_of_registration</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_get_start_date_invalid_reference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test invalid reference falls back to registration.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test invalid reference falls back to registration."""</span>
         <span class="n">start_date</span> <span class="o">=</span> <span class="n">get_patient_start_date</span><span class="p">(</span>
             <span class="n">test_patient</span><span class="p">,</span>
-            <span class="s1">&#39;invalid_reference&#39;</span>
+            <span class="s1">'invalid_reference'</span>
         <span class="p">)</span>
 
         <span class="k">assert</span> <span class="n">start_date</span> <span class="o">==</span> <span class="n">test_patient</span><span class="o">.</span><span class="n">date_of_registration</span>
@@ -395,17 +395,17 @@ pip<span class="w"> </span>install<span class="w"> </span>locust
 
     <span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">institution_a</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">Institution</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Hospital A&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Institution</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Hospital A'</span><span class="p">)</span>
 
     <span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">institution_b</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">Institution</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Hospital B&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Institution</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Hospital B'</span><span class="p">)</span>
 
     <span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">provider_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">institution_a</span><span class="p">):</span>
         <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
-            <span class="n">username</span><span class="o">=</span><span class="s1">&#39;provider&#39;</span><span class="p">,</span>
-            <span class="n">password</span><span class="o">=</span><span class="s1">&#39;test123&#39;</span>
+            <span class="n">username</span><span class="o">=</span><span class="s1">'provider'</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="s1">'test123'</span>
         <span class="p">)</span>
         <span class="n">Provider</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
             <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span>
@@ -416,16 +416,16 @@ pip<span class="w"> </span>install<span class="w"> </span>locust
     <span class="k">def</span><span class="w"> </span><span class="nf">test_provider_sees_only_own_institution_patients</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">provider_user</span><span class="p">,</span> <span class="n">institution_a</span><span class="p">,</span> <span class="n">institution_b</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test provider can only see their institution&#39;s patients.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test provider can only see their institution's patients."""</span>
         <span class="c1"># Create patients in both institutions</span>
         <span class="n">patient_a</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Patient A&#39;</span><span class="p">,</span>
-            <span class="n">patient_id</span><span class="o">=</span><span class="s1">&#39;PA001&#39;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">'Patient A'</span><span class="p">,</span>
+            <span class="n">patient_id</span><span class="o">=</span><span class="s1">'PA001'</span><span class="p">,</span>
             <span class="n">institution</span><span class="o">=</span><span class="n">institution_a</span>
         <span class="p">)</span>
         <span class="n">patient_b</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Patient B&#39;</span><span class="p">,</span>
-            <span class="n">patient_id</span><span class="o">=</span><span class="s1">&#39;PB001&#39;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">'Patient B'</span><span class="p">,</span>
+            <span class="n">patient_id</span><span class="o">=</span><span class="s1">'PB001'</span><span class="p">,</span>
             <span class="n">institution</span><span class="o">=</span><span class="n">institution_b</span>
         <span class="p">)</span>
 
@@ -443,10 +443,10 @@ pip<span class="w"> </span>install<span class="w"> </span>locust
     <span class="k">def</span><span class="w"> </span><span class="nf">test_provider_cannot_access_other_institution_patient</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">provider_user</span><span class="p">,</span> <span class="n">institution_b</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test provider cannot access other institution&#39;s patient.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test provider cannot access other institution's patient."""</span>
         <span class="n">patient_b</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Patient B&#39;</span><span class="p">,</span>
-            <span class="n">patient_id</span><span class="o">=</span><span class="s1">&#39;PB001&#39;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">'Patient B'</span><span class="p">,</span>
+            <span class="n">patient_id</span><span class="o">=</span><span class="s1">'PB001'</span><span class="p">,</span>
             <span class="n">institution</span><span class="o">=</span><span class="n">institution_b</span>
         <span class="p">)</span>
 
@@ -476,16 +476,16 @@ pip<span class="w"> </span>install<span class="w"> </span>locust
     <span class="k">def</span><span class="w"> </span><span class="nf">test_complete_questionnaire_submission</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">,</span> <span class="n">test_user</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test complete questionnaire submission workflow.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test complete questionnaire submission workflow."""</span>
         <span class="c1"># Create questionnaire</span>
         <span class="n">questionnaire</span> <span class="o">=</span> <span class="n">Questionnaire</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Test Questionnaire&#39;</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">'Test Questionnaire'</span>
         <span class="p">)</span>
 
         <span class="c1"># Create item</span>
         <span class="n">item</span> <span class="o">=</span> <span class="n">Item</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;How are you feeling?&#39;</span><span class="p">,</span>
-            <span class="n">response_type</span><span class="o">=</span><span class="s1">&#39;Text&#39;</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">'How are you feeling?'</span><span class="p">,</span>
+            <span class="n">response_type</span><span class="o">=</span><span class="s1">'Text'</span>
         <span class="p">)</span>
 
         <span class="c1"># Add item to questionnaire</span>
@@ -510,13 +510,13 @@ pip<span class="w"> </span>install<span class="w"> </span>locust
         <span class="n">response</span> <span class="o">=</span> <span class="n">QuestionnaireItemResponse</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
             <span class="n">questionnaire_submission</span><span class="o">=</span><span class="n">submission</span><span class="p">,</span>
             <span class="n">item</span><span class="o">=</span><span class="n">item</span><span class="p">,</span>
-            <span class="n">response_value</span><span class="o">=</span><span class="s1">&#39;Feeling good&#39;</span>
+            <span class="n">response_value</span><span class="o">=</span><span class="s1">'Feeling good'</span>
         <span class="p">)</span>
 
         <span class="c1"># Verify workflow</span>
         <span class="k">assert</span> <span class="n">submission</span><span class="o">.</span><span class="n">patient_questionnaire</span> <span class="o">==</span> <span class="n">pq</span>
         <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">questionnaire_submission</span> <span class="o">==</span> <span class="n">submission</span>
-        <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">response_value</span> <span class="o">==</span> <span class="s1">&#39;Feeling good&#39;</span>
+        <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">response_value</span> <span class="o">==</span> <span class="s1">'Feeling good'</span>
 </pre></div>
 </div>
 </section>
@@ -586,32 +586,32 @@ pip<span class="w"> </span>install<span class="w"> </span>locust
 
 <span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">browser</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create browser instance.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Create browser instance."""</span>
     <span class="n">driver</span> <span class="o">=</span> <span class="n">webdriver</span><span class="o">.</span><span class="n">Chrome</span><span class="p">()</span>
     <span class="k">yield</span> <span class="n">driver</span>
     <span class="n">driver</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
 
 <span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">ui</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">test_vertical_tabs_switching</span><span class="p">(</span><span class="n">browser</span><span class="p">,</span> <span class="n">live_server</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test vertical tabs switch correctly.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Test vertical tabs switch correctly."""</span>
     <span class="c1"># Login</span>
-    <span class="n">browser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">live_server</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s1">/account/login/&#39;</span><span class="p">)</span>
-    <span class="n">browser</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">NAME</span><span class="p">,</span> <span class="s1">&#39;login&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s1">&#39;testuser&#39;</span><span class="p">)</span>
-    <span class="n">browser</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">NAME</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s1">&#39;testpass123&#39;</span><span class="p">)</span>
-    <span class="n">browser</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">CSS_SELECTOR</span><span class="p">,</span> <span class="s1">&#39;button[type=&quot;submit&quot;]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+    <span class="n">browser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">live_server</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s1">/account/login/'</span><span class="p">)</span>
+    <span class="n">browser</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">NAME</span><span class="p">,</span> <span class="s1">'login'</span><span class="p">)</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s1">'testuser'</span><span class="p">)</span>
+    <span class="n">browser</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">NAME</span><span class="p">,</span> <span class="s1">'password'</span><span class="p">)</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s1">'testpass123'</span><span class="p">)</span>
+    <span class="n">browser</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">CSS_SELECTOR</span><span class="p">,</span> <span class="s1">'button[type="submit"]'</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
     <span class="c1"># Navigate to PROM review</span>
     <span class="n">browser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">live_server</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s1">/patients/</span><span class="si">{</span><span class="n">test_patient</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">/prom-review/&#39;</span>
+        <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">live_server</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s1">/patients/</span><span class="si">{</span><span class="n">test_patient</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">/prom-review/'</span>
     <span class="p">)</span>
 
     <span class="c1"># Wait for page load</span>
     <span class="n">WebDriverWait</span><span class="p">(</span><span class="n">browser</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">until</span><span class="p">(</span>
-        <span class="n">EC</span><span class="o">.</span><span class="n">presence_of_element_located</span><span class="p">((</span><span class="n">By</span><span class="o">.</span><span class="n">CLASS_NAME</span><span class="p">,</span> <span class="s1">&#39;vertical-tabs&#39;</span><span class="p">))</span>
+        <span class="n">EC</span><span class="o">.</span><span class="n">presence_of_element_located</span><span class="p">((</span><span class="n">By</span><span class="o">.</span><span class="n">CLASS_NAME</span><span class="p">,</span> <span class="s1">'vertical-tabs'</span><span class="p">))</span>
     <span class="p">)</span>
 
     <span class="c1"># Find tab buttons</span>
-    <span class="n">tabs</span> <span class="o">=</span> <span class="n">browser</span><span class="o">.</span><span class="n">find_elements</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">CSS_SELECTOR</span><span class="p">,</span> <span class="s1">&#39;[role=&quot;tab&quot;]&#39;</span><span class="p">)</span>
+    <span class="n">tabs</span> <span class="o">=</span> <span class="n">browser</span><span class="o">.</span><span class="n">find_elements</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">CSS_SELECTOR</span><span class="p">,</span> <span class="s1">'[role="tab"]'</span><span class="p">)</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tabs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
     <span class="c1"># Click second tab</span>
@@ -621,13 +621,13 @@ pip<span class="w"> </span>install<span class="w"> </span>locust
         <span class="c1"># Wait for content to switch</span>
         <span class="n">WebDriverWait</span><span class="p">(</span><span class="n">browser</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">until</span><span class="p">(</span>
             <span class="n">EC</span><span class="o">.</span><span class="n">visibility_of_element_located</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">tabs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;aria-controls&#39;</span><span class="p">))</span>
+                <span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">tabs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">'aria-controls'</span><span class="p">))</span>
             <span class="p">)</span>
         <span class="p">)</span>
 
         <span class="c1"># Verify active state</span>
-        <span class="k">assert</span> <span class="s1">&#39;bg-red-500&#39;</span> <span class="ow">in</span> <span class="n">tabs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;class&#39;</span><span class="p">)</span> <span class="ow">or</span> \
-               <span class="s1">&#39;bg-green-500&#39;</span> <span class="ow">in</span> <span class="n">tabs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;class&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="s1">'bg-red-500'</span> <span class="ow">in</span> <span class="n">tabs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">'class'</span><span class="p">)</span> <span class="ow">or</span> \
+               <span class="s1">'bg-green-500'</span> <span class="ow">in</span> <span class="n">tabs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">'class'</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -645,36 +645,36 @@ pip<span class="w"> </span>install<span class="w"> </span>locust
     <span class="n">wait_time</span> <span class="o">=</span> <span class="n">between</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">on_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Login before testing.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/account/login/&#39;</span><span class="p">,</span> <span class="p">{</span>
-            <span class="s1">&#39;login&#39;</span><span class="p">:</span> <span class="s1">&#39;testuser&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="s1">&#39;testpass123&#39;</span>
+<span class="w">        </span><span class="sd">"""Login before testing."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">'/account/login/'</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">'login'</span><span class="p">:</span> <span class="s1">'testuser'</span><span class="p">,</span>
+            <span class="s1">'password'</span><span class="p">:</span> <span class="s1">'testpass123'</span>
         <span class="p">})</span>
 
     <span class="nd">@task</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">view_patient_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;View patient list (common action).&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/patients/&#39;</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""View patient list (common action)."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'/patients/'</span><span class="p">)</span>
 
     <span class="nd">@task</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">view_prom_review</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;View PROM review (most common action).&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/patients/123e4567-e89b-12d3-a456-426614174000/prom-review/&#39;</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""View PROM review (most common action)."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'/patients/123e4567-e89b-12d3-a456-426614174000/prom-review/'</span><span class="p">)</span>
 
     <span class="nd">@task</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">view_patient_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;View patient detail (less common).&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/patients/123e4567-e89b-12d3-a456-426614174000/&#39;</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""View patient detail (less common)."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'/patients/123e4567-e89b-12d3-a456-426614174000/'</span><span class="p">)</span>
 
     <span class="nd">@task</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">apply_filters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply filters on PROM review.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Apply filters on PROM review."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-            <span class="s1">&#39;/patients/123e4567-e89b-12d3-a456-426614174000/prom-review/&#39;</span><span class="p">,</span>
+            <span class="s1">'/patients/123e4567-e89b-12d3-a456-426614174000/prom-review/'</span><span class="p">,</span>
             <span class="n">params</span><span class="o">=</span><span class="p">{</span>
-                <span class="s1">&#39;questionnaire&#39;</span><span class="p">:</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;time_range&#39;</span><span class="p">:</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;start_date_reference&#39;</span><span class="p">:</span> <span class="s1">&#39;date_of_registration&#39;</span>
+                <span class="s1">'questionnaire'</span><span class="p">:</span> <span class="s1">'all'</span><span class="p">,</span>
+                <span class="s1">'time_range'</span><span class="p">:</span> <span class="s1">'5'</span><span class="p">,</span>
+                <span class="s1">'start_date_reference'</span><span class="p">:</span> <span class="s1">'date_of_registration'</span>
             <span class="p">}</span>
         <span class="p">)</span>
 </pre></div>
@@ -730,17 +730,17 @@ locust<span class="w"> </span>-f<span class="w"> </span>locustfile.py<span class
 
 <span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">test_patient_list_query_count</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">test_user</span><span class="p">,</span> <span class="n">test_patient</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test patient list doesn&#39;t have N+1 queries.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Test patient list doesn't have N+1 queries."""</span>
     <span class="c1"># Add permission</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Permission</span>
-    <span class="n">permission</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_patient&#39;</span><span class="p">)</span>
+    <span class="n">permission</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'view_patient'</span><span class="p">)</span>
     <span class="n">test_user</span><span class="o">.</span><span class="n">user_permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">permission</span><span class="p">)</span>
 
     <span class="n">client</span><span class="o">.</span><span class="n">force_login</span><span class="p">(</span><span class="n">test_user</span><span class="p">)</span>
 
     <span class="c1"># Capture queries</span>
     <span class="k">with</span> <span class="n">CaptureQueriesContext</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span> <span class="k">as</span> <span class="n">context</span><span class="p">:</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/patients/&#39;</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'/patients/'</span><span class="p">)</span>
 
     <span class="c1"># Should use select_related/prefetch_related</span>
     <span class="c1"># Acceptable query count: ~5-10 queries</span>
@@ -762,28 +762,28 @@ locust<span class="w"> </span>-f<span class="w"> </span>locustfile.py<span class
 <span class="k">class</span><span class="w"> </span><span class="nc">TestViewPermissions</span><span class="p">:</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_anonymous_cannot_access_patient_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test anonymous users cannot access patient list.&quot;&quot;&quot;</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;patient_list&#39;</span><span class="p">))</span>
+<span class="w">        </span><span class="sd">"""Test anonymous users cannot access patient list."""</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s1">'patient_list'</span><span class="p">))</span>
         <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">302</span>  <span class="c1"># Redirect to login</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_user_without_permission_cannot_access</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">test_user</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test users without permission get 403.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test users without permission get 403."""</span>
         <span class="n">client</span><span class="o">.</span><span class="n">force_login</span><span class="p">(</span><span class="n">test_user</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;patient_list&#39;</span><span class="p">))</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s1">'patient_list'</span><span class="p">))</span>
         <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_user_with_permission_can_access</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">test_user</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test users with permission can access.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Test users with permission can access."""</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Permission</span>
-        <span class="n">permission</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_patient&#39;</span><span class="p">)</span>
+        <span class="n">permission</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'view_patient'</span><span class="p">)</span>
         <span class="n">test_user</span><span class="o">.</span><span class="n">user_permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">permission</span><span class="p">)</span>
 
         <span class="n">client</span><span class="o">.</span><span class="n">force_login</span><span class="p">(</span><span class="n">test_user</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;patient_list&#39;</span><span class="p">))</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s1">'patient_list'</span><span class="p">))</span>
         <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
 </pre></div>
 </div>
@@ -793,13 +793,13 @@ locust<span class="w"> </span>-f<span class="w"> </span>locustfile.py<span class
 <p><strong>Test CSRF Token Required:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">test_post_requires_csrf_token</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">test_user</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test POST requests require CSRF token.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Test POST requests require CSRF token."""</span>
     <span class="n">client</span><span class="o">.</span><span class="n">force_login</span><span class="p">(</span><span class="n">test_user</span><span class="p">)</span>
 
     <span class="c1"># POST without CSRF token</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/patients/create/&#39;</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Test Patient&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;patient_id&#39;</span><span class="p">:</span> <span class="s1">&#39;P001&#39;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">'/patients/create/'</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'Test Patient'</span><span class="p">,</span>
+        <span class="s1">'patient_id'</span><span class="p">:</span> <span class="s1">'P001'</span>
     <span class="p">})</span>
 
     <span class="c1"># Should fail with 403</span>
@@ -823,26 +823,26 @@ locust<span class="w"> </span>-f<span class="w"> </span>locustfile.py<span class
     <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">Institution</span>
 
-    <span class="n">name</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Hospital </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="n">address</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Faker</span><span class="p">(</span><span class="s1">&#39;address&#39;</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'Hospital </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Faker</span><span class="p">(</span><span class="s1">'address'</span><span class="p">)</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">PatientFactory</span><span class="p">(</span><span class="n">DjangoModelFactory</span><span class="p">):</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">Patient</span>
 
-    <span class="n">name</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Faker</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
-    <span class="n">patient_id</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;P</span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s1">05d</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Faker</span><span class="p">(</span><span class="s1">'name'</span><span class="p">)</span>
+    <span class="n">patient_id</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'P</span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s1">05d</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
     <span class="n">institution</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">SubFactory</span><span class="p">(</span><span class="n">InstitutionFactory</span><span class="p">)</span>
-    <span class="n">date_of_registration</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Faker</span><span class="p">(</span><span class="s1">&#39;date_this_year&#39;</span><span class="p">)</span>
-    <span class="n">gender</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Iterator</span><span class="p">([</span><span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">])</span>
+    <span class="n">date_of_registration</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Faker</span><span class="p">(</span><span class="s1">'date_this_year'</span><span class="p">)</span>
+    <span class="n">gender</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Iterator</span><span class="p">([</span><span class="s1">'M'</span><span class="p">,</span> <span class="s1">'F'</span><span class="p">,</span> <span class="s1">'O'</span><span class="p">])</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">UserFactory</span><span class="p">(</span><span class="n">DjangoModelFactory</span><span class="p">):</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">User</span>
 
-    <span class="n">username</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;user</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="n">email</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">LazyAttribute</span><span class="p">(</span><span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">obj</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s1">@example.com&#39;</span><span class="p">)</span>
-    <span class="n">password</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">PostGenerationMethodCall</span><span class="p">(</span><span class="s1">&#39;set_password&#39;</span><span class="p">,</span> <span class="s1">&#39;testpass123&#39;</span><span class="p">)</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'user</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">LazyAttribute</span><span class="p">(</span><span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">obj</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s1">@example.com'</span><span class="p">)</span>
+    <span class="n">password</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">PostGenerationMethodCall</span><span class="p">(</span><span class="s1">'set_password'</span><span class="p">,</span> <span class="s1">'testpass123'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><strong>Use Factories in Tests:</strong></p>
@@ -850,7 +850,7 @@ locust<span class="w"> </span>-f<span class="w"> </span>locustfile.py<span class
 
 <span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">test_with_factory</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test using factory-generated data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Test using factory-generated data."""</span>
     <span class="c1"># Create 5 patients</span>
     <span class="n">patients</span> <span class="o">=</span> <span class="n">PatientFactory</span><span class="o">.</span><span class="n">create_batch</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 
@@ -893,7 +893,7 @@ pytest<span class="w"> </span>-m<span class="w"> </span>integration
 pytest<span class="w"> </span>-m<span class="w"> </span>ui
 
 <span class="c1"># Skip slow tests</span>
-pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not slow&quot;</span>
+pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">"not slow"</span>
 </pre></div>
 </div>
 </section>
@@ -951,7 +951,7 @@ pytest<span class="w"> </span>--cov<span class="o">=</span>.<span class="w"> </s
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Set up Python</span>
 <span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span>
 <span class="w">        </span><span class="nt">with</span><span class="p">:</span>
-<span class="w">          </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.11&#39;</span>
+<span class="w">          </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">'3.11'</span>
 
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install dependencies</span>
 <span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
@@ -1077,6 +1077,9 @@ pytest<span class="w"> </span>--cov<span class="o">=</span>.<span class="w"> </s
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="security.html">Security &amp; Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html">AWS RDS IAM Database Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html">Logging Configuration Audit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="roles_and_permissions_configuration.html">Roles and Permissions Configuration Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="frontend_development.html">Frontend Development</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ui_components.html">UI Components Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_integration.html">Data Integration Guide</a></li>
@@ -1117,7 +1120,7 @@ pytest<span class="w"> </span>--cov<span class="o">=</span>.<span class="w"> </s
       &#169;2026, CHAVI Team.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.1</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |

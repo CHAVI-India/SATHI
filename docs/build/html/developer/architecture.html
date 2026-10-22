@@ -340,10 +340,10 @@
 <p><strong>Purpose</strong>: Define latent trait measurement with scoring equation</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ConstructScale</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">UUIDField</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>  <span class="c1"># e.g., &quot;Physical Function&quot;</span>
-    <span class="n">instrument_name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>  <span class="c1"># e.g., &quot;EORTC QLQ-C30&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>  <span class="c1"># e.g., "Physical Function"</span>
+    <span class="n">instrument_name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>  <span class="c1"># e.g., "EORTC QLQ-C30"</span>
     <span class="n">instrument_version</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
-    <span class="n">scale_equation</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">1025</span><span class="p">)</span>  <span class="c1"># e.g., &quot;{q1} + {q2} + {q3}&quot;</span>
+    <span class="n">scale_equation</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">1025</span><span class="p">)</span>  <span class="c1"># e.g., "{q1} + {q2} + {q3}"</span>
     <span class="n">minimum_number_of_items</span> <span class="o">=</span> <span class="n">IntegerField</span><span class="p">()</span>
     <span class="n">scale_better_score_direction</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">DirectionChoices</span><span class="p">)</span>
     <span class="n">scale_threshold_score</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>
@@ -373,7 +373,7 @@
     <span class="n">construct_scale</span> <span class="o">=</span> <span class="n">ManyToManyField</span><span class="p">(</span><span class="n">ConstructScale</span><span class="p">)</span>
     <span class="n">translations</span> <span class="o">=</span> <span class="n">TranslatedFields</span><span class="p">(</span>
         <span class="n">name</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">),</span>  <span class="c1"># Question text</span>
-        <span class="n">media</span> <span class="o">=</span> <span class="n">FileField</span><span class="p">(</span><span class="n">upload_to</span><span class="o">=</span><span class="s1">&#39;item_media/&#39;</span><span class="p">)</span>  <span class="c1"># Audio/video/image</span>
+        <span class="n">media</span> <span class="o">=</span> <span class="n">FileField</span><span class="p">(</span><span class="n">upload_to</span><span class="o">=</span><span class="s1">'item_media/'</span><span class="p">)</span>  <span class="c1"># Audio/video/image</span>
     <span class="p">)</span>
     <span class="n">abbreviated_item_id</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">item_number</span> <span class="o">=</span> <span class="n">IntegerField</span><span class="p">()</span>  <span class="c1"># For equation references {q1}, {q2}</span>
@@ -409,7 +409,7 @@
     <span class="n">likert_scale</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">LikertScale</span><span class="p">)</span>
     <span class="n">option_order</span> <span class="o">=</span> <span class="n">IntegerField</span><span class="p">()</span>
     <span class="n">translations</span> <span class="o">=</span> <span class="n">TranslatedFields</span><span class="p">(</span>
-        <span class="n">option_text</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(),</span>  <span class="c1"># e.g., &quot;Not at all&quot;, &quot;A little&quot;</span>
+        <span class="n">option_text</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(),</span>  <span class="c1"># e.g., "Not at all", "A little"</span>
         <span class="n">option_media</span> <span class="o">=</span> <span class="n">FileField</span><span class="p">()</span>
     <span class="p">)</span>
     <span class="n">option_emoji</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>
@@ -433,8 +433,8 @@
     <span class="n">min_value</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>
     <span class="n">increment</span> <span class="o">=</span> <span class="n">DecimalField</span><span class="p">()</span>
     <span class="n">translations</span> <span class="o">=</span> <span class="n">TranslatedFields</span><span class="p">(</span>
-        <span class="n">min_value_text</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(),</span>  <span class="c1"># e.g., &quot;No Pain&quot;</span>
-        <span class="n">max_value_text</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>   <span class="c1"># e.g., &quot;Worst Pain&quot;</span>
+        <span class="n">min_value_text</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(),</span>  <span class="c1"># e.g., "No Pain"</span>
+        <span class="n">max_value_text</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">()</span>   <span class="c1"># e.g., "Worst Pain"</span>
     <span class="p">)</span>
 </pre></div>
 </div>
@@ -451,7 +451,7 @@
     <span class="p">)</span>
     <span class="n">questionnaire_order</span> <span class="o">=</span> <span class="n">IntegerField</span><span class="p">()</span>
     <span class="n">questionnaire_answer_interval</span> <span class="o">=</span> <span class="n">DurationField</span><span class="p">()</span>
-    <span class="n">questionnaire_redirect</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;self&#39;</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">questionnaire_redirect</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">'self'</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><strong>Relationships:</strong></p>
@@ -638,7 +638,7 @@
 <h3><a class="toc-backref" href="#id36" role="doc-backlink">Institution-Based Isolation</a><a class="headerlink" href="#institution-based-isolation" title="Link to this heading">¶</a></h3>
 <p><strong>Access Control Pattern</strong>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_accessible_patient_or_404</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">patient_pk</span><span class="p">):</span>
-    <span class="c1"># Get user&#39;s institutions</span>
+    <span class="c1"># Get user's institutions</span>
     <span class="n">user_institutions</span> <span class="o">=</span> <span class="n">get_user_institutions</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
 
     <span class="c1"># Filter patient by institution</span>
@@ -695,8 +695,8 @@
 <p><strong>Example</strong>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
     <span class="n">indexes</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">models</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;institution&#39;</span><span class="p">,</span> <span class="s1">&#39;gender&#39;</span><span class="p">]),</span>
-        <span class="n">models</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;patient&#39;</span><span class="p">,</span> <span class="s1">&#39;submission_date&#39;</span><span class="p">]),</span>
+        <span class="n">models</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">'institution'</span><span class="p">,</span> <span class="s1">'gender'</span><span class="p">]),</span>
+        <span class="n">models</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">'patient'</span><span class="p">,</span> <span class="s1">'submission_date'</span><span class="p">]),</span>
     <span class="p">]</span>
 </pre></div>
 </div>
@@ -712,10 +712,10 @@
 </ul>
 <p><strong>Example</strong>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">patients</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span>
-    <span class="s1">&#39;institution&#39;</span>
+    <span class="s1">'institution'</span>
 <span class="p">)</span><span class="o">.</span><span class="n">prefetch_related</span><span class="p">(</span>
-    <span class="s1">&#39;diagnosis_set__diagnosis&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;diagnosis_set__treatment_set__treatment_type&#39;</span>
+    <span class="s1">'diagnosis_set__diagnosis'</span><span class="p">,</span>
+    <span class="s1">'diagnosis_set__treatment_set__treatment_type'</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -826,7 +826,7 @@
 <p><strong>Pattern</strong>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@receiver</span><span class="p">(</span><span class="n">post_save</span><span class="p">,</span> <span class="n">sender</span><span class="o">=</span><span class="n">QuestionnaireSubmission</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">invalidate_cache</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="n">cache_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;patient_</span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">patient_id</span><span class="si">}</span><span class="s2">_scores&quot;</span>
+    <span class="n">cache_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"patient_</span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">patient_id</span><span class="si">}</span><span class="s2">_scores"</span>
     <span class="n">cache</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">cache_key</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -924,6 +924,9 @@
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="security.html">Security &amp; Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html">AWS RDS IAM Database Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html">Logging Configuration Audit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="roles_and_permissions_configuration.html">Roles and Permissions Configuration Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="frontend_development.html">Frontend Development</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ui_components.html">UI Components Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_integration.html">Data Integration Guide</a></li>
@@ -964,7 +967,7 @@
       &#169;2026, CHAVI Team.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.1</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |

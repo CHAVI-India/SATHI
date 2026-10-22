@@ -75,6 +75,31 @@
 <li class="toctree-l2"><a class="reference internal" href="security.html#resources">Resources</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="aws_rds_iam_database_authentication.html">AWS RDS IAM Database Authentication</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html#how-it-works">How it works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html#phase-0-gather-facts">Phase 0 — Gather facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html#phase-1-create-the-iam-role-and-policy">Phase 1 — Create the IAM role and policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html#phase-2-attach-the-role-to-the-ec2-instance">Phase 2 — Attach the role to the EC2 instance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html#phase-3-enable-iam-authentication-on-the-rds-instance">Phase 3 — Enable IAM authentication on the RDS instance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html#phase-4-create-the-database-user-and-grants">Phase 4 — Create the database user and grants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html#phase-5-verify-the-token-path-before-touching-the-app">Phase 5 — Verify the token path before touching the app</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html#app-side-changes">App-side changes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html#deployment-and-cutover">Deployment and cutover</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html#phase-6-hardening-and-operations">Phase 6 — Hardening and operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html#known-limits-and-pitfalls">Known limits and pitfalls</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="logging_audit.html">Logging Configuration Audit</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html#inventory-of-log-files">Inventory of log files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html#phi-exposure-findings">PHI exposure findings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html#log-rotation-findings">Log-rotation findings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html#remediation-applied">Remediation applied</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html#outstanding-follow-up-items">Outstanding / follow-up items</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html#verification">Verification</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="roles_and_permissions_configuration.html">Roles and Permissions Configuration Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="roles_and_permissions_configuration.html#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="roles_and_permissions_configuration.html#default-user-groups">Default User Groups</a></li>
@@ -243,6 +268,8 @@
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="security.html">Security &amp; Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html">AWS RDS IAM Database Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html">Logging Configuration Audit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="roles_and_permissions_configuration.html">Roles and Permissions Configuration Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="frontend_development.html">Frontend Development</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ui_components.html">UI Components Reference</a></li>
@@ -282,7 +309,7 @@
       &#169;2026, CHAVI Team.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.1</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |

@@ -169,19 +169,19 @@
 <h3><a class="toc-backref" href="#id5" role="doc-backlink">Supported Languages</a><a class="headerlink" href="#supported-languages" title="Link to this heading">¶</a></h3>
 <p>Languages are configured in <code class="docutils literal notranslate"><span class="pre">chaviprom/settings.py</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load from environment variable</span>
-<span class="n">LANGUAGES_STRING</span> <span class="o">=</span> <span class="n">env</span><span class="p">(</span><span class="s1">&#39;LANGUAGES&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;en:English,hi:Hindi,bn:Bengali&#39;</span><span class="p">)</span>
+<span class="n">LANGUAGES_STRING</span> <span class="o">=</span> <span class="n">env</span><span class="p">(</span><span class="s1">'LANGUAGES'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">'en:English,hi:Hindi,bn:Bengali'</span><span class="p">)</span>
 
 <span class="c1"># Parse into Django format</span>
 <span class="n">LANGUAGES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="nb">tuple</span><span class="p">(</span><span class="n">lang</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">))</span>
-    <span class="k">for</span> <span class="n">lang</span> <span class="ow">in</span> <span class="n">LANGUAGES_STRING</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="nb">tuple</span><span class="p">(</span><span class="n">lang</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">':'</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">lang</span> <span class="ow">in</span> <span class="n">LANGUAGES_STRING</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span>
 <span class="p">]</span>
 
 <span class="c1"># Example result:</span>
 <span class="c1"># LANGUAGES = [</span>
-<span class="c1">#     (&#39;en&#39;, &#39;English&#39;),</span>
-<span class="c1">#     (&#39;hi&#39;, &#39;Hindi&#39;),</span>
-<span class="c1">#     (&#39;bn&#39;, &#39;Bengali&#39;),</span>
+<span class="c1">#     ('en', 'English'),</span>
+<span class="c1">#     ('hi', 'Hindi'),</span>
+<span class="c1">#     ('bn', 'Bengali'),</span>
 <span class="c1"># ]</span>
 </pre></div>
 </div>
@@ -193,17 +193,17 @@
 </section>
 <section id="default-language">
 <h3><a class="toc-backref" href="#id6" role="doc-backlink">Default Language</a><a class="headerlink" href="#default-language" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">LANGUAGE_CODE</span> <span class="o">=</span> <span class="s1">&#39;en&#39;</span>  <span class="c1"># Default language</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">LANGUAGE_CODE</span> <span class="o">=</span> <span class="s1">'en'</span>  <span class="c1"># Default language</span>
 
 <span class="n">PARLER_LANGUAGES</span> <span class="o">=</span> <span class="p">{</span>
     <span class="kc">None</span><span class="p">:</span> <span class="p">(</span>
-        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">},</span>
-        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;hi&#39;</span><span class="p">},</span>
-        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;bn&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'en'</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'hi'</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'bn'</span><span class="p">},</span>
     <span class="p">),</span>
-    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;fallback&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;hide_untranslated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">'default'</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">'fallback'</span><span class="p">:</span> <span class="s1">'en'</span><span class="p">,</span>
+        <span class="s1">'hide_untranslated'</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -243,14 +243,14 @@
 <p>Edit <code class="docutils literal notranslate"><span class="pre">chaviprom/settings.py</span></code> to add the language code to <code class="docutils literal notranslate"><span class="pre">PARLER_LANGUAGES</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PARLER_LANGUAGES</span> <span class="o">=</span> <span class="p">{</span>
     <span class="kc">None</span><span class="p">:</span> <span class="p">(</span>
-        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">},</span>
-        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;hi&#39;</span><span class="p">},</span>
-        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;bn&#39;</span><span class="p">},</span>
-        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;ta&#39;</span><span class="p">},</span>  <span class="c1"># New language</span>
+        <span class="p">{</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'en'</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'hi'</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'bn'</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'ta'</span><span class="p">},</span>  <span class="c1"># New language</span>
     <span class="p">),</span>
-    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;fallback&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;hide_untranslated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">'default'</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">'fallback'</span><span class="p">:</span> <span class="s1">'en'</span><span class="p">,</span>
+        <span class="s1">'hide_untranslated'</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -283,17 +283,17 @@ make<span class="w"> </span>messages<span class="w"> </span><span class="nv">LAN
 manually to avoid scanning directories that contain raw template examples (e.g.
 <code class="docutils literal notranslate"><span class="pre">docs/build/</span></code>) which will cause <code class="docutils literal notranslate"><span class="pre">SyntaxError</span></code> during extraction:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>django-admin<span class="w"> </span>makemessages<span class="w"> </span>-l<span class="w"> </span>ta<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">&quot;docs/*&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">&quot;venv/*&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">&quot;node_modules/*&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">&quot;static/*&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">&quot;staticfiles/*&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">&quot;promapp/*&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">&quot;media/*&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">&quot;item_media/*&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">&quot;logs/*&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">&quot;.git/*&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">&quot;.github/*&quot;</span>
+<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">"docs/*"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">"venv/*"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">"node_modules/*"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">"static/*"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">"staticfiles/*"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">"promapp/*"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">"media/*"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">"item_media/*"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">"logs/*"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">".git/*"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ignore<span class="o">=</span><span class="s2">".github/*"</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -313,17 +313,17 @@ are managed through Django Parler (database-level translations), not gettext.</p
 <h3><a class="toc-backref" href="#id11" role="doc-backlink">Step 4: Translate Interface Strings</a><a class="headerlink" href="#step-4-translate-interface-strings" title="Link to this heading">¶</a></h3>
 <p>Edit the generated <code class="docutils literal notranslate"><span class="pre">.po</span></code> file at <code class="docutils literal notranslate"><span class="pre">locale/ta/LC_MESSAGES/django.po</span></code>:</p>
 <div class="highlight-po notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example translations</span>
-<span class="nv">msgid</span> <span class="s">&quot;Welcome&quot;</span>
-<span class="nv">msgstr</span> <span class="s">&quot;வரவேற்பு&quot;</span>
+<span class="nv">msgid</span> <span class="s">"Welcome"</span>
+<span class="nv">msgstr</span> <span class="s">"வரவேற்பு"</span>
 
-<span class="nv">msgid</span> <span class="s">&quot;Patient Portal&quot;</span>
-<span class="nv">msgstr</span> <span class="s">&quot;நோயாளி போர்ட்டல்&quot;</span>
+<span class="nv">msgid</span> <span class="s">"Patient Portal"</span>
+<span class="nv">msgstr</span> <span class="s">"நோயாளி போர்ட்டல்"</span>
 
-<span class="nv">msgid</span> <span class="s">&quot;Complete Questionnaire&quot;</span>
-<span class="nv">msgstr</span> <span class="s">&quot;கேள்வித்தாளை முடிக்கவும்&quot;</span>
+<span class="nv">msgid</span> <span class="s">"Complete Questionnaire"</span>
+<span class="nv">msgstr</span> <span class="s">"கேள்வித்தாளை முடிக்கவும்"</span>
 
-<span class="nv">msgid</span> <span class="s">&quot;Submit&quot;</span>
-<span class="nv">msgstr</span> <span class="s">&quot;சமர்ப்பிக்கவும்&quot;</span>
+<span class="nv">msgid</span> <span class="s">"Submit"</span>
+<span class="nv">msgstr</span> <span class="s">"சமர்ப்பிக்கவும்"</span>
 </pre></div>
 </div>
 <p><strong>Translation Tools:</strong></p>
@@ -337,10 +337,10 @@ are managed through Django Parler (database-level translations), not gettext.</p
 <h3><a class="toc-backref" href="#id12" role="doc-backlink">Step 5: Compile Translations</a><a class="headerlink" href="#step-5-compile-translations" title="Link to this heading">¶</a></h3>
 <p>After editing <code class="docutils literal notranslate"><span class="pre">.po</span></code> files, compile them to binary format:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Compile all languages</span>
-python<span class="w"> </span>manage.py<span class="w"> </span>compilemessages<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;venv&quot;</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;node_modules&quot;</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>compilemessages<span class="w"> </span>-i<span class="w"> </span><span class="s2">"venv"</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">"node_modules"</span>
 
 <span class="c1"># Compile specific language</span>
-python<span class="w"> </span>manage.py<span class="w"> </span>compilemessages<span class="w"> </span>-l<span class="w"> </span>ta<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;venv&quot;</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;node_modules&quot;</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>compilemessages<span class="w"> </span>-l<span class="w"> </span>ta<span class="w"> </span>-i<span class="w"> </span><span class="s2">"venv"</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">"node_modules"</span>
 </pre></div>
 </div>
 <p>Alternatively, use the Makefile:</p>
@@ -410,21 +410,21 @@ sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span cl
 <span class="n">q</span> <span class="o">=</span> <span class="n">Questionnaire</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="c1"># Set English translation</span>
-<span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;en&#39;</span><span class="p">)</span>
-<span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Patient Health Questionnaire&quot;</span>
-<span class="n">q</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Assess patient health status&quot;</span>
+<span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">'en'</span><span class="p">)</span>
+<span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"Patient Health Questionnaire"</span>
+<span class="n">q</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">"Assess patient health status"</span>
 <span class="n">q</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 
 <span class="c1"># Set Hindi translation</span>
-<span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;hi&#39;</span><span class="p">)</span>
-<span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;रोगी स्वास्थ्य प्रश्नावली&quot;</span>
-<span class="n">q</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;रोगी स्वास्थ्य स्थिति का आकलन करें&quot;</span>
+<span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">'hi'</span><span class="p">)</span>
+<span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"रोगी स्वास्थ्य प्रश्नावली"</span>
+<span class="n">q</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">"रोगी स्वास्थ्य स्थिति का आकलन करें"</span>
 <span class="n">q</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 
 <span class="c1"># Set Tamil translation</span>
-<span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;ta&#39;</span><span class="p">)</span>
-<span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;நோயாளி சுகாதார கேள்வித்தாள்&quot;</span>
-<span class="n">q</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;நோயாளி சுகாதார நிலையை மதிப்பிடவும்&quot;</span>
+<span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">'ta'</span><span class="p">)</span>
+<span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"நோயாளி சுகாதார கேள்வித்தாள்"</span>
+<span class="n">q</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">"நோயாளி சுகாதார நிலையை மதிப்பிடவும்"</span>
 <span class="n">q</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -437,11 +437,11 @@ sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span cl
 
 <span class="c1"># Get all available translations</span>
 <span class="n">translations</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get_available_languages</span><span class="p">()</span>
-<span class="c1"># Returns: [&#39;en&#39;, &#39;hi&#39;, &#39;bn&#39;]</span>
+<span class="c1"># Returns: ['en', 'hi', 'bn']</span>
 
 <span class="c1"># Check if translation exists</span>
-<span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">has_translation</span><span class="p">(</span><span class="s1">&#39;ta&#39;</span><span class="p">):</span>
-    <span class="n">item</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;ta&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">has_translation</span><span class="p">(</span><span class="s1">'ta'</span><span class="p">):</span>
+    <span class="n">item</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">'ta'</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -455,10 +455,10 @@ sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span cl
 <p><strong>Simple Translation:</strong></p>
 <div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">load</span> <span class="nv">i18n</span> <span class="cp">%}</span>
 
-<span class="x">&lt;h1&gt;</span><span class="cp">{%</span> <span class="k">trans</span> <span class="s2">&quot;Welcome to SATHI&quot;</span> <span class="cp">%}</span><span class="x">&lt;/h1&gt;</span>
-<span class="x">&lt;p&gt;</span><span class="cp">{%</span> <span class="k">trans</span> <span class="s2">&quot;Complete your questionnaires&quot;</span> <span class="cp">%}</span><span class="x">&lt;/p&gt;</span>
+<span class="x">&lt;h1&gt;</span><span class="cp">{%</span> <span class="k">trans</span> <span class="s2">"Welcome to SATHI"</span> <span class="cp">%}</span><span class="x">&lt;/h1&gt;</span>
+<span class="x">&lt;p&gt;</span><span class="cp">{%</span> <span class="k">trans</span> <span class="s2">"Complete your questionnaires"</span> <span class="cp">%}</span><span class="x">&lt;/p&gt;</span>
 
-<span class="x">&lt;button&gt;</span><span class="cp">{%</span> <span class="k">trans</span> <span class="s2">&quot;Submit&quot;</span> <span class="cp">%}</span><span class="x">&lt;/button&gt;</span>
+<span class="x">&lt;button&gt;</span><span class="cp">{%</span> <span class="k">trans</span> <span class="s2">"Submit"</span> <span class="cp">%}</span><span class="x">&lt;/button&gt;</span>
 </pre></div>
 </div>
 <p><strong>Translation with Variables:</strong></p>
@@ -479,8 +479,8 @@ sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span cl
 <div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">load</span> <span class="nv">i18n</span> <span class="cp">%}</span>
 
 <span class="c">{# Context helps translators understand usage #}</span>
-<span class="cp">{%</span> <span class="k">trans</span> <span class="s2">&quot;Date&quot;</span> <span class="nv">context</span> <span class="s2">&quot;questionnaire submission date&quot;</span> <span class="cp">%}</span>
-<span class="cp">{%</span> <span class="k">trans</span> <span class="s2">&quot;Date&quot;</span> <span class="nv">context</span> <span class="s2">&quot;patient birth date&quot;</span> <span class="cp">%}</span>
+<span class="cp">{%</span> <span class="k">trans</span> <span class="s2">"Date"</span> <span class="nv">context</span> <span class="s2">"questionnaire submission date"</span> <span class="cp">%}</span>
+<span class="cp">{%</span> <span class="k">trans</span> <span class="s2">"Date"</span> <span class="nv">context</span> <span class="s2">"patient birth date"</span> <span class="cp">%}</span>
 </pre></div>
 </div>
 </section>
@@ -492,21 +492,21 @@ sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span cl
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ngettext</span>
 
 <span class="c1"># Simple translation</span>
-<span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Questionnaire submitted successfully&quot;</span><span class="p">)</span>
+<span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">"Questionnaire submitted successfully"</span><span class="p">)</span>
 
 <span class="c1"># Lazy translation (for class-level definitions)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">MyForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
-        <span class="n">label</span><span class="o">=</span><span class="n">gettext_lazy</span><span class="p">(</span><span class="s2">&quot;Patient Name&quot;</span><span class="p">)</span>
+        <span class="n">label</span><span class="o">=</span><span class="n">gettext_lazy</span><span class="p">(</span><span class="s2">"Patient Name"</span><span class="p">)</span>
     <span class="p">)</span>
 
 <span class="c1"># Plural forms</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_message</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">ngettext</span><span class="p">(</span>
-        <span class="s2">&quot;</span><span class="si">%(count)d</span><span class="s2"> item completed&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;</span><span class="si">%(count)d</span><span class="s2"> items completed&quot;</span><span class="p">,</span>
+        <span class="s2">"</span><span class="si">%(count)d</span><span class="s2"> item completed"</span><span class="p">,</span>
+        <span class="s2">"</span><span class="si">%(count)d</span><span class="s2"> items completed"</span><span class="p">,</span>
         <span class="n">count</span>
-    <span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="n">count</span><span class="p">}</span>
+    <span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s1">'count'</span><span class="p">:</span> <span class="n">count</span><span class="p">}</span>
 </pre></div>
 </div>
 </section>
@@ -519,13 +519,13 @@ sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span cl
 <span class="k">class</span><span class="w"> </span><span class="nc">Patient</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
         <span class="n">max_length</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
-        <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Patient Name&quot;</span><span class="p">),</span>
-        <span class="n">help_text</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Enter the patient&#39;s full name&quot;</span><span class="p">)</span>
+        <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">"Patient Name"</span><span class="p">),</span>
+        <span class="n">help_text</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">"Enter the patient's full name"</span><span class="p">)</span>
     <span class="p">)</span>
 
     <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
-        <span class="n">verbose_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Patient&quot;</span><span class="p">)</span>
-        <span class="n">verbose_name_plural</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Patients&quot;</span><span class="p">)</span>
+        <span class="n">verbose_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">"Patient"</span><span class="p">)</span>
+        <span class="n">verbose_name_plural</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">"Patients"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -539,8 +539,8 @@ sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span cl
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.conf.urls.i18n</span><span class="w"> </span><span class="kn">import</span> <span class="n">i18n_patterns</span>
 
 <span class="n">urlpatterns</span> <span class="o">=</span> <span class="n">i18n_patterns</span><span class="p">(</span>
-    <span class="n">path</span><span class="p">(</span><span class="s1">&#39;patients/&#39;</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s1">&#39;patientapp.urls&#39;</span><span class="p">)),</span>
-    <span class="n">path</span><span class="p">(</span><span class="s1">&#39;questionnaires/&#39;</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s1">&#39;promapp.urls&#39;</span><span class="p">)),</span>
+    <span class="n">path</span><span class="p">(</span><span class="s1">'patients/'</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s1">'patientapp.urls'</span><span class="p">)),</span>
+    <span class="n">path</span><span class="p">(</span><span class="s1">'questionnaires/'</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s1">'promapp.urls'</span><span class="p">)),</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -555,10 +555,10 @@ sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span cl
 <h3><a class="toc-backref" href="#id24" role="doc-backlink">Middleware Configuration</a><a class="headerlink" href="#middleware-configuration" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py</span>
 <span class="n">MIDDLEWARE</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;django.middleware.security.SecurityMiddleware&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;django.contrib.sessions.middleware.SessionMiddleware&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;django.middleware.locale.LocaleMiddleware&#39;</span><span class="p">,</span>  <span class="c1"># Language detection</span>
-    <span class="s1">&#39;django.middleware.common.CommonMiddleware&#39;</span><span class="p">,</span>
+    <span class="s1">'django.middleware.security.SecurityMiddleware'</span><span class="p">,</span>
+    <span class="s1">'django.contrib.sessions.middleware.SessionMiddleware'</span><span class="p">,</span>
+    <span class="s1">'django.middleware.locale.LocaleMiddleware'</span><span class="p">,</span>  <span class="c1"># Language detection</span>
+    <span class="s1">'django.middleware.common.CommonMiddleware'</span><span class="p">,</span>
     <span class="c1"># ... other middleware</span>
 <span class="p">]</span>
 </pre></div>
@@ -569,12 +569,12 @@ sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span cl
 <p>The navbar includes a language dropdown:</p>
 <div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">load</span> <span class="nv">i18n</span> <span class="cp">%}</span>
 
-<span class="x">&lt;form action=&quot;</span><span class="cp">{%</span> <span class="k">url</span> <span class="s1">&#39;set_language&#39;</span> <span class="cp">%}</span><span class="x">&quot; method=&quot;post&quot;&gt;</span>
+<span class="x">&lt;form action="</span><span class="cp">{%</span> <span class="k">url</span> <span class="s1">'set_language'</span> <span class="cp">%}</span><span class="x">" method="post"&gt;</span>
 <span class="x">    </span><span class="cp">{%</span> <span class="k">csrf_token</span> <span class="cp">%}</span>
-<span class="x">    &lt;select name=&quot;language&quot; onchange=&quot;this.form.submit()&quot;&gt;</span>
+<span class="x">    &lt;select name="language" onchange="this.form.submit()"&gt;</span>
 <span class="x">        </span><span class="cp">{%</span> <span class="k">get_available_languages</span> <span class="k">as</span> <span class="nv">languages</span> <span class="cp">%}</span>
 <span class="x">        </span><span class="cp">{%</span> <span class="k">for</span> <span class="nv">lang_code</span><span class="o">,</span> <span class="nv">lang_name</span> <span class="k">in</span> <span class="nv">languages</span> <span class="cp">%}</span>
-<span class="x">            &lt;option value=&quot;</span><span class="cp">{{</span> <span class="nv">lang_code</span> <span class="cp">}}</span><span class="x">&quot;</span>
+<span class="x">            &lt;option value="</span><span class="cp">{{</span> <span class="nv">lang_code</span> <span class="cp">}}</span><span class="x">"</span>
 <span class="x">                </span><span class="cp">{%</span> <span class="k">if</span> <span class="nv">lang_code</span> <span class="o">==</span> <span class="nv">LANGUAGE_CODE</span> <span class="cp">%}</span><span class="x">selected</span><span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span><span class="x">&gt;</span>
 <span class="x">                </span><span class="cp">{{</span> <span class="nv">lang_name</span> <span class="cp">}}</span>
 <span class="x">            &lt;/option&gt;</span>
@@ -593,7 +593,7 @@ sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span cl
 <span class="k">def</span><span class="w"> </span><span class="nf">set_user_language</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">language_code</span><span class="p">):</span>
     <span class="n">activate</span><span class="p">(</span><span class="n">language_code</span><span class="p">)</span>
     <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="n">LANGUAGE_SESSION_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">language_code</span>
-    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTP_REFERER&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'HTTP_REFERER'</span><span class="p">,</span> <span class="s1">'/'</span><span class="p">))</span>
 </pre></div>
 </div>
 </section>
@@ -606,11 +606,11 @@ sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span cl
 <li><p><strong>Mark Strings for Translation</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In Python</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext</span> <span class="k">as</span> <span class="n">_</span>
-<span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Hello, world!&quot;</span><span class="p">)</span>
+<span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">"Hello, world!"</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="c">{# In templates #}</span>
-<span class="cp">{%</span> <span class="k">trans</span> <span class="s2">&quot;Hello, world!&quot;</span> <span class="cp">%}</span>
+<span class="cp">{%</span> <span class="k">trans</span> <span class="s2">"Hello, world!"</span> <span class="cp">%}</span>
 </pre></div>
 </div>
 </li>
@@ -636,7 +636,7 @@ sudo<span class="w"> </span>supervisorctl<span class="w"> </span>restart<span cl
 </li>
 <li><p><strong>Commit Changes</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>add<span class="w"> </span>locale/
-git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Add Tamil translations&quot;</span>
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"Add Tamil translations"</span>
 </pre></div>
 </div>
 </li>
@@ -651,7 +651,7 @@ git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </sp
 </div>
 </li>
 <li><p><strong>Compile Messages</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>compilemessages<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;venv&quot;</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;node_modules&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>compilemessages<span class="w"> </span>-i<span class="w"> </span><span class="s2">"venv"</span><span class="w"> </span>-i<span class="w"> </span><span class="s2">"node_modules"</span>
 </pre></div>
 </div>
 </li>
@@ -729,32 +729,32 @@ template examples that the gettext parser cannot handle.</p>
 <section id="po-file-format">
 <h3><a class="toc-backref" href="#id33" role="doc-backlink">PO File Format</a><a class="headerlink" href="#po-file-format" title="Link to this heading">¶</a></h3>
 <div class="highlight-po notranslate"><div class="highlight"><pre><span></span><span class="c1"># Translation metadata</span>
-<span class="nv">msgid</span> <span class="s">&quot;&quot;</span>
-<span class="nv">msgstr</span> <span class="s">&quot;&quot;</span>
-<span class="s">&quot;</span><span class="py">Project-Id-Version:</span><span class="s"> SATHI 1.0\n&quot;</span>
-<span class="s">&quot;</span><span class="py">Report-Msgid-Bugs-To:</span><span class="s"> \n&quot;</span>
-<span class="s">&quot;</span><span class="py">POT-Creation-Date:</span><span class="s"> 2026-04-22 19:00+0530\n&quot;</span>
-<span class="s">&quot;</span><span class="py">Language:</span><span class="s"> ta\n&quot;</span>
-<span class="s">&quot;</span><span class="py">MIME-Version:</span><span class="s"> 1.0\n&quot;</span>
-<span class="s">&quot;</span><span class="py">Content-Type:</span><span class="s"> text/plain; charset=UTF-8\n&quot;</span>
+<span class="nv">msgid</span> <span class="s">""</span>
+<span class="nv">msgstr</span> <span class="s">""</span>
+<span class="s">"</span><span class="py">Project-Id-Version:</span><span class="s"> SATHI 1.0\n"</span>
+<span class="s">"</span><span class="py">Report-Msgid-Bugs-To:</span><span class="s"> \n"</span>
+<span class="s">"</span><span class="py">POT-Creation-Date:</span><span class="s"> 2026-04-22 19:00+0530\n"</span>
+<span class="s">"</span><span class="py">Language:</span><span class="s"> ta\n"</span>
+<span class="s">"</span><span class="py">MIME-Version:</span><span class="s"> 1.0\n"</span>
+<span class="s">"</span><span class="py">Content-Type:</span><span class="s"> text/plain; charset=UTF-8\n"</span>
 
 <span class="c1"># Simple translation</span>
 <span class="kd">#: templates/navbar.html:15</span>
-<span class="nv">msgid</span> <span class="s">&quot;Home&quot;</span>
-<span class="nv">msgstr</span> <span class="s">&quot;முகப்பு&quot;</span>
+<span class="nv">msgid</span> <span class="s">"Home"</span>
+<span class="nv">msgstr</span> <span class="s">"முகப்பு"</span>
 
 <span class="c1"># Translation with context</span>
 <span class="kd">#: promapp/views.py:45</span>
-<span class="nv">msgctxt</span> <span class="s">&quot;questionnaire status&quot;</span>
-<span class="nv">msgid</span> <span class="s">&quot;Completed&quot;</span>
-<span class="nv">msgstr</span> <span class="s">&quot;முடிந்தது&quot;</span>
+<span class="nv">msgctxt</span> <span class="s">"questionnaire status"</span>
+<span class="nv">msgid</span> <span class="s">"Completed"</span>
+<span class="nv">msgstr</span> <span class="s">"முடிந்தது"</span>
 
 <span class="c1"># Plural forms</span>
 <span class="kd">#: promapp/views.py:67</span>
-<span class="nv">msgid</span> <span class="s">&quot;%(count)d questionnaire&quot;</span>
-<span class="nv">msgid_plural</span> <span class="s">&quot;%(count)d questionnaires&quot;</span>
-<span class="nv">msgstr[</span><span class="mi">0</span><span class="nv">]</span> <span class="s">&quot;%(count)d கேள்வித்தாள்&quot;</span>
-<span class="nv">msgstr[</span><span class="mi">1</span><span class="nv">]</span> <span class="s">&quot;%(count)d கேள்வித்தாள்கள்&quot;</span>
+<span class="nv">msgid</span> <span class="s">"%(count)d questionnaire"</span>
+<span class="nv">msgid_plural</span> <span class="s">"%(count)d questionnaires"</span>
+<span class="nv">msgstr[</span><span class="mi">0</span><span class="nv">]</span> <span class="s">"%(count)d கேள்வித்தாள்"</span>
+<span class="nv">msgstr[</span><span class="mi">1</span><span class="nv">]</span> <span class="s">"%(count)d கேள்வித்தாள்கள்"</span>
 </pre></div>
 </div>
 </section>
@@ -766,20 +766,20 @@ template examples that the gettext parser cannot handle.</p>
 <ol class="arabic">
 <li><p><strong>Use Descriptive Context</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Good</span>
-<span class="n">_</span><span class="p">(</span><span class="s2">&quot;Date&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;submission date&quot;</span><span class="p">)</span>
-<span class="n">_</span><span class="p">(</span><span class="s2">&quot;Date&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;birth date&quot;</span><span class="p">)</span>
+<span class="n">_</span><span class="p">(</span><span class="s2">"Date"</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">"submission date"</span><span class="p">)</span>
+<span class="n">_</span><span class="p">(</span><span class="s2">"Date"</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">"birth date"</span><span class="p">)</span>
 
 <span class="c1"># Avoid</span>
-<span class="n">_</span><span class="p">(</span><span class="s2">&quot;Date&quot;</span><span class="p">)</span>
+<span class="n">_</span><span class="p">(</span><span class="s2">"Date"</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
 <li><p><strong>Avoid String Concatenation</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Bad</span>
-<span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Welcome&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">user</span><span class="o">.</span><span class="n">name</span>
+<span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">"Welcome"</span><span class="p">)</span> <span class="o">+</span> <span class="s2">" "</span> <span class="o">+</span> <span class="n">user</span><span class="o">.</span><span class="n">name</span>
 
 <span class="c1"># Good</span>
-<span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Welcome, </span><span class="si">%(name)s</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
+<span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">"Welcome, </span><span class="si">%(name)s</span><span class="s2">"</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
 </pre></div>
 </div>
 </li>
@@ -787,7 +787,7 @@ template examples that the gettext parser cannot handle.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-     <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">))</span>
+     <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">"Name"</span><span class="p">))</span>
 </pre></div>
 </div>
 </li>
@@ -814,10 +814,10 @@ make<span class="w"> </span>messages<span class="w"> </span><span class="nv">LAN
 <p>Different languages may require different fonts:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py</span>
 <span class="n">LANGUAGE_FONTS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;en&#39;</span><span class="p">:</span> <span class="s1">&#39;Arial, sans-serif&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hi&#39;</span><span class="p">:</span> <span class="s1">&#39;Noto Sans Devanagari, sans-serif&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;bn&#39;</span><span class="p">:</span> <span class="s1">&#39;Noto Sans Bengali, sans-serif&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;ta&#39;</span><span class="p">:</span> <span class="s1">&#39;Noto Sans Tamil, sans-serif&#39;</span><span class="p">,</span>
+    <span class="s1">'en'</span><span class="p">:</span> <span class="s1">'Arial, sans-serif'</span><span class="p">,</span>
+    <span class="s1">'hi'</span><span class="p">:</span> <span class="s1">'Noto Sans Devanagari, sans-serif'</span><span class="p">,</span>
+    <span class="s1">'bn'</span><span class="p">:</span> <span class="s1">'Noto Sans Bengali, sans-serif'</span><span class="p">,</span>
+    <span class="s1">'ta'</span><span class="p">:</span> <span class="s1">'Noto Sans Tamil, sans-serif'</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -836,12 +836,12 @@ make<span class="w"> </span>messages<span class="w"> </span><span class="nv">LAN
 <h3><a class="toc-backref" href="#id37" role="doc-backlink">RTL Language Support</a><a class="headerlink" href="#rtl-language-support" title="Link to this heading">¶</a></h3>
 <p>For right-to-left languages (Arabic, Urdu):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py</span>
-<span class="n">LANGUAGES_BIDI</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ar&#39;</span><span class="p">,</span> <span class="s1">&#39;ur&#39;</span><span class="p">,</span> <span class="s1">&#39;he&#39;</span><span class="p">]</span>
+<span class="n">LANGUAGES_BIDI</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'ar'</span><span class="p">,</span> <span class="s1">'ur'</span><span class="p">,</span> <span class="s1">'he'</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">load</span> <span class="nv">i18n</span> <span class="cp">%}</span>
 
-<span class="x">&lt;html dir=&quot;</span><span class="cp">{%</span> <span class="k">if</span> <span class="nv">LANGUAGE_BIDI</span> <span class="cp">%}</span><span class="x">rtl</span><span class="cp">{%</span> <span class="k">else</span> <span class="cp">%}</span><span class="x">ltr</span><span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span><span class="x">&quot;&gt;</span>
+<span class="x">&lt;html dir="</span><span class="cp">{%</span> <span class="k">if</span> <span class="nv">LANGUAGE_BIDI</span> <span class="cp">%}</span><span class="x">rtl</span><span class="cp">{%</span> <span class="k">else</span> <span class="cp">%}</span><span class="x">ltr</span><span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span><span class="x">"&gt;</span>
 </pre></div>
 </div>
 </section>
@@ -870,7 +870,7 @@ make<span class="w"> </span>messages<span class="w"> </span><span class="nv">LAN
 </ol>
 <p><strong>Encoding Errors</strong></p>
 <p>Ensure <code class="docutils literal notranslate"><span class="pre">.po</span></code> files use UTF-8:</p>
-<div class="highlight-po notranslate"><div class="highlight"><pre><span></span><span class="s">&quot;</span><span class="py">Content-Type:</span><span class="s"> text/plain; charset=UTF-8\n&quot;</span>
+<div class="highlight-po notranslate"><div class="highlight"><pre><span></span><span class="s">"</span><span class="py">Content-Type:</span><span class="s"> text/plain; charset=UTF-8\n"</span>
 </pre></div>
 </div>
 <p><strong>Missing Translations</strong></p>
@@ -888,8 +888,8 @@ make<span class="w"> </span>messages<span class="w"> </span><span class="nv">LAN
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Verify language is in PARLER_LANGUAGES</span>
 <span class="n">PARLER_LANGUAGES</span> <span class="o">=</span> <span class="p">{</span>
     <span class="kc">None</span><span class="p">:</span> <span class="p">(</span>
-        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">},</span>
-        <span class="p">{</span><span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="s1">&#39;ta&#39;</span><span class="p">},</span>  <span class="c1"># Must be here</span>
+        <span class="p">{</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'en'</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">'code'</span><span class="p">:</span> <span class="s1">'ta'</span><span class="p">},</span>  <span class="c1"># Must be here</span>
     <span class="p">),</span>
 <span class="p">}</span>
 </pre></div>
@@ -903,9 +903,9 @@ make<span class="w"> </span>messages<span class="w"> </span><span class="nv">LAN
 </li>
 <li><p><strong>Check Fallback Settings</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PARLER_LANGUAGES</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;fallback&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;hide_untranslated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># Show English if translation missing</span>
+    <span class="s1">'default'</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">'fallback'</span><span class="p">:</span> <span class="s1">'en'</span><span class="p">,</span>
+        <span class="s1">'hide_untranslated'</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># Show English if translation missing</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -940,24 +940,24 @@ make<span class="w"> </span>messages<span class="w"> </span><span class="nv">LAN
 
 <span class="k">class</span><span class="w"> </span><span class="nc">TranslationTests</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">test_tamil_translation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">activate</span><span class="p">(</span><span class="s1">&#39;ta&#39;</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/patients/&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s1">&#39;நோயாளர்கள்&#39;</span><span class="p">)</span>
+        <span class="n">activate</span><span class="p">(</span><span class="s1">'ta'</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'/patients/'</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s1">'நோயாளர்கள்'</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">test_questionnaire_translation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">promapp.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Questionnaire</span>
 
         <span class="n">q</span> <span class="o">=</span> <span class="n">Questionnaire</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
-        <span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;en&#39;</span><span class="p">)</span>
-        <span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Health Survey&quot;</span>
+        <span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">'en'</span><span class="p">)</span>
+        <span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"Health Survey"</span>
         <span class="n">q</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 
-        <span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;ta&#39;</span><span class="p">)</span>
-        <span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;சுகாதார கணக்கெடுப்பு&quot;</span>
+        <span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">'ta'</span><span class="p">)</span>
+        <span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"சுகாதார கணக்கெடுப்பு"</span>
         <span class="n">q</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 
-        <span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">&#39;ta&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;சுகாதார கணக்கெடுப்பு&quot;</span><span class="p">)</span>
+        <span class="n">q</span><span class="o">.</span><span class="n">set_current_language</span><span class="p">(</span><span class="s1">'ta'</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">"சுகாதார கணக்கெடுப்பு"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -1037,6 +1037,9 @@ make<span class="w"> </span>messages<span class="w"> </span><span class="nv">LAN
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="security.html">Security &amp; Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html">AWS RDS IAM Database Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html">Logging Configuration Audit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="roles_and_permissions_configuration.html">Roles and Permissions Configuration Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="frontend_development.html">Frontend Development</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ui_components.html">UI Components Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_integration.html">Data Integration Guide</a></li>
@@ -1077,7 +1080,7 @@ make<span class="w"> </span>messages<span class="w"> </span><span class="nv">LAN
       &#169;2026, CHAVI Team.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.1</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |

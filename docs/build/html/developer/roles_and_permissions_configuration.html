@@ -16,7 +16,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Frontend Development" href="frontend_development.html" />
-    <link rel="prev" title="Security &amp; Permissions" href="security.html" />
+    <link rel="prev" title="Logging Configuration Audit" href="logging_audit.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -104,13 +104,13 @@
 <h3>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">Permission</span>
 
-<span class="n">patients_group</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Patients&#39;</span><span class="p">)</span>
+<span class="n">patients_group</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Patients'</span><span class="p">)</span>
 
 <span class="c1"># Add permissions</span>
 <span class="n">patients_group</span><span class="o">.</span><span class="n">permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_patientquestionnaire&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;add_questionnaireitemresponse&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;add_questionnairesubmission&#39;</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'view_patientquestionnaire'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'add_questionnaireitemresponse'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'add_questionnairesubmission'</span><span class="p">),</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -183,24 +183,24 @@
 </section>
 <section id="id1">
 <h3>Configuration<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">providers_group</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Healthcare Providers&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">providers_group</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Healthcare Providers'</span><span class="p">)</span>
 
 <span class="c1"># Core permissions</span>
 <span class="n">providers_group</span><span class="o">.</span><span class="n">permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_patient&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_patientquestionnaire&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;add_patientquestionnaire&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_questionnaireitemresponse&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_questionnairesubmission&#39;</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'view_patient'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'view_patientquestionnaire'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'add_patientquestionnaire'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'view_questionnaireitemresponse'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'view_questionnairesubmission'</span><span class="p">),</span>
 <span class="p">)</span>
 
 <span class="c1"># Optional clinical permissions</span>
 <span class="n">providers_group</span><span class="o">.</span><span class="n">permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;add_diagnosis&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;change_diagnosis&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;add_treatment&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;change_treatment&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;add_patientproject&#39;</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'add_diagnosis'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'change_diagnosis'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'add_treatment'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'change_treatment'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'add_patientproject'</span><span class="p">),</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -285,24 +285,24 @@
 </section>
 <section id="id3">
 <h3>Configuration<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">registration_staff_group</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Patient Registration Staff&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">registration_staff_group</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Patient Registration Staff'</span><span class="p">)</span>
 
 <span class="c1"># Core permissions</span>
 <span class="n">registration_staff_group</span><span class="o">.</span><span class="n">permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_patient&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;add_patient&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;change_patient&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_institution&#39;</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'view_patient'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'add_patient'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'change_patient'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'view_institution'</span><span class="p">),</span>
 <span class="p">)</span>
 
 <span class="c1"># Optional permissions for extended registration role</span>
 <span class="n">registration_staff_group</span><span class="o">.</span><span class="n">permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;add_diagnosis&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;change_diagnosis&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_diagnosislist&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;view_treatmenttype&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;add_treatment&#39;</span><span class="p">),</span>
-    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">&#39;add_patientproject&#39;</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'add_diagnosis'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'change_diagnosis'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'view_diagnosislist'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'view_treatmenttype'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'add_treatment'</span><span class="p">),</span>
+    <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s1">'add_patientproject'</span><span class="p">),</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -370,20 +370,20 @@
 </section>
 <section id="id6">
 <h3>Configuration<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">creators_group</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Questionnaire Creators&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">creators_group</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Questionnaire Creators'</span><span class="p">)</span>
 
 <span class="n">models</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;questionnaire&#39;</span><span class="p">,</span> <span class="s1">&#39;item&#39;</span><span class="p">,</span> <span class="s1">&#39;likertscale&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;likertscaleresponseoption&#39;</span><span class="p">,</span> <span class="s1">&#39;rangescale&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;constructscale&#39;</span><span class="p">,</span> <span class="s1">&#39;questionnaireitem&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;construct&#39;</span><span class="p">,</span> <span class="s1">&#39;compositeconstruct&#39;</span>
+    <span class="s1">'questionnaire'</span><span class="p">,</span> <span class="s1">'item'</span><span class="p">,</span> <span class="s1">'likertscale'</span><span class="p">,</span>
+    <span class="s1">'likertscaleresponseoption'</span><span class="p">,</span> <span class="s1">'rangescale'</span><span class="p">,</span>
+    <span class="s1">'constructscale'</span><span class="p">,</span> <span class="s1">'questionnaireitem'</span><span class="p">,</span>
+    <span class="s1">'construct'</span><span class="p">,</span> <span class="s1">'compositeconstruct'</span>
 <span class="p">]</span>
 
 <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
     <span class="n">creators_group</span><span class="o">.</span><span class="n">permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-        <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;view_</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">),</span>
-        <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;add_</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">),</span>
-        <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;change_</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">),</span>
+        <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="sa">f</span><span class="s1">'view_</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">'</span><span class="p">),</span>
+        <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="sa">f</span><span class="s1">'add_</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">'</span><span class="p">),</span>
+        <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="sa">f</span><span class="s1">'change_</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">'</span><span class="p">),</span>
     <span class="p">)</span>
 </pre></div>
 </div>
@@ -431,22 +431,22 @@
 <h3>Configuration<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.contenttypes.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContentType</span>
 
-<span class="n">redcap_managers</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;REDCap Data Managers&#39;</span><span class="p">)</span>
+<span class="n">redcap_managers</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'REDCap Data Managers'</span><span class="p">)</span>
 
 <span class="c1"># Add all REDCap permissions</span>
 <span class="n">redcap_models</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;redcapformtoquestionnairemapping&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;redcapfieldtoitemmapping&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;redcapstudyidtopatientidmap&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;redcapinstancetosubmissionmapping&#39;</span><span class="p">,</span>
+    <span class="s1">'redcapformtoquestionnairemapping'</span><span class="p">,</span>
+    <span class="s1">'redcapfieldtoitemmapping'</span><span class="p">,</span>
+    <span class="s1">'redcapstudyidtopatientidmap'</span><span class="p">,</span>
+    <span class="s1">'redcapinstancetosubmissionmapping'</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">redcap_models</span><span class="p">:</span>
-    <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;view&#39;</span><span class="p">,</span> <span class="s1">&#39;add&#39;</span><span class="p">,</span> <span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="s1">&#39;delete&#39;</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'view'</span><span class="p">,</span> <span class="s1">'add'</span><span class="p">,</span> <span class="s1">'change'</span><span class="p">,</span> <span class="s1">'delete'</span><span class="p">]:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">perm</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="n">codename</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                <span class="n">content_type__app_label</span><span class="o">=</span><span class="s1">&#39;patientapp&#39;</span>
+                <span class="n">codename</span><span class="o">=</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span>
+                <span class="n">content_type__app_label</span><span class="o">=</span><span class="s1">'patientapp'</span>
             <span class="p">)</span>
             <span class="n">redcap_managers</span><span class="o">.</span><span class="n">permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">perm</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">Permission</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
@@ -671,90 +671,90 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.contenttypes.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContentType</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">setup_groups</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create all standard groups with their permissions.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Create all standard groups with their permissions."""</span>
 
     <span class="c1"># 1. Patients Group</span>
-    <span class="n">patients</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Patients&#39;</span><span class="p">)</span>
+    <span class="n">patients</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Patients'</span><span class="p">)</span>
     <span class="n">patient_perms</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;view_patientquestionnaire&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;add_questionnaireitemresponse&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;add_questionnairesubmission&#39;</span><span class="p">,</span>
+        <span class="s1">'view_patientquestionnaire'</span><span class="p">,</span>
+        <span class="s1">'add_questionnaireitemresponse'</span><span class="p">,</span>
+        <span class="s1">'add_questionnairesubmission'</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="k">for</span> <span class="n">codename</span> <span class="ow">in</span> <span class="n">patient_perms</span><span class="p">:</span>
         <span class="n">perm</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="n">codename</span><span class="p">)</span>
         <span class="n">patients</span><span class="o">.</span><span class="n">permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">perm</span><span class="p">)</span>
 
     <span class="c1"># 2. Healthcare Providers Group</span>
-    <span class="n">providers</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Healthcare Providers&#39;</span><span class="p">)</span>
+    <span class="n">providers</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Healthcare Providers'</span><span class="p">)</span>
     <span class="n">provider_perms</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;view_patient&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;view_patientquestionnaire&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;add_patientquestionnaire&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;view_questionnaireitemresponse&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;view_questionnairesubmission&#39;</span><span class="p">,</span>
+        <span class="s1">'view_patient'</span><span class="p">,</span>
+        <span class="s1">'view_patientquestionnaire'</span><span class="p">,</span>
+        <span class="s1">'add_patientquestionnaire'</span><span class="p">,</span>
+        <span class="s1">'view_questionnaireitemresponse'</span><span class="p">,</span>
+        <span class="s1">'view_questionnairesubmission'</span><span class="p">,</span>
         <span class="c1"># Optional clinical</span>
-        <span class="s1">&#39;add_diagnosis&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;change_diagnosis&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;add_treatment&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;change_treatment&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;add_patientproject&#39;</span><span class="p">,</span>
+        <span class="s1">'add_diagnosis'</span><span class="p">,</span>
+        <span class="s1">'change_diagnosis'</span><span class="p">,</span>
+        <span class="s1">'add_treatment'</span><span class="p">,</span>
+        <span class="s1">'change_treatment'</span><span class="p">,</span>
+        <span class="s1">'add_patientproject'</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="k">for</span> <span class="n">codename</span> <span class="ow">in</span> <span class="n">provider_perms</span><span class="p">:</span>
         <span class="n">perm</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="n">codename</span><span class="p">)</span>
         <span class="n">providers</span><span class="o">.</span><span class="n">permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">perm</span><span class="p">)</span>
 
     <span class="c1"># 3. Patient Registration Staff Group</span>
-    <span class="n">registration</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Patient Registration Staff&#39;</span><span class="p">)</span>
+    <span class="n">registration</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Patient Registration Staff'</span><span class="p">)</span>
     <span class="n">reg_perms</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;view_patient&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;add_patient&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;change_patient&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;view_institution&#39;</span><span class="p">,</span>
+        <span class="s1">'view_patient'</span><span class="p">,</span>
+        <span class="s1">'add_patient'</span><span class="p">,</span>
+        <span class="s1">'change_patient'</span><span class="p">,</span>
+        <span class="s1">'view_institution'</span><span class="p">,</span>
         <span class="c1"># Optional for comprehensive registration</span>
-        <span class="s1">&#39;add_diagnosis&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;change_diagnosis&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;view_diagnosislist&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;view_treatmenttype&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;add_treatment&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;add_patientproject&#39;</span><span class="p">,</span>
+        <span class="s1">'add_diagnosis'</span><span class="p">,</span>
+        <span class="s1">'change_diagnosis'</span><span class="p">,</span>
+        <span class="s1">'view_diagnosislist'</span><span class="p">,</span>
+        <span class="s1">'view_treatmenttype'</span><span class="p">,</span>
+        <span class="s1">'add_treatment'</span><span class="p">,</span>
+        <span class="s1">'add_patientproject'</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="k">for</span> <span class="n">codename</span> <span class="ow">in</span> <span class="n">reg_perms</span><span class="p">:</span>
         <span class="n">perm</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="n">codename</span><span class="p">)</span>
         <span class="n">registration</span><span class="o">.</span><span class="n">permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">perm</span><span class="p">)</span>
 
     <span class="c1"># 4. Questionnaire Creators Group</span>
-    <span class="n">creators</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Questionnaire Creators&#39;</span><span class="p">)</span>
+    <span class="n">creators</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Questionnaire Creators'</span><span class="p">)</span>
     <span class="n">models</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;questionnaire&#39;</span><span class="p">,</span> <span class="s1">&#39;item&#39;</span><span class="p">,</span> <span class="s1">&#39;likertscale&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;likertscaleresponseoption&#39;</span><span class="p">,</span> <span class="s1">&#39;rangescale&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;constructscale&#39;</span><span class="p">,</span> <span class="s1">&#39;questionnaireitem&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;construct&#39;</span><span class="p">,</span> <span class="s1">&#39;compositeconstruct&#39;</span>
+        <span class="s1">'questionnaire'</span><span class="p">,</span> <span class="s1">'item'</span><span class="p">,</span> <span class="s1">'likertscale'</span><span class="p">,</span>
+        <span class="s1">'likertscaleresponseoption'</span><span class="p">,</span> <span class="s1">'rangescale'</span><span class="p">,</span>
+        <span class="s1">'constructscale'</span><span class="p">,</span> <span class="s1">'questionnaireitem'</span><span class="p">,</span>
+        <span class="s1">'construct'</span><span class="p">,</span> <span class="s1">'compositeconstruct'</span>
     <span class="p">]</span>
     <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;view&#39;</span><span class="p">,</span> <span class="s1">&#39;add&#39;</span><span class="p">,</span> <span class="s1">&#39;change&#39;</span><span class="p">]:</span>
-            <span class="n">perm</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'view'</span><span class="p">,</span> <span class="s1">'add'</span><span class="p">,</span> <span class="s1">'change'</span><span class="p">]:</span>
+            <span class="n">perm</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
             <span class="n">creators</span><span class="o">.</span><span class="n">permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">perm</span><span class="p">)</span>
 
     <span class="c1"># 5. REDCap Data Managers Group</span>
-    <span class="n">redcap</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;REDCap Data Managers&#39;</span><span class="p">)</span>
+    <span class="n">redcap</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'REDCap Data Managers'</span><span class="p">)</span>
     <span class="n">redcap_models</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;redcapformtoquestionnairemapping&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;redcapfieldtoitemmapping&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;redcapstudyidtopatientidmap&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;redcapinstancetosubmissionmapping&#39;</span><span class="p">,</span>
+        <span class="s1">'redcapformtoquestionnairemapping'</span><span class="p">,</span>
+        <span class="s1">'redcapfieldtoitemmapping'</span><span class="p">,</span>
+        <span class="s1">'redcapstudyidtopatientidmap'</span><span class="p">,</span>
+        <span class="s1">'redcapinstancetosubmissionmapping'</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">redcap_models</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;view&#39;</span><span class="p">,</span> <span class="s1">&#39;add&#39;</span><span class="p">,</span> <span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="s1">&#39;delete&#39;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'view'</span><span class="p">,</span> <span class="s1">'add'</span><span class="p">,</span> <span class="s1">'change'</span><span class="p">,</span> <span class="s1">'delete'</span><span class="p">]:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">perm</span> <span class="o">=</span> <span class="n">Permission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                    <span class="n">codename</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                    <span class="n">content_type__app_label</span><span class="o">=</span><span class="s1">&#39;patientapp&#39;</span>
+                    <span class="n">codename</span><span class="o">=</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span>
+                    <span class="n">content_type__app_label</span><span class="o">=</span><span class="s1">'patientapp'</span>
                 <span class="p">)</span>
                 <span class="n">redcap</span><span class="o">.</span><span class="n">permissions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">perm</span><span class="p">)</span>
             <span class="k">except</span> <span class="n">Permission</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
                 <span class="k">pass</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;All groups and permissions configured successfully!&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"All groups and permissions configured successfully!"</span><span class="p">)</span>
 
 <span class="c1"># Run the setup</span>
 <span class="n">setup_groups</span><span class="p">()</span>
@@ -772,8 +772,8 @@
 <p>Or programmatically:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Group</span>
 
-<span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s1">&#39;john_doe&#39;</span><span class="p">)</span>
-<span class="n">providers_group</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Healthcare Providers&#39;</span><span class="p">)</span>
+<span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s1">'john_doe'</span><span class="p">)</span>
+<span class="n">providers_group</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Healthcare Providers'</span><span class="p">)</span>
 <span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">providers_group</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -827,7 +827,7 @@
 <h3>Missing Permissions<a class="headerlink" href="#missing-permissions" title="Link to this heading">¶</a></h3>
 <p>If permissions don’t exist, run:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>migrate
-python<span class="w"> </span>manage.py<span class="w"> </span>shell<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from django.contrib.auth.models import Permission; Permission.objects.all().count()&quot;</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>shell<span class="w"> </span>-c<span class="w"> </span><span class="s2">"from django.contrib.auth.models import Permission; Permission.objects.all().count()"</span>
 </pre></div>
 </div>
 </section>
@@ -876,6 +876,8 @@ python<span class="w"> </span>manage.py<span class="w"> </span>shell<span class=
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="security.html">Security &amp; Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html">AWS RDS IAM Database Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html">Logging Configuration Audit</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Roles and Permissions Configuration Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="frontend_development.html">Frontend Development</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ui_components.html">UI Components Reference</a></li>
@@ -895,7 +897,7 @@ python<span class="w"> </span>manage.py<span class="w"> </span>shell<span class=
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html">Developer Documentation</a><ul>
-      <li>Previous: <a href="security.html" title="previous chapter">Security &amp; Permissions</a></li>
+      <li>Previous: <a href="logging_audit.html" title="previous chapter">Logging Configuration Audit</a></li>
       <li>Next: <a href="frontend_development.html" title="next chapter">Frontend Development</a></li>
   </ul></li>
   </ul></li>
@@ -917,7 +919,7 @@ python<span class="w"> </span>manage.py<span class="w"> </span>shell<span class=
       &#169;2026, CHAVI Team.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.1</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |

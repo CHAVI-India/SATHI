@@ -97,7 +97,7 @@
 <p><strong>Basic Usage:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span>{% load cotton %}
 
-<span class="p">&lt;</span><span class="nt">c-card</span> <span class="na">title</span><span class="o">=</span><span class="s">&quot;Patient Information&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-card</span> <span class="na">title</span><span class="o">=</span><span class="s">"Patient Information"</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Card content goes here...<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">c-card</span><span class="p">&gt;</span>
 </pre></div>
@@ -190,39 +190,39 @@
 <p><strong>Advanced Examples:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Card with header actions --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-card</span>
-    <span class="na">title</span><span class="o">=</span><span class="s">&quot;Diagnoses&quot;</span>
-    <span class="na">header_actions</span><span class="o">=</span><span class="s">&#39;&lt;button class=&quot;btn btn-primary&quot;&gt;Add New&lt;/button&gt;&#39;</span><span class="p">&gt;</span>
+    <span class="na">title</span><span class="o">=</span><span class="s">"Diagnoses"</span>
+    <span class="na">header_actions</span><span class="o">=</span><span class="s">'&lt;button class="btn btn-primary"&gt;Add New&lt;/button&gt;'</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Diagnoses list...<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">c-card</span><span class="p">&gt;</span>
 
 <span class="cm">&lt;!-- Card with footer --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-card</span>
-    <span class="na">title</span><span class="o">=</span><span class="s">&quot;Patient Details&quot;</span>
-    <span class="na">footer</span><span class="o">=</span><span class="s">&#39;&lt;div class=&quot;text-right&quot;&gt;&lt;button&gt;Save&lt;/button&gt;&lt;/div&gt;&#39;</span><span class="p">&gt;</span>
+    <span class="na">title</span><span class="o">=</span><span class="s">"Patient Details"</span>
+    <span class="na">footer</span><span class="o">=</span><span class="s">'&lt;div class="text-right"&gt;&lt;button&gt;Save&lt;/button&gt;&lt;/div&gt;'</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Form fields...<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">c-card</span><span class="p">&gt;</span>
 
 <span class="cm">&lt;!-- Custom styling --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-card</span>
-    <span class="na">title</span><span class="o">=</span><span class="s">&quot;Important Notice&quot;</span>
-    <span class="na">shadow</span><span class="o">=</span><span class="s">&quot;lg&quot;</span>
-    <span class="na">rounded</span><span class="o">=</span><span class="s">&quot;xl&quot;</span>
-    <span class="na">border</span><span class="o">=</span><span class="s">&quot;strong&quot;</span>
-    <span class="na">header_bg</span><span class="o">=</span><span class="s">&quot;bg-red-50&quot;</span>
-    <span class="na">body_bg</span><span class="o">=</span><span class="s">&quot;bg-red-100&quot;</span><span class="p">&gt;</span>
+    <span class="na">title</span><span class="o">=</span><span class="s">"Important Notice"</span>
+    <span class="na">shadow</span><span class="o">=</span><span class="s">"lg"</span>
+    <span class="na">rounded</span><span class="o">=</span><span class="s">"xl"</span>
+    <span class="na">border</span><span class="o">=</span><span class="s">"strong"</span>
+    <span class="na">header_bg</span><span class="o">=</span><span class="s">"bg-red-50"</span>
+    <span class="na">body_bg</span><span class="o">=</span><span class="s">"bg-red-100"</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Critical information...<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">c-card</span><span class="p">&gt;</span>
 </pre></div>
 </div>
 <p><strong>Mobile Responsiveness:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Responsive content inside cards --&gt;</span>
-<span class="p">&lt;</span><span class="nt">c-card</span> <span class="na">title</span><span class="o">=</span><span class="s">&quot;Patient Info&quot;</span> <span class="na">padding</span><span class="o">=</span><span class="s">&quot;md&quot;</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;flex flex-col sm:flex-row sm:justify-between gap-3&quot;</span><span class="p">&gt;</span>
-        <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;flex-1 min-w-0&quot;</span><span class="p">&gt;</span>
-            <span class="p">&lt;</span><span class="nt">h3</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;truncate&quot;</span><span class="p">&gt;</span>{{ patient.name }}<span class="p">&lt;/</span><span class="nt">h3</span><span class="p">&gt;</span>
-            <span class="p">&lt;</span><span class="nt">p</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;text-sm text-gray-600&quot;</span><span class="p">&gt;</span>{{ patient.id }}<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-card</span> <span class="na">title</span><span class="o">=</span><span class="s">"Patient Info"</span> <span class="na">padding</span><span class="o">=</span><span class="s">"md"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"flex flex-col sm:flex-row sm:justify-between gap-3"</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"flex-1 min-w-0"</span><span class="p">&gt;</span>
+            <span class="p">&lt;</span><span class="nt">h3</span> <span class="na">class</span><span class="o">=</span><span class="s">"truncate"</span><span class="p">&gt;</span>{{ patient.name }}<span class="p">&lt;/</span><span class="nt">h3</span><span class="p">&gt;</span>
+            <span class="p">&lt;</span><span class="nt">p</span> <span class="na">class</span><span class="o">=</span><span class="s">"text-sm text-gray-600"</span><span class="p">&gt;</span>{{ patient.id }}<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
         <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-        <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;flex space-x-2 sm:flex-shrink-0&quot;</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"flex space-x-2 sm:flex-shrink-0"</span><span class="p">&gt;</span>
             <span class="cm">&lt;!-- Action buttons --&gt;</span>
         <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
     <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
@@ -235,15 +235,15 @@
 <p>Display label-value pairs with optional badge styling.</p>
 <p><strong>Usage:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-field_display</span>
-    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Patient Name&quot;</span>
-    <span class="na">value</span><span class="o">=</span><span class="s">&quot;{{ patient.name }}&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">"Patient Name"</span>
+    <span class="na">value</span><span class="o">=</span><span class="s">"{{ patient.name }}"</span> <span class="p">/&gt;</span>
 
 <span class="cm">&lt;!-- With badge --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-field_display</span>
-    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Status&quot;</span>
-    <span class="na">value</span><span class="o">=</span><span class="s">&quot;Active&quot;</span>
-    <span class="na">badge</span><span class="o">=</span><span class="s">&quot;true&quot;</span>
-    <span class="na">badge_color</span><span class="o">=</span><span class="s">&quot;green&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">"Status"</span>
+    <span class="na">value</span><span class="o">=</span><span class="s">"Active"</span>
+    <span class="na">badge</span><span class="o">=</span><span class="s">"true"</span>
+    <span class="na">badge_color</span><span class="o">=</span><span class="s">"green"</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
 <p><strong>Props:</strong></p>
@@ -279,26 +279,26 @@
 
 <span class="cm">&lt;!-- Secondary button with icon --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-button</span>
-    <span class="na">variant</span><span class="o">=</span><span class="s">&quot;secondary&quot;</span>
-    <span class="na">icon_left</span><span class="o">=</span><span class="s">&quot;&lt;path d=&#39;M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z&#39;/&gt;&quot;</span><span class="p">&gt;</span>
+    <span class="na">variant</span><span class="o">=</span><span class="s">"secondary"</span>
+    <span class="na">icon_left</span><span class="o">=</span><span class="s">"&lt;path d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z'/&gt;"</span><span class="p">&gt;</span>
     Add New
 <span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
 
 <span class="cm">&lt;!-- Danger button with confirmation --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-button</span>
-    <span class="na">variant</span><span class="o">=</span><span class="s">&quot;danger&quot;</span>
-    <span class="na">hx_post</span><span class="o">=</span><span class="s">&quot;/delete/123/&quot;</span>
-    <span class="na">hx_confirm</span><span class="o">=</span><span class="s">&quot;Are you sure?&quot;</span><span class="p">&gt;</span>
+    <span class="na">variant</span><span class="o">=</span><span class="s">"danger"</span>
+    <span class="na">hx_post</span><span class="o">=</span><span class="s">"/delete/123/"</span>
+    <span class="na">hx_confirm</span><span class="o">=</span><span class="s">"Are you sure?"</span><span class="p">&gt;</span>
     Delete
 <span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
 
 <span class="cm">&lt;!-- Loading button --&gt;</span>
-<span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">loading</span><span class="o">=</span><span class="s">&quot;true&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">loading</span><span class="o">=</span><span class="s">"true"</span><span class="p">&gt;</span>
     Processing...
 <span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
 
 <span class="cm">&lt;!-- Full width button --&gt;</span>
-<span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">full_width</span><span class="o">=</span><span class="s">&quot;true&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">full_width</span><span class="o">=</span><span class="s">"true"</span><span class="p">&gt;</span>
     Full Width Button
 <span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
 </pre></div>
@@ -309,15 +309,15 @@
 <p>Button-styled anchor tag for navigation.</p>
 <p><strong>Usage:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Navigation button --&gt;</span>
-<span class="p">&lt;</span><span class="nt">c-link_button</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;{% url &#39;questionnaire_list&#39; %}&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-link_button</span> <span class="na">href</span><span class="o">=</span><span class="s">"{% url 'questionnaire_list' %}"</span><span class="p">&gt;</span>
     View Questionnaires
 <span class="p">&lt;/</span><span class="nt">c-link_button</span><span class="p">&gt;</span>
 
 <span class="cm">&lt;!-- External link --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-link_button</span>
-    <span class="na">href</span><span class="o">=</span><span class="s">&quot;https://example.com&quot;</span>
-    <span class="na">target</span><span class="o">=</span><span class="s">&quot;_blank&quot;</span>
-    <span class="na">variant</span><span class="o">=</span><span class="s">&quot;outline&quot;</span><span class="p">&gt;</span>
+    <span class="na">href</span><span class="o">=</span><span class="s">"https://example.com"</span>
+    <span class="na">target</span><span class="o">=</span><span class="s">"_blank"</span>
+    <span class="na">variant</span><span class="o">=</span><span class="s">"outline"</span><span class="p">&gt;</span>
     External Link
 <span class="p">&lt;/</span><span class="nt">c-link_button</span><span class="p">&gt;</span>
 </pre></div>
@@ -329,19 +329,19 @@
 <p><strong>Usage:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Edit button --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-icon_button</span>
-    <span class="na">icon</span><span class="o">=</span><span class="s">&quot;&lt;path d=&#39;M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.828-2.828z&#39;/&gt;&quot;</span>
-    <span class="na">aria_label</span><span class="o">=</span><span class="s">&quot;Edit&quot;</span>
-    <span class="na">title</span><span class="o">=</span><span class="s">&quot;Edit item&quot;</span>
-    <span class="na">variant</span><span class="o">=</span><span class="s">&quot;ghost&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">icon</span><span class="o">=</span><span class="s">"&lt;path d='M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.828-2.828z'/&gt;"</span>
+    <span class="na">aria_label</span><span class="o">=</span><span class="s">"Edit"</span>
+    <span class="na">title</span><span class="o">=</span><span class="s">"Edit item"</span>
+    <span class="na">variant</span><span class="o">=</span><span class="s">"ghost"</span> <span class="p">/&gt;</span>
 
 <span class="cm">&lt;!-- Delete button with HTMX --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-icon_button</span>
-    <span class="na">icon</span><span class="o">=</span><span class="s">&quot;&lt;path fill-rule=&#39;evenodd&#39; d=&#39;M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z&#39; clip-rule=&#39;evenodd&#39;/&gt;&quot;</span>
-    <span class="na">variant</span><span class="o">=</span><span class="s">&quot;danger&quot;</span>
-    <span class="na">size</span><span class="o">=</span><span class="s">&quot;sm&quot;</span>
-    <span class="na">hx_delete</span><span class="o">=</span><span class="s">&quot;/api/item/123/&quot;</span>
-    <span class="na">hx_confirm</span><span class="o">=</span><span class="s">&quot;Delete this item?&quot;</span>
-    <span class="na">aria_label</span><span class="o">=</span><span class="s">&quot;Delete&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">icon</span><span class="o">=</span><span class="s">"&lt;path fill-rule='evenodd' d='M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z' clip-rule='evenodd'/&gt;"</span>
+    <span class="na">variant</span><span class="o">=</span><span class="s">"danger"</span>
+    <span class="na">size</span><span class="o">=</span><span class="s">"sm"</span>
+    <span class="na">hx_delete</span><span class="o">=</span><span class="s">"/api/item/123/"</span>
+    <span class="na">hx_confirm</span><span class="o">=</span><span class="s">"Delete this item?"</span>
+    <span class="na">aria_label</span><span class="o">=</span><span class="s">"Delete"</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
 </section>
@@ -350,16 +350,16 @@
 <p>Groups related buttons together.</p>
 <p><strong>Usage:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Horizontal button group --&gt;</span>
-<span class="p">&lt;</span><span class="nt">c-button_group</span> <span class="na">rounded</span><span class="o">=</span><span class="s">&quot;true&quot;</span> <span class="na">shadow</span><span class="o">=</span><span class="s">&quot;true&quot;</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">&quot;outline&quot;</span><span class="p">&gt;</span>Previous<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">&quot;outline&quot;</span><span class="p">&gt;</span>Next<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-button_group</span> <span class="na">rounded</span><span class="o">=</span><span class="s">"true"</span> <span class="na">shadow</span><span class="o">=</span><span class="s">"true"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">"outline"</span><span class="p">&gt;</span>Previous<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">"outline"</span><span class="p">&gt;</span>Next<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">c-button_group</span><span class="p">&gt;</span>
 
 <span class="cm">&lt;!-- Vertical button group --&gt;</span>
-<span class="p">&lt;</span><span class="nt">c-button_group</span> <span class="na">vertical</span><span class="o">=</span><span class="s">&quot;true&quot;</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">&quot;secondary&quot;</span><span class="p">&gt;</span>Edit<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">&quot;secondary&quot;</span><span class="p">&gt;</span>Duplicate<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">&quot;danger&quot;</span><span class="p">&gt;</span>Delete<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-button_group</span> <span class="na">vertical</span><span class="o">=</span><span class="s">"true"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">"secondary"</span><span class="p">&gt;</span>Edit<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">"secondary"</span><span class="p">&gt;</span>Duplicate<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">"danger"</span><span class="p">&gt;</span>Delete<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">c-button_group</span><span class="p">&gt;</span>
 </pre></div>
 </div>
@@ -368,19 +368,19 @@
 <h3><a class="toc-backref" href="#id10" role="doc-backlink">Common Icon Paths</a><a class="headerlink" href="#common-icon-paths" title="Link to this heading">¶</a></h3>
 <p>Heroicons SVG paths for common actions:</p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Plus icon --&gt;</span>
-<span class="p">&lt;</span><span class="nt">path</span> <span class="na">fill-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span> <span class="na">d</span><span class="o">=</span><span class="s">&quot;M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z&quot;</span> <span class="na">clip-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span> <span class="p">/&gt;</span>
+<span class="p">&lt;</span><span class="nt">path</span> <span class="na">fill-rule</span><span class="o">=</span><span class="s">"evenodd"</span> <span class="na">d</span><span class="o">=</span><span class="s">"M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"</span> <span class="na">clip-rule</span><span class="o">=</span><span class="s">"evenodd"</span> <span class="p">/&gt;</span>
 
 <span class="cm">&lt;!-- Edit/Pencil icon --&gt;</span>
-<span class="p">&lt;</span><span class="nt">path</span> <span class="na">d</span><span class="o">=</span><span class="s">&quot;M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.828-2.828z&quot;</span><span class="p">/&gt;</span>
+<span class="p">&lt;</span><span class="nt">path</span> <span class="na">d</span><span class="o">=</span><span class="s">"M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.828-2.828z"</span><span class="p">/&gt;</span>
 
 <span class="cm">&lt;!-- Trash/Delete icon --&gt;</span>
-<span class="p">&lt;</span><span class="nt">path</span> <span class="na">fill-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span> <span class="na">d</span><span class="o">=</span><span class="s">&quot;M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z&quot;</span> <span class="na">clip-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span><span class="p">/&gt;</span>
+<span class="p">&lt;</span><span class="nt">path</span> <span class="na">fill-rule</span><span class="o">=</span><span class="s">"evenodd"</span> <span class="na">d</span><span class="o">=</span><span class="s">"M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"</span> <span class="na">clip-rule</span><span class="o">=</span><span class="s">"evenodd"</span><span class="p">/&gt;</span>
 
 <span class="cm">&lt;!-- Eye/View icon --&gt;</span>
-<span class="p">&lt;</span><span class="nt">path</span> <span class="na">d</span><span class="o">=</span><span class="s">&quot;M10 12a2 2 0 100-4 2 2 0 000 4z&quot;</span><span class="p">/&gt;&lt;</span><span class="nt">path</span> <span class="na">fill-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span> <span class="na">d</span><span class="o">=</span><span class="s">&quot;M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z&quot;</span> <span class="na">clip-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span><span class="p">/&gt;</span>
+<span class="p">&lt;</span><span class="nt">path</span> <span class="na">d</span><span class="o">=</span><span class="s">"M10 12a2 2 0 100-4 2 2 0 000 4z"</span><span class="p">/&gt;&lt;</span><span class="nt">path</span> <span class="na">fill-rule</span><span class="o">=</span><span class="s">"evenodd"</span> <span class="na">d</span><span class="o">=</span><span class="s">"M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"</span> <span class="na">clip-rule</span><span class="o">=</span><span class="s">"evenodd"</span><span class="p">/&gt;</span>
 
 <span class="cm">&lt;!-- Search icon --&gt;</span>
-<span class="p">&lt;</span><span class="nt">path</span> <span class="na">fill-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span> <span class="na">d</span><span class="o">=</span><span class="s">&quot;M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z&quot;</span> <span class="na">clip-rule</span><span class="o">=</span><span class="s">&quot;evenodd&quot;</span><span class="p">/&gt;</span>
+<span class="p">&lt;</span><span class="nt">path</span> <span class="na">fill-rule</span><span class="o">=</span><span class="s">"evenodd"</span> <span class="na">d</span><span class="o">=</span><span class="s">"M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"</span> <span class="na">clip-rule</span><span class="o">=</span><span class="s">"evenodd"</span><span class="p">/&gt;</span>
 </pre></div>
 </div>
 </section>
@@ -416,52 +416,52 @@
 <p><strong>Examples:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Basic filter dropdown --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-filter_dropdown</span>
-    <span class="na">name</span><span class="o">=</span><span class="s">&quot;institution&quot;</span>
-    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Institution&quot;</span>
-    <span class="na">placeholder</span><span class="o">=</span><span class="s">&quot;All Institutions&quot;</span>
-    <span class="na">:options</span><span class="o">=</span><span class="s">&quot;institutions&quot;</span>
-    <span class="na">:selected</span><span class="o">=</span><span class="s">&quot;request.GET.institution&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">name</span><span class="o">=</span><span class="s">"institution"</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">"Institution"</span>
+    <span class="na">placeholder</span><span class="o">=</span><span class="s">"All Institutions"</span>
+    <span class="na">:options</span><span class="o">=</span><span class="s">"institutions"</span>
+    <span class="na">:selected</span><span class="o">=</span><span class="s">"request.GET.institution"</span> <span class="p">/&gt;</span>
 
 <span class="cm">&lt;!-- With HTMX integration --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-filter_dropdown</span>
-    <span class="na">name</span><span class="o">=</span><span class="s">&quot;gender&quot;</span>
-    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Gender&quot;</span>
-    <span class="na">placeholder</span><span class="o">=</span><span class="s">&quot;All Genders&quot;</span>
-    <span class="na">:options</span><span class="o">=</span><span class="s">&quot;gender_choices&quot;</span>
-    <span class="na">:selected</span><span class="o">=</span><span class="s">&quot;request.GET.gender&quot;</span>
-    <span class="na">hx_get</span><span class="o">=</span><span class="s">&quot;{% url &#39;patient_list&#39; %}&quot;</span>
-    <span class="na">hx_target</span><span class="o">=</span><span class="s">&quot;#patientsTable&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">name</span><span class="o">=</span><span class="s">"gender"</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">"Gender"</span>
+    <span class="na">placeholder</span><span class="o">=</span><span class="s">"All Genders"</span>
+    <span class="na">:options</span><span class="o">=</span><span class="s">"gender_choices"</span>
+    <span class="na">:selected</span><span class="o">=</span><span class="s">"request.GET.gender"</span>
+    <span class="na">hx_get</span><span class="o">=</span><span class="s">"{% url 'patient_list' %}"</span>
+    <span class="na">hx_target</span><span class="o">=</span><span class="s">"#patientsTable"</span> <span class="p">/&gt;</span>
 
 <span class="cm">&lt;!-- With help text --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-filter_dropdown</span>
-    <span class="na">name</span><span class="o">=</span><span class="s">&quot;diagnosis&quot;</span>
-    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Diagnosis&quot;</span>
-    <span class="na">placeholder</span><span class="o">=</span><span class="s">&quot;All Diagnoses&quot;</span>
-    <span class="na">:options</span><span class="o">=</span><span class="s">&quot;diagnoses&quot;</span>
-    <span class="na">:selected</span><span class="o">=</span><span class="s">&quot;request.GET.diagnosis&quot;</span>
-    <span class="na">help_text</span><span class="o">=</span><span class="s">&quot;Select a diagnosis to filter patients&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">name</span><span class="o">=</span><span class="s">"diagnosis"</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">"Diagnosis"</span>
+    <span class="na">placeholder</span><span class="o">=</span><span class="s">"All Diagnoses"</span>
+    <span class="na">:options</span><span class="o">=</span><span class="s">"diagnoses"</span>
+    <span class="na">:selected</span><span class="o">=</span><span class="s">"request.GET.diagnosis"</span>
+    <span class="na">help_text</span><span class="o">=</span><span class="s">"Select a diagnosis to filter patients"</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
 <p><strong>Option Formats:</strong></p>
 <ol class="arabic">
 <li><p>Objects with id/name attributes:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">institutions</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Hospital A&#39;</span><span class="p">},</span>
-    <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Hospital B&#39;</span><span class="p">}</span>
+    <span class="p">{</span><span class="s1">'id'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'Hospital A'</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">'id'</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'Hospital B'</span><span class="p">}</span>
 <span class="p">]</span>
 </pre></div>
 </div>
 </li>
 <li><p>Tuples (value, label):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gender_choices</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="s1">&#39;Male&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;Female&#39;</span><span class="p">)</span>
+    <span class="p">(</span><span class="s1">'M'</span><span class="p">,</span> <span class="s1">'Male'</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'F'</span><span class="p">,</span> <span class="s1">'Female'</span><span class="p">)</span>
 <span class="p">]</span>
 </pre></div>
 </div>
 </li>
 <li><p>Simple strings:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">diagnoses</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Cancer&#39;</span><span class="p">,</span> <span class="s1">&#39;Diabetes&#39;</span><span class="p">,</span> <span class="s1">&#39;Heart Disease&#39;</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">diagnoses</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'Cancer'</span><span class="p">,</span> <span class="s1">'Diabetes'</span><span class="p">,</span> <span class="s1">'Heart Disease'</span><span class="p">]</span>
 </pre></div>
 </div>
 </li>
@@ -480,24 +480,24 @@
 <p><strong>Examples:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Basic form dropdown --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-form_dropdown</span>
-    <span class="na">name</span><span class="o">=</span><span class="s">&quot;construct_scale&quot;</span>
-    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Construct Scale&quot;</span>
-    <span class="na">placeholder</span><span class="o">=</span><span class="s">&quot;---------&quot;</span>
-    <span class="na">:options</span><span class="o">=</span><span class="s">&quot;form.construct_scale.field.queryset&quot;</span>
-    <span class="na">:selected</span><span class="o">=</span><span class="s">&quot;form.construct_scale.value&quot;</span>
-    <span class="na">:errors</span><span class="o">=</span><span class="s">&quot;form.construct_scale.errors&quot;</span>
+    <span class="na">name</span><span class="o">=</span><span class="s">"construct_scale"</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">"Construct Scale"</span>
+    <span class="na">placeholder</span><span class="o">=</span><span class="s">"---------"</span>
+    <span class="na">:options</span><span class="o">=</span><span class="s">"form.construct_scale.field.queryset"</span>
+    <span class="na">:selected</span><span class="o">=</span><span class="s">"form.construct_scale.value"</span>
+    <span class="na">:errors</span><span class="o">=</span><span class="s">"form.construct_scale.errors"</span>
     <span class="na">required</span><span class="o">=</span><span class="s">true</span> <span class="p">/&gt;</span>
 
 <span class="cm">&lt;!-- With create link --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-form_dropdown</span>
-    <span class="na">name</span><span class="o">=</span><span class="s">&quot;likert_response&quot;</span>
-    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Likert Scale&quot;</span>
-    <span class="na">:options</span><span class="o">=</span><span class="s">&quot;likert_scales&quot;</span>
-    <span class="na">:selected</span><span class="o">=</span><span class="s">&quot;form.likert_response.value&quot;</span>
-    <span class="na">:errors</span><span class="o">=</span><span class="s">&quot;form.likert_response.errors&quot;</span>
-    <span class="na">create_link</span><span class="o">=</span><span class="s">&quot;{% url &#39;likert_scale_create&#39; %}&quot;</span>
-    <span class="na">create_text</span><span class="o">=</span><span class="s">&quot;Create new Likert scale&quot;</span>
-    <span class="na">create_link_target</span><span class="o">=</span><span class="s">&quot;_blank&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">name</span><span class="o">=</span><span class="s">"likert_response"</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">"Likert Scale"</span>
+    <span class="na">:options</span><span class="o">=</span><span class="s">"likert_scales"</span>
+    <span class="na">:selected</span><span class="o">=</span><span class="s">"form.likert_response.value"</span>
+    <span class="na">:errors</span><span class="o">=</span><span class="s">"form.likert_response.errors"</span>
+    <span class="na">create_link</span><span class="o">=</span><span class="s">"{% url 'likert_scale_create' %}"</span>
+    <span class="na">create_text</span><span class="o">=</span><span class="s">"Create new Likert scale"</span>
+    <span class="na">create_link_target</span><span class="o">=</span><span class="s">"_blank"</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
 </section>
@@ -516,10 +516,10 @@
 <p>Display items in a card-based list layout.</p>
 <p><strong>Usage:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-list_card</span>
-    <span class="na">items</span><span class="o">=</span><span class="s">&quot;{{ patients }}&quot;</span>
-    <span class="na">title_field</span><span class="o">=</span><span class="s">&quot;name&quot;</span>
-    <span class="na">subtitle_field</span><span class="o">=</span><span class="s">&quot;patient_id&quot;</span>
-    <span class="na">url_field</span><span class="o">=</span><span class="s">&quot;get_absolute_url&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">items</span><span class="o">=</span><span class="s">"{{ patients }}"</span>
+    <span class="na">title_field</span><span class="o">=</span><span class="s">"name"</span>
+    <span class="na">subtitle_field</span><span class="o">=</span><span class="s">"patient_id"</span>
+    <span class="na">url_field</span><span class="o">=</span><span class="s">"get_absolute_url"</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
 <p><strong>Props:</strong></p>
@@ -537,8 +537,8 @@
 <p>Responsive pagination for Django ListView.</p>
 <p><strong>Basic Usage:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-paginator</span>
-    <span class="na">:page_obj</span><span class="o">=</span><span class="s">&quot;page_obj&quot;</span>
-    <span class="na">:is_paginated</span><span class="o">=</span><span class="s">&quot;is_paginated&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">:page_obj</span><span class="o">=</span><span class="s">"page_obj"</span>
+    <span class="na">:is_paginated</span><span class="o">=</span><span class="s">"is_paginated"</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
 <p><strong>Props:</strong></p>
@@ -560,18 +560,18 @@
 <p><strong>Examples:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Full pagination --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-paginator</span>
-    <span class="na">:page_obj</span><span class="o">=</span><span class="s">&quot;page_obj&quot;</span>
-    <span class="na">:is_paginated</span><span class="o">=</span><span class="s">&quot;is_paginated&quot;</span>
-    <span class="na">show_info</span><span class="o">=</span><span class="s">&quot;true&quot;</span>
-    <span class="na">show_page_numbers</span><span class="o">=</span><span class="s">&quot;true&quot;</span>
-    <span class="na">class</span><span class="o">=</span><span class="s">&quot;my-8&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">:page_obj</span><span class="o">=</span><span class="s">"page_obj"</span>
+    <span class="na">:is_paginated</span><span class="o">=</span><span class="s">"is_paginated"</span>
+    <span class="na">show_info</span><span class="o">=</span><span class="s">"true"</span>
+    <span class="na">show_page_numbers</span><span class="o">=</span><span class="s">"true"</span>
+    <span class="na">class</span><span class="o">=</span><span class="s">"my-8"</span> <span class="p">/&gt;</span>
 
 <span class="cm">&lt;!-- Minimal pagination (mobile-friendly) --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-paginator</span>
-    <span class="na">:page_obj</span><span class="o">=</span><span class="s">&quot;page_obj&quot;</span>
-    <span class="na">:is_paginated</span><span class="o">=</span><span class="s">&quot;is_paginated&quot;</span>
-    <span class="na">show_info</span><span class="o">=</span><span class="s">&quot;false&quot;</span>
-    <span class="na">show_page_numbers</span><span class="o">=</span><span class="s">&quot;false&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">:page_obj</span><span class="o">=</span><span class="s">"page_obj"</span>
+    <span class="na">:is_paginated</span><span class="o">=</span><span class="s">"is_paginated"</span>
+    <span class="na">show_info</span><span class="o">=</span><span class="s">"false"</span>
+    <span class="na">show_page_numbers</span><span class="o">=</span><span class="s">"false"</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
 <p><strong>Django View Setup:</strong></p>
@@ -579,24 +579,24 @@
 
 <span class="k">class</span><span class="w"> </span><span class="nc">PatientListView</span><span class="p">(</span><span class="n">ListView</span><span class="p">):</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">Patient</span>
-    <span class="n">template_name</span> <span class="o">=</span> <span class="s1">&#39;patientapp/patient_list.html&#39;</span>
-    <span class="n">context_object_name</span> <span class="o">=</span> <span class="s1">&#39;patients&#39;</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s1">'patientapp/patient_list.html'</span>
+    <span class="n">context_object_name</span> <span class="o">=</span> <span class="s1">'patients'</span>
     <span class="n">paginate_by</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># Items per page</span>
 </pre></div>
 </div>
 <p><strong>Template Integration:</strong></p>
-<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>{% extends &#39;base.html&#39; %}
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>{% extends 'base.html' %}
 {% load cotton %}
 
 {% block content %}
-<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;container mx-auto px-4&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"container mx-auto px-4"</span><span class="p">&gt;</span>
     {% for patient in patients %}
         <span class="cm">&lt;!-- Patient cards --&gt;</span>
     {% endfor %}
 
     <span class="p">&lt;</span><span class="nt">c-paginator</span>
-        <span class="na">:page_obj</span><span class="o">=</span><span class="s">&quot;page_obj&quot;</span>
-        <span class="na">:is_paginated</span><span class="o">=</span><span class="s">&quot;is_paginated&quot;</span> <span class="p">/&gt;</span>
+        <span class="na">:page_obj</span><span class="o">=</span><span class="s">"page_obj"</span>
+        <span class="na">:is_paginated</span><span class="o">=</span><span class="s">"is_paginated"</span> <span class="p">/&gt;</span>
 <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
 {% endblock %}
 </pre></div>
@@ -625,17 +625,17 @@
 <section id="responsive-design">
 <h3><a class="toc-backref" href="#id20" role="doc-backlink">Responsive Design</a><a class="headerlink" href="#responsive-design" title="Link to this heading">¶</a></h3>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Good: Mobile-first responsive layout --&gt;</span>
-<span class="p">&lt;</span><span class="nt">c-card</span> <span class="na">title</span><span class="o">=</span><span class="s">&quot;Details&quot;</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6&quot;</span><span class="p">&gt;</span>
-        <span class="p">&lt;</span><span class="nt">c-field_display</span> <span class="na">label</span><span class="o">=</span><span class="s">&quot;Name&quot;</span> <span class="na">value</span><span class="o">=</span><span class="s">&quot;{{ patient.name }}&quot;</span> <span class="p">/&gt;</span>
-        <span class="p">&lt;</span><span class="nt">c-field_display</span> <span class="na">label</span><span class="o">=</span><span class="s">&quot;ID&quot;</span> <span class="na">value</span><span class="o">=</span><span class="s">&quot;{{ patient.id }}&quot;</span> <span class="p">/&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-card</span> <span class="na">title</span><span class="o">=</span><span class="s">"Details"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6"</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">c-field_display</span> <span class="na">label</span><span class="o">=</span><span class="s">"Name"</span> <span class="na">value</span><span class="o">=</span><span class="s">"{{ patient.name }}"</span> <span class="p">/&gt;</span>
+        <span class="p">&lt;</span><span class="nt">c-field_display</span> <span class="na">label</span><span class="o">=</span><span class="s">"ID"</span> <span class="na">value</span><span class="o">=</span><span class="s">"{{ patient.id }}"</span> <span class="p">/&gt;</span>
     <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">c-card</span><span class="p">&gt;</span>
 
 <span class="cm">&lt;!-- Good: Responsive button group --&gt;</span>
-<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;flex flex-col sm:flex-row gap-2&quot;</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">full_width</span><span class="o">=</span><span class="s">&quot;true&quot;</span><span class="p">&gt;</span>Save<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">&quot;secondary&quot;</span> <span class="na">full_width</span><span class="o">=</span><span class="s">&quot;true&quot;</span><span class="p">&gt;</span>Cancel<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"flex flex-col sm:flex-row gap-2"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">full_width</span><span class="o">=</span><span class="s">"true"</span><span class="p">&gt;</span>Save<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">variant</span><span class="o">=</span><span class="s">"secondary"</span> <span class="na">full_width</span><span class="o">=</span><span class="s">"true"</span><span class="p">&gt;</span>Cancel<span class="p">&lt;/</span><span class="nt">c-button</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
 </pre></div>
 </div>
@@ -644,15 +644,15 @@
 <h3><a class="toc-backref" href="#id21" role="doc-backlink">Accessibility</a><a class="headerlink" href="#accessibility" title="Link to this heading">¶</a></h3>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Good: Proper ARIA labels --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-icon_button</span>
-    <span class="na">icon</span><span class="o">=</span><span class="s">&quot;...&quot;</span>
-    <span class="na">aria_label</span><span class="o">=</span><span class="s">&quot;Edit patient details&quot;</span>
-    <span class="na">title</span><span class="o">=</span><span class="s">&quot;Edit&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">icon</span><span class="o">=</span><span class="s">"..."</span>
+    <span class="na">aria_label</span><span class="o">=</span><span class="s">"Edit patient details"</span>
+    <span class="na">title</span><span class="o">=</span><span class="s">"Edit"</span> <span class="p">/&gt;</span>
 
 <span class="cm">&lt;!-- Good: Form validation --&gt;</span>
 <span class="p">&lt;</span><span class="nt">c-form_dropdown</span>
-    <span class="na">name</span><span class="o">=</span><span class="s">&quot;diagnosis&quot;</span>
-    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Diagnosis&quot;</span>
-    <span class="na">:errors</span><span class="o">=</span><span class="s">&quot;form.diagnosis.errors&quot;</span>
+    <span class="na">name</span><span class="o">=</span><span class="s">"diagnosis"</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">"Diagnosis"</span>
+    <span class="na">:errors</span><span class="o">=</span><span class="s">"form.diagnosis.errors"</span>
     <span class="na">required</span><span class="o">=</span><span class="s">true</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
@@ -712,6 +712,9 @@
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="security.html">Security &amp; Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html">AWS RDS IAM Database Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html">Logging Configuration Audit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="roles_and_permissions_configuration.html">Roles and Permissions Configuration Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="frontend_development.html">Frontend Development</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">UI Components Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_integration.html">Data Integration Guide</a></li>
@@ -752,7 +755,7 @@
       &#169;2026, CHAVI Team.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.1</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |

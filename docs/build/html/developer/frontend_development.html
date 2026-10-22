@@ -16,7 +16,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="UI Components Reference" href="ui_components.html" />
-    <link rel="prev" title="Security &amp; Permissions" href="security.html" />
+    <link rel="prev" title="Roles and Permissions Configuration Guide" href="roles_and_permissions_configuration.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -150,7 +150,7 @@ python<span class="w"> </span>manage.py<span class="w"> </span>collectstatic
 <span class="w">  </span><span class="nx">theme</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">extend</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nx">colors</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="s1">&#39;brand-blue&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;#0066cc&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="s1">'brand-blue'</span><span class="o">:</span><span class="w"> </span><span class="s1">'#0066cc'</span><span class="p">,</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">  </span><span class="p">},</span>
@@ -162,7 +162,7 @@ python<span class="w"> </span>manage.py<span class="w"> </span>collectstatic
 <section id="adding-custom-css">
 <h3><a class="toc-backref" href="#id10" role="doc-backlink">Adding Custom CSS</a><a class="headerlink" href="#adding-custom-css" title="Link to this heading">¶</a></h3>
 <p>Edit <code class="docutils literal notranslate"><span class="pre">static/src/input.css</span></code>:</p>
-<div class="highlight-css notranslate"><div class="highlight"><pre><span></span><span class="p">@</span><span class="k">import</span><span class="w"> </span><span class="s2">&quot;tailwindcss&quot;</span><span class="p">;</span>
+<div class="highlight-css notranslate"><div class="highlight"><pre><span></span><span class="p">@</span><span class="k">import</span><span class="w"> </span><span class="s2">"tailwindcss"</span><span class="p">;</span>
 
 <span class="c">/* Your custom CSS here */</span>
 <span class="p">.</span><span class="nc">custom-class</span><span class="w"> </span><span class="p">{</span>
@@ -309,7 +309,7 @@ npm<span class="w"> </span>run<span class="w"> </span>tailwind:build
 <h3><a class="toc-backref" href="#id22" role="doc-backlink">JavaScript Functionality</a><a class="headerlink" href="#javascript-functionality" title="Link to this heading">¶</a></h3>
 <p><strong>switchTab(section, constructId):</strong></p>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Parameters:</span>
-<span class="c1">// - section: &#39;topline&#39; or &#39;other&#39;</span>
+<span class="c1">// - section: 'topline' or 'other'</span>
 <span class="c1">// - constructId: The ID of the construct to display</span>
 
 <span class="c1">// Functionality:</span>
@@ -375,7 +375,7 @@ npm<span class="w"> </span>run<span class="w"> </span>tailwind:build
 <p><strong>Usage:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span>{% load cotton %}
 
-<span class="p">&lt;</span><span class="nt">c-card</span> <span class="na">title</span><span class="o">=</span><span class="s">&quot;Patient Information&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-card</span> <span class="na">title</span><span class="o">=</span><span class="s">"Patient Information"</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Card content goes here...<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">c-card</span><span class="p">&gt;</span>
 </pre></div>
@@ -447,10 +447,10 @@ npm<span class="w"> </span>run<span class="w"> </span>tailwind:build
 </table>
 <p><strong>Mobile Responsiveness:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Responsive content inside cards --&gt;</span>
-<span class="p">&lt;</span><span class="nt">c-card</span> <span class="na">title</span><span class="o">=</span><span class="s">&quot;Patient Info&quot;</span> <span class="na">padding</span><span class="o">=</span><span class="s">&quot;md&quot;</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;flex flex-col sm:flex-row sm:justify-between gap-3&quot;</span><span class="p">&gt;</span>
-        <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;flex-1 min-w-0&quot;</span><span class="p">&gt;</span>
-            <span class="p">&lt;</span><span class="nt">h3</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;truncate&quot;</span><span class="p">&gt;</span>{{ patient.name }}<span class="p">&lt;/</span><span class="nt">h3</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">c-card</span> <span class="na">title</span><span class="o">=</span><span class="s">"Patient Info"</span> <span class="na">padding</span><span class="o">=</span><span class="s">"md"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"flex flex-col sm:flex-row sm:justify-between gap-3"</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"flex-1 min-w-0"</span><span class="p">&gt;</span>
+            <span class="p">&lt;</span><span class="nt">h3</span> <span class="na">class</span><span class="o">=</span><span class="s">"truncate"</span><span class="p">&gt;</span>{{ patient.name }}<span class="p">&lt;/</span><span class="nt">h3</span><span class="p">&gt;</span>
         <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
     <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">c-card</span><span class="p">&gt;</span>
@@ -461,10 +461,10 @@ npm<span class="w"> </span>run<span class="w"> </span>tailwind:build
 <h3><a class="toc-backref" href="#id29" role="doc-backlink">Field Display Component</a><a class="headerlink" href="#field-display-component" title="Link to this heading">¶</a></h3>
 <p><strong>Usage:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-field_display</span>
-    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Patient Name&quot;</span>
-    <span class="na">value</span><span class="o">=</span><span class="s">&quot;{{ patient.name }}&quot;</span>
-    <span class="na">badge</span><span class="o">=</span><span class="s">&quot;true&quot;</span>
-    <span class="na">badge_color</span><span class="o">=</span><span class="s">&quot;blue&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">"Patient Name"</span>
+    <span class="na">value</span><span class="o">=</span><span class="s">"{{ patient.name }}"</span>
+    <span class="na">badge</span><span class="o">=</span><span class="s">"true"</span>
+    <span class="na">badge_color</span><span class="o">=</span><span class="s">"blue"</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
 <p><strong>Props:</strong></p>
@@ -479,15 +479,15 @@ npm<span class="w"> </span>run<span class="w"> </span>tailwind:build
 <h3><a class="toc-backref" href="#id30" role="doc-backlink">Button Components</a><a class="headerlink" href="#button-components" title="Link to this heading">¶</a></h3>
 <p><strong>Primary Button:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-button</span>
-    <span class="na">text</span><span class="o">=</span><span class="s">&quot;Save Changes&quot;</span>
-    <span class="na">type</span><span class="o">=</span><span class="s">&quot;submit&quot;</span>
-    <span class="na">color</span><span class="o">=</span><span class="s">&quot;primary&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">text</span><span class="o">=</span><span class="s">"Save Changes"</span>
+    <span class="na">type</span><span class="o">=</span><span class="s">"submit"</span>
+    <span class="na">color</span><span class="o">=</span><span class="s">"primary"</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
 <p><strong>Action Buttons:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-action_buttons</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">text</span><span class="o">=</span><span class="s">&quot;Edit&quot;</span> <span class="na">color</span><span class="o">=</span><span class="s">&quot;primary&quot;</span> <span class="p">/&gt;</span>
-    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">text</span><span class="o">=</span><span class="s">&quot;Delete&quot;</span> <span class="na">color</span><span class="o">=</span><span class="s">&quot;danger&quot;</span> <span class="p">/&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">text</span><span class="o">=</span><span class="s">"Edit"</span> <span class="na">color</span><span class="o">=</span><span class="s">"primary"</span> <span class="p">/&gt;</span>
+    <span class="p">&lt;</span><span class="nt">c-button</span> <span class="na">text</span><span class="o">=</span><span class="s">"Delete"</span> <span class="na">color</span><span class="o">=</span><span class="s">"danger"</span> <span class="p">/&gt;</span>
 <span class="p">&lt;/</span><span class="nt">c-action_buttons</span><span class="p">&gt;</span>
 </pre></div>
 </div>
@@ -496,11 +496,11 @@ npm<span class="w"> </span>run<span class="w"> </span>tailwind:build
 <h3><a class="toc-backref" href="#id31" role="doc-backlink">Dropdown Component</a><a class="headerlink" href="#dropdown-component" title="Link to this heading">¶</a></h3>
 <p><strong>Usage:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-dropdown</span>
-    <span class="na">label</span><span class="o">=</span><span class="s">&quot;Actions&quot;</span>
-    <span class="na">items</span><span class="o">=</span><span class="s">&#39;[</span>
-<span class="s">        {&quot;text&quot;: &quot;Edit&quot;, &quot;url&quot;: &quot;/edit/&quot;},</span>
-<span class="s">        {&quot;text&quot;: &quot;Delete&quot;, &quot;url&quot;: &quot;/delete/&quot;}</span>
-<span class="s">    ]&#39;</span> <span class="p">/&gt;</span>
+    <span class="na">label</span><span class="o">=</span><span class="s">"Actions"</span>
+    <span class="na">items</span><span class="o">=</span><span class="s">'[</span>
+<span class="s">        {"text": "Edit", "url": "/edit/"},</span>
+<span class="s">        {"text": "Delete", "url": "/delete/"}</span>
+<span class="s">    ]'</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
 </section>
@@ -508,9 +508,9 @@ npm<span class="w"> </span>run<span class="w"> </span>tailwind:build
 <h3><a class="toc-backref" href="#id32" role="doc-backlink">List Card Component</a><a class="headerlink" href="#list-card-component" title="Link to this heading">¶</a></h3>
 <p><strong>Usage:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-list_card</span>
-    <span class="na">items</span><span class="o">=</span><span class="s">&quot;{{ patients }}&quot;</span>
-    <span class="na">title_field</span><span class="o">=</span><span class="s">&quot;name&quot;</span>
-    <span class="na">subtitle_field</span><span class="o">=</span><span class="s">&quot;patient_id&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">items</span><span class="o">=</span><span class="s">"{{ patients }}"</span>
+    <span class="na">title_field</span><span class="o">=</span><span class="s">"name"</span>
+    <span class="na">subtitle_field</span><span class="o">=</span><span class="s">"patient_id"</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
 </section>
@@ -518,8 +518,8 @@ npm<span class="w"> </span>run<span class="w"> </span>tailwind:build
 <h3><a class="toc-backref" href="#id33" role="doc-backlink">Paginator Component</a><a class="headerlink" href="#paginator-component" title="Link to this heading">¶</a></h3>
 <p><strong>Usage:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-paginator</span>
-    <span class="na">page_obj</span><span class="o">=</span><span class="s">&quot;{{ page_obj }}&quot;</span>
-    <span class="na">base_url</span><span class="o">=</span><span class="s">&quot;/patients/&quot;</span> <span class="p">/&gt;</span>
+    <span class="na">page_obj</span><span class="o">=</span><span class="s">"{{ page_obj }}"</span>
+    <span class="na">base_url</span><span class="o">=</span><span class="s">"/patients/"</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
 </section>
@@ -530,21 +530,21 @@ npm<span class="w"> </span>run<span class="w"> </span>tailwind:build
 <h3><a class="toc-backref" href="#id35" role="doc-backlink">Responsive Design</a><a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
 <p><strong>Mobile-First Approach:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Stack on mobile, grid on desktop --&gt;</span>
-<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;flex flex-col sm:grid sm:grid-cols-2 gap-4&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"flex flex-col sm:grid sm:grid-cols-2 gap-4"</span><span class="p">&gt;</span>
     <span class="cm">&lt;!-- Content --&gt;</span>
 <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
 </pre></div>
 </div>
 <p><strong>Responsive Padding:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Smaller padding on mobile --&gt;</span>
-<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;p-4 sm:p-6 lg:p-8&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"p-4 sm:p-6 lg:p-8"</span><span class="p">&gt;</span>
     <span class="cm">&lt;!-- Content --&gt;</span>
 <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
 </pre></div>
 </div>
 <p><strong>Text Truncation:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- Prevent overflow on small screens --&gt;</span>
-<span class="p">&lt;</span><span class="nt">h3</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;truncate&quot;</span><span class="p">&gt;</span>{{ long_text }}<span class="p">&lt;/</span><span class="nt">h3</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">h3</span> <span class="na">class</span><span class="o">=</span><span class="s">"truncate"</span><span class="p">&gt;</span>{{ long_text }}<span class="p">&lt;/</span><span class="nt">h3</span><span class="p">&gt;</span>
 </pre></div>
 </div>
 </section>
@@ -552,9 +552,9 @@ npm<span class="w"> </span>run<span class="w"> </span>tailwind:build
 <h3><a class="toc-backref" href="#id36" role="doc-backlink">Accessibility</a><a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
 <p><strong>ARIA Attributes:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">button</span>
-    <span class="na">role</span><span class="o">=</span><span class="s">&quot;tab&quot;</span>
-    <span class="na">aria-selected</span><span class="o">=</span><span class="s">&quot;true&quot;</span>
-    <span class="na">aria-controls</span><span class="o">=</span><span class="s">&quot;panel-1&quot;</span><span class="p">&gt;</span>
+    <span class="na">role</span><span class="o">=</span><span class="s">"tab"</span>
+    <span class="na">aria-selected</span><span class="o">=</span><span class="s">"true"</span>
+    <span class="na">aria-controls</span><span class="o">=</span><span class="s">"panel-1"</span><span class="p">&gt;</span>
     Tab 1
 <span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
 </pre></div>
@@ -639,6 +639,9 @@ npm<span class="w"> </span>run<span class="w"> </span>tailwind:build
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="security.html">Security &amp; Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html">AWS RDS IAM Database Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html">Logging Configuration Audit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="roles_and_permissions_configuration.html">Roles and Permissions Configuration Guide</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Frontend Development</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ui_components.html">UI Components Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_integration.html">Data Integration Guide</a></li>
@@ -657,7 +660,7 @@ npm<span class="w"> </span>run<span class="w"> </span>tailwind:build
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html">Developer Documentation</a><ul>
-      <li>Previous: <a href="security.html" title="previous chapter">Security &amp; Permissions</a></li>
+      <li>Previous: <a href="roles_and_permissions_configuration.html" title="previous chapter">Roles and Permissions Configuration Guide</a></li>
       <li>Next: <a href="ui_components.html" title="next chapter">UI Components Reference</a></li>
   </ul></li>
   </ul></li>
@@ -679,7 +682,7 @@ npm<span class="w"> </span>run<span class="w"> </span>tailwind:build
       &#169;2026, CHAVI Team.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.1</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |

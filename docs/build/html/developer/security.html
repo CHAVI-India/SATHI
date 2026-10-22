@@ -15,7 +15,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Roles and Permissions Configuration Guide" href="roles_and_permissions_configuration.html" />
+    <link rel="next" title="AWS RDS IAM Database Authentication" href="aws_rds_iam_database_authentication.html" />
     <link rel="prev" title="Architecture" href="architecture.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -195,7 +195,7 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
 
 <span class="k">class</span><span class="w"> </span><span class="nc">PatientListView</span><span class="p">(</span><span class="n">InstitutionFilterMixin</span><span class="p">,</span> <span class="n">ListView</span><span class="p">):</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">Patient</span>
-    <span class="n">template_name</span> <span class="o">=</span> <span class="s1">&#39;patientapp/patient_list.html&#39;</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s1">'patientapp/patient_list.html'</span>
 
     <span class="c1"># Mixin automatically filters queryset by institution</span>
 </pre></div>
@@ -212,7 +212,7 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">patientapp.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_accessible_patient_or_404</span>
 
 <span class="nd">@login_required</span>
-<span class="nd">@permission_required</span><span class="p">(</span><span class="s1">&#39;patientapp.view_patient&#39;</span><span class="p">)</span>
+<span class="nd">@permission_required</span><span class="p">(</span><span class="s1">'patientapp.view_patient'</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">patient_detail</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
     <span class="n">patient</span> <span class="o">=</span> <span class="n">get_accessible_patient_or_404</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">pk</span><span class="p">)</span>
     <span class="c1"># ... rest of view</span>
@@ -259,20 +259,20 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
 <h3><a class="toc-backref" href="#id12" role="doc-backlink">Configuration</a><a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h3>
 <p>Located in <code class="docutils literal notranslate"><span class="pre">chaviprom/settings.py</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Content Security Policy</span>
-<span class="n">CSP_DEFAULT_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&#39;self&#39;&quot;</span><span class="p">,)</span>
-<span class="n">CSP_SCRIPT_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&#39;self&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&#39;unsafe-inline&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;cdn.jsdelivr.net&quot;</span><span class="p">)</span>
-<span class="n">CSP_STYLE_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&#39;self&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&#39;unsafe-inline&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;fonts.googleapis.com&quot;</span><span class="p">)</span>
-<span class="n">CSP_FONT_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&#39;self&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;fonts.gstatic.com&quot;</span><span class="p">)</span>
-<span class="n">CSP_IMG_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&#39;self&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;data:&quot;</span><span class="p">,</span> <span class="s2">&quot;https:&quot;</span><span class="p">)</span>
-<span class="n">CSP_CONNECT_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&#39;self&#39;&quot;</span><span class="p">,)</span>
+<span class="n">CSP_DEFAULT_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"'self'"</span><span class="p">,)</span>
+<span class="n">CSP_SCRIPT_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"'self'"</span><span class="p">,</span> <span class="s2">"'unsafe-inline'"</span><span class="p">,</span> <span class="s2">"cdn.jsdelivr.net"</span><span class="p">)</span>
+<span class="n">CSP_STYLE_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"'self'"</span><span class="p">,</span> <span class="s2">"'unsafe-inline'"</span><span class="p">,</span> <span class="s2">"fonts.googleapis.com"</span><span class="p">)</span>
+<span class="n">CSP_FONT_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"'self'"</span><span class="p">,</span> <span class="s2">"fonts.gstatic.com"</span><span class="p">)</span>
+<span class="n">CSP_IMG_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"'self'"</span><span class="p">,</span> <span class="s2">"data:"</span><span class="p">,</span> <span class="s2">"https:"</span><span class="p">)</span>
+<span class="n">CSP_CONNECT_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"'self'"</span><span class="p">,)</span>
 
 <span class="c1"># Service Worker and PWA support</span>
-<span class="n">CSP_WORKER_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&#39;self&#39;&quot;</span><span class="p">,)</span>
-<span class="n">CSP_MANIFEST_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&#39;self&#39;&quot;</span><span class="p">,)</span>
+<span class="n">CSP_WORKER_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"'self'"</span><span class="p">,)</span>
+<span class="n">CSP_MANIFEST_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"'self'"</span><span class="p">,)</span>
 
 <span class="c1"># reCAPTCHA support</span>
-<span class="n">CSP_SCRIPT_SRC</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;https://www.google.com&quot;</span><span class="p">,</span> <span class="s2">&quot;https://www.gstatic.com&quot;</span><span class="p">)</span>
-<span class="n">CSP_FRAME_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;https://www.google.com&quot;</span><span class="p">,)</span>
+<span class="n">CSP_SCRIPT_SRC</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">"https://www.google.com"</span><span class="p">,</span> <span class="s2">"https://www.gstatic.com"</span><span class="p">)</span>
+<span class="n">CSP_FRAME_SRC</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"https://www.google.com"</span><span class="p">,)</span>
 </pre></div>
 </div>
 </section>
@@ -285,11 +285,11 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
 </ol>
 <p><strong>Service Worker Registration:</strong></p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="cm">&lt;!-- templates/base.html --&gt;</span>
-<span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">&quot;manifest&quot;</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;{% url &#39;manifest&#39; %}&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">"manifest"</span> <span class="na">href</span><span class="o">=</span><span class="s">"{% url 'manifest' %}"</span><span class="p">&gt;</span>
 
 <span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;serviceWorker&#39;</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nx">navigator</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">serviceWorker</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">&#39;/serviceworker.js&#39;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="s1">'serviceWorker'</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nx">navigator</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">serviceWorker</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">'/serviceworker.js'</span><span class="p">);</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
 </pre></div>
@@ -298,7 +298,7 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// static/js/serviceworker.js</span>
 
 <span class="c1">// Network-first for HTML pages</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">destination</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;document&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">destination</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'document'</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="nx">request</span><span class="p">)</span>
 <span class="w">        </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">response</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nx">cache</span><span class="p">.</span><span class="nx">put</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">clone</span><span class="p">());</span>
@@ -308,9 +308,9 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
 <span class="p">}</span>
 
 <span class="c1">// Cache-first for static assets</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">destination</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;style&#39;</span><span class="w"> </span><span class="o">||</span>
-<span class="w">    </span><span class="nx">request</span><span class="p">.</span><span class="nx">destination</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;script&#39;</span><span class="w"> </span><span class="o">||</span>
-<span class="w">    </span><span class="nx">request</span><span class="p">.</span><span class="nx">destination</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;image&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">destination</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'style'</span><span class="w"> </span><span class="o">||</span>
+<span class="w">    </span><span class="nx">request</span><span class="p">.</span><span class="nx">destination</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'script'</span><span class="w"> </span><span class="o">||</span>
+<span class="w">    </span><span class="nx">request</span><span class="p">.</span><span class="nx">destination</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'image'</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">cache</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">request</span><span class="p">)</span>
 <span class="w">        </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">response</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="nx">request</span><span class="p">));</span>
 <span class="p">}</span>
@@ -352,12 +352,12 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
 <p><strong>Usage:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Encryption/decryption is automatic</span>
 <span class="n">patient</span> <span class="o">=</span> <span class="n">Patient</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;John Doe&quot;</span><span class="p">,</span>  <span class="c1"># Automatically encrypted</span>
-    <span class="n">patient_id</span><span class="o">=</span><span class="s2">&quot;P12345&quot;</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"John Doe"</span><span class="p">,</span>  <span class="c1"># Automatically encrypted</span>
+    <span class="n">patient_id</span><span class="o">=</span><span class="s2">"P12345"</span>
 <span class="p">)</span>
 
 <span class="c1"># Decryption is automatic when accessing</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">patient</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>  <span class="c1"># &quot;John Doe&quot; (decrypted)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">patient</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>  <span class="c1"># "John Doe" (decrypted)</span>
 </pre></div>
 </div>
 <p><strong>Searching Encrypted Fields:</strong></p>
@@ -385,14 +385,14 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
 <span class="n">ACCOUNT_LOGIN_BY_CODE_MAX_ATTEMPTS</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="n">ACCOUNT_LOGIN_BY_CODE_TIMEOUT</span> <span class="o">=</span> <span class="mi">300</span>  <span class="c1"># 5 minutes</span>
 <span class="n">ACCOUNT_EMAIL_REQUIRED</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">ACCOUNT_EMAIL_VERIFICATION</span> <span class="o">=</span> <span class="s1">&#39;mandatory&#39;</span>
+<span class="n">ACCOUNT_EMAIL_VERIFICATION</span> <span class="o">=</span> <span class="s1">'mandatory'</span>
 </pre></div>
 </div>
 <p><strong>Session Security:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Session settings</span>
 <span class="n">SESSION_COOKIE_SECURE</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># HTTPS only</span>
 <span class="n">SESSION_COOKIE_HTTPONLY</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># No JavaScript access</span>
-<span class="n">SESSION_COOKIE_SAMESITE</span> <span class="o">=</span> <span class="s1">&#39;Lax&#39;</span>  <span class="c1"># CSRF protection</span>
+<span class="n">SESSION_COOKIE_SAMESITE</span> <span class="o">=</span> <span class="s1">'Lax'</span>  <span class="c1"># CSRF protection</span>
 <span class="n">SESSION_COOKIE_AGE</span> <span class="o">=</span> <span class="mi">3600</span>  <span class="c1"># 1 hour</span>
 </pre></div>
 </div>
@@ -402,7 +402,7 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
 <p><strong>Login Rate Limiting:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django_ratelimit.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">ratelimit</span>
 
-<span class="nd">@ratelimit</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;user_or_ip&#39;</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="s1">&#39;5/m&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;POST&#39;</span><span class="p">)</span>
+<span class="nd">@ratelimit</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">'user_or_ip'</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="s1">'5/m'</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">'POST'</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">login_view</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
     <span class="c1"># Login logic</span>
     <span class="k">pass</span>
@@ -410,7 +410,7 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
 </div>
 <p><strong>Password Reset Rate Limiting:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PASSWORD_RESET_RATE_LIMIT_COUNT</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="n">PASSWORD_RESET_RATE_LIMIT_PERIOD</span> <span class="o">=</span> <span class="s1">&#39;10m&#39;</span>
+<span class="n">PASSWORD_RESET_RATE_LIMIT_PERIOD</span> <span class="o">=</span> <span class="s1">'10m'</span>
 </pre></div>
 </div>
 </section>
@@ -418,12 +418,12 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
 <h3><a class="toc-backref" href="#id20" role="doc-backlink">reCAPTCHA Integration</a><a class="headerlink" href="#recaptcha-integration" title="Link to this heading">¶</a></h3>
 <p><strong>Configuration:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py</span>
-<span class="n">RECAPTCHA_DEFAULT_ACTION</span> <span class="o">=</span> <span class="s1">&#39;generic&#39;</span>
+<span class="n">RECAPTCHA_DEFAULT_ACTION</span> <span class="o">=</span> <span class="s1">'generic'</span>
 <span class="n">RECAPTCHA_SCORE_THRESHOLD</span> <span class="o">=</span> <span class="mf">0.5</span>
 
 <span class="c1"># Environment variables</span>
-<span class="n">RECAPTCHA_PUBLIC_KEY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;RECAPTCHA_PUBLIC_KEY&#39;</span><span class="p">)</span>
-<span class="n">RECAPTCHA_PRIVATE_KEY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;RECAPTCHA_PRIVATE_KEY&#39;</span><span class="p">)</span>
+<span class="n">RECAPTCHA_PUBLIC_KEY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">'RECAPTCHA_PUBLIC_KEY'</span><span class="p">)</span>
+<span class="n">RECAPTCHA_PRIVATE_KEY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">'RECAPTCHA_PRIVATE_KEY'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><strong>Form Integration:</strong></p>
@@ -563,6 +563,8 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Security &amp; Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aws_rds_iam_database_authentication.html">AWS RDS IAM Database Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging_audit.html">Logging Configuration Audit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="roles_and_permissions_configuration.html">Roles and Permissions Configuration Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="frontend_development.html">Frontend Development</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ui_components.html">UI Components Reference</a></li>
@@ -583,7 +585,7 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html">Developer Documentation</a><ul>
       <li>Previous: <a href="architecture.html" title="previous chapter">Architecture</a></li>
-      <li>Next: <a href="roles_and_permissions_configuration.html" title="next chapter">Roles and Permissions Configuration Guide</a></li>
+      <li>Next: <a href="aws_rds_iam_database_authentication.html" title="next chapter">AWS RDS IAM Database Authentication</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -604,7 +606,7 @@ see <a class="reference internal" href="roles_and_permissions_configuration.html
       &#169;2026, CHAVI Team.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.1</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
