@@ -12,6 +12,19 @@ DJANGO_DATABASE_PASSWORD=
 DJANGO_DATABASE_HOST=localhost
 DJANGO_DATABASE_PORT=5432
 
+# AWS RDS IAM database authentication (optional; RDS PostgreSQL only)
+# When True, the app authenticates with the host's IAM role (EC2 instance
+# profile) instead of a password — django-iam-dbauth mints a fresh 15-minute
+# token on every connection, so DJANGO_DATABASE_PASSWORD is not used.
+# Requires: 'django-iam-dbauth' installed, an IAM role with rds-db:Connect
+# attached to the host, and the database user granted the rds_iam role.
+# Leave False for non-AWS deployments (password path).
+DJANGO_DATABASE_IAM_AUTH=False
+# TLS mode for the IAM path: require (default, encryption only) or
+# verify-full (requires 'sslrootcert' pointing at the RDS CA bundle PEM,
+# e.g. https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem)
+DJANGO_DATABASE_SSL_MODE=require
+
 #Django Secured Field Key
 #Generate a new key with the command python manage.py generate_key and add to a comma seperated list to enable key rotation.
 DJANGO_SECURED_FIELDS_KEY=

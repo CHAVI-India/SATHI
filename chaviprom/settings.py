@@ -131,17 +131,37 @@ WSGI_APPLICATION = 'chaviprom.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+#
+# AWS RDS + IAM database authentication: set DJANGO_DATABASE_IAM_AUTH=True
+# to authenticate with the host's IAM role instead of a password. The
+# django-iam-dbauth backend mints a fresh 15-minute token on every
+# connection. All other deployments leave the flag unset and use
+# DJANGO_DATABASE_PASSWORD as before.
 DATABASES = {
     'default': {
         'ENGINE': os.environ.get('DJANGO_DATABASE_ENGINE','django.db.backends.sqlite3'),
         'NAME': os.environ.get('DJANGO_DATABASE_NAME','db.sqlite3'),
         'USER': os.environ.get('DJANGO_DATABASE_USER',''),
-        'PASSWORD': os.environ.get('DJANGO_DATABASE_PASSWORD',''),
         'HOST': os.environ.get('DJANGO_DATABASE_HOST','localhost'),
         'PORT': os.environ.get('DJANGO_DATABASE_PORT','5432'),
     }
 }
+
+if os.getenv('DJANGO_DATABASE_IAM_AUTH', 'False') == 'True':
+    # Postgres-only path (RDS). The password is never read or sent.
+    DATABASES['default'].update({
+        'ENGINE': 'django_iam_dbauth.aws.postgresql',
+        'PASSWORD': '',
+        'OPTIONS': {
+            'use_iam_auth': True,
+            'sslmode': os.getenv('DJANGO_DATABASE_SSL_MODE', 'require'),
+            # once the RDS CA bundle PEM is available on the host:
+            # 'sslmode': 'verify-full',
+            # 'sslrootcert': '/path/to/rds-global-bundle.pem',
+        },
+    })
+else:
+    DATABASES['default']['PASSWORD'] = os.environ.get('DJANGO_DATABASE_PASSWORD','')
 
 # Authentication Backends for Django Allauth
 AUTHENTICATION_BACKENDS = (
