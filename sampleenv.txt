@@ -19,6 +19,10 @@ DJANGO_DATABASE_PORT=5432
 # Requires: 'django-iam-dbauth' installed, an IAM role with rds-db:Connect
 # attached to the host, and the database user granted the rds_iam role.
 # Leave False for non-AWS deployments (password path).
+# AWS_REGION is required in this mode: botocore reads *credentials* from the
+# instance metadata but not the *region* (missing region → NoRegionError at
+# first connection). Set it to the region of your RDS instance.
+AWS_DEFAULT_REGION=<Your AWS Region>
 DJANGO_DATABASE_IAM_AUTH=False
 # TLS mode for the IAM path: require (default, encryption only) or
 # verify-full (requires 'sslrootcert' pointing at the RDS CA bundle PEM,
