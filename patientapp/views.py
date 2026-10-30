@@ -1539,26 +1539,28 @@ def prom_review_item_plot(request, pk, item_id):
 def dispatch_plot_tasks(request, pk):
     """
     API endpoint to dispatch Celery tasks for parallel plot generation.
-    
-    Accepts POST with JSON body:
-    {
-        "plots": [
-            {"type": "construct", "id": "uuid-string"},
-            {"type": "composite", "id": "uuid-string"},
-            {"type": "item", "id": "uuid-string"}
-        ],
-        "filters": {
-            "questionnaire_filter": "...",
-            "time_range": "5",
-            ...
+
+    Accepts POST with a JSON body of the form::
+
+        {
+            "plots": [
+                {"type": "construct", "id": "uuid-string"},
+                {"type": "composite", "id": "uuid-string"},
+                {"type": "item", "id": "uuid-string"}
+            ],
+            "filters": {
+                "questionnaire_filter": "...",
+                "time_range": "5",
+                ...
+            }
         }
-    }
-    
-    Returns JSON:
-    {
-        "task_id": "celery-task-id",
-        "status": "dispatched"
-    }
+
+    Returns JSON::
+
+        {
+            "task_id": "celery-task-id",
+            "status": "dispatched"
+        }
     """
     import json
     from django.views.decorators.http import require_POST
@@ -4404,10 +4406,12 @@ def redcap_match_submissions(request, pk, mapping_pk, patient_pk):
 def redcap_match_reset(request, pk, mapping_pk, patient_pk):
     """Confirm and clear saved submission → REDCap instance matches.
 
-    Entry modes:
+    Entry modes::
+
       - GET ?fm=<fm_pk>&sub=<sub_pk>  — single submission match
       - GET ?fm=<fm_pk>&all=1         — all matches for one form mapping
       - POST include_<fm>_<sub> keys  — checkbox-selected rows from the match form
+
     POST with confirm=1 performs the deletion.
     """
     guard = _redcap_permission_required(request, 'delete_redcapinstancetosubmissionmapping')

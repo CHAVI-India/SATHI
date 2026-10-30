@@ -30,20 +30,20 @@ gitignored (``.gitignore``: ``*.log``, ``logs/``).
 Inventory of log files
 ----------------------
 
-============================ =============== ===================== ================================= ==================
-Path                         Size observed   Handler / source      Rotation                          Configured in
-============================ =============== ===================== ================================= ==================
-``logs/django.log``          916 KB          ``file``              RotatingFileHandler 10MB / 5      ``settings.LOGGING``
-``logs/django_error.log``    756 KB          ``error_file``        RotatingFileHandler 10MB / 5      ``settings.LOGGING``
-``logs/promapp_rules.log``   216 KB          ``promapp_rules_file`` RotatingFileHandler 10MB / 5     ``settings.LOGGING``
-``logs/security.log``        82 KB           ``security_file``     RotatingFileHandler 10MB / 5      ``settings.LOGGING``
-``logs/two_factor_auth.log`` 73 KB           ``tfa_file``          RotatingFileHandler 10MB / 5      ``settings.LOGGING``
-``logs/plotting_data.log``   **87 MB**       ``plotting_file``     RotatingFileHandler 10MB / 5      ``settings.LOGGING`` *(was manual ``FileHandler``, no rotation)*
-``celery_worker.log`` (root) 448 KB          manual redirect      **None**                          *(manual celery launch)*
-``test_output.log`` (root)   860 KB          test harness capture  **None**                          *(test script)*
-``logs/gunicorn-access.log`` *(future)*      ``access_file``       RotatingFileHandler 15MB / 10     ``gunicorn.conf.py``
-``logs/gunicorn-error.log``  *(future)*      ``error_file``        RotatingFileHandler 15MB / 10     ``gunicorn.conf.py``
-============================ =============== ===================== ================================= ==================
+============================ ============= ====================== ============================= ================================================================
+Path                         Size observed Handler / source       Rotation                      Configured in
+============================ ============= ====================== ============================= ================================================================
+``logs/django.log``          916 KB        ``file``               RotatingFileHandler 10MB / 5  ``settings.LOGGING``
+``logs/django_error.log``    756 KB        ``error_file``         RotatingFileHandler 10MB / 5  ``settings.LOGGING``
+``logs/promapp_rules.log``   216 KB        ``promapp_rules_file`` RotatingFileHandler 10MB / 5  ``settings.LOGGING``
+``logs/security.log``        82 KB         ``security_file``      RotatingFileHandler 10MB / 5  ``settings.LOGGING``
+``logs/two_factor_auth.log`` 73 KB         ``tfa_file``           RotatingFileHandler 10MB / 5  ``settings.LOGGING``
+``logs/plotting_data.log``   **87 MB**     ``plotting_file``      RotatingFileHandler 10MB / 5  ``settings.LOGGING`` *(was manual ``FileHandler``, no rotation)*
+``celery_worker.log`` (root) 448 KB        manual redirect        **None**                      *(manual celery launch)*
+``test_output.log`` (root)   860 KB        test harness capture   **None**                      *(test script)*
+``logs/gunicorn-access.log`` *(future)*    ``access_file``        RotatingFileHandler 15MB / 10 ``gunicorn.conf.py``
+``logs/gunicorn-error.log``  *(future)*    ``error_file``         RotatingFileHandler 15MB / 10 ``gunicorn.conf.py``
+============================ ============= ====================== ============================= ================================================================
 
 PHI exposure findings
 ---------------------
