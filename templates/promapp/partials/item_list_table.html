@@ -62,6 +62,9 @@
                 {% elif item.response_type == 'Range' %}bg-green-100 text-green-800
                 {% elif item.response_type == 'Text' %}bg-purple-100 text-purple-800
                 {% elif item.response_type == 'Number' %}bg-yellow-100 text-yellow-800
+                {% elif item.response_type == 'Date' %}bg-teal-100 text-teal-800
+                {% elif item.response_type == 'Time' %}bg-orange-100 text-orange-800
+                {% elif item.response_type == 'DateTime' %}bg-cyan-100 text-cyan-800
                 {% else %}bg-gray-100 text-gray-800{% endif %}">
                 {{ item.get_response_type_display }}
               </span>

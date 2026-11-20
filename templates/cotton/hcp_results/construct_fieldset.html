@@ -84,6 +84,13 @@
                                 :submission_count="submission_count" 
                                 :patient="patient" 
                             />
+                        {% elif item_data.item.response_type == "Date" or item_data.item.response_type == "Time" or item_data.item.response_type == "DateTime" %}
+                            {# Date/Time/DateTime answers are handled like text responses #}
+                            <c-hcp_results.text_item_card 
+                                :item_data="item_data" 
+                                :submission_count="submission_count" 
+                                :patient="patient" 
+                            />
                         {% endif %}
                     {% endfor %}
                 </div>

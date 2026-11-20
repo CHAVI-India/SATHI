@@ -1351,6 +1351,10 @@ def create_item_response_plot(historical_responses: List['QuestionnaireItemRespo
     if item.response_type == 'Likert' and item.likert_response:
         return create_likert_response_plot(historical_responses, item, patient, start_date_reference, time_interval, selected_indicators)
     else:
+        # Text and temporal (Date/Time/DateTime) responses are handled the
+        # same way: there is no numeric scale to plot on the y-axis, so they
+        # follow the text-response path below. Non-numeric values are skipped
+        # (never drawn as misleading zeros) by create_numeric_response_plot.
         return create_numeric_response_plot(historical_responses, item, patient, start_date_reference, time_interval, selected_indicators)
 
 def create_likert_response_plot(historical_responses: List['QuestionnaireItemResponse'], item: 'Item',

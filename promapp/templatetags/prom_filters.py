@@ -323,3 +323,35 @@ def generate_simplified_summary_no_improved_items(score_data, item_responses_gro
     summary = summary.replace("  ", " ").strip()
     
     return summary
+
+@register.filter
+def format_temporal_response(value):
+    """Format a stored Date/Time/DateTime answer for human display.
+
+    Stored canonical formats (see docs/DATE_TIME_QUESTION_TYPES_PLAN.md):
+      YYYY-MM-DD, HH:MM:SS, YYYY-MM-DD HH:MM:SS
+    Rendered as e.g. '14 Mar 2025', '2:30 PM', '14 Mar 2025 2:30 PM'.
+    Values that do not parse are returned unchanged (never hides data).
+    """
+    import datetime
+    if value is None or value == '':
+        return value
+    s = str(value).strip()
+    try:
+        dt = datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
+        h12 = dt.hour % 12 or 12
+        return f"{dt.day:02d} {dt.strftime('%b %Y')} {h12}:{dt.minute:02d} {'AM' if dt.hour < 12 else 'PM'}"
+    except ValueError:
+        pass
+    try:
+        d = datetime.datetime.strptime(s, '%Y-%m-%d').date()
+        return d.strftime('%d %b %Y')
+    except ValueError:
+        pass
+    try:
+        t = datetime.datetime.strptime(s, '%H:%M:%S').time()
+        h12 = t.hour % 12 or 12
+        return f"{h12}:{t.minute:02d} {'AM' if t.hour < 12 else 'PM'}"
+    except ValueError:
+        pass
+    return value

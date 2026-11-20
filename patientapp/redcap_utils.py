@@ -5,6 +5,7 @@ All functions accept a `ProjectRedcapMapping` instance (or explicit url/token)
 and return plain Python dicts/lists so callers stay decoupled from PyCap internals.
 """
 
+import math
 import re
 
 import redcap as pycap
@@ -203,7 +204,7 @@ _AUTO_VALIDATED_FIELD_TYPES = {
 _AUTO_VALIDATED_TEXT_VALIDATIONS = {
     'integer', 'number', 'number_1dp', 'number_2dp', 'number_3dp', 'number_4dp',
     'email', 'phone', 'zipcode', 'alpha_only', 'alpha_only_uppercase',
-    'time',
+    'time', 'time_hhmmss',
 }
 
 # Regex patterns for text validation types.
@@ -257,9 +258,34 @@ _REDCAP_FORMATS = {
     },
     'time': {
         'output': '%H:%M',
-        'input_formats': ['%H:%M:%S', '%H:%M', '%H%M'],
+        'input_formats': ['%H:%M:%S', '%H:%M'],
+    },
+    'time_hhmmss': {
+        'output': '%H:%M:%S',
+        'input_formats': ['%H:%M:%S', '%H:%M'],
     },
 }
+
+# Human-readable form of each REDCap output format, for error messages.
+_OUTPUT_LABELS = {
+    '%Y-%m-%d': 'YYYY-MM-DD',
+    '%Y-%m-%d %H:%M': 'YYYY-MM-DD HH:MM',
+    '%Y-%m-%d %H:%M:%S': 'YYYY-MM-DD HH:MM:SS',
+    '%H:%M': 'HH:MM',
+    '%H:%M:%S': 'HH:MM:SS',
+}
+
+# Digit-only date/datetime strings are decoded by exact length. strptime's
+# numeric directives are variable-width, so '2024071' would otherwise parse as
+# 2024-07-01 through '%Y%m%d' — silently wrong data in a clinical export.
+_COMPACT_DIGIT_DATE_LENGTHS = {8: '%Y%m%d', 12: '%Y%m%d%H%M', 14: '%Y%m%d%H%M%S'}
+
+# A trailing all-zero fraction, left behind when a date/time was captured
+# through a Number-type answer ('20240715' stored as '20240715.00').
+_ZERO_FRACTION_NUMBER_RE = re.compile(r'^(\d{4,14})[.,]0+$')
+_ZERO_FRACTION_DATETIME_RE = re.compile(
+    r'^(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?)[.,]0+$'
+)
 
 
 def parse_redcap_choices(raw_choices):
@@ -328,6 +354,19 @@ def _match_choice_code(raw, valid_codes):
     return None
 
 
+def safe_validate_and_format_response_value(raw, field_type, validation, choices):
+    """Never-throwing wrapper around :func:`validate_and_format_response_value`.
+
+    The export must not die because one value (or one piece of REDCap metadata)
+    is malformed: any unexpected exception is reported as a validation error for
+    that single cell instead of aborting the whole export.
+    """
+    try:
+        return validate_and_format_response_value(raw, field_type, validation, choices)
+    except Exception as exc:  # noqa: BLE001 — export must degrade to a per-cell error
+        return (None, f"value '{raw}' could not be validated ({type(exc).__name__}: {exc})")
+
+
 def validate_and_format_response_value(raw, field_type, validation, choices):
     """Validate and format a raw response_value string for a REDCap field.
 
@@ -350,8 +389,8 @@ def validate_and_format_response_value(raw, field_type, validation, choices):
         validation.startswith('date_') or validation.startswith('datetime_')
     ):
         return _validate_date_like(raw, validation)
-    if field_type == 'text' and validation == 'time':
-        return _validate_time(raw)
+    if field_type == 'text' and validation in ('time', 'time_hhmmss'):
+        return _validate_time(raw, validation)
 
     # ── numeric (text + integer/number*) ──────────────────────────────────
     if field_type == 'text' and validation in ('integer', 'number',
@@ -435,19 +474,32 @@ def _validate_date_like(raw, validation):
             parsed = _date_parser.parse(str(raw))
         except (ValueError, OverflowError, TypeError) as exc:
             return (None, f"value '{raw}' could not be parsed as a date ({exc})")
-        return (parsed.strftime('%Y-%m-%d %H:%M:%S'), None)
+        return (_render_parsed(parsed, '%Y-%m-%d %H:%M:%S'), None)
 
-    s = str(raw).strip()
+    s = _strip_zero_fraction(re.sub(r'\s+', ' ', str(raw).strip()))
 
-    # Step 1: Try each input format that REDCap's validation type implies.
+    # Step 1: Digit-only values are decoded by exact length only — see
+    # _COMPACT_DIGIT_DATE_LENGTHS.
+    if s.isdigit():
+        in_fmt = _COMPACT_DIGIT_DATE_LENGTHS.get(len(s))
+        if in_fmt is None:
+            return (None, f"value '{raw}' could not be parsed as a date "
+                          f"(expected {_OUTPUT_LABELS.get(fmt['output'], fmt['output'])} format)")
+        try:
+            parsed = _datetime.strptime(s, in_fmt)
+        except ValueError as exc:
+            return (None, f"value '{raw}' could not be parsed as a date ({exc})")
+        return (_render_parsed(parsed, fmt['output']), None)
+
+    # Step 2: Try each input format that REDCap's validation type implies.
     for in_fmt in fmt['input_formats']:
         try:
             parsed = _datetime.strptime(s, in_fmt)
-            return (parsed.strftime(fmt['output']), None)
+            return (_render_parsed(parsed, fmt['output']), None)
         except ValueError:
             continue
 
-    # Step 2: Fall back to dateutil with hints derived from the validation type.
+    # Step 3: Fall back to dateutil with hints derived from the validation type.
     kwargs = {}
     if validation.endswith('_ymd'):
         kwargs['yearfirst'] = True
@@ -460,43 +512,86 @@ def _validate_date_like(raw, validation):
     except (ValueError, OverflowError, TypeError) as exc:
         return (None, f"value '{raw}' could not be parsed as a date ({exc})")
 
-    return (parsed.strftime(fmt['output']), None)
+    return (_render_parsed(parsed, fmt['output']), None)
 
 
-def _validate_time(raw):
-    """Parse a time string and reformat to the REDCap-expected format (HH:MM).
+def _strip_zero_fraction(s):
+    """Drop a trailing all-zero fraction left by numeric/decimal answer storage.
 
-    REDCap's `time` validation type expects HH:MM. We try strptime with the
-    expected format first, then common variants (HH:MM:SS, HHMM), then fall
-    back to dateutil for formats like "2:30 PM". Pure-digit strings that don't
-    match any strptime format are rejected (dateutil would misinterpret them
-    as years).
+    '20240715.00' → '20240715' and '2025-03-14 14:30:00.000' → '2025-03-14 14:30:00'.
+    Only an *all-zero* fraction is removed, so a genuinely different value
+    ('20240715.5') still fails validation instead of being silently truncated.
     """
-    fmt = _REDCAP_FORMATS['time']
-    s = str(raw).strip()
+    m = _ZERO_FRACTION_NUMBER_RE.match(s) or _ZERO_FRACTION_DATETIME_RE.match(s)
+    return m.group(1) if m else s
 
-    # Step 1: Try each input format that REDCap's time validation implies.
+
+def _render_parsed(parsed, output_fmt):
+    """Format a parsed date/time for REDCap without relying on strftime.
+
+    The platform strftime rejects years below 1000 and does not zero-pad them,
+    so the standard REDCap output shapes are assembled explicitly.
+    """
+    if output_fmt.startswith('%Y-%m-%d'):
+        date = f'{parsed.year:04d}-{parsed.month:02d}-{parsed.day:02d}'
+        if output_fmt == '%Y-%m-%d':
+            return date
+        time_part = f'{parsed.hour:02d}:{parsed.minute:02d}'
+        if output_fmt.endswith('%S'):
+            time_part += f':{parsed.second:02d}'
+        return f'{date} {time_part}'
+    if output_fmt.startswith('%H:%M'):
+        time_part = f'{parsed.hour:02d}:{parsed.minute:02d}'
+        if output_fmt == '%H:%M:%S':
+            time_part += f':{parsed.second:02d}'
+        return time_part
+    return parsed.strftime(output_fmt)
+
+
+def _validate_time(raw, validation='time'):
+    """Parse a time string and reformat to what REDCap expects (HH:MM or HH:MM:SS).
+
+    REDCap's `time` validation type expects HH:MM, `time_hhmmss` expects
+    HH:MM:SS. Digit-only answers are read by exact length (4 digits = HHMM,
+    6 digits = HHMMSS) because strptime's time directives are variable-width
+    and would read '2500' as 02:50:00. Anything else falls back to dateutil for
+    formats like "2:30 PM"; digit strings of an unexpected length are rejected
+    rather than handed to dateutil, which would read them as years.
+    """
+    fmt = _REDCAP_FORMATS.get(validation, _REDCAP_FORMATS['time'])
+    s = re.sub(r'\s+', ' ', str(raw).strip())
+    digits = s.replace(' ', '')
+
+    # Step 1: Digit-only answers — exact-length interpretation only.
+    if digits.isdigit():
+        parts = {4: (digits[:2], digits[2:4], '00'),
+                 6: (digits[:2], digits[2:4], digits[4:6])}.get(len(digits))
+        label = _OUTPUT_LABELS.get(fmt['output'], 'HH:MM')
+        if parts is None:
+            return (None, f"value '{raw}' could not be parsed as a time "
+                          f"(expected {label} format)")
+        try:
+            parsed = _datetime.strptime(':'.join(parts), '%H:%M:%S')
+        except ValueError:
+            return (None, f"value '{raw}' could not be parsed as a time "
+                          f"(expected {label} format)")
+        return (_render_parsed(parsed, fmt['output']), None)
+
+    # Step 2: Try each input format that the validation type implies.
     for in_fmt in fmt['input_formats']:
         try:
             parsed = _datetime.strptime(s, in_fmt)
-            return (parsed.strftime(fmt['output']), None)
+            return (_render_parsed(parsed, fmt['output']), None)
         except ValueError:
             continue
 
-    # Step 2: Pure-digit strings that didn't match above are invalid — do NOT
-    # fall back to dateutil, which would interpret them as years (e.g. "2500"
-    # → year 2500 → 00:00).
-    if s.isdigit():
-        return (None, f"value '{raw}' could not be parsed as a time "
-                      f"(expected HH:MM format)")
-
-    # Step 3: Fall back to dateutil for non-digit formats like "2:30 PM".
+    # Step 3: Fall back to dateutil for formats like "2:30 PM".
     try:
         parsed = _date_parser.parse(s)
     except (ValueError, OverflowError, TypeError) as exc:
         return (None, f"value '{raw}' could not be parsed as a time ({exc})")
 
-    return (parsed.strftime(fmt['output']), None)
+    return (_render_parsed(parsed, fmt['output']), None)
 
 
 def _validate_number(raw, validation):
@@ -507,8 +602,12 @@ def _validate_number(raw, validation):
     """
     try:
         val = float(raw)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, OverflowError):
         return (None, f"value '{raw}' is not a valid number")
+    # inf/nan would otherwise raise from int() or be written to the export as
+    # the literal text 'inf' / 'nan'.
+    if not math.isfinite(val):
+        return (None, f"value '{raw}' is not a finite number")
     if validation == 'integer':
         return (str(int(val)), None)
     if validation == 'number':

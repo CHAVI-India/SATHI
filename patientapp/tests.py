@@ -1,9 +1,18 @@
 from django.test import SimpleTestCase
 
+from types import SimpleNamespace
+
 from patientapp.redcap_utils import (
     validate_and_format_response_value,
+    safe_validate_and_format_response_value,
     parse_redcap_choices,
     has_auto_validation,
+)
+from patientapp.views import (
+    _apply_field_mappings,
+    _expected_csv_columns,
+    _safe_zip_stem,
+    _unique_zip_name,
 )
 
 
@@ -486,3 +495,251 @@ class ValidateEmptyTests(SimpleTestCase):
     def test_empty_for_yesno(self):
         val, err = validate_and_format_response_value('', 'yesno', '', [])
         self.assertEqual((val, err), ('', None))
+
+
+class SafeValidateTests(SimpleTestCase):
+    """The export must never die because one value or one piece of metadata is
+    malformed — it must degrade to a single-cell error."""
+
+    def test_unexpected_internal_error_becomes_cell_error(self):
+        # Malformed choice metadata (ints instead of {'code','label'} dicts)
+        val, err = safe_validate_and_format_response_value('1', 'radio', '', [1, 2])
+        self.assertIsNone(val)
+        self.assertIn('could not be validated', err)
+
+    def test_valid_value_unaffected_by_wrapper(self):
+        val, err = safe_validate_and_format_response_value(
+            '1', 'radio', '', [{'code': '1', 'label': 'Yes'}]
+        )
+        self.assertEqual((val, err), ('1', None))
+
+    def test_non_finite_number_does_not_raise(self):
+        # int(float('nan')) and int(float('inf')) used to raise out of
+        # _validate_number and abort the whole export with a 500.
+        for raw in ('nan', 'inf', '-inf', '1e999'):
+            with self.subTest(raw=raw):
+                val, err = safe_validate_and_format_response_value(raw, 'text', 'integer', [])
+                self.assertIsNone(val)
+                self.assertIn('finite number', err)
+
+    def test_non_finite_number_never_written_as_literal(self):
+        # 'number'/'calc' would previously emit the literal text 'inf' or 'nan'.
+        for raw in ('nan', 'inf'):
+            with self.subTest(raw=raw):
+                val, err = safe_validate_and_format_response_value(raw, 'calc', '', [])
+                self.assertIsNone(val)
+                self.assertIn('finite number', err)
+
+
+class NumericStorageDateCoercionTests(SimpleTestCase):
+    """Dates captured through a Number-type answer arrive as decimal text."""
+
+    def test_integral_float_fraction_is_stripped(self):
+        val, err = validate_and_format_response_value('20240715.00', 'text', 'date_ymd', [])
+        self.assertEqual((val, err), ('2024-07-15', None))
+
+    def test_single_zero_fraction(self):
+        val, err = validate_and_format_response_value('19700101.0', 'text', 'date_ymd', [])
+        self.assertEqual((val, err), ('1970-01-01', None))
+
+    def test_datetime_fraction_is_stripped(self):
+        val, err = validate_and_format_response_value(
+            '2025-03-14 14:30:00.000', 'text', 'datetime_seconds_ymd', []
+        )
+        self.assertEqual((val, err), ('2025-03-14 14:30:00', None))
+
+    def test_non_zero_fraction_is_not_truncated_silently(self):
+        val, err = validate_and_format_response_value('20240715.5', 'text', 'date_ymd', [])
+        self.assertIsNone(val)
+        self.assertIn('could not be parsed', err)
+
+    def test_compact_datetime_for_datetime_field(self):
+        val, err = validate_and_format_response_value('20240715143000', 'text', 'datetime_ymd', [])
+        self.assertEqual((val, err), ('2024-07-15 14:30', None))
+
+    def test_compact_datetime_for_seconds_field(self):
+        val, err = validate_and_format_response_value(
+            '20240715143000', 'text', 'datetime_seconds_ymd', []
+        )
+        self.assertEqual((val, err), ('2024-07-15 14:30:00', None))
+
+    def test_compact_datetime_truncated_for_date_field(self):
+        val, err = validate_and_format_response_value('20240715143000', 'text', 'date_ymd', [])
+        self.assertEqual((val, err), ('2024-07-15', None))
+
+    def test_wrong_length_digits_rejected_not_misread(self):
+        # '%Y%m%d' alone reads '2024071' as 2024-07-01; exact lengths only.
+        val, err = validate_and_format_response_value('2024071', 'text', 'date_ymd', [])
+        self.assertIsNone(val)
+        self.assertIn('could not be parsed', err)
+
+    def test_ordinal_like_number_rejected(self):
+        val, err = validate_and_format_response_value('45123', 'text', 'date_ymd', [])
+        self.assertIsNone(val)
+        self.assertIn('could not be parsed', err)
+
+    def test_year_below_1000_zero_padded(self):
+        val, err = validate_and_format_response_value('0001-01-01', 'text', 'date_ymd', [])
+        self.assertEqual((val, err), ('0001-01-01', None))
+
+
+class TimeValidationExtendedTests(SimpleTestCase):
+    def test_six_digit_time_for_hhmm_field(self):
+        val, err = validate_and_format_response_value('143000', 'text', 'time', [])
+        self.assertEqual((val, err), ('14:30', None))
+
+    def test_time_hhmmss_is_auto_validated(self):
+        self.assertTrue(has_auto_validation('text', 'time_hhmmss'))
+
+    def test_time_hhmmss_output(self):
+        val, err = validate_and_format_response_value('14:30', 'text', 'time_hhmmss', [])
+        self.assertEqual((val, err), ('14:30:00', None))
+
+    def test_time_hhmmss_keeps_seconds(self):
+        val, err = validate_and_format_response_value('14:30:45', 'text', 'time_hhmmss', [])
+        self.assertEqual((val, err), ('14:30:45', None))
+
+    def test_time_hhmmss_six_digits(self):
+        val, err = validate_and_format_response_value('143045', 'text', 'time_hhmmss', [])
+        self.assertEqual((val, err), ('14:30:45', None))
+
+
+class _QuestionnaireItem:
+    """Stand-in for promapp.QuestionnaireItem with a readable str()."""
+
+    def __init__(self, number):
+        self.question_number = number
+
+    def __str__(self):
+        return f'Q{self.question_number}: item text'
+
+
+class _BrokenItem:
+    """Stand-in whose str() explodes (e.g. a missing translation)."""
+
+    question_number = 7
+
+    def __str__(self):
+        raise RuntimeError('translation unavailable')
+
+
+def _field_map(item_id, field_name, transform=None, question_number=1):
+    """Stand-in for RedcapFieldToItemMapping (no database involved)."""
+    return SimpleNamespace(
+        questionnaire_item_id=item_id,
+        redcap_field_name=field_name,
+        response_transform=transform,
+        questionnaire_item=_QuestionnaireItem(question_number),
+    )
+
+
+class ApplyFieldMappingsTests(SimpleTestCase):
+    """Cell-level isolation: every field is reported, good cells still export."""
+
+    META = {
+        'dob': ('text', 'date_ymd', []),
+        'symptom_time': ('text', 'time', []),
+        'note': ('notes', '', []),
+        'pain_score': ('text', 'integer', []),
+    }
+
+    def _run(self):
+        field_maps = [
+            _field_map('a', 'dob'),
+            _field_map('b', 'symptom_time', question_number=2),
+            _field_map('c', 'note'),
+            _field_map('d', 'pain_score'),
+        ]
+        responses = {'a': '20240715.00', 'b': '2500', 'c': 'feeling ok', 'd': 'abc'}
+        return _apply_field_mappings(field_maps, responses, self.META)
+
+    def test_good_cells_still_exported(self):
+        row, _ = self._run()
+        self.assertEqual(row['dob'], '2024-07-15')
+        self.assertEqual(row['note'], 'feeling ok')
+
+    def test_failing_cells_written_as_empty(self):
+        row, _ = self._run()
+        self.assertEqual(row['symptom_time'], '')
+        self.assertEqual(row['pain_score'], '')
+
+    def test_every_failing_cell_is_reported_not_just_the_first(self):
+        # The old row builder stopped at the first failure, so fixing one field
+        # only revealed the next one on the following run.
+        _, errors = self._run()
+        self.assertEqual([e['field'] for e in errors], ['symptom_time', 'pain_score'])
+
+    def test_error_carries_value_and_item_for_the_report(self):
+        _, errors = self._run()
+        err = errors[0]
+        self.assertEqual(err['raw'], '2500')
+        self.assertIn('could not be parsed', err['message'])
+        self.assertEqual(err['item_label'], 'Q2: item text')
+
+    def test_item_label_never_raises(self):
+        # A broken translation must not break the export of the row.
+        field_maps = [_field_map('b', 'symptom_time')]
+        field_maps[0].questionnaire_item = _BrokenItem()
+        _, errors = _apply_field_mappings(field_maps, {'b': 'nope'}, self.META)
+        self.assertEqual(errors[0]['item_label'], '7')
+
+    def test_missing_answer_is_empty_not_none(self):
+        field_maps = [_field_map('x', 'dob')]
+        row, errors = _apply_field_mappings(field_maps, {}, {'dob': ('text', 'date_ymd', [])})
+        self.assertEqual((row, errors), ({'dob': ''}, []))
+
+
+class ExpectedCsvColumnsTests(SimpleTestCase):
+    def test_plain_form(self):
+        mapping = SimpleNamespace(redcap_study_id_field='record_id')
+        fm = SimpleNamespace(
+            redcap_form_is_in_event=False, redcap_form_is_repeating=False,
+            redcap_event_is_repeating=False, submission_date_field=None,
+        )
+        cols = _expected_csv_columns(mapping, fm, [_field_map('a', 'f1'), _field_map('b', 'f2')])
+        self.assertEqual(cols, ['record_id', 'f1', 'f2'])
+
+    def test_event_repeating_and_date_field_order(self):
+        mapping = SimpleNamespace(redcap_study_id_field='patient_id')
+        fm = SimpleNamespace(
+            redcap_form_is_in_event=True, redcap_form_is_repeating=False,
+            redcap_event_is_repeating=True, submission_date_field='visit_date',
+        )
+        cols = _expected_csv_columns(mapping, fm, [_field_map('a', 'f1')])
+        self.assertEqual(cols, [
+            'patient_id', 'redcap_event_name', 'redcap_repeat_instrument',
+            'redcap_repeat_instance', 'visit_date', 'f1',
+        ])
+
+    def test_custom_id_field_default_and_duplicates(self):
+        mapping = SimpleNamespace(redcap_study_id_field='')
+        fm = SimpleNamespace(
+            redcap_form_is_in_event=False, redcap_form_is_repeating=False,
+            redcap_event_is_repeating=False, submission_date_field=None,
+        )
+        cols = _expected_csv_columns(mapping, fm, [_field_map('a', 'record_id'), _field_map('b', 'f2')])
+        self.assertEqual(cols, ['record_id', 'f2'])
+
+
+class ZipMemberNameTests(SimpleTestCase):
+    def test_form_name_sanitised(self):
+        self.assertEqual(_safe_zip_stem('Adverse Events/2024'), 'Adverse_Events_2024')
+
+    def test_empty_form_name_falls_back(self):
+        self.assertEqual(_safe_zip_stem('///'), 'form')
+
+    def test_duplicate_form_names_do_not_overwrite_each_other(self):
+        # Two form mappings may share a REDCap form name; the second writestr
+        # used to silently replace the first form's entire CSV.
+        used = set()
+        first = _unique_zip_name(used, _safe_zip_stem('demographics'))
+        second = _unique_zip_name(used, _safe_zip_stem('demographics'))
+        self.assertEqual((first, second), ('demographics.csv', 'demographics_2.csv'))
+
+    def test_report_name_cannot_be_shadowed_by_a_form(self):
+        # A form literally named "validation_errors" must not swallow the report.
+        used = set()
+        form_member = _unique_zip_name(used, _safe_zip_stem('validation_errors'))
+        report_member = _unique_zip_name(used, 'validation_errors')
+        self.assertEqual((form_member, report_member),
+                         ('validation_errors.csv', 'validation_errors_2.csv'))

@@ -527,6 +527,9 @@ class ResponseTypeChoices(models.TextChoices):
     LIKERT = 'Likert', 'Likert Scale'
     RANGE = 'Range', 'Range Response'
     MEDIA = 'Media', 'Media Response'
+    DATE = 'Date', 'Date Response'
+    TIME = 'Time', 'Time Response'
+    DATETIME = 'DateTime', 'DateTime Response'
 
 class Item(TranslatableModel):
     '''
@@ -689,11 +692,15 @@ class Item(TranslatableModel):
             if self.likert_response:
                 raise ValidationError({'likert_response': 'Likert Scale should not be selected when response type is Range'})
         
-        elif self.response_type in [ResponseTypeChoices.TEXT, ResponseTypeChoices.NUMBER]:
+        elif self.response_type in [
+            ResponseTypeChoices.TEXT, ResponseTypeChoices.NUMBER,
+            ResponseTypeChoices.DATE, ResponseTypeChoices.TIME,
+            ResponseTypeChoices.DATETIME,
+        ]:
             if self.likert_response:
-                raise ValidationError({'likert_response': 'Likert Scale should not be selected for Text or Number response types'})
+                raise ValidationError({'likert_response': 'Likert Scale should not be selected for Text, Number, Date, Time, or DateTime response types'})
             if self.range_response:
-                raise ValidationError({'range_response': 'Range Scale should not be selected for Text or Number response types'})
+                raise ValidationError({'range_response': 'Range Scale should not be selected for Text, Number, Date, Time, or DateTime response types'})
         
         # Validate item_missing_value can only be set for numeric response types
         if self.item_missing_value is not None:

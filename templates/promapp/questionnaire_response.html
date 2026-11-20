@@ -543,6 +543,88 @@
                 </div>
               </div>
 
+            {% elif qi.item.response_type == 'Date' or qi.item.response_type == 'Time' or qi.item.response_type == 'DateTime' %}
+              <!-- Component-box date/time inputs (no calendar popup): designed
+                   for mobile use and low computer familiarity. The hidden
+                   combined field is filled by the script below for the
+                   existing auto-advance/rule flow; the boxes themselves are
+                   also submitted so the server can assemble the answer even
+                   when JavaScript is unavailable. -->
+              <div class="form-group">
+                <div class="dt-composite" data-dt-type="{{ qi.item.response_type }}" data-dt-base="response_{{ qi.id }}">
+                  <input type="hidden" name="response_{{ qi.id }}" class="dt-combined">
+
+                  {% if qi.item.response_type == 'Date' or qi.item.response_type == 'DateTime' %}
+                  <fieldset class="dt-date-group border-0 p-0 m-0 mb-2">
+                    <legend class="sr-only">{% translate "Date" %}</legend>
+                    <div class="flex flex-wrap items-start gap-3">
+                      <div class="flex flex-col">
+                        <label for="response_{{ qi.id }}_day" class="text-sm font-medium text-gray-700 mb-1">{% translate "Day" %}</label>
+                        <input type="text" inputmode="numeric" autocomplete="off" data-dt-part="day"
+                               id="response_{{ qi.id }}_day" name="response_{{ qi.id }}_day" maxlength="2" placeholder="DD"
+                               class="w-20 px-3 py-3 text-lg text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      </div>
+                      <div class="flex flex-col">
+                        <label for="response_{{ qi.id }}_month" class="text-sm font-medium text-gray-700 mb-1">{% translate "Month" %}</label>
+                        <input type="text" inputmode="numeric" autocomplete="off" data-dt-part="month"
+                               id="response_{{ qi.id }}_month" name="response_{{ qi.id }}_month" maxlength="2" placeholder="MM"
+                               class="w-20 px-3 py-3 text-lg text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <span class="dt-month-name text-sm text-gray-500 mt-1" aria-live="polite"></span>
+                      </div>
+                      <div class="flex flex-col">
+                        <label for="response_{{ qi.id }}_year" class="text-sm font-medium text-gray-700 mb-1">{% translate "Year" %}</label>
+                        <input type="text" inputmode="numeric" autocomplete="off" data-dt-part="year"
+                               id="response_{{ qi.id }}_year" name="response_{{ qi.id }}_year" maxlength="4" placeholder="YYYY"
+                               class="w-28 px-3 py-3 text-lg text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      </div>
+                    </div>
+                    <div class="dt-quick mt-3 flex flex-wrap gap-2">
+                      <button type="button" class="px-3 py-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500" data-dt-preset="today">{% translate "Today" %}</button>
+                      <button type="button" class="px-3 py-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500" data-dt-preset="yesterday">{% translate "Yesterday" %}</button>
+                      <button type="button" class="px-3 py-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500" data-dt-preset="week-ago">{% translate "One week ago" %}</button>
+                    </div>
+                  </fieldset>
+                  {% endif %}
+
+                  {% if qi.item.response_type == 'Time' or qi.item.response_type == 'DateTime' %}
+                  <fieldset class="dt-time-group border-0 p-0 m-0 {% if qi.item.response_type == 'DateTime' %}mt-3{% endif %}">
+                    <legend class="sr-only">{% translate "Time" %}</legend>
+                    <div class="flex flex-wrap items-start gap-2">
+                      <div class="flex flex-col">
+                        <label for="response_{{ qi.id }}_hour" class="text-sm font-medium text-gray-700 mb-1">{% translate "Hour" %}</label>
+                        <input type="text" inputmode="numeric" autocomplete="off" data-dt-part="hour"
+                               id="response_{{ qi.id }}_hour" name="response_{{ qi.id }}_hour" maxlength="2" placeholder="HH"
+                               class="w-20 px-3 py-3 text-lg text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      </div>
+                      <span class="text-2xl font-medium text-gray-500 self-center pt-7" aria-hidden="true">:</span>
+                      <div class="flex flex-col">
+                        <label for="response_{{ qi.id }}_minute" class="text-sm font-medium text-gray-700 mb-1">{% translate "Minute" %}</label>
+                        <input type="text" inputmode="numeric" autocomplete="off" data-dt-part="minute"
+                               id="response_{{ qi.id }}_minute" name="response_{{ qi.id }}_minute" maxlength="2" placeholder="MM"
+                               class="w-20 px-3 py-3 text-lg text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      </div>
+                      <span class="text-2xl font-medium text-gray-500 self-center pt-7" aria-hidden="true">:</span>
+                      <div class="flex flex-col">
+                        <label for="response_{{ qi.id }}_second" class="text-sm font-medium text-gray-700 mb-1">{% translate "Second" %}</label>
+                        <input type="text" inputmode="numeric" autocomplete="off" data-dt-part="second"
+                               id="response_{{ qi.id }}_second" name="response_{{ qi.id }}_second" maxlength="2" placeholder="SS"
+                               class="w-20 px-3 py-3 text-lg text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      </div>
+                      {% if qi.item.response_type == 'Time' %}
+                      <button type="button" class="px-3 py-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 self-center" data-dt-preset="now">{% translate "Now" %}</button>
+                      {% endif %}
+                    </div>
+                    <div class="flex flex-wrap items-center gap-x-3 mt-1">
+                      <span class="dt-meridiem-echo text-sm text-gray-500" aria-live="polite"></span>
+                      <span class="text-sm text-gray-400">{% translate "Seconds are optional - if left blank, :00 is used." %}</span>
+                    </div>
+                  </fieldset>
+                  {% endif %}
+
+                  <p class="dt-error text-red-600 text-sm mt-2 hidden" role="alert"></p>
+                </div>
+              </div>
+
             {% elif qi.item.response_type == 'Media' %}
               <div class="form-group">
                 {{ form.response_qi.id }}
@@ -828,6 +910,12 @@
     questions.forEach(question => {
       const inputs = question.querySelectorAll('input, textarea');
       inputs.forEach(input => {
+        // Date/time component boxes are handled by the date/time
+        // component script, which dispatches change on the hidden
+        // combined field once the answer is complete and valid.
+        if (input.hasAttribute('data-dt-part')) {
+          return;
+        }
         input.addEventListener('change', async function() {
           const questionId = question.dataset.questionId;
           
@@ -938,6 +1026,147 @@
 
     // Show the first question
     showQuestion(0);
+  });
+</script>
+<script>
+  // Date/time component boxes for Date, Time and DateTime response types.
+  // Assembles the component parts into the canonical storage format
+  // (YYYY-MM-DD / HH:MM:SS / YYYY-MM-DD HH:MM:SS) in the hidden combined
+  // field and dispatches change on it, which drives the existing
+  // rule-evaluation and auto-advance flow. The boxes are also submitted,
+  // so the server can assemble the answer without JavaScript.
+  document.addEventListener('DOMContentLoaded', function() {
+    const MONTH_NAMES = [
+      "{% translate 'January' %}", "{% translate 'February' %}", "{% translate 'March' %}",
+      "{% translate 'April' %}", "{% translate 'May' %}", "{% translate 'June' %}",
+      "{% translate 'July' %}", "{% translate 'August' %}", "{% translate 'September' %}",
+      "{% translate 'October' %}", "{% translate 'November' %}", "{% translate 'December' %}"
+    ];
+    const DT_MSGS = {
+      incomplete: "{% translate 'Please complete all parts of the answer, or leave them all blank to skip this question.' %}",
+      invalidDate: "{% translate 'The date you entered is not valid. Please check the day, month and year.' %}",
+      invalidTime: "{% translate 'The time you entered is not valid. Please check the hour, minute and second.' %}"
+    };
+
+    function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+    function assemble(container) {
+      const type = container.dataset.dtType;
+      const hidden = container.querySelector('.dt-combined');
+      const errorEl = container.querySelector('.dt-error');
+      const parts = {};
+      container.querySelectorAll('[data-dt-part]').forEach(el => { parts[el.dataset.dtPart] = el; });
+      const val = el => el ? el.value.trim() : '';
+      const wantDate = (type === 'Date' || type === 'DateTime');
+      const wantTime = (type === 'Time' || type === 'DateTime');
+      let error = null, dateStr = null, timeStr = null;
+
+      // Month-name echo (helps patients avoid the 03-vs-March confusion).
+      const monthName = container.querySelector('.dt-month-name');
+      if (monthName) {
+        const m = parseInt(val(parts.month), 10);
+        monthName.textContent = (m >= 1 && m <= 12) ? MONTH_NAMES[m - 1] : '';
+      }
+      // am/pm echo under the time boxes.
+      const meridiem = container.querySelector('.dt-meridiem-echo');
+      if (meridiem) {
+        const h = parseInt(val(parts.hour), 10), mi = parseInt(val(parts.minute), 10);
+        if (!isNaN(h) && !isNaN(mi) && h >= 0 && h <= 23 && mi >= 0 && mi <= 59) {
+          const h12 = ((h + 11) % 12) + 1;
+          meridiem.textContent = h12 + ':' + pad2(mi) + (h < 12 ? ' AM' : ' PM');
+        } else {
+          meridiem.textContent = '';
+        }
+      }
+
+      if (wantDate) {
+        const d = val(parts.day), m = val(parts.month), y = val(parts.year);
+        if (d || m || y) {
+          if (!d || !m || !y) {
+            error = DT_MSGS.incomplete;
+          } else {
+            const di = parseInt(d, 10), mi = parseInt(m, 10), yi = parseInt(y, 10);
+            const dt = new Date(yi, mi - 1, di);
+            if (y.length !== 4 || isNaN(di) || isNaN(mi) || isNaN(yi) ||
+                di < 1 || di > 31 || mi < 1 || mi > 12 ||
+                dt.getFullYear() !== yi || dt.getMonth() !== mi - 1 || dt.getDate() !== di) {
+              error = DT_MSGS.invalidDate;
+            } else {
+              dateStr = y + '-' + pad2(mi) + '-' + pad2(di);
+            }
+          }
+        }
+      }
+      if (!error && wantTime) {
+        const h = val(parts.hour), mi = val(parts.minute), s = val(parts.second);
+        if (h || mi || s) {
+          if (!h || !mi) {
+            error = DT_MSGS.incomplete;
+          } else {
+            const hi = parseInt(h, 10), mii = parseInt(mi, 10), si = (s === '' ? 0 : parseInt(s, 10));
+            if (isNaN(hi) || isNaN(mii) || isNaN(si) || hi < 0 || hi > 23 || mii < 0 || mii > 59 || si < 0 || si > 59) {
+              error = DT_MSGS.invalidTime;
+            } else {
+              timeStr = pad2(hi) + ':' + pad2(mii) + ':' + pad2(si);
+            }
+          }
+        }
+      }
+      // Date-time questions need both groups filled.
+      if (!error && wantDate && wantTime && (!!dateStr !== !!timeStr)) {
+        error = DT_MSGS.incomplete;
+      }
+
+      let combined = '';
+      if (!error) {
+        if (dateStr && timeStr) combined = dateStr + ' ' + timeStr;
+        else if (dateStr) combined = dateStr;
+        else if (timeStr) combined = timeStr;
+      }
+      hidden.value = combined;
+      if (errorEl) {
+        errorEl.textContent = error || '';
+        errorEl.classList.toggle('hidden', !error);
+      }
+      return combined;
+    }
+
+    document.querySelectorAll('.dt-composite').forEach(container => {
+      const hidden = container.querySelector('.dt-combined');
+      const refresh = (dispatch) => {
+        assemble(container);
+        if (dispatch) {
+          // Feed the assembled (or cleared) value into the existing
+          // rule-evaluation / auto-advance flow bound to this hidden field.
+          hidden.dispatchEvent(new Event('change'));
+        }
+      };
+      container.querySelectorAll('[data-dt-part]').forEach(el => {
+        el.addEventListener('input', () => refresh(true));
+        el.addEventListener('change', () => refresh(true));
+      });
+      container.querySelectorAll('[data-dt-preset]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const parts = {};
+          container.querySelectorAll('[data-dt-part]').forEach(el => { parts[el.dataset.dtPart] = el; });
+          const now = new Date();
+          const preset = btn.dataset.dtPreset;
+          if (preset === 'now') {
+            if (parts.hour) parts.hour.value = pad2(now.getHours());
+            if (parts.minute) parts.minute.value = pad2(now.getMinutes());
+          } else {
+            const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            if (preset === 'yesterday') d.setDate(d.getDate() - 1);
+            if (preset === 'week-ago') d.setDate(d.getDate() - 7);
+            if (parts.day) parts.day.value = pad2(d.getDate());
+            if (parts.month) parts.month.value = pad2(d.getMonth() + 1);
+            if (parts.year) parts.year.value = String(d.getFullYear());
+          }
+          refresh(true);
+        });
+      });
+      assemble(container);
+    });
   });
 </script>
 {% endblock %} 

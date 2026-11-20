@@ -23,7 +23,8 @@ from .forms import (
     LikertScaleResponseOptionForm, RangeScaleForm,
     QuestionnaireResponseForm, StaffQuestionnaireResponseForm, QuestionnaireItemRuleForm, QuestionnaireItemRuleGroupForm,
     ItemTranslationForm, QuestionnaireTranslationForm, LikertScaleResponseOptionTranslationForm, RangeScaleTranslationForm,
-    TranslationSearchForm, ConstructEquationForm, CompositeConstructScaleScoringForm
+    TranslationSearchForm, ConstructEquationForm, CompositeConstructScaleScoringForm,
+    serialize_response_value, coerce_rule_operands, parse_rule_temporal_value, TEMPORAL_RESPONSE_TYPES
 )
 from .schedule_forms import QuestionnaireScheduleForm
 from django.utils.translation import get_language
@@ -749,16 +750,10 @@ def get_response_fields(request):
     })
     return HttpResponse(html)
 
-def add_item_form(request):
-    '''
-    View to add a new item
-    '''
-    item_form = ItemForm()
-    html = render_to_string('questionnaire/item_form.html', {
-        'item_form': item_form,
-        'forloop': {'counter': request.GET.get('counter', 1)}
-    })
-    return HttpResponse(html)
+# NOTE: the former add_item_form helper view was removed here. It rendered
+# 'questionnaire/item_form.html', a template that no longer exists, and was
+# not wired to any URL or template reference (Part 14 of
+# docs/DATE_TIME_QUESTION_TYPES_PLAN.md).
 
 def create_likert_scale(request):
     '''
@@ -1836,7 +1831,7 @@ class QuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin, Use
                         QuestionnaireItemResponse.objects.create(
                             questionnaire_submission=submission,
                             questionnaire_item=qi,
-                            response_value=str(response_value) if response_value is not None else None,
+                            response_value=serialize_response_value(response_value),
                             response_media=response_media
                         )
                     
@@ -3252,7 +3247,10 @@ def export_questionnaire_responses(request, questionnaire_id, patient_id=None):
             ResponseTypeChoices.TEXT, 
             ResponseTypeChoices.NUMBER,
             ResponseTypeChoices.LIKERT,
-            ResponseTypeChoices.RANGE
+            ResponseTypeChoices.RANGE,
+            ResponseTypeChoices.DATE,
+            ResponseTypeChoices.TIME,
+            ResponseTypeChoices.DATETIME
         ]:
             # Use only abbreviated_item_id in the header if available, otherwise use question number and name
             if qi.item.abbreviated_item_id:
@@ -3313,7 +3311,10 @@ def export_questionnaire_responses(request, questionnaire_id, patient_id=None):
                 ResponseTypeChoices.TEXT, 
                 ResponseTypeChoices.NUMBER,
                 ResponseTypeChoices.LIKERT,
-                ResponseTypeChoices.RANGE
+                ResponseTypeChoices.RANGE,
+                ResponseTypeChoices.DATE,
+                ResponseTypeChoices.TIME,
+                ResponseTypeChoices.DATETIME
             ]:
                 continue
                 
@@ -3356,6 +3357,8 @@ def validate_rule_operator(request):
         # Return appropriate feedback based on response type
         if response_type in ['Number', 'Likert', 'Range']:
             return HttpResponse(_("Valid operator for numeric comparison."))
+        elif response_type in TEMPORAL_RESPONSE_TYPES:
+            return HttpResponse(_("Valid operator for date/time comparison (before/after/on)."))
         else:
             return HttpResponse(_("Valid operator for text comparison."))
     except QuestionnaireItem.DoesNotExist:
@@ -3401,6 +3404,17 @@ def validate_comparison_value(request):
                         range_scale.min_value, range_scale.max_value))
             except ValueError:
                 return HttpResponse(_("Please enter a valid number."))
+        elif response_type in TEMPORAL_RESPONSE_TYPES:
+            try:
+                parse_rule_temporal_value(value, response_type)
+                return HttpResponse(_("Valid date/time value."))
+            except (ValueError, TypeError):
+                examples = {
+                    ResponseTypeChoices.DATE: _("Please enter a date like 2025-03-14 (YYYY-MM-DD)."),
+                    ResponseTypeChoices.TIME: _("Please enter a time like 14:30:00 (HH:MM:SS)."),
+                    ResponseTypeChoices.DATETIME: _("Please enter a date and time like 2025-03-14 14:30:00 (YYYY-MM-DD HH:MM:SS)."),
+                }
+                return HttpResponse(examples.get(response_type, _("Please enter a valid date/time value.")))
         else:
             return HttpResponse(_("Valid text value."))
     except QuestionnaireItem.DoesNotExist:
@@ -3697,12 +3711,9 @@ def evaluate_question_rules(request, questionnaire_item_id):
                 continue
             
             try:
-                if rule.dependent_item.item.response_type in ['Number', 'Likert', 'Range']:
-                    dependent_value = float(dependent_response)
-                    comparison_value = float(rule.comparison_value)
-                else:
-                    dependent_value = str(dependent_response)
-                    comparison_value = str(rule.comparison_value)
+                dependent_value, comparison_value = coerce_rule_operands(
+                    dependent_response, rule.comparison_value,
+                    rule.dependent_item.item.response_type)
                 
                 result = False
                 if rule.operator == 'EQUALS':
@@ -3741,12 +3752,9 @@ def evaluate_question_rules(request, questionnaire_item_id):
                     logger.info(f"[Group {group.group_order}] No response for dependent item {rule.dependent_item.id}. Skipping rule.")
                     continue
                 try:
-                    if rule.dependent_item.item.response_type in ['Number', 'Likert', 'Range']:
-                        dependent_value = float(dependent_response)
-                        comparison_value = float(rule.comparison_value)
-                    else:
-                        dependent_value = str(dependent_response)
-                        comparison_value = str(rule.comparison_value)
+                    dependent_value, comparison_value = coerce_rule_operands(
+                        dependent_response, rule.comparison_value,
+                        rule.dependent_item.item.response_type)
                     result = False
                     if rule.operator == 'EQUALS':
                         result = dependent_value == comparison_value
@@ -5222,7 +5230,7 @@ class StaffQuestionnaireResponseView(LoginRequiredMixin, PermissionRequiredMixin
                         QuestionnaireItemResponse.objects.create(
                             questionnaire_submission=submission,
                             questionnaire_item=qi,
-                            response_value=str(response_value) if response_value is not None else None,
+                            response_value=serialize_response_value(response_value),
                             response_media=response_media
                         )
                     

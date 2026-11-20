@@ -36,12 +36,23 @@ class ResponseTypeWidget(CharWidget):
             'likert': ResponseTypeChoices.LIKERT,
             'range': ResponseTypeChoices.RANGE,
             'media': ResponseTypeChoices.MEDIA,
+            'date': ResponseTypeChoices.DATE,
+            'time': ResponseTypeChoices.TIME,
+            'datetime': ResponseTypeChoices.DATETIME,
             # Display names (case-insensitive)
             'text response': ResponseTypeChoices.TEXT,
             'numeric response': ResponseTypeChoices.NUMBER,
             'likert scale': ResponseTypeChoices.LIKERT,
             'range response': ResponseTypeChoices.RANGE,
             'media response': ResponseTypeChoices.MEDIA,
+            'date response': ResponseTypeChoices.DATE,
+            'time response': ResponseTypeChoices.TIME,
+            'datetime response': ResponseTypeChoices.DATETIME,
+            # Tolerant spellings for the date-time type
+            'date time': ResponseTypeChoices.DATETIME,
+            'date time response': ResponseTypeChoices.DATETIME,
+            'date-time': ResponseTypeChoices.DATETIME,
+            'date-time response': ResponseTypeChoices.DATETIME,
         }
         
         # Try to find a match (case-insensitive)

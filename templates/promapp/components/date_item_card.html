@@ -1,0 +1,20 @@
+{% load i18n %}
+{% load prom_filters %}
+
+<div class="bg-white rounded-lg shadow p-4">
+    <!-- Title at the top -->
+    <div class="mb-3">
+        <h3 class="text-sm font-bold text-gray-900">{{ item_response.questionnaire_item.item.name }}</h3>
+    </div>
+
+    <!-- Response area at the bottom -->
+    <div class="border rounded-md p-3 bg-gray-50">
+        {% if item_response.response_value %}
+            <div class="text-sm text-gray-900">
+                {{ item_response.response_value|format_temporal_response }}
+            </div>
+        {% else %}
+            <div class="text-sm text-gray-400 italic">{% translate "No response provided" %}</div>
+        {% endif %}
+    </div>
+</div>

@@ -257,6 +257,25 @@
                   </span>
                 </div>
 
+              {% elif qi.item.response_type == 'Date' %}
+                <!-- Staff entry uses the simple built-in picker; the stored
+                     format is identical to the patient flow (YYYY-MM-DD). -->
+                <input type="date"
+                       name="response_{{ qi.id }}"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+              {% elif qi.item.response_type == 'Time' %}
+                <input type="time"
+                       name="response_{{ qi.id }}"
+                       step="1"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+              {% elif qi.item.response_type == 'DateTime' %}
+                <input type="datetime-local"
+                       name="response_{{ qi.id }}"
+                       step="1"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+
               {% elif qi.item.response_type == 'Media' %}
                 {% include 'promapp/components/media_recorder.html' with question_id=qi.id %}
               {% endif %}

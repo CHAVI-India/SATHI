@@ -34,6 +34,7 @@
           {% endfor %}
         </ul>
       </div>
+      <p class="mt-2 text-xs text-yellow-700">{% trans "Every item listed here is also written to validation_errors.csv inside the export archive." %}</p>
     </div>
   {% endif %}
 
@@ -149,6 +150,23 @@
             class="text-blue-500 hover:underline">{% trans "REDCap configuration" %}</a>.
         </p>
       </div>
+    </c-card>
+
+    <c-card title="{% trans 'Invalid Answers' %}" shadow="md" padding="sm" class="mb-6">
+      <p class="text-xs text-gray-500 mb-3">
+        {% trans "When a stored answer cannot be converted into the format the mapped REDCap field expects (for example a number written into a date field), that value is reported in the export warnings and in validation_errors.csv inside the archive." %}
+      </p>
+      <label class="flex items-start gap-3 p-3 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer">
+        <input type="checkbox" name="on_invalid_field" value="blank_cell"
+          class="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 rounded">
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-900">{% trans "Keep the record and leave only the invalid answer blank" %}</p>
+          <p class="text-xs text-gray-500 mt-0.5">
+            {% trans "By default the whole record is left out of the export. Tick this to export the record with the invalid cell empty instead, so one badly entered item cannot hold back the rest of the data." %}
+          </p>
+          <p class="text-xs text-red-600 mt-1">⚠ {% trans "On import REDCap clears any value already stored in a blanked field — use this only when that is what you want." %}</p>
+        </div>
+      </label>
     </c-card>
 
     <div class="flex justify-end gap-3 mb-10">

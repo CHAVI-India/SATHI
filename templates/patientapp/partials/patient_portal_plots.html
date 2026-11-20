@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load prom_filters %}
 
 {% if item_plots or media_items %}
 
@@ -36,6 +37,8 @@
                         <span class="text-sm font-medium text-blue-900">{% translate "Latest Response" %}:</span>
                         {% if plot_data.most_recent_response.questionnaire_item.item.response_type == 'Likert' %}
                             <span class="ml-2 text-blue-800">{{ plot_data.most_recent_response.option_text|default:plot_data.most_recent_response.response_value }}</span>
+                        {% elif plot_data.most_recent_response.questionnaire_item.item.response_type == 'Date' or plot_data.most_recent_response.questionnaire_item.item.response_type == 'Time' or plot_data.most_recent_response.questionnaire_item.item.response_type == 'DateTime' %}
+                            <span class="ml-2 text-blue-800">{{ plot_data.most_recent_response.response_value|format_temporal_response }}</span>
                         {% else %}
                             <span class="ml-2 text-blue-800">{{ plot_data.most_recent_response.response_value }}</span>
                         {% endif %}
@@ -58,7 +61,7 @@
                     <span>{{ plot_data.item.get_response_type_display }}</span>
                     {% if plot_data.item.response_type == 'Likert' and plot_data.item.likert_response %}
                     <span>{{ plot_data.item.likert_response.likert_scale_name }}</span>
-                    {% elif plot_data.item.response_type == 'Numeric' and plot_data.item.range_response %}
+                    {% elif plot_data.item.response_type == 'Number' and plot_data.item.range_response %}
                     <span>{{ plot_data.item.range_response.range_scale_name }}</span>
                     {% endif %}
                 </div>

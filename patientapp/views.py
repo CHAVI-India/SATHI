@@ -27,7 +27,7 @@ from .redcap_utils import (
     import_records as redcap_import_records,
     parse_redcap_choices,
     has_auto_validation,
-    validate_and_format_response_value,
+    safe_validate_and_format_response_value,
 )
 from .forms import (
     PatientForm, TreatmentForm, DiagnosisForm, PatientRestrictedUpdateForm,
@@ -48,9 +48,11 @@ import logging
 import csv
 import io
 import os
+import re
 import tempfile
 import uuid
 import zipfile
+from dataclasses import dataclass, field
 from django.http import HttpResponse
 from bokeh.resources import Resources  # Serve Bokeh from local static files
 from patientapp.utils import get_filtered_patients_for_aggregation
@@ -383,7 +385,7 @@ def prom_review(request, pk, print_mode=False):
         response.bokeh_plot = None # Initialize bokeh_plot for all responses
 
         # Type-specific processing
-        if response.questionnaire_item.item.response_type == 'Numeric' and response.questionnaire_item.item.range_response:
+        if response.questionnaire_item.item.response_type == ResponseTypeChoices.NUMBER and response.questionnaire_item.item.range_response:
             try:
                 numeric_value = float(response.response_value) if response.response_value else None
                 response.numeric_response = numeric_value
@@ -1813,7 +1815,7 @@ def patient_portal(request):
             current_value_for_change_calc = None
             
             # Type-specific processing
-            if response.questionnaire_item.item.response_type == 'Numeric' and response.questionnaire_item.item.range_response:
+            if response.questionnaire_item.item.response_type == ResponseTypeChoices.NUMBER and response.questionnaire_item.item.range_response:
                 try:
                     numeric_value = float(response.response_value) if response.response_value else None
                     response.numeric_response = numeric_value
@@ -4555,6 +4557,9 @@ def redcap_export(request, pk, mapping_pk):
         selected_fm_ids = request.POST.getlist('form_mapping_ids')
         selected_patient_pks = request.POST.getlist('patient_pks')
         export_type = request.POST.get('export_type', ExportTypeChoices.MANUAL)
+        on_invalid = request.POST.get('on_invalid_field', ON_INVALID_SKIP_ROW)
+        if on_invalid not in ON_INVALID_CHOICES:
+            on_invalid = ON_INVALID_SKIP_ROW
         selected_fms = form_mappings.filter(pk__in=selected_fm_ids)
 
         full_id_map = {
@@ -4596,9 +4601,10 @@ def redcap_export(request, pk, mapping_pk):
         # are automatically excluded from the export in _collect_export_rows_per_fm()
 
         if export_type == ExportTypeChoices.MANUAL:
-            return _build_csv_export(request, mapping, selected_fms, id_map)
+            return _build_csv_export(request, mapping, selected_fms, id_map, on_invalid=on_invalid)
         else:
-            return _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map)
+            return _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map,
+                                   on_invalid=on_invalid)
 
     export_warnings = request.session.pop('redcap_export_warnings', [])
     export_download = request.session.pop('redcap_export_download', None)
@@ -4677,9 +4683,136 @@ def _apply_response_transform(raw, transform):
             # Remove trailing zeros: format to enough precision then strip
             result = f'{f:.10f}'.rstrip('0').rstrip('.')
             return result
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, OverflowError):
         pass
     return raw
+
+
+# ── What to do when a stored answer fails REDCap validation ────────────
+# skip_row:   drop that patient/form record from the export. Safe default: a
+#             REDCap import never sees a partially blank record.
+# blank_cell: keep the record but leave the offending cell empty. On import
+#             REDCap clears whatever that field held, so this is opt-in only.
+ON_INVALID_SKIP_ROW = 'skip_row'
+ON_INVALID_BLANK_CELL = 'blank_cell'
+ON_INVALID_CHOICES = (ON_INVALID_SKIP_ROW, ON_INVALID_BLANK_CELL)
+
+# Columns of the validation report written next to the form CSVs in the archive.
+VALIDATION_ERROR_COLUMNS = [
+    'study_id', 'redcap_form', 'redcap_event_name', 'redcap_repeat_instance',
+    'redcap_field', 'questionnaire_item', 'stored_value', 'transformed_value',
+    'issue_type', 'error', 'action',
+]
+
+
+@dataclass
+class ExportFormResult:
+    """Everything one form mapping contributed to one export run."""
+    fm: object
+    rows: list
+    columns: list
+    warnings: list = field(default_factory=list)
+    issues: list = field(default_factory=list)
+    skipped_rows: int = 0
+    blanked_cells: int = 0
+
+
+def _item_label(questionnaire_item):
+    """Best-effort 'Q7: item text' label for export reports; never raises."""
+    try:
+        return str(questionnaire_item)
+    except Exception:  # noqa: BLE001 — a report label must not break an export
+        return str(getattr(questionnaire_item, 'question_number', ''))
+
+
+def _safe_zip_stem(name):
+    """REDCap instrument name → filesystem/zip-safe CSV stem."""
+    stem = re.sub(r'[^0-9A-Za-z._-]+', '_', str(name or '').strip())
+    return stem.strip('._') or 'form'
+
+
+def _unique_zip_name(used_names, stem):
+    """Return a distinct archive member name for `stem`.
+
+    Two form mappings may legitimately share a REDCap form name (the unique
+    constraint is form name + questionnaire), and `safe_name` could collapse two
+    different names to one. Without this, the second writestr silently
+    overwrote the first form's entire CSV.
+    """
+    candidate = f'{stem}.csv'
+    n = 2
+    while candidate in used_names:
+        candidate = f'{stem}_{n}.csv'
+        n += 1
+    used_names.add(candidate)
+    return candidate
+
+
+def _expected_csv_columns(mapping, fm, field_maps):
+    """Columns REDCap expects for this form mapping, in the order the row
+    builder writes them.
+
+    Used as the header when no row of that form survived validation, so the
+    archive still describes the shape of the form instead of omitting it.
+    """
+    cols = [mapping.redcap_study_id_field or 'record_id']
+    if fm.redcap_form_is_in_event:
+        cols.append('redcap_event_name')
+    if fm.redcap_form_is_repeating or fm.redcap_event_is_repeating:
+        cols += ['redcap_repeat_instrument', 'redcap_repeat_instance']
+    if fm.submission_date_field:
+        cols.append(fm.submission_date_field)
+    cols += [f.redcap_field_name for f in field_maps]
+    seen, ordered = set(), []
+    for col in cols:
+        if col and col not in seen:
+            seen.add(col)
+            ordered.append(col)
+    return ordered
+
+
+def _apply_field_mappings(field_maps, responses, field_meta_lookup):
+    """Map one submission's stored answers onto that form's REDCap fields.
+
+    Returns (row, cell_errors). Every mapped field gets a cell; a field whose
+    value fails REDCap validation is written as '' *and reported* in
+    cell_errors, instead of aborting the row — so one bad answer no longer
+    hides the problems in the fields after it.
+
+    `cell_errors` entries: {'field', 'item_label', 'raw', 'normalized', 'message'}.
+    """
+    row, cell_errors = {}, []
+    for fm_field in field_maps:
+        raw = responses.get(fm_field.questionnaire_item_id, '')
+        # Apply the manual response_transform first to normalize the stored
+        # value (e.g. '3.00' → '3' via to_int) so it can match REDCap choice
+        # codes and numeric validations. Auto-validation then validates and
+        # reformats the normalized value.
+        normalized = _apply_response_transform(raw, fm_field.response_transform)
+        meta = field_meta_lookup.get(fm_field.redcap_field_name)
+
+        if meta and has_auto_validation(meta[0], meta[1]):
+            # Auto-validation takes precedence for final formatting, and it
+            # never raises: an unexpected value or metadata problem becomes a
+            # per-cell error instead of killing the whole export.
+            formatted, err = safe_validate_and_format_response_value(
+                normalized, meta[0], meta[1], meta[2]
+            )
+            if err:
+                cell_errors.append({
+                    'field': fm_field.redcap_field_name,
+                    'item_label': _item_label(fm_field.questionnaire_item),
+                    'raw': raw,
+                    'normalized': normalized,
+                    'message': err,
+                })
+                row[fm_field.redcap_field_name] = ''
+                continue
+            row[fm_field.redcap_field_name] = formatted
+        else:
+            # Plain text/notes or no metadata: use the normalized value.
+            row[fm_field.redcap_field_name] = normalized if normalized is not None else ''
+    return row, cell_errors
 
 
 def _build_field_meta_lookup(mapping, fm):
@@ -4708,17 +4841,27 @@ def _build_field_meta_lookup(mapping, fm):
     return lookup
 
 
-def _collect_export_rows_per_fm(mapping, selected_fms, id_map):
+def _collect_export_rows_per_fm(mapping, selected_fms, id_map,
+                                on_invalid=ON_INVALID_SKIP_ROW):
     """Build per-form rows for REDCap import, grouped by form mapping.
 
-    Returns a dict: {fm.pk: (fm, rows_list, warnings_list)}.
+    Returns a dict: {fm.pk: ExportFormResult}.
+
+    `on_invalid` decides what happens to a submission whose stored answer fails
+    REDCap validation: ON_INVALID_SKIP_ROW drops that record, ON_INVALID_BLANK_CELL
+    keeps it with the offending cell left empty. Either way every failing cell of
+    every submission is reported, and one bad answer never truncates the export of
+    the other rows or forms.
+
     For non-repeating forms, if a patient has multiple submissions in the same
-    event, that patient is skipped for that form and a warning string is added.
+    event, that patient is skipped for that form and reported as an issue.
     """
     from promapp.models import QuestionnaireSubmission, QuestionnaireItemResponse
+    blank_cells = on_invalid == ON_INVALID_BLANK_CELL
     result = {}
     for fm in selected_fms:
-        field_maps = list(fm.redcapfieldtoitemmapping_set.select_related('questionnaire_item'))
+        field_maps = list(fm.redcapfieldtoitemmapping_set.select_related(
+            'questionnaire_item', 'questionnaire_item__item'))
         if not field_maps:
             continue
         submissions = QuestionnaireSubmission.objects.filter(
@@ -4740,6 +4883,13 @@ def _collect_export_rows_per_fm(mapping, selected_fms, id_map):
 
         fm_rows = []
         warnings = []
+        issues = []
+        skipped_rows = 0
+        blanked_cells_count = 0
+
+        # Columns REDCap expects for this form, so the CSV still gets a header
+        # when no row of this form passed validation.
+        columns = _expected_csv_columns(mapping, fm, field_maps)
 
         # Build per-field REDCap metadata lookup for auto-validation/formatting.
         field_meta_lookup = _build_field_meta_lookup(mapping, fm)
@@ -4817,7 +4967,7 @@ def _collect_export_rows_per_fm(mapping, selected_fms, id_map):
                 continue
 
             # Duplicate detection for non-repeating forms:
-            # If the same (study_id, event_name) already has a row, skip and warn
+            # If the same (study_id, event_name) already has a row, skip and report
             if not _is_repeating:
                 dedup_key = (study_id, event_name or '')
                 if dedup_key in seen_keys:
@@ -4828,6 +4978,22 @@ def _collect_export_rows_per_fm(mapping, selected_fms, id_map):
                         + (f' in event "{event_name}"' if event_name else '')
                         + ' — skipped to avoid duplicate import.'
                     )
+                    issues.append({
+                        'study_id': study_id,
+                        'redcap_form': fm.redcap_form_name,
+                        'redcap_event_name': event_name or '',
+                        'redcap_repeat_instance': row.get('redcap_repeat_instance', ''),
+                        'redcap_field': '',
+                        'questionnaire_item': '',
+                        'stored_value': '',
+                        'transformed_value': '',
+                        'issue_type': 'duplicate_submission',
+                        'error': 'This patient has more than one submission for this form'
+                                 + (f' in event "{event_name}"' if event_name else '')
+                                 + '; only one record can be imported.',
+                        'action': 'row_skipped',
+                    })
+                    skipped_rows += 1
                     continue
                 seen_keys.add(dedup_key)
 
@@ -4839,69 +5005,81 @@ def _collect_export_rows_per_fm(mapping, selected_fms, id_map):
                 for r in QuestionnaireItemResponse.objects.filter(questionnaire_submission=sub)
             }
             patient_name = sub.patient.name if sub.patient else str(sub.patient_id)
-            skip_row = False
-            for fm_field in field_maps:
-                raw = responses.get(fm_field.questionnaire_item_id, '')
-                # Apply the manual response_transform first to normalize the stored
-                # value (e.g. '3.00' → '3' via to_int) so it can match REDCap choice
-                # codes and numeric validations. Auto-validation then validates and
-                # reformats the normalized value.
-                normalized = _apply_response_transform(raw, fm_field.response_transform)
-                meta = field_meta_lookup.get(fm_field.redcap_field_name)
+            row, cell_errors = _apply_field_mappings(field_maps, responses, field_meta_lookup)
 
-                if meta and has_auto_validation(meta[0], meta[1]):
-                    # Auto-validation takes precedence for final formatting, but
-                    # operates on the normalized value (post-manual-transform).
-                    formatted, err = validate_and_format_response_value(
-                        normalized, meta[0], meta[1], meta[2]
-                    )
-                    if err:
-                        warnings.append(
-                            f'Patient "{patient_name}" (study ID {study_id}): '
-                            f'field "{fm_field.redcap_field_name}" — {err} '
-                            f'(value: "{raw}"). Row skipped.'
-                        )
-                        skip_row = True
-                        break
-                    row[fm_field.redcap_field_name] = formatted
+            # Report every failing cell of this submission, then apply the
+            # chosen policy: blank the cells or drop the record.
+            for cell in cell_errors:
+                warnings.append(
+                    f'Patient "{patient_name}" (study ID {study_id}): '
+                    f'field "{cell["field"]}" — {cell["message"]} '
+                    f'(value: "{cell["raw"]}"). '
+                    + ('Cell left blank.' if blank_cells else 'Row skipped.')
+                )
+                issues.append({
+                    'study_id': study_id,
+                    'redcap_form': fm.redcap_form_name,
+                    'redcap_event_name': row.get('redcap_event_name', ''),
+                    'redcap_repeat_instance': row.get('redcap_repeat_instance', ''),
+                    'redcap_field': cell['field'],
+                    'questionnaire_item': cell['item_label'],
+                    'stored_value': cell['raw'] if cell['raw'] is not None else '',
+                    'transformed_value': cell['normalized'] if cell['normalized'] is not None else '',
+                    'issue_type': 'validation',
+                    'error': cell['message'],
+                    'action': 'cell_blanked' if blank_cells else 'row_skipped',
+                })
+            if cell_errors:
+                if blank_cells:
+                    blanked_cells_count += len(cell_errors)
                 else:
-                    # Plain text/notes or no metadata: use the normalized value.
-                    row[fm_field.redcap_field_name] = normalized
-            if not skip_row:
-                fm_rows.append(row)
-        result[fm.pk] = (fm, fm_rows, warnings)
+                    skipped_rows += 1
+                    continue
+            fm_rows.append(row)
+        result[fm.pk] = ExportFormResult(
+            fm=fm,
+            rows=fm_rows,
+            columns=columns,
+            warnings=warnings,
+            issues=issues,
+            skipped_rows=skipped_rows,
+            blanked_cells=blanked_cells_count,
+        )
     return result
 
 
-def _build_csv_export(request, mapping, selected_fms, id_map):
-    """Return a ZIP HttpResponse containing one CSV per form mapping and log the export."""
-    grouped = _collect_export_rows_per_fm(mapping, selected_fms, id_map)
-    all_rows = []
-    all_warnings = []
-    for fm, rows, warnings in grouped.values():
-        all_rows.extend(rows)
-        all_warnings.extend(warnings)
-    if not all_rows:
-        if all_warnings:
-            messages.warning(request, _(
-                'No data found for the selected form mappings. '
-                'See the warnings below for details on which fields failed validation.'
-            ))
-            request.session['redcap_export_warnings'] = all_warnings
-        else:
-            messages.warning(request, _('No data found for the selected form mappings.'))
+def _build_csv_export(request, mapping, selected_fms, id_map,
+                      on_invalid=ON_INVALID_SKIP_ROW):
+    """Return a ZIP HttpResponse containing one CSV per form mapping and log the export.
+
+    Every selected form mapping contributes a CSV — headers only when none of its
+    rows passed validation — and anything that was skipped or blanked is listed in
+    `validation_errors.csv` inside the archive. A handful of badly entered answers
+    therefore costs the export those cells or rows, never the whole file.
+    """
+    grouped = _collect_export_rows_per_fm(
+        mapping, selected_fms, id_map, on_invalid=on_invalid
+    )
+    results = list(grouped.values())
+    all_warnings = [w for result in results for w in result.warnings]
+    all_issues = [issue for result in results for issue in result.issues]
+    rows_exported = sum(len(result.rows) for result in results)
+    skipped_rows = sum(result.skipped_rows for result in results)
+    blanked_cells = sum(result.blanked_cells for result in results)
+
+    if not rows_exported and not all_issues:
+        messages.warning(request, _('No data found for the selected form mappings.'))
         return redirect(request.path)
 
     # Build ZIP in memory with one CSV per form mapping
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for fm, rows, warnings in grouped.values():
-            if not rows:
-                continue
-            # Collect field names preserving first-appearance order
-            all_keys = []
-            seen = set()
-            for row in rows:
+        used_names = set()
+        for result in results:
+            # Column order REDCap expects, plus anything a row added on top.
+            all_keys = list(result.columns)
+            seen = set(all_keys)
+            for row in result.rows:
                 for k in row:
                     if k not in seen:
                         all_keys.append(k)
@@ -4909,10 +5087,21 @@ def _build_csv_export(request, mapping, selected_fms, id_map):
             csv_buf = io.StringIO()
             writer = csv.DictWriter(csv_buf, fieldnames=all_keys, extrasaction='ignore')
             writer.writeheader()
-            writer.writerows(rows)
-            # Sanitize form name for filename
-            safe_name = fm.redcap_form_name.replace(' ', '_').replace('/', '_')
-            zf.writestr(f'{safe_name}.csv', csv_buf.getvalue())
+            writer.writerows(result.rows)
+            # Distinct name per form mapping: two mappings may share a REDCap
+            # form name, which used to overwrite one form's whole CSV.
+            member = _unique_zip_name(used_names, _safe_zip_stem(result.fm.redcap_form_name))
+            zf.writestr(member, csv_buf.getvalue())
+
+        if all_issues:
+            report_buf = io.StringIO()
+            writer = csv.DictWriter(
+                report_buf, fieldnames=VALIDATION_ERROR_COLUMNS, extrasaction='ignore'
+            )
+            writer.writeheader()
+            writer.writerows(all_issues)
+            zf.writestr(_unique_zip_name(used_names, 'validation_errors'),
+                        report_buf.getvalue())
     buf.seek(0)
 
     filename = f'redcap_export_{mapping.project.project_name}.zip'
@@ -4922,9 +5111,8 @@ def _build_csv_export(request, mapping, selected_fms, id_map):
     patient_map = {p.pk: p for p in Patient.objects.filter(pk__in=id_map.keys())}
     now = timezone.now()
     log_entries = []
-    for fm, rows, warnings in grouped.values():
-        if not fm.redcapfieldtoitemmapping_set.exists():
-            continue
+    for result in results:
+        fm = result.fm
         # Only log for patients who actually have submissions for this fm
         patient_ids_with_subs = set(
             _QS.objects.filter(
@@ -4932,75 +5120,108 @@ def _build_csv_export(request, mapping, selected_fms, id_map):
                 patient__in=id_map.keys(),
             ).values_list('patient_id', flat=True)
         )
+        log_note = f'CSV export: {filename}'
+        if result.issues:
+            log_note += (f' — {result.skipped_rows} row(s) skipped, '
+                         f'{result.blanked_cells} cell(s) left blank')
         for patient_id in patient_ids_with_subs:
-            patient = patient_map.get(patient_id)
             log_entries.append(RedcapDataExportLog(
                 redcap_form_to_questionnaire_mapping=fm,
-                patient=patient,
+                patient=patient_map.get(patient_id),
                 user_exporting_data=request.user,
                 export_type=ExportTypeChoices.MANUAL,
                 datetime_export_start=now,
                 datetime_export_completed=now,
-                export_status=ExportStatusChoices.COMPLETED,
-                export_log=f'CSV export: {filename}',
+                # A run that had to drop or blank data is not a clean export.
+                export_status=(ExportStatusChoices.INCOMPLETE if result.issues
+                               else ExportStatusChoices.COMPLETED),
+                export_log=log_note,
             ))
     RedcapDataExportLog.objects.bulk_create(log_entries)
 
-    if all_warnings:
-        # Store the ZIP in a temp file so we can redirect (showing warnings)
-        # while still offering the file for download afterwards.
-        token = uuid.uuid4().hex
-        fd, tmp_path = tempfile.mkstemp(suffix='.zip', prefix='redcap_export_')
-        try:
-            with os.fdopen(fd, 'wb') as f:
-                f.write(buf.getvalue())
-        except Exception:
-            os.close(fd)
-            raise
-        request.session['redcap_export_warnings'] = all_warnings
-        request.session['redcap_export_download'] = {
-            'token': token,
-            'path': tmp_path,
-            'filename': filename,
-        }
+    if not all_warnings:
+        response = HttpResponse(buf.getvalue(), content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+    # Store the ZIP in a temp file so we can redirect (showing warnings)
+    # while still offering the file for download afterwards.
+    token = uuid.uuid4().hex
+    fd, tmp_path = tempfile.mkstemp(suffix='.zip', prefix='redcap_export_')
+    try:
+        with os.fdopen(fd, 'wb') as f:
+            f.write(buf.getvalue())
+    except Exception:
+        os.close(fd)
+        raise
+    request.session['redcap_export_warnings'] = all_warnings
+    request.session['redcap_export_download'] = {
+        'token': token,
+        'path': tmp_path,
+        'filename': filename,
+    }
+    if rows_exported:
         messages.warning(request, _(
-            'Export completed with %(skipped)s warning(s). Some rows were skipped — '
-            'see the warnings below. Your export file is ready for download.'
-        ) % {'skipped': len(all_warnings)})
-        return redirect(request.path)
+            'Exported %(rows)s row(s); %(skipped)s row(s) skipped and %(blanked)s cell(s) '
+            'left blank because their stored answers do not fit the REDCap field format. '
+            'See the warnings below and validation_errors.csv inside the archive. '
+            'Your export file is ready for download.'
+        ) % {'rows': rows_exported, 'skipped': skipped_rows, 'blanked': blanked_cells})
+    else:
+        messages.error(request, _(
+            'Nothing could be exported: every row failed validation '
+            '(%(skipped)s row(s) skipped). The archive contains the column headers and '
+            'validation_errors.csv, so you can fix the answers or the field mappings and '
+            'run the export again.'
+        ) % {'skipped': skipped_rows})
+    return redirect(request.path)
 
-    response = HttpResponse(buf.getvalue(), content_type='application/zip')
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    return response
 
+def _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map,
+                    on_invalid=ON_INVALID_SKIP_ROW):
+    """Export via REDCap API using PyCap and log results.
 
-def _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map):
-    """Export via REDCap API using PyCap and log results."""
-    grouped = _collect_export_rows_per_fm(mapping, selected_fms, id_map)
-    all_rows = []
-    all_warnings = []
-    for fm, rows, warnings in grouped.values():
-        all_rows.extend(rows)
-        all_warnings.extend(warnings)
-    if not all_rows:
-        if all_warnings:
-            messages.warning(request, _(
-                'No data found for the selected form mappings. '
-                'See the warnings below for details on which fields failed validation.'
-            ))
-            request.session['redcap_export_warnings'] = all_warnings
+    Uses the same validation policy as the CSV export: rows whose answers fail
+    validation are skipped (or blanked when opted in) and reported, and a form
+    mapping whose rows all failed is left out of the API call instead of failing
+    the whole run.
+    """
+    grouped = _collect_export_rows_per_fm(
+        mapping, selected_fms, id_map, on_invalid=on_invalid
+    )
+    results = list(grouped.values())
+    exportable = [result for result in results if result.rows]
+    all_warnings = [w for result in results for w in result.warnings]
+    all_issues = [issue for result in results for issue in result.issues]
+    skipped_rows = sum(result.skipped_rows for result in results)
+    blanked_cells = sum(result.blanked_cells for result in results)
+
+    if all_warnings:
+        request.session['redcap_export_warnings'] = all_warnings
+
+    if not exportable:
+        if all_issues:
+            messages.error(request, _(
+                'Nothing was sent to REDCap: every row failed validation '
+                '(%(skipped)s row(s) skipped). See the warnings below for the fields '
+                'and values to fix.'
+            ) % {'skipped': skipped_rows})
         else:
             messages.warning(request, _('No data found for the selected form mappings.'))
-        return redirect(request.path)
+        return redirect('redcap_export', pk=pk, mapping_pk=mapping_pk)
 
     if all_warnings:
-        request.session['redcap_export_warnings'] = all_warnings
+        messages.warning(request, _(
+            '%(skipped)s row(s) were skipped and %(blanked)s cell(s) left blank before the '
+            'API push because their stored answers do not fit the REDCap field format. '
+            'See the warnings below.'
+        ) % {'skipped': skipped_rows, 'blanked': blanked_cells})
 
     from promapp.models import QuestionnaireSubmission as _QS
     patient_map = {p.pk: p for p in Patient.objects.filter(pk__in=id_map.keys())}
-    for fm, rows, warnings in grouped.values():
-        if not fm.redcapfieldtoitemmapping_set.exists():
-            continue
+    for result in exportable:
+        fm = result.fm
+        rows = result.rows
         patient_ids_with_subs = set(
             _QS.objects.filter(
                 patient_questionnaire__questionnaire=fm.questionnaire,
@@ -5022,8 +5243,13 @@ def _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map):
         ]
         try:
             response_data = redcap_import_records(mapping, rows)
-            final_status = ExportStatusChoices.COMPLETED
+            # A run that had to drop or blank data is not a clean export.
+            final_status = (ExportStatusChoices.INCOMPLETE if result.issues
+                            else ExportStatusChoices.COMPLETED)
             log_text = str(response_data)
+            if result.issues:
+                log_text += (f' | {result.skipped_rows} row(s) skipped, '
+                             f'{result.blanked_cells} cell(s) left blank by validation')
         except Exception as e:
             final_status = ExportStatusChoices.FAILED
             log_text = str(e)
@@ -5036,4 +5262,3 @@ def _run_api_export(request, pk, mapping_pk, mapping, selected_fms, id_map):
 
     messages.success(request, _('API export completed. Check the log below for details.'))
     return redirect('redcap_export', pk=pk, mapping_pk=mapping_pk)
-

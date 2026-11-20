@@ -1,6 +1,6 @@
 from django import forms
 from django.db import models
-from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, LikertScaleResponseOption, ConstructScale, QuestionnaireItemRule, QuestionnaireItemRuleGroup, CompositeConstructScaleScoring, AIAPIConfiguration
+from .models import Questionnaire, Item, QuestionnaireItem, LikertScale, RangeScale, LikertScaleResponseOption, ConstructScale, QuestionnaireItemRule, QuestionnaireItemRuleGroup, CompositeConstructScaleScoring, AIAPIConfiguration, ResponseTypeChoices
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Div, HTML, Submit, Button
 from django.forms import inlineformset_factory
@@ -10,6 +10,7 @@ from parler.forms import TranslatedField
 from django.utils.translation import get_language
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
+import datetime
 import magic
 import mimetypes
 import os
@@ -530,6 +531,172 @@ class RangeScaleForm(TranslatableModelForm):
         )
 
 
+# Temporal response types and their canonical storage formats (see
+# docs/DATE_TIME_QUESTION_TYPES_PLAN.md Part 1):
+#   Date -> YYYY-MM-DD, Time -> HH:MM:SS, DateTime -> YYYY-MM-DD HH:MM:SS
+TEMPORAL_RESPONSE_TYPES = [
+    ResponseTypeChoices.DATE,
+    ResponseTypeChoices.TIME,
+    ResponseTypeChoices.DATETIME,
+]
+
+
+def serialize_response_value(value):
+    """Convert a form-cleaned response value to the text stored in
+    QuestionnaireItemResponse.response_value.
+
+    date/time/datetime objects are written with the canonical storage
+    formats above using explicit format recipes, so Python's default
+    conversions (e.g. '0:00:00' for midnight, microseconds on datetimes)
+    never reach the database.
+    """
+    if value is None:
+        return None
+    if isinstance(value, datetime.datetime):
+        return value.strftime('%Y-%m-%d %H:%M:%S')
+    if isinstance(value, datetime.date):
+        return value.strftime('%Y-%m-%d')
+    if isinstance(value, datetime.time):
+        return value.strftime('%H:%M:%S')
+    return str(value)
+
+
+def assemble_temporal_from_parts(data, base_name, response_type):
+    """Build a date/time/datetime object from component input fields.
+
+    Reads ``<base_name>_day/_month/_year`` and ``<base_name>_hour/_minute/
+    _second`` from the raw POST data (the patient answer screen submits date
+    answers as separate component boxes; the hidden combined field is filled
+    by JavaScript when scripting is available, so this assembly is also the
+    no-JavaScript fallback and the value of record server-side).
+
+    Seconds are optional and default to :00.
+
+    Returns a ``(value, error)`` tuple:
+      - ``(datetime_object, None)`` on success
+      - ``(None, None)`` when the question was left completely unanswered
+      - ``(None, error_message)`` when the entry is incomplete or invalid
+    """
+    def part(name):
+        raw = data.get(f'{base_name}_{name}')
+        return raw.strip() if isinstance(raw, str) else ''
+
+    want_date = response_type in (
+        ResponseTypeChoices.DATE, ResponseTypeChoices.DATETIME)
+    want_time = response_type in (
+        ResponseTypeChoices.TIME, ResponseTypeChoices.DATETIME)
+
+    incomplete_msg = _(
+        'Please complete all parts of the answer, or leave them all '
+        'blank to skip this question.'
+    )
+    invalid_date_msg = _(
+        'The date you entered is not valid. Please check the day, '
+        'month and year.'
+    )
+    invalid_time_msg = _(
+        'The time you entered is not valid. Please check the hour, '
+        'minute and second.'
+    )
+
+    result_date = None
+    result_time = None
+
+    if want_date:
+        day_s, month_s, year_s = part('day'), part('month'), part('year')
+        if day_s or month_s or year_s:
+            if not (day_s and month_s and year_s):
+                return None, incomplete_msg
+            try:
+                result_date = datetime.date(int(year_s), int(month_s), int(day_s))
+            except (ValueError, TypeError):
+                return None, invalid_date_msg
+
+    if want_time:
+        hour_s, minute_s, second_s = part('hour'), part('minute'), part('second')
+        if hour_s or minute_s or second_s:
+            if not hour_s or not minute_s:
+                return None, incomplete_msg
+            try:
+                hour_i = int(hour_s)
+                minute_i = int(minute_s)
+                second_i = int(second_s) if second_s else 0
+                if second_s and not (0 <= second_i <= 59):
+                    return None, invalid_time_msg
+                if 0 <= hour_i <= 23 and 0 <= minute_i <= 59:
+                    result_time = datetime.time(hour_i, minute_i, second_i)
+                else:
+                    return None, invalid_time_msg
+            except (ValueError, TypeError):
+                return None, invalid_time_msg
+
+    if want_date and want_time:
+        if result_date is None and result_time is None:
+            return None, None
+        if result_date is None or result_time is None:
+            return None, incomplete_msg
+        return datetime.datetime.combine(result_date, result_time), None
+    if want_date:
+        return result_date, None
+    return result_time, None
+
+
+# ── Date/time support for questionnaire visibility rules ─────────────────
+# The stored answers use the canonical formats (Part 1 of the plan). Rule
+# comparison values typed by staff are accepted in those formats first and
+# in a few tolerant variants after, so before/after/on comparisons become
+# real calendar comparisons instead of letter-order text comparisons.
+
+DATE_RULE_FORMATS = ['%Y-%m-%d', '%Y/%m/%d', '%d/%m/%Y', '%m/%d/%Y']
+TIME_RULE_FORMATS = ['%H:%M:%S', '%H:%M', '%H%M%S', '%H%M']
+DATETIME_RULE_FORMATS = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M',
+                         '%Y-%m-%dT%H:%M:%S', '%Y-%m-%dT%H:%M']
+
+
+def parse_rule_temporal_value(raw, response_type):
+    """Parse a rule operand (stored answer or comparison value) for a
+    Date/Time/DateTime question into a comparable date/time/datetime object.
+
+    Raises ValueError when the value cannot be parsed; callers treat that as
+    "rule not evaluable" (the question stays visible).
+    """
+    s = str(raw).strip()
+    if response_type == ResponseTypeChoices.DATE:
+        formats, kind = DATE_RULE_FORMATS, 'date'
+    elif response_type == ResponseTypeChoices.TIME:
+        formats, kind = TIME_RULE_FORMATS, 'time'
+    elif response_type == ResponseTypeChoices.DATETIME:
+        formats, kind = DATETIME_RULE_FORMATS, 'datetime'
+    else:
+        raise ValueError(f"not a temporal response type: {response_type}")
+    for fmt in formats:
+        try:
+            parsed = datetime.datetime.strptime(s, fmt)
+        except ValueError:
+            continue
+        if kind == 'date':
+            return parsed.date()
+        if kind == 'time':
+            return parsed.time()
+        return parsed
+    raise ValueError(f"could not parse '{raw}' as {kind}")
+
+
+def coerce_rule_operands(raw_response, raw_comparison, response_type):
+    """Return comparable (dependent_value, comparison_value) for a rule.
+
+    Number/Likert/Range are compared as floats; Date/Time/DateTime are parsed
+    into real date/time objects; everything else compares as text.
+    """
+    if response_type in ('Number', 'Likert', 'Range'):
+        return float(raw_response), float(raw_comparison)
+    if response_type in (ResponseTypeChoices.DATE, ResponseTypeChoices.TIME,
+                         ResponseTypeChoices.DATETIME):
+        return (parse_rule_temporal_value(raw_response, response_type),
+                parse_rule_temporal_value(raw_comparison, response_type))
+    return str(raw_response), str(raw_comparison)
+
+
 class QuestionnaireResponseForm(forms.Form):
     """
     Form for handling questionnaire responses.
@@ -593,6 +760,31 @@ class QuestionnaireResponseForm(forms.Form):
                         'step': qi.item.range_response.increment
                     })
                 )
+            elif qi.item.response_type == ResponseTypeChoices.DATE:
+                # Canonical storage format: YYYY-MM-DD.
+                # The patient screen renders component boxes (day/month/year)
+                # and a hidden combined field; this field validates the
+                # combined value, while clean() assembles the component parts.
+                self.fields[f'response_{qi.id}'] = forms.DateField(
+                    required=False,
+                    input_formats=['%Y-%m-%d', '%Y/%m/%d'],
+                    widget=forms.DateInput(attrs={'type': 'date'})
+                )
+            elif qi.item.response_type == ResponseTypeChoices.TIME:
+                # Canonical storage format: HH:MM:SS (seconds blank -> :00).
+                self.fields[f'response_{qi.id}'] = forms.TimeField(
+                    required=False,
+                    input_formats=['%H:%M:%S', '%H:%M'],
+                    widget=forms.TimeInput(attrs={'type': 'time'})
+                )
+            elif qi.item.response_type == ResponseTypeChoices.DATETIME:
+                # Canonical storage format: YYYY-MM-DD HH:MM:SS.
+                self.fields[f'response_{qi.id}'] = forms.DateTimeField(
+                    required=False,
+                    input_formats=['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M',
+                                    '%Y-%m-%dT%H:%M:%S', '%Y-%m-%dT%H:%M'],
+                    widget=forms.DateTimeInput(attrs={'type': 'datetime-local'})
+                )
             elif qi.item.response_type == 'Media':
                 self.fields[f'response_media_{qi.id}'] = forms.FileField(
                     required=False,
@@ -601,6 +793,21 @@ class QuestionnaireResponseForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
+        # Assemble component (day/month/year, hour/minute/second) boxes into
+        # combined date/time/datetime values whenever the hidden combined
+        # field did not arrive filled (JavaScript off or not yet assembled).
+        for qi in self.questionnaire_items:
+            if qi.item.response_type not in TEMPORAL_RESPONSE_TYPES:
+                continue
+            field_name = f'response_{qi.id}'
+            if cleaned_data.get(field_name) not in (None, ''):
+                continue
+            value, error = assemble_temporal_from_parts(
+                self.data, field_name, qi.item.response_type)
+            if error:
+                self.add_error(field_name, error)
+            elif value is not None:
+                cleaned_data[field_name] = value
         # Convert empty strings to None and ensure all questions have a value (None if unanswered)
         for qi in self.questionnaire_items:
             if qi.item.response_type == 'Media':
@@ -775,6 +982,19 @@ class QuestionnaireItemRuleForm(forms.ModelForm):
                 except (ValueError, TypeError):
                     raise forms.ValidationError(
                         f'Rule validation failed: The comparison value "{comparison_value}" must be a valid number for the range scale question "{dependent_item.item.name}".'
+                    )
+            elif dependent_item.item.response_type in TEMPORAL_RESPONSE_TYPES:
+                expected_examples = {
+                    ResponseTypeChoices.DATE: '2025-03-14 (YYYY-MM-DD)',
+                    ResponseTypeChoices.TIME: '14:30:00 (HH:MM:SS)',
+                    ResponseTypeChoices.DATETIME: '2025-03-14 14:30:00 (YYYY-MM-DD HH:MM:SS)',
+                }
+                try:
+                    parse_rule_temporal_value(comparison_value, dependent_item.item.response_type)
+                except (ValueError, TypeError):
+                    raise forms.ValidationError(
+                        f'Rule validation failed: The comparison value "{comparison_value}" is not a valid {dependent_item.item.get_response_type_display().lower()} for the question "{dependent_item.item.name}". '
+                        f'Expected format like: {expected_examples[dependent_item.item.response_type]}'
                     )
 
         return cleaned_data
@@ -1319,6 +1539,37 @@ class StaffQuestionnaireResponseForm(forms.Form):
                         'step': qi.item.range_response.increment
                     })
                 )
+            elif qi.item.response_type == ResponseTypeChoices.DATE:
+                # Canonical storage format: YYYY-MM-DD.
+                self.fields[f'response_{qi.id}'] = forms.DateField(
+                    required=False,
+                    input_formats=['%Y-%m-%d', '%Y/%m/%d', '%d/%m/%Y'],
+                    widget=forms.DateInput(attrs={
+                        'type': 'date',
+                        'class': 'w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    })
+                )
+            elif qi.item.response_type == ResponseTypeChoices.TIME:
+                # Canonical storage format: HH:MM:SS (seconds blank -> :00).
+                self.fields[f'response_{qi.id}'] = forms.TimeField(
+                    required=False,
+                    input_formats=['%H:%M:%S', '%H:%M'],
+                    widget=forms.TimeInput(attrs={
+                        'type': 'time',
+                        'class': 'w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    })
+                )
+            elif qi.item.response_type == ResponseTypeChoices.DATETIME:
+                # Canonical storage format: YYYY-MM-DD HH:MM:SS.
+                self.fields[f'response_{qi.id}'] = forms.DateTimeField(
+                    required=False,
+                    input_formats=['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M',
+                                    '%Y-%m-%dT%H:%M:%S', '%Y-%m-%dT%H:%M'],
+                    widget=forms.DateTimeInput(attrs={
+                        'type': 'datetime-local',
+                        'class': 'w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    })
+                )
             elif qi.item.response_type == 'Media':
                 self.fields[f'response_media_{qi.id}'] = forms.FileField(
                     required=False,
@@ -1339,6 +1590,21 @@ class StaffQuestionnaireResponseForm(forms.Form):
     
     def clean(self):
         cleaned_data = super().clean()
+        # Assemble component date/time boxes into combined values when the
+        # combined field did not arrive filled (shared logic with the
+        # patient response form).
+        for qi in self.questionnaire_items:
+            if qi.item.response_type not in TEMPORAL_RESPONSE_TYPES:
+                continue
+            field_name = f'response_{qi.id}'
+            if cleaned_data.get(field_name) not in (None, ''):
+                continue
+            value, error = assemble_temporal_from_parts(
+                self.data, field_name, qi.item.response_type)
+            if error:
+                self.add_error(field_name, error)
+            elif value is not None:
+                cleaned_data[field_name] = value
         # Convert empty strings to None
         for qi in self.questionnaire_items:
             if qi.item.response_type == 'Media':
