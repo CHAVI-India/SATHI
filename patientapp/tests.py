@@ -1,6 +1,15 @@
-from django.test import SimpleTestCase
-
+import csv
+import io
+import os
+import time
+import uuid
+import zipfile
 from types import SimpleNamespace
+from unittest import mock
+
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.test import RequestFactory, SimpleTestCase
+from django.urls import reverse
 
 from patientapp.redcap_utils import (
     validate_and_format_response_value,
@@ -8,7 +17,10 @@ from patientapp.redcap_utils import (
     parse_redcap_choices,
     has_auto_validation,
 )
+from patientapp import views
 from patientapp.views import (
+    ON_INVALID_BLANK_CELL,
+    ON_INVALID_SKIP_ROW,
     _apply_field_mappings,
     _expected_csv_columns,
     _safe_zip_stem,
@@ -743,3 +755,255 @@ class ZipMemberNameTests(SimpleTestCase):
         report_member = _unique_zip_name(used, 'validation_errors')
         self.assertEqual((form_member, report_member),
                          ('validation_errors.csv', 'validation_errors_2.csv'))
+
+
+class PendingExportFileTests(SimpleTestCase):
+    """An archive produced by an export with warnings must survive long enough
+    to be downloaded: the export page may only read the session pointer."""
+
+    def setUp(self):
+        self.session = {}
+
+    @staticmethod
+    def _remove(path):
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+    def _write(self, data=b'PK\x03\x04archive'):
+        payload = views._redcap_write_pending(self.session, data, 'redcap_export_test.zip')
+        self.addCleanup(self._remove, payload['path'])
+        return data
+
+    def test_write_pending_creates_the_file_in_the_export_dir(self):
+        data = self._write()
+        payload = self.session['redcap_export_download']
+        self.assertTrue(views._pending_export_is_ours(payload['path']))
+        with open(payload['path'], 'rb') as f:
+            self.assertEqual(f.read(), data)
+
+    def test_reading_the_pointer_does_not_consume_it(self):
+        # Regression: the export page used to pop this value while drawing its
+        # download button, so clicking that button said 'No export file
+        # available for download'.
+        self._write()
+        first = views._pending_export_download(self.session)
+        second = views._pending_export_download(self.session)
+        self.assertIsNotNone(first)
+        self.assertEqual(first, second)
+
+    def test_new_run_replaces_the_previous_archive(self):
+        self._write()
+        first_path = self.session['redcap_export_download']['path']
+        self._write(b'PK\x03\x04second')
+        second_path = self.session['redcap_export_download']['path']
+        self.assertNotEqual(first_path, second_path)
+        self.assertFalse(os.path.exists(first_path))
+
+    def test_missing_archive_clears_the_pointer(self):
+        self._write()
+        os.remove(self.session['redcap_export_download']['path'])
+        self.assertIsNone(views._pending_export_download(self.session))
+        self.assertNotIn('redcap_export_download', self.session)
+
+    def test_pointer_pointing_elsewhere_is_refused(self):
+        # Sessions from an older deployment, or a doctored one, must not make the
+        # download endpoint read an arbitrary file.
+        self.session['redcap_export_download'] = {'path': '/etc/passwd', 'filename': 'x.zip'}
+        self.assertIsNone(views._pending_export_download(self.session))
+        self.assertNotIn('redcap_export_download', self.session)
+
+    def test_sweep_removes_only_expired_archives(self):
+        self._write()
+        kept = self.session['redcap_export_download']['path']
+        expired = os.path.join(views._redcap_export_dir(), 'redcap_export_expired.zip')
+        with open(expired, 'wb') as f:
+            f.write(b'stale')
+        stale = time.time() - views.REDCAP_EXPORT_TTL_SECONDS - 60
+        os.utime(expired, (stale, stale))
+        self.assertGreaterEqual(views._redcap_export_sweep(), 1)
+        self.assertFalse(os.path.exists(expired))
+        self.assertTrue(os.path.isfile(kept))
+
+
+class ExportDownloadViewTests(SimpleTestCase):
+    """The download button on the export page, end to end (no database needed)."""
+
+    def _request(self, authenticated=True, staff=True):
+        request = RequestFactory().get('/projects/x/redcap/1/export/download/')
+        request.user = SimpleNamespace(is_authenticated=authenticated, is_staff=staff)
+        request.session = {}
+        request._messages = FallbackStorage(request)
+        return request
+
+    def test_download_serves_the_archive_then_consumes_it(self):
+        request = self._request()
+        data = b'PK\x03\x04zip-bytes'
+        views._redcap_write_pending(request.session, data, 'redcap_export_PROM.zip')
+        path = request.session['redcap_export_download']['path']
+        self.addCleanup(self._remove, path)
+
+        response = views.redcap_export_download(request, str(uuid.uuid4()), 1)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, data)
+        self.assertIn('redcap_export_PROM.zip', response['Content-Disposition'])
+        self.assertNotIn('redcap_export_download', request.session)
+        self.assertFalse(os.path.exists(path))
+
+    def test_page_view_then_download_still_works(self):
+        # Exactly the production sequence: export → page shows the button →
+        # the button is clicked.
+        request = self._request()
+        views._redcap_write_pending(request.session, b'PK\x03\x04data', 'redcap_export_PROM.zip')
+        page = views._pending_export_download(request.session)   # what the GET does
+        self.assertIsNotNone(page)
+        response = views.redcap_export_download(request, str(uuid.uuid4()), 1)
+        self.assertEqual(response.status_code, 200)
+
+    def test_non_staff_user_is_turned_away(self):
+        request = self._request(staff=False)
+        response = views.redcap_export_download(request, str(uuid.uuid4()), 1)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('index'))
+
+    def test_anonymous_user_is_sent_to_login(self):
+        request = self._request(authenticated=False, staff=False)
+        response = views.redcap_export_download(request, str(uuid.uuid4()), 1)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login', response.url)
+
+    def test_download_without_pending_archive_reports_back(self):
+        request = self._request()
+        response = views.redcap_export_download(request, str(uuid.uuid4()), 1)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/export/', response.url)
+
+    @staticmethod
+    def _remove(path):
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+
+class BuildCsvExportArchiveTests(SimpleTestCase):
+    """What actually lands in the downloaded archive.
+
+    The database is replaced by fakes so only the export assembly is exercised.
+    """
+
+    MAPPING = SimpleNamespace(
+        redcap_study_id_field='record_id',
+        project=SimpleNamespace(project_name='PROM'),
+    )
+
+    @staticmethod
+    def _fm(pk, name):
+        return SimpleNamespace(pk=pk, redcap_form_name=name, questionnaire=None)
+
+    def _result(self, pk, name, rows, columns, issues=(), warnings=(),
+                skipped=0, blanked=0):
+        return views.ExportFormResult(
+            fm=self._fm(pk, name),
+            rows=list(rows),
+            columns=list(columns),
+            warnings=list(warnings),
+            issues=list(issues),
+            skipped_rows=skipped,
+            blanked_cells=blanked,
+        )
+
+    def _build(self, results):
+        request = RequestFactory().post('/projects/x/redcap/1/export/')
+        request.user = SimpleNamespace(is_staff=True, is_authenticated=True)
+        request.session = {}
+        pending_rows = mock.Mock()
+        pending_rows.values_list.return_value = []
+        with mock.patch.object(views, '_collect_export_rows_per_fm', return_value=results), \
+                mock.patch.object(views, 'Patient') as patient_model, \
+                mock.patch.object(views, 'RedcapDataExportLog') as log_model, \
+                mock.patch('promapp.models.QuestionnaireSubmission') as submission_model, \
+                mock.patch.object(views, 'messages'):
+            patient_model.objects.filter.return_value = []
+            submission_model.objects.filter.return_value = pending_rows
+            response = views._build_csv_export(request, self.MAPPING, [], {},
+                                               on_invalid=ON_INVALID_SKIP_ROW)
+        return request, response
+
+    def _open_archive(self, request, response):
+        """Return the archive as {member name: decoded text}."""
+        if response.status_code == 302:
+            pending = views._pending_export_download(request.session)
+            self.assertIsNotNone(pending, 'no archive was offered for download')
+            self.addCleanup(self._remove, pending['path'])
+            path = pending['path']
+            self.addCleanup(self._remove, path)
+            archive = zipfile.ZipFile(path)
+        else:
+            archive = zipfile.ZipFile(io.BytesIO(response.content))
+        with archive:
+            return {name: archive.read(name).decode() for name in archive.namelist()}
+
+    @staticmethod
+    def _remove(path):
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+    ISSUE = [{
+        'study_id': '49', 'redcap_form': 'psqi', 'redcap_event_name': '',
+        'redcap_repeat_instance': '', 'redcap_field': 'q1_psqi',
+        'questionnaire_item': 'Q1: sleep time', 'stored_value': '22',
+        'transformed_value': '22', 'issue_type': 'validation',
+        'error': "value '22' could not be parsed as a time", 'action': 'cell_blanked',
+    }]
+
+    def test_form_without_valid_rows_still_gets_a_header_only_csv(self):
+        # This used to mean the form's CSV was missing from the archive entirely.
+        results = {
+            1: self._result(1, 'demographics',
+                             [{'record_id': '49', 'age': '44'}],
+                             ['record_id', 'age']),
+            2: self._result(2, 'psqi', [], ['record_id', 'q1_psqi'],
+                            issues=self.ISSUE, warnings=['something failed'], skipped=1),
+        }
+        members = self._open_archive(*self._build(results))
+
+        self.assertEqual(sorted(members), ['demographics.csv', 'psqi.csv',
+                                          'validation_errors.csv'])
+        self.assertEqual(members['psqi.csv'].strip().splitlines(), ['record_id,q1_psqi'])
+        self.assertIn('49,44', members['demographics.csv'])
+        self.assertIn('value \'22\' could not be parsed as a time',
+                      members['validation_errors.csv'])
+
+    def test_every_selected_form_appears_even_when_all_rows_fail(self):
+        results = {
+            1: self._result(1, 'psqi', [], ['record_id', 'q1_psqi'],
+                            issues=self.ISSUE, warnings=['x'], skipped=3),
+        }
+        members = self._open_archive(*self._build(results))
+        self.assertEqual(sorted(members), ['psqi.csv', 'validation_errors.csv'])
+        self.assertEqual(members['psqi.csv'].strip(), 'record_id,q1_psqi')
+
+    def test_clean_export_downloads_without_a_report(self):
+        results = {1: self._result(1, 'demographics',
+                                   [{'record_id': '49', 'age': '44'}],
+                                   ['record_id', 'age'])}
+        request, response = self._build(results)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('redcap_export_download', request.session)
+        members = self._open_archive(request, response)
+        self.assertEqual(list(members), ['demographics.csv'])
+
+    def test_two_mappings_sharing_a_form_name_keep_both_csvs(self):
+        results = {
+            1: self._result(1, 'psqi', [{'record_id': '49', 'q1': '1'}], ['record_id', 'q1']),
+            2: self._result(2, 'psqi', [{'record_id': '49', 'q1': '2'}], ['record_id', 'q1']),
+        }
+        members = self._open_archive(*self._build(results))
+        self.assertEqual(sorted(members), ['psqi.csv', 'psqi_2.csv'])
+        self.assertIn(',1', members['psqi.csv'])
+        self.assertIn(',2', members['psqi_2.csv'])

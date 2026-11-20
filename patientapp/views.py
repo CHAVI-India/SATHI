@@ -4607,7 +4607,11 @@ def redcap_export(request, pk, mapping_pk):
                                    on_invalid=on_invalid)
 
     export_warnings = request.session.pop('redcap_export_warnings', [])
-    export_download = request.session.pop('redcap_export_download', None)
+    # Read-only lookup: this page draws the download button, and taking the
+    # pointer out of the session here used to leave that button pointing at
+    # nothing ('No export file available for download'). Only the download view
+    # clears it, and the next export run replaces it.
+    export_download = _pending_export_download(request.session)
 
     return render(request, 'patientapp/redcap/redcap_export.html', {
         'project': project,
@@ -4621,15 +4625,141 @@ def redcap_export(request, pk, mapping_pk):
     })
 
 
+REDCAP_EXPORT_DIR_NAME = 'redcap_exports'
+# Pending archives are files of patient data; anything nobody downloaded is
+# swept once it is older than this.
+REDCAP_EXPORT_TTL_SECONDS = 6 * 60 * 60
+
+
+def _redcap_export_dir():
+    """Directory for export archives waiting to be downloaded.
+
+    Deliberately outside MEDIA_ROOT: these files hold patient data and reach a
+    browser only through the staff-guarded download view below. If a private
+    directory cannot be created we fall back to the temp dir itself, which is
+    where these archives used to sit — an export must never fail because of it.
+    """
+    temp_root = tempfile.gettempdir()
+    path = os.path.join(temp_root, REDCAP_EXPORT_DIR_NAME)
+    try:
+        os.makedirs(path, mode=0o700, exist_ok=True)
+        return path
+    except OSError:
+        return temp_root
+
+
+def _redcap_export_sweep():
+    """Delete pending exports that were never downloaded. Returns the count."""
+    directory = _redcap_export_dir()
+    cutoff = timezone.now().timestamp() - REDCAP_EXPORT_TTL_SECONDS
+    removed = 0
+    try:
+        names = os.listdir(directory)
+    except OSError:
+        return removed
+    for name in names:
+        if not name.endswith('.zip'):
+            continue
+        full = os.path.join(directory, name)
+        try:
+            if os.path.getmtime(full) < cutoff:
+                os.remove(full)
+                removed += 1
+        except OSError:
+            continue
+    # Archives written by an older deployment landed straight in the temp dir.
+    temp_root = tempfile.gettempdir()
+    try:
+        root_names = os.listdir(temp_root)
+    except OSError:
+        return removed
+    for name in root_names:
+        if not (name.startswith('redcap_export_') and name.endswith('.zip')):
+            continue
+        full = os.path.join(temp_root, name)
+        try:
+            if os.path.isfile(full) and os.path.getmtime(full) < cutoff:
+                os.remove(full)
+                removed += 1
+        except OSError:
+            continue
+    return removed
+
+
+def _redcap_write_pending(session, data, filename):
+    """Persist an export archive, remember it in the session, and return it.
+
+    Any archive still pending for this session is replaced and deleted, so
+    repeated runs cannot pile up patient data on disk.
+    """
+    previous = session.get('redcap_export_download') or {}
+    previous_path = previous.get('path', '')
+    if previous_path:
+        try:
+            os.remove(previous_path)
+        except OSError:
+            pass
+    _redcap_export_sweep()
+    directory = _redcap_export_dir()
+    fd, tmp_path = tempfile.mkstemp(
+        suffix='.zip', prefix='redcap_export_', dir=directory
+    )
+    with os.fdopen(fd, 'wb') as f:
+        f.write(data)
+    payload = {
+        'token': uuid.uuid4().hex,
+        'path': tmp_path,
+        'filename': filename,
+        'created': timezone.localtime().strftime('%d %b %Y %H:%M'),
+    }
+    session['redcap_export_download'] = payload
+    return payload
+
+
+def _pending_export_is_ours(path):
+    """True only for a file inside our own pending-export directory.
+
+    A pointer from an older deployment, or a doctored session value, must never
+    make this endpoint read some other file on the server.
+    """
+    if not path:
+        return False
+    return (os.path.dirname(os.path.realpath(path))
+            == os.path.realpath(_redcap_export_dir()))
+
+
+def _pending_export_download(session):
+    """Return the pending export payload, or None, without consuming it.
+
+    Read-only by design: the export page needs to look at the pointer to draw
+    its download button, and consuming it there (which is what this used to do)
+    left the button pointing at nothing. A pointer whose file has already been
+    swept is dropped so the page stops offering a download that cannot work.
+    """
+    pending = session.get('redcap_export_download')
+    if not pending:
+        return None
+    path = pending.get('path', '')
+    if not _pending_export_is_ours(path) or not os.path.isfile(path):
+        session.pop('redcap_export_download', None)
+        return None
+    return pending
+
+
 @login_required
 def redcap_export_download(request, pk, mapping_pk):
-    """Serve a pending CSV export file stored in the session (temp file).
+    """Serve the pending CSV export archive recorded in the session.
 
-    The file is deleted from disk after being served. This is used when the
-    CSV export had validation warnings — the user is redirected to the export
-    page to see the warnings, and can then download the file via this view.
+    Used when the CSV export had validation warnings: the user is redirected to
+    the export page to read them and downloads the file from there. The session
+    pointer is only cleared once the bytes are on their way to the browser, so
+    the button on that page cannot be consumed by the page view itself.
     """
-    download = request.session.pop('redcap_export_download', None)
+    guard = _staff_required(request)
+    if guard:
+        return guard
+
+    download = _pending_export_download(request.session)
     if not download:
         messages.error(request, _('No export file available for download.'))
         return redirect('redcap_export', pk=pk, mapping_pk=mapping_pk)
@@ -4640,17 +4770,20 @@ def redcap_export_download(request, pk, mapping_pk):
         with open(tmp_path, 'rb') as f:
             data = f.read()
     except (IOError, OSError):
+        # Drop the dead pointer so the page stops offering a broken download.
+        request.session.pop('redcap_export_download', None)
         messages.error(request, _('The export file is no longer available. Please re-run the export.'))
         return redirect('redcap_export', pk=pk, mapping_pk=mapping_pk)
-    finally:
-        # Clean up the temp file regardless of success/failure.
-        try:
-            os.unlink(tmp_path)
-        except (IOError, OSError):
-            pass
 
     response = HttpResponse(data, content_type='application/zip')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    # Single use: forget the pointer and delete the file now that it is served.
+    request.session.pop('redcap_export_download', None)
+    try:
+        os.unlink(tmp_path)
+    except (IOError, OSError):
+        pass
     return response
 
 
@@ -5144,22 +5277,10 @@ def _build_csv_export(request, mapping, selected_fms, id_map,
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
-    # Store the ZIP in a temp file so we can redirect (showing warnings)
-    # while still offering the file for download afterwards.
-    token = uuid.uuid4().hex
-    fd, tmp_path = tempfile.mkstemp(suffix='.zip', prefix='redcap_export_')
-    try:
-        with os.fdopen(fd, 'wb') as f:
-            f.write(buf.getvalue())
-    except Exception:
-        os.close(fd)
-        raise
+    # Store the ZIP on disk so we can redirect (showing warnings) while still
+    # offering the file for download afterwards.
     request.session['redcap_export_warnings'] = all_warnings
-    request.session['redcap_export_download'] = {
-        'token': token,
-        'path': tmp_path,
-        'filename': filename,
-    }
+    _redcap_write_pending(request.session, buf.getvalue(), filename)
     if rows_exported:
         messages.warning(request, _(
             'Exported %(rows)s row(s); %(skipped)s row(s) skipped and %(blanked)s cell(s) '

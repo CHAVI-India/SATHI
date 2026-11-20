@@ -335,6 +335,32 @@ The "Export Method" card in `redcap_export.html` no longer shows interactive rad
 - **CSV**: log entries built as a list and written via `bulk_create` after the CSV response is constructed. All entries have `export_status=COMPLETED`.
 - **API**: log entries created individually (PENDING) before the API call; after success/failure all entries for that fm are updated together with the same status, log text, and completion timestamp — no more single-variable overwrite bug.
 
+#### Export — validation failures no longer sink the whole archive ✅
+
+**Bug:** a single answer that could not be coerced into the format its mapped REDCap field expects (typically a Number-type answer feeding a `date_*` / `datetime_*` / `time` field) cost the entire CSV. The first failing field stopped the whole row, and when every row of a form failed, that form's CSV simply vanished from the ZIP — or the run answered "No data found" with no file at all.
+
+**Fix:**
+- **Per-cell reporting** — `_apply_field_mappings()` validates every mapped field of a submission and returns `(row, cell_errors)`. The old `break` at the first failure meant the user discovered one broken item per run.
+- **Policy per run** — `on_invalid_field`: `skip_row` (default: a REDCap import never sees a partially blank record) or `blank_cell` (opt-in *Invalid Answers* checkbox in `redcap_export.html`; the copy states that REDCap clears any value already stored in a blanked field).
+- **`ExportFormResult`** carries `rows`, `columns`, `warnings`, `issues`, `skipped_rows`, `blanked_cells` per form mapping, so the CSV and API paths report identically.
+- **The archive always holds one CSV per selected form mapping** — headers only when no row of that form survived — plus **`validation_errors.csv`** with `study_id, redcap_form, redcap_event_name, redcap_repeat_instance, redcap_field, questionnaire_item, stored_value, transformed_value, issue_type, error, action`. Patient names stay on screen and out of the file that gets uploaded to REDCap.
+- **Distinct archive names** (`_unique_zip_name`): two form mappings may share a REDCap form name (the unique constraint is form name + questionnaire), and the second `writestr` used to overwrite the first form's entire CSV with only a `UserWarning`.
+- `RedcapDataExportLog.export_status` is now `INCOMPLETE` for a run that had to drop or blank data.
+- `_run_api_export` honours the same policy and leaves out a form mapping whose rows all failed instead of failing the run.
+- **Validators cannot crash an export**: `safe_validate_and_format_response_value()` converts any unexpected failure into a per-cell error, and `_validate_number` rejects `nan` / `inf` / `1e999`, which used to raise out of `int()` or be written into the CSV as the literal text `inf`.
+- **Coercion gaps closed** for dates and times held in numeric storage: `20240715.00` → `2024-07-15`; compact `YYYYMMDD` / `YYYYMMDDHHMM` / `YYYYMMDDHHMMSS` accepted *by exact length* so `2024071` is rejected rather than quietly read as 2024-07-01; `time_hhmmss` supported; 6-digit `HHMMSS` read as a time. *Still open (agreed, later):* hours-only answers such as `22`, `7`, `700` fail against `time` fields and are reported rather than guessed.
+
+#### Export — download button said "No export file available for download" ✅
+
+**Bug:** the GET branch of `redcap_export` fetched the pending archive with `request.session.pop('redcap_export_download', None)`. That same page draws the download button, so the pointer was consumed *before the button could be clicked* — every warning export ended in "No export file available for download".
+
+**Fix (`patientapp/views.py`):**
+- New `_pending_export_download(session)` is **read-only**: the page view uses it, and only `redcap_export_download` consumes the pointer, and only once the bytes are on their way to the browser. A pointer whose file has already vanished is dropped, so the page stops offering a dead download.
+- `redcap_export_download` is now staff-guarded (`_staff_required`) like the rest of the REDCap screens, serves only files from the pending-export directory (`_pending_export_is_ours`, so a session from an older deployment cannot aim it at another file), and no longer deletes the archive in a `finally` block that also ran when the read failed.
+- Pending archives live in `<tempdir>/redcap_exports` (0700, deliberately outside `MEDIA_ROOT` because these files contain patient data). A new run replaces and deletes the archive still pending for that session, and `_redcap_export_sweep()` clears anything older than `REDCAP_EXPORT_TTL_SECONDS` (6 hours) that nobody downloaded — including the flat `/tmp/redcap_export_*.zip` files written by the earlier code.
+- The download card now shows the archive's creation time, since the pointer remains on the page until it is used.
+
+
 ---
 
 ## 🔧 Corrections & Bug Fixes
