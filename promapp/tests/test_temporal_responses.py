@@ -298,6 +298,115 @@ class QuestionnaireResponseFormTemporalTests(TestCase):
         )
 
 
+class TemporalBoundaryValidationTests(TestCase):
+    """Part 4 validation: illogical dates/times are impossible, using the
+    real calendar (Python's datetime), not hand-written range rules alone.
+
+    Ranges enforced: hour 0-23 (24-hour clock; the UI echoes the 12-hour
+    am/pm reading), minute 0-59, second 0-59, month 1-12, and day 1 to the
+    real length of that month - which makes 29 Feb valid only in leap years.
+    """
+
+    def _assemble(self, rtype, **parts):
+        base = 'response_1'
+        data = {f'{base}_{k}': v for k, v in parts.items()}
+        return assemble_temporal_from_parts(data, base, rtype)
+
+    # -- dates -----------------------------------------------------------
+    def test_29_feb_in_non_leap_year_rejected(self):
+        value, error = self._assemble(
+            ResponseTypeChoices.DATE, day='29', month='2', year='2025'
+        )
+        self.assertIsNone(value)
+        self.assertIsNotNone(error)
+
+    def test_29_feb_in_leap_year_accepted(self):
+        value, error = self._assemble(
+            ResponseTypeChoices.DATE, day='29', month='2', year='2024'
+        )
+        self.assertIsNone(error)
+        self.assertEqual(value, datetime.date(2024, 2, 29))
+
+    def test_31_april_rejected_30_days_in_month(self):
+        value, error = self._assemble(
+            ResponseTypeChoices.DATE, day='31', month='4', year='2025'
+        )
+        self.assertIsNone(value)
+        self.assertIsNotNone(error)
+
+    def test_day_zero_and_month_zero_rejected(self):
+        for parts in [
+            dict(day='0', month='3', year='2025'),
+            dict(day='1', month='0', year='2025'),
+            dict(day='1', month='13', year='2025'),
+            dict(day='32', month='1', year='2025'),
+        ]:
+            value, error = self._assemble(ResponseTypeChoices.DATE, **parts)
+            self.assertIsNone(value, parts)
+            self.assertIsNotNone(error, parts)
+
+    def test_day_31_of_31_day_month_and_month_12_accepted(self):
+        value, error = self._assemble(
+            ResponseTypeChoices.DATE, day='31', month='12', year='2025'
+        )
+        self.assertIsNone(error)
+        self.assertEqual(value, datetime.date(2025, 12, 31))
+
+    # -- times -----------------------------------------------------------
+    def test_hour_24_rejected(self):
+        # 24-hour clock: valid hours are 00-23 (midnight is 00, shown to
+        # the patient as 12:xx AM).
+        value, error = self._assemble(
+            ResponseTypeChoices.TIME, hour='24', minute='0', second=''
+        )
+        self.assertIsNone(value)
+        self.assertIsNotNone(error)
+
+    def test_minute_60_and_second_60_rejected(self):
+        value, error = self._assemble(
+            ResponseTypeChoices.TIME, hour='10', minute='60', second=''
+        )
+        self.assertIsNone(value)
+        self.assertIsNotNone(error)
+        value, error = self._assemble(
+            ResponseTypeChoices.TIME, hour='10', minute='0', second='60'
+        )
+        self.assertIsNone(value)
+        self.assertIsNotNone(error)
+
+    def test_last_seconds_of_day_accepted(self):
+        value, error = self._assemble(
+            ResponseTypeChoices.TIME, hour='23', minute='59', second='59'
+        )
+        self.assertIsNone(error)
+        self.assertEqual(value, datetime.time(23, 59, 59))
+
+    # -- datetime: both halves validated ----------------------------------
+    def test_datetime_bad_date_good_time_rejected(self):
+        value, error = self._assemble(
+            ResponseTypeChoices.DATETIME,
+            day='29', month='2', year='2025', hour='10', minute='30', second='',
+        )
+        self.assertIsNone(value)
+        self.assertIsNotNone(error)
+
+    def test_datetime_good_date_bad_time_rejected(self):
+        value, error = self._assemble(
+            ResponseTypeChoices.DATETIME,
+            day='14', month='3', year='2025', hour='10', minute='70', second='',
+        )
+        self.assertIsNone(value)
+        self.assertIsNotNone(error)
+
+    def test_datetime_leap_day_valid(self):
+        value, error = self._assemble(
+            ResponseTypeChoices.DATETIME,
+            day='29', month='2', year='2024', hour='23', minute='59', second='59',
+        )
+        self.assertIsNone(error)
+        self.assertEqual(value, datetime.datetime(2024, 2, 29, 23, 59, 59))
+
+
 class RuleTemporalComparisonTests(TestCase):
     """Part 6: rules compare dates as dates, not as text."""
 

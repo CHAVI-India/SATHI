@@ -926,6 +926,14 @@
             responses[questionId] = this.value;
           }
           
+          // Date/time composite fields only advance once the whole answer
+          // (including the optional seconds box, or once the patient has
+          // left the boxes) is complete - dtAdvance is maintained by the
+          // date/time component script.
+          if (this.classList.contains('dt-combined') && this.dataset.dtAdvance !== '1') {
+            return;
+          }
+          
           // Auto-advance if this is the current question and we have a response
           if (questions[currentQuestionIndex] === question && responses[questionId]) {
             await handleQuestionAnswer();
@@ -963,6 +971,25 @@
     // Handle form submission
     document.getElementById('questionnaire-form').addEventListener('submit', function(e) {
       e.preventDefault();
+      
+      // Guard: if any date/time answer currently on screen is impossible
+      // (e.g. typed into the boxes after the question had already been
+      // answered), do not submit. Jump to that question and show its
+      // inline error instead of a wasted server round trip. The server
+      // always re-validates regardless - nothing invalid can be saved.
+      const badQuestion = Array.prototype.find.call(questions, qEl =>
+        Array.prototype.some.call(
+          qEl.querySelectorAll('.dt-composite'),
+          c => c._dtError
+        )
+      );
+      if (badQuestion) {
+        const badIndex = Array.prototype.indexOf.call(questions, badQuestion);
+        showQuestion(badIndex);
+        const firstBox = badQuestion.querySelector('[data-dt-part]');
+        if (firstBox) { firstBox.focus(); firstBox.select && firstBox.select(); }
+        return;
+      }
       
       // Create FormData to handle file uploads
       const formData = new FormData();
@@ -1060,6 +1087,10 @@
       const wantDate = (type === 'Date' || type === 'DateTime');
       const wantTime = (type === 'Time' || type === 'DateTime');
       let error = null, dateStr = null, timeStr = null;
+      // Seconds are optional for validity, but auto-advance waits for them
+      // (see timeEntered below) so a half-typed time never skips the
+      // question before the patient can finish it.
+      let timeEntered = !wantTime;
 
       // Month-name echo (helps patients avoid the 03-vs-March confusion).
       const monthName = container.querySelector('.dt-month-name');
@@ -1108,6 +1139,7 @@
               error = DT_MSGS.invalidTime;
             } else {
               timeStr = pad2(hi) + ':' + pad2(mii) + ':' + pad2(si);
+              timeEntered = s !== '';
             }
           }
         }
@@ -1128,22 +1160,61 @@
         errorEl.textContent = error || '';
         errorEl.classList.toggle('hidden', !error);
       }
-      return combined;
+      // Keep the latest validation state on the container so the form
+      // submit handler can refuse to send impossible answers (the server
+      // re-checks regardless; this just saves the user a wasted round trip).
+      container._dtError = error || '';
+      // ready: the answer is complete including the optional seconds box,
+      // i.e. safe for auto-advance. combined: the current valid value (may
+      // be ':' seconds so far), used by the rule engine.
+      return { combined: combined, ready: !!combined && timeEntered };
     }
 
     document.querySelectorAll('.dt-composite').forEach(container => {
       const hidden = container.querySelector('.dt-combined');
+      const setAdvance = (ready) => { hidden.dataset.dtAdvance = ready ? '1' : '0'; };
       const refresh = (dispatch) => {
-        assemble(container);
+        const res = assemble(container);
+        // Rules and validation see the value as soon as it is valid; but
+        // auto-advance only happens when the whole time (seconds included)
+        // has been entered - the shared change handler checks dtAdvance.
+        setAdvance(res.ready);
         if (dispatch) {
           // Feed the assembled (or cleared) value into the existing
-          // rule-evaluation / auto-advance flow bound to this hidden field.
+          // rule-evaluation flow bound to this hidden field.
           hidden.dispatchEvent(new Event('change'));
         }
       };
-      container.querySelectorAll('[data-dt-part]').forEach(el => {
-        el.addEventListener('input', () => refresh(true));
+      const partBoxes = Array.from(container.querySelectorAll('[data-dt-part]'));
+      partBoxes.forEach((el, idx) => {
+        el.addEventListener('input', () => {
+          // Numeric boxes: strip anything that is not a digit, so patients
+          // can never type letters or stray characters into the boxes.
+          const cleaned = el.value.replace(/[^0-9]/g, '');
+          if (cleaned !== el.value) { el.value = cleaned; }
+          refresh(true);
+          // When a box is full (e.g. two digits in Day), move to the next
+          // box - so "moving on" feels like filling the next box, never a
+          // jump to the next question while the answer is unfinished.
+          const max = parseInt(el.getAttribute('maxlength'), 10);
+          if (max && el.value.length === max && idx + 1 < partBoxes.length) {
+            partBoxes[idx + 1].focus();
+          }
+        });
         el.addEventListener('change', () => refresh(true));
+      });
+      // If the patient leaves the boxes without filling the optional
+      // seconds (e.g. taps Next/Previous or the next field), accept the
+      // time (seconds default to :00) and let auto-advance proceed.
+      container.addEventListener('focusout', (e) => {
+        if (e.relatedTarget && container.contains(e.relatedTarget)) {
+          return; // still moving between the boxes/buttons of this question
+        }
+        const res = assemble(container);
+        if (res.combined) {
+          setAdvance(true);
+          hidden.dispatchEvent(new Event('change'));
+        }
       });
       container.querySelectorAll('[data-dt-preset]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1154,6 +1225,9 @@
           if (preset === 'now') {
             if (parts.hour) parts.hour.value = pad2(now.getHours());
             if (parts.minute) parts.minute.value = pad2(now.getMinutes());
+            // Fill seconds deliberately (with :00) so the question counts
+            // as fully answered and behaves like the date presets.
+            if (parts.second) parts.second.value = '00';
           } else {
             const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             if (preset === 'yesterday') d.setDate(d.getDate() - 1);
@@ -1165,7 +1239,9 @@
           refresh(true);
         });
       });
-      assemble(container);
+      // Initial pass: reflect any preset values but do not allow advancing
+      // until the answer is fully entered.
+      setAdvance(assemble(container).ready);
     });
   });
 </script>

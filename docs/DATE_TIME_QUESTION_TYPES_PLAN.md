@@ -292,3 +292,59 @@ modules explicitly):
     promapp.tests.test_temporal_responses patientapp.tests
 # Ran 196 tests — OK
 ```
+
+## Follow-up fix: time auto-advance too eager (post-implementation)
+
+Problem reported: on Time questions the screen jumped to the next question
+as soon as hour+minute were typed, so the optional seconds box could never
+be used.
+
+Fix in `templates/promapp/questionnaire_response.html`:
+
+* Auto-advance now waits until **hour, minute and second are all filled**
+  (for Time/DateTime). The rule engine still sees the value as soon as
+  hour+minute are valid.
+* If the patient deliberately skips the optional seconds and leaves the
+  box group (taps Next/Previous or another field), the answer is accepted
+  with `:00` and advance proceeds.
+* Typing in a box that is now full (e.g. two digits in Day, four in Year)
+  moves focus to the **next box** - never to the next question - so
+  low-familiarity users experience "filling the boxes", not a jump.
+* Boxes accept digits only (anything else is stripped as typed).
+* The "Now" preset fills seconds with `:00` so it counts as a complete
+  answer, like the date presets.
+
+Validation boundaries (server-side `assemble_temporal_from_parts`, mirrored
+client-side, both tested): hour 00-23 (24-hour clock; midnight is 00 and
+the UI echoes the 12-hour AM/PM reading, so "24:xx" is rejected), minute
+0-59, second 0-59, month 1-12, day 1 through the **real length of that
+month**. Calendar correctness (29 Feb in a non-leap year, 31 April, etc.)
+is enforced by Python's `datetime` library server-side and by a
+round-trip `Date` object check client-side - not by hand-written
+day-count tables. New tests: `TemporalBoundaryValidationTests` (11 tests).
+
+### Follow-up fix 2: "can an invalid date be submitted?" - repro and guard
+
+Reported: the screen advanced to the next question while the date ended up
+impossible, and the error text only appeared after navigating back / after
+submit.
+
+Diagnosis (reproduced with a jsdom harness running the page's real JS):
+invalid values have NEVER been storable - the hidden combined field stays
+empty and the server re-assembles the boxes with Python `datetime` and
+rejects anything impossible. What actually happens is an auto-advance on a
+transiently valid mid-edit state: while editing 14/03/2025 to 31/04/2025 by
+changing day first, the value passes through 31/03/2025 (valid) -> the
+question advances; the final 31/04/2025 then only shows its error when the
+user navigates back or the server rejects the submission.
+
+Changes in `templates/promapp/questionnaire_response.html`:
+* Each component keeps its latest validation state (`_dtError`).
+* The form's submit handler now re-checks every Date/Time/DateTime answer:
+  if any shows an error, submission is blocked, the app jumps straight to
+  that question and focuses the first box - no wasted server round trip.
+* An impossible final value always clears the stored (hidden) answer, so a
+  stale valid value can never sneak into the submission.
+
+Browser-level regression tests: `scripts/js-tests/` (17 assertions,
+including this exact repro). Run: see scripts/js-tests/README.md.
