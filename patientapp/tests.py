@@ -1,4 +1,5 @@
 import csv
+import datetime
 import io
 import os
 import time
@@ -1007,3 +1008,120 @@ class BuildCsvExportArchiveTests(SimpleTestCase):
         self.assertEqual(sorted(members), ['psqi.csv', 'psqi_2.csv'])
         self.assertIn(',1', members['psqi.csv'])
         self.assertIn(',2', members['psqi_2.csv'])
+
+_EXPORT_TEST_PATIENT_PK = uuid.uuid4()
+_EXPORT_TEST_SUBMISSION_PK = uuid.uuid4()
+
+
+class CollectExportRowsIdentifierTests(SimpleTestCase):
+    """The identifiers REDCap matches a record on must survive into the row.
+
+    Regression: the mapped answers used to *replace* the row that had already
+    been built with the study ID, event name, repeat instance and submission
+    date, so every CSV came out with those columns in the header but empty in
+    the data rows.
+    """
+
+    PATIENT_PK = _EXPORT_TEST_PATIENT_PK
+    SUB_PK = _EXPORT_TEST_SUBMISSION_PK
+
+    class _Response:
+        def __init__(self, item_id, value):
+            self.questionnaire_item_id = item_id
+            self.response_value = value
+
+    class _Submission:
+        pk = _EXPORT_TEST_SUBMISSION_PK
+        patient_id = _EXPORT_TEST_PATIENT_PK
+
+        def __init__(self, submission_date):
+            self.submission_date = submission_date
+            self.patient = SimpleNamespace(name='Test Patient')
+
+    def _fm(self, **overrides):
+        fm = SimpleNamespace(
+            pk=1,
+            redcap_form_name='psqi',
+            questionnaire='psqi-questionnaire',
+            redcap_event_name='week_1_event',
+            redcap_form_is_in_event=True,
+            redcap_form_is_repeating=False,
+            redcap_event_is_repeating=False,
+            submission_date_field='visit_date',
+            submission_date_format='date_ymd',
+        )
+        for key, value in overrides.items():
+            setattr(fm, key, value)
+        return fm
+
+    def _instance(self, event_name='week_1_event', instance=None):
+        return SimpleNamespace(
+            questionnaire_submission_id=self.SUB_PK,
+            redcap_event_name=event_name, redcap_repeat_instance=instance)
+
+    def _collect(self, fm=None, responses=None, instance_map=()):
+        fm = fm or self._fm()
+        field_maps = [_field_map('item-1', 'q1_psqi'), _field_map('item-2', 'q2_psqi')]
+        fm.redcapfieldtoitemmapping_set = SimpleNamespace(
+            select_related=lambda *a: field_maps)
+        mapping = SimpleNamespace(redcap_study_id_field='patient_id',
+                                  redcap_project_info=None)
+        submission = self._Submission(datetime.date(2024, 7, 15))
+
+        submission_qs = mock.Mock()
+        submission_qs.select_related.return_value.order_by.return_value = [submission]
+        response_model = mock.Mock()
+        response_model.objects.filter.return_value = list(responses or [])
+        instance_model = mock.Mock()
+        instance_model.objects.filter.return_value = list(instance_map)
+
+        with mock.patch('promapp.models.QuestionnaireSubmission') as sub_model, \
+                mock.patch('promapp.models.QuestionnaireItemResponse', response_model), \
+                mock.patch.object(views, 'RedcapInstanceToSubmissionMapping', instance_model):
+            sub_model.objects.filter.return_value = submission_qs
+            return views._collect_export_rows_per_fm(
+                mapping, [fm], {self.PATIENT_PK: '49'})
+
+    def test_identifiers_are_kept_alongside_the_mapped_answers(self):
+        result = self._collect(
+            responses=[self._Response('item-1', '2'), self._Response('item-2', '3')],
+            instance_map=[self._instance()],
+        )
+        row = result[1].rows[0]
+        self.assertEqual(row['patient_id'], '49')
+        self.assertEqual(row['redcap_event_name'], 'week_1_event')
+        self.assertEqual(row['visit_date'], '2024-07-15')
+        self.assertEqual((row['q1_psqi'], row['q2_psqi']), ('2', '3'))
+        # The header and the row describe the same record, in the same order.
+        self.assertEqual(list(row), result[1].columns)
+
+    def test_plain_form_row_carries_study_id_and_every_answer(self):
+        result = self._collect(
+            fm=self._fm(redcap_form_is_in_event=False, redcap_event_name=None,
+                        submission_date_field=None, submission_date_format=None),
+            responses=[self._Response('item-1', '2'), self._Response('item-2', '3')],
+        )
+        row = result[1].rows[0]
+        self.assertEqual([row[c] for c in result[1].columns], ['49', '2', '3'])
+
+    def test_repeating_form_keeps_instance_and_identifiers(self):
+        fm = self._fm(redcap_form_is_repeating=True, redcap_event_name=None)
+        result = self._collect(
+            fm=fm,
+            responses=[self._Response('item-1', '2'), self._Response('item-2', '3')],
+            instance_map=[self._instance(instance=3)],
+        )
+        row = result[1].rows[0]
+        self.assertEqual(row['patient_id'], '49')
+        self.assertEqual(row['redcap_repeat_instrument'], 'psqi')
+        self.assertEqual(row['redcap_repeat_instance'], 3)
+        self.assertEqual(row['q1_psqi'], '2')
+
+    def test_unrecognised_date_format_falls_back_to_yyyy_mm_dd(self):
+        result = self._collect(
+            fm=self._fm(submission_date_format='datetime_dmy'),
+            responses=[self._Response('item-1', '2'), self._Response('item-2', '3')],
+            instance_map=[self._instance()],
+        )
+        self.assertEqual(result[1].rows[0]['visit_date'], '2024-07-15')
+        self.assertTrue(any('not recognised' in w for w in result[1].warnings))

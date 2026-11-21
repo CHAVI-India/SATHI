@@ -4907,7 +4907,9 @@ def _expected_csv_columns(mapping, fm, field_maps):
 def _apply_field_mappings(field_maps, responses, field_meta_lookup):
     """Map one submission's stored answers onto that form's REDCap fields.
 
-    Returns (row, cell_errors). Every mapped field gets a cell; a field whose
+    Returns (cells, cell_errors) where `cells` holds only the mapped REDCap
+    fields — the caller merges it into the row that already carries record_id,
+    redcap_event_name, repeat instance and the submission date. A field whose
     value fails REDCap validation is written as '' *and reported* in
     cell_errors, instead of aborting the row — so one bad answer no longer
     hides the problems in the fields after it.
@@ -5012,13 +5014,23 @@ def _collect_export_rows_per_fm(mapping, selected_fms, id_map,
             )
         }
 
-        date_fmt = _SUBMISSION_DATE_FORMATS.get(fm.submission_date_format) if fm.submission_date_format else None
-
         fm_rows = []
         warnings = []
         issues = []
         skipped_rows = 0
         blanked_cells_count = 0
+
+        # A form can name a submission-date column without picking a format (or
+        # with one we do not know); REDCap expects Y-M-D, so fall back to that
+        # instead of leaving the column empty in every row.
+        date_fmt = _SUBMISSION_DATE_FORMATS.get(fm.submission_date_format)
+        if fm.submission_date_field and date_fmt is None:
+            date_fmt = _SUBMISSION_DATE_FORMATS['date_ymd']
+            warnings.append(
+                f'Form "{fm.redcap_form_name}": submission date format '
+                f'"{fm.submission_date_format or "(not set)"}" is not recognised — '
+                f'dates for "{fm.submission_date_field}" written as YYYY-MM-DD.'
+            )
 
         # Columns REDCap expects for this form, so the CSV still gets a header
         # when no row of this form passed validation.
@@ -5138,7 +5150,11 @@ def _collect_export_rows_per_fm(mapping, selected_fms, id_map,
                 for r in QuestionnaireItemResponse.objects.filter(questionnaire_submission=sub)
             }
             patient_name = sub.patient.name if sub.patient else str(sub.patient_id)
-            row, cell_errors = _apply_field_mappings(field_maps, responses, field_meta_lookup)
+            # Merge the mapped answers into the row built above; the identifiers
+            # (study ID, event name, repeat instance, submission date) are the
+            # keys REDCap matches the record on and must not be thrown away.
+            cells, cell_errors = _apply_field_mappings(field_maps, responses, field_meta_lookup)
+            row.update(cells)
 
             # Report every failing cell of this submission, then apply the
             # chosen policy: blank the cells or drop the record.
