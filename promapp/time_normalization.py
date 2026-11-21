@@ -25,20 +25,39 @@ Every rule reports *why* it produced its answer, so a dry run can be reviewed
 before anything is written. Values that cannot be interpreted are left alone and
 reported for manual fixing - this module never guesses silently.
 
-Rules implemented (in this order):
+Rules implemented, with the two production items as the example
+(a.m. = "what time did you wake up", p.m. = "what time did you go to bed"):
 
-===========================  ==========================  ==========================
-stored                       am item                      pm item
-===========================  ==========================  ==========================
-``0800`` / ``800`` / ``8``   ``08:00:00``                ``20:00:00``
-``2230``                     ``22:30:00`` (flagged)      ``22:30:00``
-``9.5`` / ``9,5`` / ``930``  ``09:30:00``                ``21:30:00``
-``9.45`` / ``9.75``          ``09:45:00``                ``21:45:00``
-``8:00`` (has a colon)       ``08:00:00`` (hour trusted) ``08:00:00`` (see
-                                                          ``shift_colon``)
-``2:30 pm`` / ``2.30 pm``    ``14:30:00``                ``14:30:00``
-``08:00:00``                 unchanged                   unchanged
-===========================  ==========================  ==========================
+============================  ==========================  ==========================
+stored                        am item                     pm item
+============================  ==========================  ==========================
+``0800`` / ``800`` / ``8``    ``08:00:00``                ``20:00:00``
+``9`` / ``900``               ``09:00:00``                ``21:00:00``
+``9.5`` / ``9,5`` / ``930``   ``09:30:00``                ``21:30:00``
+``9.45`` / ``9.75``           ``09:45:00``                ``21:45:00``
+``2230``                      ``22:30:00`` (flagged)      ``22:30:00``
+``8:00``                      ``08:00:00``                ``08:00:00`` (see note 4)
+``2:30 pm``                   ``14:30:00``                ``14:30:00``
+``08:00:00``                  unchanged                   unchanged
+``no recuerdo``               left alone, reported        left alone, reported
+============================  ==========================  ==========================
+
+Notes:
+1. One decimal digit is a fraction of an hour (``9.5`` -> 30 min); two digits
+   are read as the minutes the way people type them (``9.25`` -> ``09:25``),
+   and only when they cannot be minutes does the fraction reading come back
+   (``9.75`` -> ``09:45``). Every decimal answer is labelled in the dry-run
+   report so the odd ones can be checked by a human first.
+2. Digit-only answers are read by exact length, with the same table as
+   ``patientapp.redcap_utils._validate_time``: 1-2 digits = hours, 3 = HMM,
+   4 = HHMM, 6 = HHMMSS. Anything else is reported, never guessed.
+3. An hour > 12 on an a.m. item (or an hour < 12 written in 24-hour form on a
+   p.m. item) is kept as typed and flagged in the report.
+4. A value that already contains a colon was written by someone using the time
+   convention, so only its seconds get padded. Pass ``shift_colon=True``
+   (``--shift-colon``) to apply the meridian shift to those as well.
+5. An explicit ``am``/``pm``/``de la noche`` marker always beats the item's
+   default meridian.
 
 Pure functions only: no ORM, no settings, safe to unit test and to paste into
 ``manage.py shell``.

@@ -348,3 +348,58 @@ Changes in `templates/promapp/questionnaire_response.html`:
 
 Browser-level regression tests: `scripts/js-tests/` (17 assertions,
 including this exact repro). Run: see scripts/js-tests/README.md.
+
+## Follow-up fix 3: legacy free-text answers on the two time items
+
+Problem: two questionnaire items asked for a clock time while their response
+type was still free text, so patients typed `0800`, `800`, `8`, `9.5`, ... and
+those strings sit in `QuestionnaireItemResponse.response_value` exactly as
+typed. The REDCap exporter rejects them for a `time` / `time_hhmmss` field
+(`patientapp.redcap_utils._validate_time` reads digit-only answers by exact
+length, so `8`, `800` and `9.5` fail), and the REDCap column cannot be switched
+to a time validation type until the stored text is canonical.
+
+The hours are also ambiguous without the question: on the wake-up item (`9c16d1e1-f7e5-4ee7-905e-a778250dad87`)
+`8` means 08:00, on the bed-time item (`df5988ce-dcc2-4624-9389-c22d28657948`)
+it means 20:00 and `9.5` means 21:30.
+
+Fix (no schema migration - data only):
+
+* `promapp/time_normalization.py` - pure conversion rules to `HH:MM:SS`, the
+  canonical storage format from Part 1. Module docstring holds the rule table.
+  Nothing is ever guessed: an answer it cannot read is reported, not rewritten.
+* `promapp/management/commands/fix_time_responses.py` - the one-off run. Both
+  items above are built in with the right meridian. It is a **dry run by
+  default** and prints every distinct stored value with its proposed
+  replacement and the rule that produced it.
+* `promapp/tests/test_legacy_time_responses.py` - the rules, including proof
+  that every value the fix can produce passes the exporter's own `time_hhmmss`
+  validator, plus dry-run / `--commit` / backup / restore / idempotency tests.
+
+Runbook on the production host (same output either way, `Item` id or
+`QuestionnaireItem` id both work):
+
+```bash
+# 1. look at the mapping first; writes nothing
+python manage.py fix_time_responses
+
+# 2. apply, keeping an undo file
+python manage.py fix_time_responses --commit \
+    --backup backups/time_responses_$(date +%Y%m%d_%H%M%S).json
+
+# 3. undo if anything looks wrong
+python manage.py fix_time_responses --restore backups/time_responses_20260212_153000.json
+```
+
+Extra flags: `--item UUID:am|pm|auto` (repeatable, replaces the built-in pair),
+`--shift-colon` (also apply the p.m. shift to values that already contain a
+colon; by default those only get their seconds padded), `--limit N` for a spot
+check, `--show N` for the report size. `modified_date` is bumped on every
+rewritten row, and the command warns if the item turns out to be referenced in
+a construct-scale equation (time answers must not be score operands - Part 7).
+
+Afterwards, in the staff REDCap mapping screen: keep the item's
+`response_transform` on **None** (the stored text is already the format REDCap
+wants) and set the field's `text_validation_type_or_show_slider_number` to
+`time` (`HH:MM`) or `time_hhmmss` (`HH:MM:SS`) in REDCap itself. The exporter
+pads/parses either way, so `HH:MM:SS` storage is safe for both.
