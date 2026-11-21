@@ -577,11 +577,19 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000  # Increase if needed for complex forms
 
 DEBUG_TOOLBAR_ENABLED = os.getenv('DJANGO_DEBUG_TOOLBAR_ENABLED', 'False') == 'True'
 
+# The toolbar renders into every HTML response via its middleware, but its
+# URLs (the 'djdt' namespace) are only registered outside test runs. If the
+# toolbar middleware ran while `manage.py test` executes, rendering the
+# toolbar raises NoReverseMatch: 'djdt' and every full-request test blows up.
+# Never show the toolbar while the test runner is active.
+import sys
+IS_TEST_RUN = len(sys.argv) > 1 and sys.argv[1] == 'test'
+
 if DEBUG_TOOLBAR_ENABLED:
     INSTALLED_APPS.append('debug_toolbar')
     MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
     DEBUG_TOOLBAR_CONFIG = {
-        'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+        'SHOW_TOOLBAR_CALLBACK': lambda request: not IS_TEST_RUN,
         'SHOW_COLLAPSED': True,
         'SHOW_TEMPLATE_CONTEXT': True,
         'IS_RUNNING_TESTS': False,  # Disable debug toolbar during tests

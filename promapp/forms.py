@@ -648,7 +648,7 @@ def assemble_temporal_from_parts(data, base_name, response_type):
 # real calendar comparisons instead of letter-order text comparisons.
 
 DATE_RULE_FORMATS = ['%Y-%m-%d', '%Y/%m/%d', '%d/%m/%Y', '%m/%d/%Y']
-TIME_RULE_FORMATS = ['%H:%M:%S', '%H:%M', '%H%M%S', '%H%M']
+TIME_RULE_FORMATS = ['%H:%M:%S', '%H:%M', '%H%M%S', '%H%M', '%I:%M:%S %p', '%I:%M %p']
 DATETIME_RULE_FORMATS = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M',
                          '%Y-%m-%dT%H:%M:%S', '%Y-%m-%dT%H:%M']
 

@@ -252,3 +252,43 @@ No code in this part — this decision governs Parts 4, 5, 6, 10, 11. One rule f
 
 
 Answers: Seconds optional is ok. If not filled 00 default. Month name echo is ok. Today link would be useful for dates as will some additional defaults for date and date time (not too many to overwhelm)
+---
+
+# Implementation status (final)
+
+All parts implemented and tested. Part 11 (REDCap export) is owned by a
+separate agent/commit and was not touched by this work.
+
+| Part | Area | Status |
+|------|------|--------|
+| 1 | Storage formats (`serialize_response_value` in `promapp/forms.py`) | Done — canonical `YYYY-MM-DD` / `HH:MM:SS` / `YYYY-MM-DD HH:MM:SS`, seconds blank = `:00`, no `0:00:00` midnight trap |
+| 2 | Model + migration | Done — `Item.clean()` rejects Likert/Range scales on Date/Time/DateTime; migration `0030_alter_item_response_type` |
+| 3 | Bulk import | Done — `ResponseTypeWidget` accepts `date`/`time`/`datetime` and tolerant spellings |
+| 4 | Patient component boxes | Done — Day/Month/Year + Hour/Minute/Second boxes, hidden combined field, JS auto-advance, server-side assembly (`assemble_temporal_from_parts`) as no-JS fallback, month-name echo, am/pm hint, quick-fill links (Today / Yesterday / One week ago; Now for Time), seconds optional |
+| 5 | Staff entry | Done — native `type=date` / `type=time` (step=1) / `type=datetime-local` inputs |
+| 6 | Question rules | Done — `parse_rule_temporal_value` + `coerce_rule_operands`; rules compare real dates/times (lenient input formats accepted in the rule builder) |
+| 7 | Scoring | Verified by tests — temporal items excluded from equations, scores, and the equation builder; end-to-end submission test proves a date answer never enters the score |
+| 8 | Result display | Done — `date_item_card.html` + `format_temporal_response` filter wired into `item_results_section`, both vertical-tab dashboards; HCP construct fieldset reuses the text card; item list badges for the new types |
+| 9 | Charts | Done — temporal items follow the text path (no misleading numeric plotting); portal "latest response" shows formatted values |
+| 10 | CSV exports | Done — Date/Time/DateTime columns and answers included in `export_questionnaire_responses` |
+| 11 | REDCap export | **Excluded** — handled separately |
+| 12 | Translations | Done — `makemessages` + `compilemessages` run for bn, dz, hi, ne; new UI strings are in the .po catalogs |
+| 13 | Tests | Done — `promapp/tests/test_temporal_responses.py` (40 tests) |
+| 14 | Pre-existing fixes | Done — `'Numeric'` → `ResponseTypeChoices.NUMBER` in `patientapp/views.py` (2 sites) and `patient_portal_plots.html`; dead `add_item_form` view removed from `promapp/views.py` |
+
+Extra fix found while testing: with `DJANGO_DEBUG_TOOLBAR_ENABLED=True` in the
+environment, every full-request Django test crashed with
+`NoReverseMatch: 'djdt'` because the toolbar middleware rendered its toolbar
+while its URLs are absent during test runs. `chaviprom/settings.py` now never
+shows the toolbar while `manage.py test` is running (`SHOW_TOOLBAR_CALLBACK`
+returns False). This made the pre-existing `test_csrf` suite green again.
+
+Test command (note: `manage.py test` discovery is broken repo-wide by the
+long-standing `promapp/tests.py` + `promapp/tests/` name collision; run
+modules explicitly):
+
+```
+./venv/bin/python manage.py test promapp.tests.test_csrf promapp.tests.test_equation_parser \
+    promapp.tests.test_temporal_responses patientapp.tests
+# Ran 196 tests — OK
+```
