@@ -73,7 +73,7 @@ prompt_toolkit==3.0.53
 psycopg2-binary==2.9.13
 pycap==2.7.0
 pycparser==3.12
-pydantic==2.14.3
+pydantic==2.14.4
 pydantic_core==2.50.4
 Pygments==2.21.0
 pymemcache==4.0.0
